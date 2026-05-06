@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <base target="_top">
+  <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;500&display=swap" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+body {
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+    }
+    .widget-container {
+      display: flex;
+      width: 432px;
+      height: 40px;
+      background: white;
+      border-radius: 3px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      font-family: 'Kanit', sans-serif;
+      overflow: hidden;
+    }
+
+    .level-indicator {
+      width: 30%;
+      display: flex;
+      align-items: center;
+      height: 100%;
+    }
+
+    .level-content {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      height: 100%;
+      position: relative;
+      padding: 4px;
+    }
+
+    .emoji {
+      width: 40px;
+      height: 40px;
+      animation: bounce 2s infinite;
+      margin-right: 10px;
+      margin-top: 10px;
+    }
+
+    .pm-label {
+      font-size: 12px;
+      color: white;
+      white-space: nowrap;
+    }
+
+    .value-display {
+      width: 20%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      margin: 0; /* ลบ margin */
+    }
+
+    .pm-value {
+      font-size: 16px;
+      font-weight: bold;
+      color: #333;
+      line-height: 1;
+    }
+
+    .pm-unit {
+      font-size: 9px;
+      color: #333;
+      margin-top: 2px;
+    }
+
+    .recommendation-box {
+     flex: 1;
+     padding: 5px 8px;
+     display: flex;
+     align-items: center;
+     font-family: 'Kanit', sans-serif;
+     background-color: #f5f5f5;
+     margin: 0;
+     overflow: hidden;
+   }
+
+   .recommendation-text {
+     font-size: 15px;
+     line-height: 1.2;
+     color: #444;
+     display: -webkit-box;
+     -webkit-line-clamp: 2;
+     -webkit-box-orient: vertical;
+     overflow: hidden;
+     width: 100%;
+     white-space: normal;
+   }
+
+    @keyframes bounce {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-2px); }
+    }
+  </style>
+</head>
+<body>
+  <div class="widget-container">
+    <div class="level-indicator">
+      <div id="activeLevel" class="level-content">
+        <div class="emoji-container">
+          <div class="loading-spinner"></div>
+          <img id="emojiIcon" class="emoji" src="" alt="air quality emoji" onload="this.classList.add('loaded'); this.previousElementSibling.classList.add('hidden');">
+        </div>
+        <span class="pm-label">ค่าฝุ่น PM2.5</span>
+      </div>
+    </div>
+    <div id="valueBox" class="value-display">
+      <span id="pmValue" class="pm-value">--</span>
+      <span class="pm-unit">µg/m³</span>
+    </div>
+    <div id="recommendationBox" class="recommendation-box">
+      <span id="recommendationText" class="recommendation-text"></span>
+    </div>
+  </div>
+
+  <script>
+    function updateLevelIndicator(pm25Value) {
+  const levelContent = document.getElementById('activeLevel');
+  const emojiIcon = document.getElementById('emojiIcon');
+  const valueBox = document.getElementById('valueBox');
+  const pmValueDisplay = document.getElementById('pmValue');
+  const pmLabel = document.querySelector('.pm-label');
+
+  let color, colorLight, emojiUrl, recommendation, labelColor;
+
+  if (pm25Value <= 15.0) {
+    color = '#00B8FF';
+    colorLight = 'rgba(0, 184, 255, 0.2)';
+    emojiUrl = 'https://lh3.googleusercontent.com/d/1TC6j19-qUVDuQhi5PVUx32fVXeutDqQQ';
+    recommendation = 'ทำกิจกรรมได้ตามปกติ';
+    labelColor = 'white';  // สีข้อความเข้ม
+  } else if (pm25Value <= 25.0) {
+    color = '#00C600';
+    colorLight = 'rgba(0, 198, 0, 0.2)';
+    emojiUrl = 'https://lh3.googleusercontent.com/d/1lZzgY-swxfgGEYRcOwbIuJv7aUQlO-A4';
+    recommendation = 'ทำกิจกรรมได้ตามปกติ เฝ้าระวังผู้มีความเสี่ยง';
+    labelColor = 'white';  // สีข้อความเข้ม
+  } else if (pm25Value <= 37.5) {
+    color = '#FFFF00';
+    colorLight = 'rgba(255, 255, 0, 0.2)';
+    emojiUrl = 'https://lh3.googleusercontent.com/d/1yi_ZlTbdUc0d2uEmly31KRfkkRzrNxdY';
+    recommendation = 'เลี่ยงกิจกรรมกลางแจ้งที่ใช้แรงมาก สวมหน้ากากอนามัย';
+    labelColor = '#333';  // สีข้อความเข้ม
+  } else if (pm25Value <= 75.0) {
+    color = '#FF9900';
+    colorLight = 'rgba(255, 153, 0, 0.2)';
+    emojiUrl = 'https://lh3.googleusercontent.com/d/1eITs73hJrwzsRl1cLnvtJZTmEAKwMbQS';
+    recommendation = 'ลดกิจกรรมกลางแจ้ง สวมหน้ากาก N95 เมื่ออยู่นอกอาคาร';
+    labelColor = 'white';  // สีข้อความขาว
+  } else {
+    color = '#FF0000';
+    colorLight = 'rgba(255, 0, 0, 0.2)';
+    emojiUrl = 'https://lh3.googleusercontent.com/d/1cIZnB-nyeRcSQpg6FnwF7FgUC1rhNZ1G';
+    recommendation = 'งดกิจกรรมกลางแจ้ง สวมหน้ากาก N95 ทุกครั้งที่ออกนอกอาคาร';
+    labelColor = 'white';  // สีข้อความขาว
+  }
+
+  levelContent.style.backgroundColor = color;
+  valueBox.style.backgroundColor = colorLight;
+  emojiIcon.src = emojiUrl;
+  pmValueDisplay.textContent = pm25Value.toFixed(1);
+  pmLabel.style.color = labelColor;  // กำหนดสีข้อความตามเงื่อนไข
+  document.getElementById('recommendationText').textContent = recommendation;
+}
+google.script.run
+  .withSuccessHandler(function(data) {
+    console.log('Received data:', data);
+
+    if (data?.gistda?.selectedArea?.pm25) {
+      const pm25Value = data.gistda.selectedArea.pm25;
+      updateLevelIndicator(pm25Value);
+    } else {
+      console.error('Invalid data structure:', data);
+      document.getElementById('pmValue').textContent = 'Error';
+    }
+  })
+  .withFailureHandler(function(error) {
+    console.error('Failed to fetch data:', error);
+    document.getElementById('pmValue').textContent = 'Error';
+  })
+  .getWidgetData();  // เปลี่ยนเป็นเรียกฟังก์ชัน getWidgetData แทน
+
+// แก้ไข interval refresh
+setInterval(function() {
+  google.script.run
+    .withSuccessHandler(function(data) {
+      if (data?.gistda?.selectedArea?.pm25) {
+        const pm25Value = data.gistda.selectedArea.pm25;
+        updateLevelIndicator(pm25Value);
+      }
+    })
+    .withFailureHandler(function(error) {
+      console.error('Refresh failed:', error);
+    })
+    .getWidgetData();
+}, 3600000);
+
+//   let testValues = [10, 20, 30, 50, 80];
+//   let currentIndex = 0;
+
+// function testColorChanges() {
+//     updateLevelIndicator(testValues[currentIndex]);
+//     currentIndex = (currentIndex + 1) % testValues.length;
+// }
+
+// // ทดสอบทุก 3 วินาที
+// setInterval(testColorChanges, 3000);
+  </script>
+</body>
+</html>
