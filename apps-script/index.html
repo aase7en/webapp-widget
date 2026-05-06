@@ -7,26 +7,32 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@400;500;700&display=swap" rel="stylesheet">
   <style>
+    /* ตั้งค่าโครงสร้างหน้าเว็บให้โล่ง */
     * { margin: 0; padding: 0; box-sizing: border-box; }
     html, body {
-      margin: 0; padding: 0; overflow: hidden;
-      width: 100%; height: 100%;
-      font-family: 'Kanit', 'Sarabun', sans-serif;
-      -webkit-font-smoothing: antialiased;
-      background: #000000;
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      width: 100vw;
+      height: 100vh;
+      background: #000000; /* พื้นหลังส่วนที่เหลือให้มืดไว้ */
+      font-family: 'Kanit', sans-serif;
     }
 
-    /* Widget เต็ม 432x45 แบบ edge-to-edge ไม่มีขอบมน/เงา
-       เพราะอยู่บนแถบล่างของจอ LED 432x288 — ห้ามล้นเข้า content อื่น */
+    /* บังคับขนาด Widget ให้คงที่ 432x45 และแปะไว้มุมซ้ายบน */
     .widget {
+      position: absolute;
+      top: 0;
+      left: 0;
       display: flex;
-      width: 100%;
-      height: 100%;
+      width: 432px;
+      height: 45px;
       background: #0b1220;
       overflow: hidden;
+      z-index: 9999;
     }
 
-    /* === DateTime column === */
+    /* === DateTime column (Fixed width) === */
     .datetime-col {
       width: 96px;
       flex-shrink: 0;
@@ -37,24 +43,20 @@
       align-items: center;
       justify-content: center;
       padding: 2px 4px;
-      line-height: 1;
-      text-shadow: 0 1px 1px rgba(0,0,0,0.6);
+      line-height: 1.1;
     }
     .date-text {
       font-size: 11px;
       font-weight: 500;
-      letter-spacing: 0.2px;
       white-space: nowrap;
     }
     .time-text {
       font-size: 15px;
       font-weight: 700;
-      margin-top: 3px;
       font-variant-numeric: tabular-nums;
-      letter-spacing: 0.5px;
     }
 
-    /* === PM2.5 column === */
+    /* === PM2.5 column (Fixed width) === */
     .pm-col {
       width: 132px;
       flex-shrink: 0;
@@ -64,77 +66,71 @@
       padding: 0 8px;
       background: #475569;
       color: #ffffff;
-      transition: background-color 0.4s ease, color 0.4s ease;
-      text-shadow: 0 1px 1px rgba(0,0,0,0.45);
+      transition: background-color 0.4s ease;
     }
-    .pm-col.dark { color: #111827; text-shadow: none; }
+    .pm-col.dark { color: #111827; }
+
     .emoji {
-      width: 34px; height: 34px;
+      width: 32px;
+      height: 32px;
       flex-shrink: 0;
       animation: bounce 2s ease-in-out infinite;
     }
     .pm-info {
       display: flex;
       flex-direction: column;
-      line-height: 1.05;
-      flex: 1;
-      min-width: 0;
-    }
-    .pm-label {
-      font-size: 10px;
-      font-weight: 500;
-      opacity: 0.98;
-      white-space: nowrap;
-    }
-    .pm-value-row { display: flex; align-items: baseline; gap: 3px; }
-    .pm-value {
-      font-size: 19px;
-      font-weight: 700;
-      font-variant-numeric: tabular-nums;
       line-height: 1;
     }
-    .pm-unit { font-size: 9px; opacity: 0.9; }
+    .pm-label {
+      font-size: 9px;
+      font-weight: 500;
+      margin-bottom: 2px;
+    }
+    .pm-value-row { display: flex; align-items: baseline; gap: 2px; }
+    .pm-value {
+      font-size: 18px;
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+    }
+    .pm-unit { font-size: 8px; opacity: 0.8; }
 
-    /* === Recommendation === */
+    /* === Recommendation (Fill the rest of 432px) === */
     .recommend-col {
       flex: 1;
       display: flex;
       align-items: center;
-      padding: 4px 8px;
+      padding: 0 10px;
       background: linear-gradient(135deg, #1e293b, #0f172a);
       color: #ffffff;
       overflow: hidden;
-      text-shadow: 0 1px 1px rgba(0,0,0,0.6);
     }
     .recommend-text {
-      font-size: 13px;
+      font-size: 12px;
       font-weight: 500;
       line-height: 1.2;
-      color: #ffffff;
-      letter-spacing: 0.2px;
       display: -webkit-box;
       -webkit-line-clamp: 2;
       -webkit-box-orient: vertical;
       overflow: hidden;
-      width: 100%;
     }
 
     @keyframes bounce {
       0%, 100% { transform: translateY(0); }
-      50%     { transform: translateY(-2px); }
+      50% { transform: translateY(-2px); }
     }
   </style>
 </head>
 <body>
+
   <div class="widget">
     <div class="datetime-col">
       <span id="dateText" class="date-text">-- --- ----</span>
       <span id="timeText" class="time-text">--:--:--</span>
     </div>
     <div id="pmCol" class="pm-col">
-      <img id="emoji" class="emoji" src="" alt="">
+      <img id="emoji" class="emoji" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="">
       <div class="pm-info">
-        <span class="pm-label">ค่าฝุ่น PM2.5</span>
+        <span class="pm-label">PM2.5</span>
         <span class="pm-value-row">
           <span id="pmValue" class="pm-value">--</span>
           <span class="pm-unit">µg/m³</span>
@@ -142,101 +138,99 @@
       </div>
     </div>
     <div class="recommend-col">
-      <span id="recommendText" class="recommend-text">กำลังโหลดข้อมูลคุณภาพอากาศ...</span>
+      <span id="recommendText" class="recommend-text">Loading...</span>
     </div>
   </div>
 
   <script>
-    // ============================================================
-    //  CLOCK — วันที่ (พ.ศ.) + เวลา 24 ชม. H:MM:SS
-    // ============================================================
-    const THAI_MONTHS = [
-      'ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.',
-      'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'
-    ];
+    // CLOCK
+    const THAI_MONTHS = ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'];
     const pad2 = n => (n < 10 ? '0' : '') + n;
 
     function tickClock() {
       const now = new Date();
-      const day   = now.getDate();
+      const day = now.getDate();
       const month = THAI_MONTHS[now.getMonth()];
-      const year  = now.getFullYear() + 543;
+      const year = now.getFullYear() + 543;
       document.getElementById('dateText').textContent = `${day} ${month} ${year}`;
-      document.getElementById('timeText').textContent =
-        `${pad2(now.getHours())}:${pad2(now.getMinutes())}:${pad2(now.getSeconds())}`;
+      document.getElementById('timeText').textContent = `${pad2(now.getHours())}:${pad2(now.getMinutes())}:${pad2(now.getSeconds())}`;
     }
     tickClock();
     setInterval(tickClock, 1000);
 
     // ============================================================
-    //  PM2.5 LEVELS
+    //  PM2.5 LEVELS (ปรับ Emoji ใหม่ให้สื่ออารมณ์ชัดเจนขึ้น)
     // ============================================================
     const LEVELS = [
-      { max: 15.0,     color: '#00B8FF', text: 'ทำกิจกรรมได้ตามปกติ',
-        emoji: 'https://lh3.googleusercontent.com/d/1TC6j19-qUVDuQhi5PVUx32fVXeutDqQQ' },
-      { max: 25.0,     color: '#00C600', text: 'ทำกิจกรรมได้ตามปกติ เฝ้าระวังผู้มีความเสี่ยง',
-        emoji: 'https://lh3.googleusercontent.com/d/1lZzgY-swxfgGEYRcOwbIuJv7aUQlO-A4' },
-      { max: 37.5,     color: '#FFFF00', text: 'เลี่ยงกิจกรรมกลางแจ้งที่ใช้แรงมาก สวมหน้ากากอนามัย',
-        emoji: 'https://lh3.googleusercontent.com/d/1yi_ZlTbdUc0d2uEmly31KRfkkRzrNxdY', dark: true },
-      { max: 75.0,     color: '#FF9900', text: 'ลดกิจกรรมกลางแจ้ง สวมหน้ากาก N95 เมื่ออยู่นอกอาคาร',
-        emoji: 'https://lh3.googleusercontent.com/d/1eITs73hJrwzsRl1cLnvtJZTmEAKwMbQS' },
-      { max: Infinity, color: '#FF0000', text: 'งดกิจกรรมกลางแจ้ง สวมหน้ากาก N95 ทุกครั้งที่ออกนอกอาคาร',
-        emoji: 'https://lh3.googleusercontent.com/d/1cIZnB-nyeRcSQpg6FnwF7FgUC1rhNZ1G' }
+      {
+        max: 15.0,
+        color: '#00B8FF',
+        text: 'คุณภาพอากาศดีมาก ทำกิจกรรมได้ตามปกติ',
+        // 😄 Grinning Face with Big Eyes
+        emoji: 'https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/72x72/1f604.png'
+      },
+      {
+        max: 25.0,
+        color: '#00C600',
+        text: 'คุณภาพอากาศดี ทำกิจกรรมได้ตามปกติ',
+        // 🙂 Slightly Smiling Face
+        emoji: 'https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/72x72/1f642.png'
+      },
+      {
+        max: 37.5,
+        color: '#FFFF00',
+        text: 'เริ่มมีผลต่อสุขภาพ เลี่ยงกิจกรรมกลางแจ้ง',
+        // 😷 Face with Medical Mask
+        emoji: 'https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/72x72/1f637.png',
+        dark: true
+      },
+      {
+        max: 75.0,
+        color: '#FF9900',
+        text: 'มีผลต่อสุขภาพ ควรใส่หน้ากาก N95',
+        // 🤧 Sneezing Face (สื่อถึงการแพ้ฝุ่น/ไอจาม)
+        emoji: 'https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/72x72/1f927.png'
+      },
+      {
+        max: Infinity,
+        color: '#FF0000',
+        text: 'อันตราย! งดกิจกรรมกลางแจ้งเด็ดขาด',
+        // 🤒 Face with Thermometer (สื่อถึงอาการป่วย/อันตราย)
+        emoji: 'https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/72x72/1f912.png'
+      }
     ];
-    const levelOf = v => LEVELS.find(l => v <= l.max);
 
     function renderPm25(value) {
-      const lv = levelOf(value);
+      // ป้องกันกรณีค่า value ไม่มี หรือ error ให้ใช้ค่าระดับ 5 (สีแดง) หรือตามที่ต้องการ
+      const lv = LEVELS.find(l => value <= l.max) || LEVELS[4];
+
       const pmCol = document.getElementById('pmCol');
       pmCol.style.backgroundColor = lv.color;
       pmCol.classList.toggle('dark', !!lv.dark);
-      const img = document.getElementById('emoji');
-      if (img.src !== lv.emoji) img.src = lv.emoji;
+
+      document.getElementById('emoji').src = lv.emoji;
       document.getElementById('pmValue').textContent = value.toFixed(1);
       document.getElementById('recommendText').textContent = lv.text;
     }
 
-    // ============================================================
-    //  CACHE — เก็บค่าล่าสุดไว้แสดงทันทีตอนเปิดใหม่
-    //  ถ้าไม่เคยมี cache → ใช้ค่า default 20 (ระดับ "ดี" — สีเขียว)
-    // ============================================================
+    // Default Cache & Fetch
     const CACHE_KEY = 'pm25_widget_cache_v1';
-    const DEFAULT_PM25 = 20;
+    const saved = localStorage.getItem(CACHE_KEY);
+    renderPm25(saved ? JSON.parse(saved).pm25 : 12.0);
 
-    function readCache() {
-      try {
-        const raw = localStorage.getItem(CACHE_KEY);
-        if (!raw) return null;
-        const obj = JSON.parse(raw);
-        return (typeof obj.pm25 === 'number') ? obj.pm25 : null;
-      } catch (e) { return null; }
-    }
-    function writeCache(value) {
-      try { localStorage.setItem(CACHE_KEY, JSON.stringify({ pm25: value, ts: Date.now() })); }
-      catch (e) {}
-    }
-
-    // วาดข้อมูลเริ่มต้นทันทีก่อนเรียก API → จอ LED ไม่โล่ง
-    renderPm25(readCache() ?? DEFAULT_PM25);
-
-    // ============================================================
-    //  FETCH live data — ไม่ block UI
-    // ============================================================
     function fetchPm25() {
-      if (typeof google === 'undefined' || !google.script || !google.script.run) return;
-      google.script.run
-        .withSuccessHandler(function (data) {
-          const v = data && data.gistda && data.gistda.selectedArea && data.gistda.selectedArea.pm25;
-          if (typeof v === 'number' && !isNaN(v)) {
+      if (typeof google !== 'undefined' && google.script && google.script.run) {
+        google.script.run.withSuccessHandler(data => {
+          const v = data?.gistda?.selectedArea?.pm25;
+          if (typeof v === 'number') {
             renderPm25(v);
-            writeCache(v);
+            localStorage.setItem(CACHE_KEY, JSON.stringify({ pm25: v, ts: Date.now() }));
           }
-        })
-        .withFailureHandler(function (err) { console.error('PM2.5 fetch failed:', err); })
-        .getWidgetData();
+        }).getWidgetData();
+      }
     }
     fetchPm25();
-    setInterval(fetchPm25, 3600000); // refresh ทุก 1 ชั่วโมง
+    setInterval(fetchPm25, 3600000);
   </script>
 </body>
 </html>
