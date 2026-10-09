@@ -73,13 +73,8 @@ function importDataToSpreadsheet(airData) {
     throw new Error('Missing GISTDA PM2.5 concentration');
   }
 
-  // Never claim WAQI's PM10 subindex is PM10 mass in µg/m³.
-  // No unsupported value, zero, or NaN may be written in AQI/PM10 columns.
-  const newRow = [new Date(), '', '', pm25 === null ? '' : pm25,
-    avg24 === null ? '' : avg24];
-  sheet.appendRow(newRow);
-  sheet.getRange(sheet.getLastRow(), 2, 1, 4).setNumberFormat('0.00');
-
+  // Initialise the header BEFORE appending: on a blank sheet the first
+  // appendRow() would occupy row 1 and hide the absence of a header.
   const header = sheet.getRange(1, 1, 1, 5).getValues()[0];
   if (!header[0]) {
     sheet.getRange(1, 1, 1, 5).setValues([[
@@ -87,5 +82,12 @@ function importDataToSpreadsheet(airData) {
       'PM2.5 (µg/m³)', 'PM2.5 24hr Avg (µg/m³)'
     ]]);
   }
+
+  // WAQI's PM10 subindex is not PM10 mass in µg/m³.
+  // Never fabricate zero, a measurement or NaN in AQI/PM10 columns.
+  const newRow = [new Date(), '', '', pm25 === null ? '' : pm25,
+    avg24 === null ? '' : avg24];
+  sheet.appendRow(newRow);
+  sheet.getRange(sheet.getLastRow(), 2, 1, 4).setNumberFormat('0.00');
   // Never delete historical sheet rows as a side-effect of a hotfix.
 }

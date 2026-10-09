@@ -73,6 +73,37 @@ test('bad API response or non-Uthai data fails the execution with no write',()=>
     assert.ok(x.recorded.logged.some(s=>s.startsWith('main failed:')));
   }
 });
+test('blank sheet writes header before data, not over first row',()=>{
+  const order=[];
+  const existing=[];
+  const sheet={
+    appendRow(row){order.push('append');existing.push(row);},
+    getLastRow(){return existing.length;},
+    getRange(){
+      return {
+        getValues(){return [existing[0] || ['', '', '', '', '']];},
+        setValues(rows){order.push('header');existing[0]=rows[0];},
+        setNumberFormat(format){assert.equal(format,'0.00');}
+      };
+    }
+  };
+  const context={
+    CONFIG:{SPREADSHEET_ID:'testing',API_ENDPOINTS:{GISTDA_AIR:'https://example.invalid/gistda'}},
+    SpreadsheetApp:{openById(){return {getSheetByName(){return sheet;}};}},
+    UrlFetchApp:{fetch(){return {getResponseCode(){return 200;},getContentText(){return JSON.stringify({
+      status:200,data:[{tb_tn:'อุทัย',pm25:5,pm25Avg24hr:8}]
+    });}};}},
+    Logger:{log(){}}
+  };
+  vm.createContext(context);
+  vm.runInContext(patch,context);
+  context.main();
+  assert.deepEqual(order,['header','append']);
+  assert.equal(existing.length,2);
+  assert.equal(existing[0][0],'Timestamp');
+  assert.equal(existing[1][3],5);
+});
+
 test('spreadsheet append failure propagates; a successful execution cannot be claimed',()=>{
   const x=env({failAppend:true});
   assert.throws(()=>x.context.main(),/Sheet write denied/);

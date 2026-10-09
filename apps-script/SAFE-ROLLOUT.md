@@ -83,6 +83,6 @@ triggers may pick up edited code immediately. Stop/rollback if the resulting
 data is incorrect; changing the web-app deployment version does not roll back
 time-based HEAD triggers.
 
-**Verification:** `node --test tests/live-hotfix.test.cjs` (five
-deterministic tests). This does not replace a supervised real Sheet write and
+**Verification:** `node --test tests/live-hotfix.test.cjs` (six
+deterministic tests (including initialising an empty Sheet1 header before its first row)). This does not replace a supervised real Sheet write and
 cannot authorize a production deployment by itself.
