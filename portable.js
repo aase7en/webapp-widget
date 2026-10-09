@@ -31,7 +31,7 @@
         !Number.isFinite(lat) || !Number.isFinite(lon) ||
         lat < -90 || lat > 90 || lon < -180 || lon > 180) return null;
     const rawName = p.get('name') || 'พื้นที่ที่เลือก';
-    return { lat, lon, name: rawName.slice(0, 75), cards: p.get('layout') === 'cards' };
+    return { lat, lon, name: rawName.slice(0, 75), cards: p.get('layout') === 'cards', compact: p.get('compact') === '1' };
   }
   function heatIndexCelsius(temp, humidity) {
     if (!finite(temp) || !finite(humidity) || humidity < 0 || humidity > 100) return null;
@@ -166,6 +166,7 @@
   }
   title.textContent = loc.name;
   document.body.classList.toggle('cards-mode', loc.cards);
+  document.body.classList.toggle('compact-mode', loc.compact && !loc.cards);
   let tiles = [unavailable('PM2.5', 'กำลังโหลด'), unavailable('ดัชนีความร้อน', 'กำลังโหลด'),
     unavailable('น้ำท่วม', 'ยังไม่เชื่อมข้อมูล')];
   let active = 0;

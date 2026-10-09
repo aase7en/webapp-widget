@@ -6,7 +6,7 @@ test('coordinates validate both ranges and accept zero',()=>{
  assert.equal(w.parseLocation('?lat=14.3'),null);
  assert.equal(w.parseLocation('?lat=&lon=100'),null);
  assert.equal(w.parseLocation('?lat=91&lon=100'),null);
- assert.deepEqual(w.parseLocation('?lat=0&lon=0&name=Central&layout=cards'),{lat:0,lon:0,name:'Central',cards:true});
+ assert.deepEqual(w.parseLocation('?lat=0&lon=0&name=Central&layout=cards'),{lat:0,lon:0,name:'Central',cards:true,compact:false});
 });
 test('pm average validates 24 complete consecutive hourly samples',()=>{
  const iso=i=>new Date(Date.UTC(2026,9,8,4)+i*3600000).toISOString().slice(0,16);
@@ -31,4 +31,8 @@ test('flood adapter cannot report LOW without valid recent timestamp and source'
 test('PM thresholds keep exact 15 and 25 in their inclusive class',()=>{
  assert.equal(w.classify(15,[{max:15,label:'good'},{max:25,label:'next'}],true).label,'good');
  assert.equal(w.classify(25,[{max:15,label:'good'},{max:25,label:'next'}],true).label,'next');
+});
+
+test('portable 40-pixel embed is opt-in',()=>{
+ assert.equal(w.parseLocation('?lat=14&lon=100&compact=1').compact,true);
 });
