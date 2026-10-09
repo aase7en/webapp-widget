@@ -106,6 +106,8 @@ https://pm25.gistda.or.th/rest/getPm25byLocation?lat=14.36147&lng=100.64424
 - Trigger แบบเดิมลบ Trigger ทั้งหมด เสี่ยงกระทบงานร่วมกัน; สำเนาใหม่ลบเฉพาะ Handler ที่เป็นเจ้าของ
 - ทดสอบกับจอจริง, Mobile, Network Failure, วัน/เวลาไทย, การสูญเสีย API, ความถูกต้องของหน่วย, HTTP & CORS ก่อนเปิดให้ประชาชนใช้
 
+**สำหรับแก้ข้อผิดพลาด Live Apps Script กรณี PM10 หาย:** [คู่มือแก้ไขและปล่อยเวอร์ชันอย่างปลอดภัย](apps-script/SAFE-ROLLOUT.md) — ต้องตรวจ Source/Deployment จริงก่อน ห้าม Paste โค้ดจาก GitHub ทับทันที
+
 ## การพัฒนาและเผยแพร่โดยไม่กระทบป้าย 24/7
 
 1. แก้ใน Feature Branch/PR ไม่แก้ `main` ตรง ๆ และไม่เปลี่ยน Apps Script Live ระหว่างทดสอบ

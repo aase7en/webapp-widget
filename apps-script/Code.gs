@@ -12,7 +12,9 @@ const CONFIG = Object.freeze({
 
 function validConcentration(raw) {
   // Explicit null/blank are unavailable, not zero.
-  if (raw === null || raw === undefined || raw === '') return null;
+  // Reject booleans/arrays/objects: Number(false) and Number([]) falsely become 0.
+  if (typeof raw !== 'number' && typeof raw !== 'string') return null;
+  if (typeof raw === 'string' && raw.trim() === '') return null;
   const v = Number(raw);
   return Number.isFinite(v) && v >= 0 ? v : null;
 }
@@ -20,6 +22,7 @@ function getGistdaUthaiData() {
   const res = UrlFetchApp.fetch(CONFIG.GISTDA_AIR, { muteHttpExceptions: true });
   if (res.getResponseCode() !== 200) throw new Error('GISTDA request failed: HTTP ' + res.getResponseCode());
   const payload = JSON.parse(res.getContentText());
+  if (payload?.status !== undefined && Number(payload.status) !== 200) throw new Error('GISTDA returned an error status');
   if (!Array.isArray(payload?.data)) throw new Error('Invalid GISTDA response structure');
   const uthai = payload.data.find(row => row.tb_tn === 'อุทัย');
   if (!uthai) throw new Error('Uthai tambon not found in GISTDA response');

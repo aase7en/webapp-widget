@@ -12,4 +12,5 @@ jobs:
         with:
           node-version: '22'
       - run: node --check portable.js
+      - run: node --check < apps-script/Code.gs
       - run: node --test tests/*.test.cjs
