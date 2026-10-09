@@ -116,7 +116,7 @@ body {
           <div class="loading-spinner"></div>
           <img id="emojiIcon" class="emoji" src="" alt="air quality emoji" onload="this.classList.add('loaded'); this.previousElementSibling.classList.add('hidden');">
         </div>
-        <span class="pm-label">ค่าฝุ่น PM2.5</span>
+        <span class="pm-label">PM2.5 (24 ชม.)</span>
       </div>
     </div>
     <div id="valueBox" class="value-display">
@@ -181,8 +181,8 @@ google.script.run
   .withSuccessHandler(function(data) {
     console.log('Received data:', data);
 
-    if (data?.gistda?.selectedArea?.pm25) {
-      const pm25Value = data.gistda.selectedArea.pm25;
+    if (Number.isFinite(data?.gistda?.selectedArea?.pm25Avg24hr)) {
+      const pm25Value = data.gistda.selectedArea.pm25Avg24hr;
       updateLevelIndicator(pm25Value);
     } else {
       console.error('Invalid data structure:', data);
@@ -199,8 +199,8 @@ google.script.run
 setInterval(function() {
   google.script.run
     .withSuccessHandler(function(data) {
-      if (data?.gistda?.selectedArea?.pm25) {
-        const pm25Value = data.gistda.selectedArea.pm25;
+      if (Number.isFinite(data?.gistda?.selectedArea?.pm25Avg24hr)) {
+        const pm25Value = data.gistda.selectedArea.pm25Avg24hr;
         updateLevelIndicator(pm25Value);
       }
     })

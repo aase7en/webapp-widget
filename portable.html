@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light">
+<title>Environmental Widget · ข้อมูลสิ่งแวดล้อมตามพิกัด</title>
+<!-- A deployer may configure a reviewed same-origin HTTPS flood adapter here.
+     The GISTDA API key must stay on the server. Do not insert API credentials. -->
+<meta name="flood-proxy" content="">
+<style>
+:root {font-family:system-ui,"Noto Sans Thai",Tahoma,sans-serif;color:#14202b;background:#f5f7fa}
+* {box-sizing:border-box}
+body {margin:0}
+header {font-size:11px;background:#edf2f7;padding:3px 8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#content {height:40px}
+.tile {height:40px;display:flex;align-items:center;gap:6px;padding:3px 8px;border-left:6px solid #757d88;background:#fff;overflow:hidden}
+.tile strong {font-size:12px;min-width:72px}
+.tile .number {font-size:14px;font-weight:750;white-space:nowrap}
+.tile .status {font-size:10px;font-weight:650;white-space:nowrap}
+.tile small {font-size:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1;color:#374151}
+.tile.excellent {border-color:#1688d2;background:#e8f6ff}
+.tile.good {border-color:#208a48;background:#e9f7ec}
+.tile.moderate {border-color:#d1aa00;background:#fffbe2}
+.tile.warning {border-color:#db7822;background:#fff3e8}
+.tile.danger {border-color:#c32b35;background:#fff0f0}
+.tile.unavailable {border-color:#7f8999;background:#f2f4f6}
+footer {font-size:10px;background:#edf2f7;color:#425263;padding:3px 8px}
+.cards-mode #content {height:auto;display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:6px;padding:6px}
+.cards-mode .tile {height:auto;min-height:100px;flex-direction:column;align-items:flex-start;gap:4px;border-left-width:5px}
+.cards-mode .tile small {white-space:normal}
+#instructions {font-size:12px;margin:12px}
+@media (max-width:480px) { .tile small {display:none} .cards-mode .tile small {display:block} }
+@media (prefers-reduced-motion:reduce) { *,*::before,*::after {animation:none!important;transition:none!important} }
+</style>
+</head>
+<body>
+<header id="place">กำลังตรวจพิกัด</header>
+<main id="content" aria-live="polite" aria-label="สถานการณ์สิ่งแวดล้อม"></main>
+<footer id="metadata">ข้อมูลแบบจำลองไม่ใช่สถานีตรวจวัดจริง · ต้องตรวจแหล่งข้อมูลก่อนตัดสินใจ</footer>
+<p id="instructions" hidden>กำหนด lat และ lon ใน URL เช่น <code>?lat=14.36&amp;lon=100.64&amp;name=อุทัย</code>
+ใช้ <code>&amp;layout=cards</code> เพื่อแสดงข้อมูล 3 ช่องพร้อมกัน</p>
+<script defer src="./portable.js"></script>
+</body>
+</html>

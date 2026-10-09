@@ -1,10 +1,20 @@
 <!DOCTYPE html>
-<html>
-<head>
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<base target="_top">
+<html lang="th">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Air Quality Widget – Uthai Hospital</title>
+<style>html,body{margin:0;width:100%;height:100%;overflow:hidden}iframe{position:absolute;inset:0;width:100%;height:100%;border:0}</style>
 </head>
 <body>
-<iframe style="position: absolute;top: 0;left: 0;width: 100%;height: 100%;border: 0;" src="https://script.google.com/macros/s/AKfycbwwUQCeJoz4N0P9UuRJF39pt17mBjPz0_yMDDxTO7BoiUiTQaO7Yay0UKq80EvE6dk/exec"></iframe>
+<!-- Keep the deployed hospital LED iframe unchanged when no coordinates are provided.
+     Explicit lat/lon routes to a separately tested, portable public widget. -->
+<script>
+(function () {
+  var p = new URLSearchParams(location.search);
+  if (p.has('lat') || p.has('lon')) {
+    location.replace(new URL('./portable.html' + location.search, location.href).href);
+  }
+}());
+</script>
+<iframe title="รายงาน PM2.5 พื้นที่โรงพยาบาลอุทัย" src="https://script.google.com/macros/s/AKfycbwwUQCeJoz4N0P9UuRJF39pt17mBjPz0_yMDDxTO7BoiUiTQaO7Yay0UKq80EvE6dk/exec" referrerpolicy="strict-origin-when-cross-origin" loading="eager"></iframe>
 </body>
 </html>
