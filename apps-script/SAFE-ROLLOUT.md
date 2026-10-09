@@ -39,3 +39,50 @@ The connected Google Drive integration can retrieve Apps Script *file metadata* 
 ## Evidence
 
 `node --test tests/*.test.cjs` covers missing PM10, zero, NaN, provider error, Sheets append error, trigger isolation and legacy Widget refresh stale reset. Passing mocked tests **does not** prove a successful production Sheet write.
+
+## Prepared minimal production hotfix (2026-10-09)
+
+The separate [`LIVE-HOTFIX-CANDIDATE.gs`](LIVE-HOTFIX-CANDIDATE.gs) is a
+**reference patch**, not a new app entry point and not an automatically
+deployed Apps Script source file.
+
+**Scope of the user-provided original `Code.gs` only:**
+
+- REPLACE the *existing* live `main()` with the version in the candidate,
+  so `main` fetches GISTDA independently instead of requiring WAQI
+  `global.data.iaqi`, and throws after logging failed writes.
+- REPLACE the *existing* live `importDataToSpreadsheet(airData)`.
+  This preserves the five columns in `ชีต1`, writes legitimate numerical
+  zero, blanks unavailable AQI and PM10 concentration, and avoids deleting
+  historical rows during a hotfix.
+- ADD new helpers `optionalPM25_()` and `gistdaForMain_()` once.
+- **DO NOT** add the candidate .gs alongside the existing live `Code.gs`
+  without removing/replacing the duplicate function definitions.
+- **DO NOT** change existing `doGet`, `getWidgetData`, `logGistdaData`,
+  `logPm25ToSheet2`, web app deployment, triggers, or secrets in this patch.
+  `logGistdaData` is a distinct independently operating handler; review
+  later, after confirming the primary sheet repair.
+- Preserve `CONFIG.SPREADSHEET_ID` and `CONFIG.API_ENDPOINTS.GISTDA_AIR`
+  in the private live source; **do not copy public/expired WAQI or LINE tokens
+  into the new patch**.
+
+**Proof before writing live:** the user's Execution screenshot at
+2026-10-09 06:41:18 explicitly logged
+`Cannot read properties of undefined (reading 'pm10')`;
+the user's historical `Code.gs` contains the unguarded
+`global.data.iaqi.pm10.v` expression. The failure is caused by
+accessing `pm10` through an absent `iaqi` object; a missing PM10 mass
+concentration must be blank, not zero.
+
+**Live gate:** retrieve the actual source and its deployment identifier,
+compare it with the user-provided historical script, then back up privately
+before surgically applying the patch. Test the functions with mocks, compare
+the resulting patch to the live source, and perform a supervised single
+`main` execution followed by a targeted `ชีต1` read. The scheduled HEAD
+triggers may pick up edited code immediately. Stop/rollback if the resulting
+data is incorrect; changing the web-app deployment version does not roll back
+time-based HEAD triggers.
+
+**Verification:** `node --test tests/live-hotfix.test.cjs` (five
+deterministic tests). This does not replace a supervised real Sheet write and
+cannot authorize a production deployment by itself.

@@ -97,6 +97,20 @@ https://pm25.gistda.or.th/rest/getPm25byLocation?lat=14.36147&lng=100.64424
 - `apps-script/Code.gs` และ `apps-script/index.html` เป็น **Versioned Copies** เท่านั้น ไม่ใช่โค้ดที่ Deploy เองจาก GitHub
 - แก้ Apps Script แล้วให้ใช้ **Manage deployments → Edit → New version** ของ Deployment เดิม เมื่อผ่านการทดสอบ เพื่อคง URL `/exec`
 
+### การแก้ `ชีต1` สำหรับ Live Apps Script (ระหว่างรอ GISTDA API)
+
+ได้เตรียม [ตัวอย่าง Hotfix เฉพาะจุด](apps-script/LIVE-HOTFIX-CANDIDATE.gs)
+และ [คู่มือติดตั้ง/ทดสอบ/ย้อนกลับ](apps-script/SAFE-ROLLOUT.md) เพิ่มแล้ว
+เพื่อแก้ปัญหา `global.data.iaqi.pm10.v` ใน `main()` โดยไม่พึ่ง WAQI,
+ไม่แปลงค่าที่ไม่มีเป็นศูนย์, ไม่ลบประวัติในชีต และให้การบันทึกล้มเหลว
+แสดงสถานะ Error ใน Executions จริง
+
+**หมายเหตุ:** นี่เป็นไฟล์ต้นแบบสำหรับแก้ Live Script แบบยืนยันความแตกต่าง
+ไม่ใช่สคริปต์ที่ Deploy แล้ว ห้ามเพิ่มไฟล์นี้ทั้งไฟล์เข้า Apps Script
+โดยไม่แทนที่ `main` และ `importDataToSpreadsheet` ของเดิม:
+ฟังก์ชันชื่อซ้ำอาจทำงานผิดความคาดหมาย และต้องสำรอง Live Source
+ก่อนทุกครั้ง
+
 ### ปัญหาที่พบและวิธีป้องกัน
 
 - LINE Notify **ยุติบริการ 31 มี.ค. 2025** จึงไม่ได้เป็นส่วนของ Portable Widget; หากต้องส่ง LINE จริงให้ใช้อีกโครงการ LINE Messaging API
