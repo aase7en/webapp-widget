@@ -106,12 +106,60 @@
   function unavailable(title, note) {
     return { title, value: 'ไม่มีข้อมูล', tone: 'unavailable', note, type: 'UNAVAILABLE' };
   }
+  // GISTDA CheckPhoon location response is an area estimate, not a ground sensor.
+  // API expects "lng" even though embeddable public URL uses "lon".
+  function gistdaObservedAt(data) {
+    const date = data?.datetimeEng?.dateEng;
+    const time = data?.datetimeEng?.timeEng;
+    if (typeof date !== 'string' || typeof time !== 'string') return null;
+    const parts = date.match(/(?:^|\s)(\d{1,2})\s+(January|February|March|April|May|June|July|August|September|October|November|December)\s+(\d{4})$/);
+    const clock = time.match(/^(\d{1,2}):(\d{2})$/);
+    if (!parts || !clock) return null;
+    const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+    const day = Number(parts[1]), month = months.indexOf(parts[2]) + 1, year = Number(parts[3]);
+    const hour = Number(clock[1]), minute = Number(clock[2]);
+    if (day < 1 || day > 31 || hour > 23 || minute > 59) return null;
+    const stamp = Date.parse(year + '-' + String(month).padStart(2,'0') + '-' +
+      String(day).padStart(2,'0') + 'T' + String(hour).padStart(2,'0') + ':' +
+      String(minute).padStart(2,'0') + ':00+07:00');
+    if (!Number.isFinite(stamp) || stamp > Date.now() + 5 * 60000 ||
+        Date.now() - stamp > 4 * 3600000) return null;
+    return stamp;
+  }
+  function gistdaPmTile(payload) {
+    if (payload?.status !== 200 || typeof payload?.data !== 'object' || !payload.data) return null;
+    const data = payload.data;
+    const value = data.pm25Avg24hrs;
+    const observedAt = gistdaObservedAt(data);
+    const level = classify(value, THRESHOLDS, true);
+    if (!level || observedAt === null) return null;
+    return { title: 'PM2.5', value: value.toFixed(1) + ' µg/m³', tone: level.tone,
+      note: 'GISTDA CheckPhoon · 24 ชม. (ประมาณการพื้นที่) · ' +
+        new Date(observedAt).toLocaleString('th-TH', { timeZone: 'Asia/Bangkok', hour12: false }),
+      type: 'MODELLED', label: level.label };
+  }
+  async function openMeteoFallback(location) {
+    try {
+      const url = apiUrl('https://air-quality-api.open-meteo.com/v1/air-quality',
+        { current: 'pm2_5', hourly: 'pm2_5', past_hours: 24, forecast_hours: 1 }, location);
+      const data = await json(url);
+      const v = pm24HourAverage(data);
+      const level = classify(v, THRESHOLDS, true);
+      if (level && typeof data.current?.time === 'string') {
+        return { title: 'PM2.5', value: v.toFixed(1) + ' µg/m³',
+          tone: level.tone, note: 'แหล่งสำรอง CAMS/Open-Meteo · 24 ชม. (แบบจำลอง) · ' + data.current.time,
+          type: 'MODELLED', label: level.label };
+      }
+    } catch { /* Fail closed to UNAVAILABLE. */ }
+    return unavailable('PM2.5', 'GISTDA และแบบจำลองสำรองไม่พร้อมใช้งาน');
+  }
   async function fetchTiles(location, floodEndpoint) {
-    const aq = apiUrl('https://air-quality-api.open-meteo.com/v1/air-quality',
-      { current: 'pm2_5', hourly: 'pm2_5', past_hours: 24, forecast_hours: 1 }, location);
+    const gistda = new URL('https://pm25.gistda.or.th/rest/getPm25byLocation');
+    gistda.searchParams.set('lat', String(location.lat));
+    gistda.searchParams.set('lng', String(location.lon));
     const wx = apiUrl('https://api.open-meteo.com/v1/forecast',
       { current: 'temperature_2m,relative_humidity_2m', forecast_days: 1 }, location);
-    const jobs = [json(aq), json(wx)];
+    const jobs = [json(gistda.toString()), json(wx)];
     if (floodEndpoint) {
       const f = new URL(floodEndpoint);
       if (f.protocol !== 'https:') throw new Error('Flood proxy must use HTTPS');
@@ -120,21 +168,14 @@
       jobs.push(json(f.toString()));
     }
     const results = await Promise.allSettled(jobs);
-    let pm = unavailable('PM2.5', 'โมเดล CAMS ไม่พร้อมใช้งาน');
-    if (results[0].status === 'fulfilled') {
-      const data = results[0].value;
-      const v = pm24HourAverage(data);
-      const level = classify(v, THRESHOLDS, true);
-      if (level) pm = { title: 'PM2.5', value: v.toFixed(1) + ' µg/m³',
-        tone: level.tone, note: 'CAMS/ Open-Meteo · 24 ชม. (แบบจำลอง) · ' + data.current.time,
-        type: 'MODELLED', label: level.label };
-    }
+    const primary = results[0].status === 'fulfilled' ? gistdaPmTile(results[0].value) : null;
+    const pm = primary || await openMeteoFallback(location);
     let heat = unavailable('ดัชนีความร้อน', 'ข้อมูลอุณหภูมิ/ความชื้นไม่พร้อม');
     if (results[1].status === 'fulfilled') {
       const data = results[1].value;
       const v = heatIndexCelsius(data?.current?.temperature_2m, data?.current?.relative_humidity_2m);
       const level = classify(v, HEAT_LEVELS);
-      if (level && typeof data.current.time === 'string') {
+      if (level && typeof data.current?.time === 'string') {
         heat = { title: 'ดัชนีความร้อน', value: v.toFixed(1) + ' °C', tone: level.tone,
           note: 'คำนวณจากแบบจำลอง Open-Meteo · ' + data.current.time,
           type: 'DERIVED', label: level.label };
@@ -148,7 +189,7 @@
     }
     return [pm, heat, flood];
   }
-  const core = { parseLocation, heatIndexCelsius, pm24HourAverage, normalizedFlood, classify, fetchTiles };
+  const core = { parseLocation, heatIndexCelsius, pm24HourAverage, normalizedFlood, gistdaPmTile, gistdaObservedAt, classify, fetchTiles };
   if (typeof module !== 'undefined' && module.exports) module.exports = core;
   root.UTHWidget = core;
   if (!root.document) return;
