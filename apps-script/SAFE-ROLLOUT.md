@@ -7,7 +7,7 @@
 Execution `main`, 9 October 2026 06:41:13 Asia/Bangkok, logged:
 `Failed to import data to spreadsheet: Cannot read properties of undefined (reading 'pm10')`.
 
-The previous code accessed `global.data.iaqi.pm10.v` without checking the optional field. It swallowed errors in `main()`, so Executions could show **Completed** even when `ชีต1` was not written.
+The previous code accessed `global.data.iaqi.pm10.v` without guarding the nested object. The precise error text `reading pm10` indicates `global.data.iaqi` was undefined in that execution; it does **not** prove a numeric PM10 value alone was absent. It swallowed errors in `main()`, so Executions could show **Completed** even when `ชีต1` was not written.
 
 ## Minimal hotfix strategy
 
