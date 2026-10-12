@@ -6,7 +6,7 @@
  *
  * This isolated production hotfix does not depend on WAQI / Air4Thai.
  * It requires the EXISTING CONFIG.SPREADSHEET_ID and
- * CONFIG.API_ENDPOINTS.GISTDA_AIR from the original live script.
+ * CONFIG.API_ENDPOINTS.GISTDA_AIR and formatThaiDateTime() from the live script.
  */
 function optionalPM25_(raw) {
   if ((typeof raw !== 'number' && typeof raw !== 'string') ||
@@ -85,7 +85,7 @@ function importDataToSpreadsheet(airData) {
 
   // WAQI's PM10 subindex is not PM10 mass in µg/m³.
   // Never fabricate zero, a measurement or NaN in AQI/PM10 columns.
-  const newRow = [new Date(), '', '', pm25 === null ? '' : pm25,
+  const newRow = [formatThaiDateTime(new Date()), '', '', pm25 === null ? '' : pm25,
     avg24 === null ? '' : avg24];
   sheet.appendRow(newRow);
   sheet.getRange(sheet.getLastRow(), 2, 1, 4).setNumberFormat('0.00');

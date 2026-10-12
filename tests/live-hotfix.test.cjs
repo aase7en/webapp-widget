@@ -34,7 +34,8 @@ function env({
         datetimeThai:{dateThai:'วันศุกร์',timeThai:'12:00'}
       });}};
     }},
-    Logger: {log(message) {recorded.logged.push(message);}}
+    Logger: {log(message) {recorded.logged.push(message);}},
+    formatThaiDateTime() {return '12 ต.ค. 2569 เวลา 11:45 น.';}
   };
   vm.createContext(context);
   vm.runInContext(patch,context,{filename:'apps-script/LIVE-HOTFIX-CANDIDATE.gs'});
@@ -47,7 +48,7 @@ test('the live hotfix writes GISTDA without touching WAQI/PM10 and preserves 0',
   assert.equal(x.recorded.appended.length,1);
   const row=x.recorded.appended[0];
   assert.equal(row[1],'');assert.equal(row[2],'');assert.equal(row[3],0);assert.equal(row[4],14);
-  assert.equal(Object.prototype.toString.call(row[0]),'[object Date]');
+  assert.equal(row[0],'12 ต.ค. 2569 เวลา 11:45 น.');
   assert.equal(x.recorded.deleted,0);assert.equal(x.recorded.formatted,true);
 });
 test('missing PM10 and entire WAQI data never influence the PM2.5 sheet',()=>{
@@ -93,7 +94,8 @@ test('blank sheet writes header before data, not over first row',()=>{
     UrlFetchApp:{fetch(){return {getResponseCode(){return 200;},getContentText(){return JSON.stringify({
       status:200,data:[{tb_tn:'อุทัย',pm25:5,pm25Avg24hr:8}]
     });}};}},
-    Logger:{log(){}}
+    Logger:{log(){}},
+    formatThaiDateTime() {return '12 ต.ค. 2569 เวลา 11:45 น.';}
   };
   vm.createContext(context);
   vm.runInContext(patch,context);
