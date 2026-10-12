@@ -5,13 +5,12 @@ No credentials, external packages or active services. External text is untrusted
 from __future__ import annotations
 from datetime import datetime, timedelta, timezone
 from email.utils import parsedate_to_datetime
-from urllib.parse import urlsplit, urlunsplit
+from urllib.parse import urlsplit, urlunsplit, parse_qsl, urlencode
 from xml.etree import ElementTree
 import math
 import re
 
-BANGKOK = timezone(timedelta(hours=7))
-AREA = ("พระนครศรีอยุธยา", "อยุธยา")
+AREA = ("พระนครศรีอยุธยา", "อยุธยา", "อายุธยา")
 DISTRICT = "อุทัย"
 WATER_WORDS = ("น้ำท่วม", "น้ำล้น", "ระดับน้ำ", "น้ำหลาก", "น้ำสูง", "น้ำป่า",
                "การระบายน้ำ", "เตือนภัยน้ำ", "น้ำเจ้าพระยา", "น้ำเพิ่ม")
@@ -32,7 +31,12 @@ def _valid_link(raw: str) -> str | None:
             return None
         if p.port not in (None, 443):
             return None
-        return urlunsplit(("https", p.netloc, p.path or "/", "", ""))
+        # Keep publisher article identifiers; strip tracking and token-looking params.
+        safe_query = [(k, v) for k, v in parse_qsl(p.query, keep_blank_values=True)
+                      if not k.lower().startswith("utm_") and k.lower() not in
+                      {"utm", "fbclid", "gclid", "mc_cid", "mc_eid", "key", "apikey",
+                       "api_key", "token", "authorization"}]
+        return urlunsplit(("https", p.netloc, p.path or "/", urlencode(safe_query), ""))
     except (ValueError, AttributeError):
         return None
 
@@ -41,22 +45,43 @@ def read_rss(xml_data: bytes, *, max_items: int = 40) -> list[dict]:
     """Safely parse a bounded RSS feed; publication date is not observation time."""
     if len(xml_data) > 1_000_000:
         raise ValueError("RSS over size limit")
-    if b"<!DOCTYPE" in xml_data.upper() or b"<!ENTITY" in xml_data.upper():
+    if b"\x00" in xml_data or b"<!DOCTYPE" in xml_data.upper() or b"<!ENTITY" in xml_data.upper():
         raise ValueError("DTD/ENTITY not allowed")
     root = ElementTree.fromstring(xml_data)
-    items = root.findall("./channel/item")
     entries: list[dict] = []
-    for item in items[:max_items]:
-        title = (item.findtext("title") or "").strip()[:300]
-        link = _valid_link(item.findtext("link") or "")
-        published = (item.findtext("pubDate") or "").strip()
-        source = item.find("source")
-        source_name = ((source.text or "") if source is not None else "").strip()[:100]
-        if not title or not link:
-            continue
-        entries.append({"title": title, "url": link, "published_at": published,
-                        "publisher_label": source_name, "feed_type": "AGGREGATOR_UNVERIFIED"})
+    atom = "{http://www.w3.org/2005/Atom}"
+    if root.tag == "rss":
+        items = root.findall("./channel/item")
+        for item in items[:max_items]:
+            title = (item.findtext("title") or "").strip()[:300]
+            link = _valid_link(item.findtext("link") or "")
+            published = (item.findtext("pubDate") or "").strip()
+            source = item.find("source")
+            source_name = ((source.text or "") if source is not None else "").strip()[:100]
+            if title and link:
+                entries.append({"title": title, "url": link, "published_at": published,
+                                "publisher_label": source_name, "feed_type": "PUBLISHER_RSS_UNVERIFIED"})
+    elif root.tag == atom + "feed":
+        for item in root.findall(atom + "entry")[:max_items]:
+            title = (item.findtext(atom + "title") or "").strip()[:300]
+            links = item.findall(atom + "link")
+            href = next((x.attrib.get("href") for x in links if x.attrib.get("rel", "alternate") == "alternate"), None)
+            link = _valid_link(href or "")
+            published = (item.findtext(atom + "published") or item.findtext(atom + "updated") or "").strip()
+            if title and link:
+                entries.append({"title": title, "url": link, "published_at": published,
+                                "publisher_label": "", "feed_type": "PUBLISHER_ATOM_UNVERIFIED"})
+    else:
+        raise ValueError("unsupported XML news feed schema")
     return entries
+
+
+def parse_published_date(raw: str) -> datetime:
+    """Accept timezone-aware RFC 2822 or ISO 8601; never invent a timezone."""
+    try:
+        return _utc(parsedate_to_datetime(raw))
+    except (TypeError, ValueError, IndexError):
+        return _utc(datetime.fromisoformat(raw.replace("Z", "+00:00")))
 
 
 def relevant_news(entries: list[dict], *, now: datetime) -> list[dict]:
@@ -75,7 +100,7 @@ def relevant_news(entries: list[dict], *, now: datetime) -> list[dict]:
         district = DISTRICT in title
         water = any(w in title for w in WATER_WORDS)
         try:
-            published = _utc(parsedate_to_datetime(str(entry.get("published_at") or "")))
+            published = parse_published_date(str(entry.get("published_at") or ""))
         except (TypeError, ValueError, IndexError):
             continue
         if published > now + timedelta(minutes=5) or now - published > MAX_NEWS_AGE:
@@ -108,7 +133,7 @@ def discharge_outlook(payload: dict, *, lat: float, lon: float) -> dict:
     if not isinstance(payload, dict) or payload.get("error") is True:
         return unavailable
     days = payload.get("daily")
-    if not isinstance(days, dict):
+    if not isinstance(days, dict) or not isinstance(payload.get("daily_units"), dict):
         return unavailable
     # Do not attach m³/s units to unlabelled or unexpectedly changed source data.
     if payload.get("daily_units", {}).get("river_discharge") != "m³/s":
@@ -136,12 +161,24 @@ def review_packet(*, news: list[dict], forecast: dict, collected_at: datetime) -
     """Never produces LOW/NORMAL/SAFE or an automatically issued local flood warning."""
     now = _utc(collected_at)
     cues = relevant_news(news, now=now)
+    bad_dates = 0
+    for entry in news[:150]:
+        try:
+            if not isinstance(entry, dict):
+                raise ValueError("not an entry")
+            parse_published_date(str(entry.get("published_at") or ""))
+        except (ValueError, TypeError, IndexError):
+            bad_dates += 1
     return {"area": "Uthai District, Phra Nakhon Si Ayutthaya",
             "collected_at": now.isoformat(),
             "hospital_flood_status": "UNAVAILABLE",
             "hospital_risk_level": None,
             "decision": "REVIEW_REQUIRED" if cues else "NOT_ASSESSED",
             "news_cues": cues[:20], "news_count": len(cues),
+            "news_input_count": len(news),
+            "news_date_parse_failures": bad_dates,
+            "news_evidence_quality": "DEGRADED" if bad_dates else
+                "EMPTY" if not news else "UNVERIFIED_REVIEW_ONLY",
             "flood_model": forecast,
             "requires_verified_water_gauge_and_thresholds": True,
             "note": "No report is not proof of safety. AI/news cannot override official flood warnings."}

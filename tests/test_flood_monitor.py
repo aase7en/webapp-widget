@@ -39,6 +39,44 @@ class FloodMonitoringTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             discharge_outlook({}, lat=91, lon=100)
 
+    def test_iso_date_and_future_time_are_checked(self):
+        source = dict(title="น้ำท่วม อยุธยา อุทัย", url="https://example.org/news?id=17&token=not-safe",
+                      published_at=(NOW - timedelta(minutes=20)).isoformat())
+        items = relevant_news([source], now=NOW)
+        self.assertEqual(len(items), 1)
+        self.assertIn("id=17", items[0]["url"])
+        self.assertNotIn("token=", items[0]["url"])
+        source["published_at"] = (NOW + timedelta(hours=1)).isoformat()
+        self.assertEqual(relevant_news([source], now=NOW), [])
+        source["published_at"] = "2026-10-13T12:00:00"  # missing offset
+        self.assertEqual(relevant_news([source], now=NOW), [])
+
+    def test_atom_news_feed_and_unrecognised_xml(self):
+        xml = ('''<?xml version="1.0"?>
+          <feed xmlns="http://www.w3.org/2005/Atom"><entry>
+          <title>น้ำท่วม อุทัย อยุธยา</title>
+          <link href="https://example.org/read?article=321&amp;utm_campaign=x" />
+          <updated>2026-10-13T02:30:00Z</updated>
+          </entry></feed>''').encode("utf-8")
+        entries = read_rss(xml)
+        self.assertEqual(len(entries), 1)
+        self.assertEqual(entries[0]["url"], "https://example.org/read?article=321")
+        self.assertEqual(len(relevant_news(entries, now=NOW)), 1)
+        with self.assertRaises(ValueError):
+            read_rss(b"<other/>")
+
+    def test_bad_units_shape_and_bad_rss_file_fail_closed(self):
+        d = discharge_outlook({"daily_units": "wrong", "daily": {
+            "time": ["2026-10-13"], "river_discharge": [7]}}, lat=14, lon=100)
+        self.assertEqual(d["status"], "UNAVAILABLE")
+        from tempfile import TemporaryDirectory
+        from pathlib import Path
+        with TemporaryDirectory() as temp:
+            p = Path(temp) / "bad.rss"
+            p.write_text("<rss><unclosed>", encoding="utf-8")
+            with self.assertRaises(ValueError):
+                flood_watch.load_approved_news(str(p))
+
     def test_rss_parsing_is_bounded_and_disallows_xml_entities(self):
         xml = ('<?xml version="1.0"?><rss><channel><item><title>น้ำท่วม อยุธยา อุทัย'
                '</title><link>https://news.google.com/rss/articles/id?utm=1</link>'
@@ -64,6 +102,18 @@ class FloodMonitoringTests(unittest.TestCase):
         self.assertEqual(len(actual), 1)
         self.assertTrue(actual[0]["review_required"])
         self.assertEqual(actual[0]["type"], "UNVERIFIED_NEWS_CUE")
+
+    def test_news_unparseable_time_is_visible_to_operator(self):
+        entries = [{"title": "น้ำท่วม อยุธยา อุทัย",
+                    "published_at": "someday in 2026",
+                    "url": "https://example.org/a"}]
+        report = review_packet(news=entries,
+                               forecast=discharge_outlook(None, lat=14, lon=100),
+                               collected_at=NOW)
+        self.assertEqual(report["news_input_count"], 1)
+        self.assertEqual(report["news_date_parse_failures"], 1)
+        self.assertEqual(report["news_evidence_quality"], "DEGRADED")
+        self.assertEqual(report["hospital_flood_status"], "UNAVAILABLE")
 
     def test_no_articles_does_not_result_in_safe_or_low(self):
         d = discharge_outlook({}, lat=14, lon=100)

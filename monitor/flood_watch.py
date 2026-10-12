@@ -10,6 +10,8 @@ from datetime import datetime, timezone
 from urllib.parse import urlencode
 from urllib.request import Request, urlopen
 from urllib.error import URLError
+from http.client import HTTPException
+from xml.etree.ElementTree import ParseError
 from pathlib import Path
 import argparse
 import json
@@ -39,7 +41,10 @@ def load_approved_news(path: str | None) -> list[dict]:
         raise ValueError("news export is too large")
     source = p.read_bytes()
     if p.suffix.lower() in (".xml", ".rss"):
-        return read_rss(source)
+        try:
+            return read_rss(source)
+        except ParseError as exc:
+            raise ValueError("invalid XML feed") from exc
     if p.suffix.lower() == ".json":
         data = json.loads(source)
         entries = data if isinstance(data, list) else data.get("items", []) if isinstance(data, dict) else []
@@ -57,12 +62,14 @@ def one_shot(lat: float, lon: float, *, now: datetime,
     forecast_error = None
     try:
         model = discharge_outlook(json.loads(get_bytes(url)), lat=lat, lon=lon)
-    except (URLError, ValueError, OSError) as e:
+    except (URLError, HTTPException, ValueError, OSError) as e:
         model = discharge_outlook(None, lat=lat, lon=lon)
         forecast_error = type(e).__name__
     report = review_packet(news=news_entries or [], forecast=model, collected_at=now)
     report["fetch_errors"] = {"flood_api": forecast_error}
-    report["news_input_status"] = "APPROVED_EXPORT" if news_entries is not None else "NOT_CONFIGURED"
+    report["news_input_status"] = (
+        "NOT_CONFIGURED" if news_entries is None else
+        "APPROVED_EXPORT_EMPTY" if not news_entries else "APPROVED_EXPORT")
     report["sources"] = [
         {"name": "Open-Meteo Flood API / GloFAS", "type": "MODELLED",
          "url": "https://open-meteo.com/en/docs/flood-api"}
@@ -101,7 +108,7 @@ def main() -> int:
         else:
             print(output)
         return 0
-    except (OSError, ValueError):
+    except (OSError, ValueError, ParseError):
         print("Monitor failed closed. Check source/input configuration.", file=sys.stderr)
         return 1
 
