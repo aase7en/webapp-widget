@@ -71,6 +71,17 @@ https://pm25.gistda.or.th/rest/getPm25byLocation?lat=14.36147&lng=100.64424
 - Open-Meteo AQ (model): https://open-meteo.com/en/docs/air-quality-api
 - Open-Meteo Weather (model): https://open-meteo.com/en/docs
 
+### ระบบเฝ้าระวังน้ำและข่าวท้องถิ่น (ต้นแบบที่ไม่ต้องรอ GISTDA)
+
+เพิ่ม [Flood Evidence Watch (Python)](monitor/README.md): ดึง GloFAS/Open-Meteo
+**river discharge (m³/s, แบบจำลอง)** และข้อมูลประกาศ/ข่าวพื้นที่อยุธยาจากไฟล์ RSS/JSON ที่ตรวจสิทธิ์แล้ว
+ส่งเข้า **คิวให้เจ้าหน้าที่ตรวจสอบ** พร้อม URL/เวลา/สถานะข้อมูล
+สามารถเปิด Gemini/OpenRouter จากเครื่องที่เก็บ Key อย่างปลอดภัยเพื่อช่วยสกัด
+*คำกล่าวอ้างในพาดหัวข่าว* เท่านั้น ไม่มีการประเมินระดับน้ำท่วมโรงพยาบาลอัตโนมัติ
+และยังไม่สร้างงานตั้งเวลา/แจ้งเตือน/เผยแพร่บนป้ายจริง ค่าเริ่มต้น
+`hospital_flood_status = UNAVAILABLE` และ `hospital_risk_level = null`
+เสมอจนมีสถานีวัดและเกณฑ์พื้นที่ที่ตรวจสอบแล้ว
+
 ### สำหรับผู้ดูแล: เชื่อม Flood API เมื่อได้สิทธิ์แล้ว
 
 1. ทำ **Server-side adapter** (Cloudflare Worker / Apps Script backend / service ที่เก็บ Secret) รับพิกัดที่ validate แล้วและติดต่อ GISTDA ด้วย Key ที่เก็บเป็น Environment Secret เท่านั้น

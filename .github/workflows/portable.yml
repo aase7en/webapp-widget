@@ -14,3 +14,7 @@ jobs:
       - run: node --check portable.js
       - run: node --check < apps-script/Code.gs
       - run: node --test tests/*.test.cjs
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -B -m unittest discover -s tests -p 'test_*.py'
