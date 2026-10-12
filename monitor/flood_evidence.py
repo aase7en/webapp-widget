@@ -31,11 +31,12 @@ def _valid_link(raw: str) -> str | None:
             return None
         if p.port not in (None, 443):
             return None
-        # Keep publisher article identifiers; strip tracking and token-looking params.
-        safe_query = [(k, v) for k, v in parse_qsl(p.query, keep_blank_values=True)
-                      if not k.lower().startswith("utm_") and k.lower() not in
-                      {"utm", "fbclid", "gclid", "mc_cid", "mc_eid", "key", "apikey",
-                       "api_key", "token", "authorization"}]
+        # Only allow publisher article-ID parameters. Never carry session,
+        # authentication, tracking, or unknown query parameters into reports.
+        article_id_keys = {"id", "article", "article_id", "newsid", "news_id",
+                           "story", "story_id", "post", "post_id", "p", "nid", "aid"}
+        safe_query = [(k, v[:120]) for k, v in parse_qsl(p.query, keep_blank_values=True)
+                      if k.lower() in article_id_keys and len(v) <= 120]
         return urlunsplit(("https", p.netloc, p.path or "/", urlencode(safe_query), ""))
     except (ValueError, AttributeError):
         return None
@@ -176,6 +177,8 @@ def review_packet(*, news: list[dict], forecast: dict, collected_at: datetime) -
             "decision": "REVIEW_REQUIRED" if cues else "NOT_ASSESSED",
             "news_cues": cues[:20], "news_count": len(cues),
             "news_input_count": len(news),
+            "news_considered_count": min(len(news), 150),
+            "news_truncated_count": max(0, len(news) - 150),
             "news_date_parse_failures": bad_dates,
             "news_evidence_quality": "DEGRADED" if bad_dates else
                 "EMPTY" if not news else "UNVERIFIED_REVIEW_ONLY",

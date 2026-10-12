@@ -75,3 +75,5 @@ References: <https://www.google.com/intl/en_us/terms_google_news.html>, <https:/
 Rendering boundary: headline text and AI quotes are **untrusted**, always render with textContent / HTML escaping, never `innerHTML`. Preserve query parameters needed for source article IDs; strip tracking and token-looking parameters. Empty authorized exports are shown as `APPROVED_EXPORT_EMPTY`, not a water-safety result.
 
 Data quality: `news_input_count`, `news_date_parse_failures` and `news_evidence_quality=DEGRADED` explicitly expose exports that could not be parsed, so a zero-news result is not mistaken for a healthy collection.
+
+Input dates must include a timezone; timezone-less timestamps are rejected and counted as DEGRADED. Only explicitly allowlisted article-ID URL query keys survive report processing; unknown parameters (including authentication/session tokens) are discarded. Reports include considered and truncated counts for bounded review (150 candidates).

@@ -51,6 +51,23 @@ class FloodMonitoringTests(unittest.TestCase):
         source["published_at"] = "2026-10-13T12:00:00"  # missing offset
         self.assertEqual(relevant_news([source], now=NOW), [])
 
+    def test_naive_datetime_is_rejected_not_assigned_to_local_timezone(self):
+        source = dict(title="ระดับน้ำ อยุธยา อุทัย", url="https://publisher.example/story?id=7",
+                      published_at="2026-10-13T11:00:00")
+        result = review_packet(news=[source], forecast=discharge_outlook(None, lat=14, lon=100),
+                               collected_at=NOW)
+        self.assertEqual(result["news_date_parse_failures"], 1)
+        self.assertEqual(result["news_count"], 0)
+        self.assertEqual(result["news_evidence_quality"], "DEGRADED")
+
+    def test_only_article_id_query_params_are_preserved(self):
+        entry = dict(title="ระดับน้ำ อยุธยา อุทัย",
+                     url="https://publisher.example/read?id=12&article=13&access_token=secret&signature=abc&sid=123&utm_source=x",
+                     published_at=PUB)
+        news = relevant_news([entry], now=NOW)
+        self.assertEqual(news[0]["url"], "https://publisher.example/read?id=12&article=13")
+        self.assertNotIn("secret", str(news))
+
     def test_atom_news_feed_and_unrecognised_xml(self):
         xml = ('''<?xml version="1.0"?>
           <feed xmlns="http://www.w3.org/2005/Atom"><entry>
@@ -114,6 +131,16 @@ class FloodMonitoringTests(unittest.TestCase):
         self.assertEqual(report["news_date_parse_failures"], 1)
         self.assertEqual(report["news_evidence_quality"], "DEGRADED")
         self.assertEqual(report["hospital_flood_status"], "UNAVAILABLE")
+
+    def test_input_limit_is_visible(self):
+        entries = [{"title": "น้ำท่วม อยุธยา อุทัย", "url": "https://example.org/a?id=1",
+                    "published_at": PUB} for _ in range(170)]
+        report = review_packet(news=entries,
+                               forecast=discharge_outlook(None, lat=14, lon=100),
+                               collected_at=NOW)
+        self.assertEqual(report["news_input_count"], 170)
+        self.assertEqual(report["news_considered_count"], 150)
+        self.assertEqual(report["news_truncated_count"], 20)
 
     def test_no_articles_does_not_result_in_safe_or_low(self):
         d = discharge_outlook({}, lat=14, lon=100)
