@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#102231">
+<title>คลองข้าวเม่า · เฝ้าระวังน้ำ โรงพยาบาลอุทัย</title>
+<meta name="description" content="ข้อมูลจุดเฝ้าระวังคลองข้าวเม่า แยกระดับน้ำจริงที่ยังไม่เชื่อมกับอัตราการไหลจากแบบจำลอง GloFAS">
+<style>
+:root{font-family:system-ui,"Noto Sans Thai",Tahoma,sans-serif;color:#eaf3fb;background:#102231}
+*{box-sizing:border-box}html,body{margin:0;min-height:100%;background:#102231}body{padding:14px}
+header{display:flex;justify-content:space-between;align-items:center;gap:10px;border-bottom:1px solid #426074;padding-bottom:12px}
+h1{font-size:21px;margin:0;font-weight:800}header p{margin:3px 0 0;font-size:12px;color:#c0cbd5}
+.date{font-size:12px;color:#d9e7ef;white-space:nowrap;text-align:right}
+main{max-width:1100px;margin:0 auto}.overview{margin:13px 0;background:#173449;border-left:5px solid #87aabe;padding:10px 12px}
+.overview strong{font-size:16px}.overview p{font-size:12px;line-height:1.6;margin:3px 0 0;color:#d8e4eb}
+.stations{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.station{background:#1a3448;border:1px solid #486579;border-radius:10px;padding:12px;min-width:0}
+.station .station-title{font-size:14px;font-weight:750;line-height:1.35;margin:0 0 7px}
+.station .reading{font-size:19px;color:#f3f4f6;font-weight:800}
+.station .tag{font-size:11px;margin:6px 0 0;color:#c6d0dc}
+.station .station-id{font-size:11px;color:#aebfcb}
+.model{margin-top:12px;border:1px solid #6784a1;background:#1e3b54;border-radius:10px;padding:12px}
+.model h2{font-size:15px;margin:0 0 4px}.model .value{font-size:27px;font-weight:800}.model .type{font-size:11px;color:#b6d0e2;font-weight:700;margin-left:8px}
+.model p{font-size:12px;margin:4px 0 0;line-height:1.6;color:#d3e2ee}
+.model .model-source{font-size:11px}
+footer{margin-top:12px;font-size:11px;color:#b8c9d5;line-height:1.5}
+footer a{color:#a6defe}a:focus-visible{outline:2px solid #fff;outline-offset:3px}
+.compact-strip{display:none}
+@media(max-width:480px){body{padding:8px}h1{font-size:17px}.stations{grid-template-columns:1fr}.date{font-size:10px}.station{padding:10px}}
+@media(min-height:101px) and (max-height:330px){
+ body{padding:6px}
+ header{padding-bottom:4px}
+ h1{font-size:14px}
+ header p,.date{font-size:10px}
+ .overview{margin:6px 0;padding:4px 7px}
+ .overview strong{font-size:11px}
+ .overview p{display:none}
+ .stations{grid-template-columns:repeat(2,minmax(0,1fr));gap:4px}
+ .station{padding:5px;border-radius:5px}
+ .station .station-title{font-size:10px;line-height:1.15;margin-bottom:3px}
+ .station .reading{font-size:11px}
+ .station .station-id,.station .tag{display:none}
+ .model{margin-top:5px;padding:5px 7px}
+ .model h2{font-size:10px;margin:0}
+ .model .type{font-size:9px}
+ .model .value{font-size:18px}
+ .model p{font-size:9px;margin:1px 0}
+ .model .model-source{font-size:9px}
+ footer{display:none}
+}
+@media(max-height:100px){
+ html,body{height:100%;min-height:0;overflow:hidden}
+ body{padding:0}
+ .standard{display:none}
+ .compact-strip{height:100%;display:flex;align-items:center;gap:9px;border-left:5px solid #8aa8bb;background:#122b3e;padding:2px 9px;white-space:nowrap;min-width:0}
+ .compact-strip .title{min-width:0;overflow:hidden;text-overflow:ellipsis;font-size:13px;font-weight:750;flex:1}
+ .compact-strip .value{flex-shrink:0;font-size:13px;font-weight:750}
+ .compact-strip .source{font-size:10px;flex-shrink:0;max-width:100px;overflow:hidden;text-overflow:ellipsis;color:#cbd5e1}
+}
+body.compact{padding:0;height:100%;min-height:0;overflow:hidden}
+body.compact .standard{display:none}
+body.compact .compact-strip{display:flex;height:40px;align-items:center;gap:9px;border-left:5px solid #8aa8bb;background:#122b3e;padding:2px 9px;white-space:nowrap}
+body.compact .compact-strip .title{min-width:0;overflow:hidden;text-overflow:ellipsis;font-size:13px;font-weight:750;flex:1}
+body.compact .compact-strip .value{flex-shrink:0;font-size:13px;font-weight:750}
+body.compact .compact-strip .source{font-size:10px;flex-shrink:0;max-width:110px;overflow:hidden;text-overflow:ellipsis;color:#cbd5e1}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<main class="standard">
+  <header>
+    <div><h1>คลองข้าวเม่า · เฝ้าระวังน้ำ</h1><p>โรงพยาบาลอุทัย · พระนครศรีอยุธยา</p></div>
+    <div class="date" id="updated">ตรวจสอบแหล่งข้อมูล…</div>
+  </header>
+  <div class="overview"><strong>ระดับน้ำจริง: ยังไม่มีข้อมูลสถานีที่ยืนยันได้</strong>
+    <p>รอเชื่อมสถานี/ประตูระบายน้ำของหน่วยงานทางการ ข้อมูลด้านล่างเป็นจุดติดตาม ไม่ใช่คำเตือนว่าพื้นที่ปลอดภัยหรือเกิดน้ำท่วม</p></div>
+  <section class="stations" aria-label="จุดเฝ้าระวังคลองข้าวเม่า">
+    <article class="station"><p class="station-title">ปตร.กลางคลองข้าวเม่า (วัดกระสังข์)</p><div class="reading">รอข้อมูลระดับน้ำจริง</div><p class="station-id">รหัสในทะเบียน 492335</p><p class="tag">UNAVAILABLE · ไม่ใช่ 0 เมตร</p></article>
+    <article class="station"><p class="station-title">ปตร.กระมัง (ปากคลองข้าวเม่า)</p><div class="reading">รอข้อมูลระดับน้ำจริง</div><p class="station-id">รหัสในทะเบียน 492334</p><p class="tag">UNAVAILABLE · ไม่ใช่ 0 เมตร</p></article>
+    <article class="station"><p class="station-title">ปตร.หันตรา</p><div class="reading">รอข้อมูลระดับน้ำจริง</div><p class="station-id">ยังไม่ได้ยืนยัน API สถานี</p><p class="tag">UNAVAILABLE · ไม่ใช่ 0 เมตร</p></article>
+    <article class="station"><p class="station-title">จุดสูบน้ำวัดเกาะแก้ว</p><div class="reading">รอข้อมูลระดับน้ำจริง</div><p class="station-id">ยังไม่ได้ยืนยัน API จุดสูบน้ำ</p><p class="tag">UNAVAILABLE · ไม่ใช่ 0 เมตร</p></article>
+  </section>
+  <section class="model" aria-label="อัตราการไหลจากแบบจำลอง">
+    <h2>อัตราการไหลรายวันจากแบบจำลอง GloFAS <span class="type">MODELLED · ไม่ใช่ระดับน้ำวัดจริง</span></h2>
+    <div id="flow-value" class="value">กำลังโหลด…</div>
+    <p id="flow-detail">รอตรวจสอบข้อมูลและหน่วยจาก Open-Meteo</p>
+    <p class="model-source">แหล่งข้อมูล: <a href="https://open-meteo.com/en/docs/flood-api" target="_blank" rel="noopener noreferrer">Open-Meteo / Copernicus GloFAS</a> · ความละเอียด ~5 กม. · ยังไม่ยืนยันว่า Grid ตรงกับคลองข้าวเม่า</p>
+  </section>
+  <footer>ตัวเลขแบบจำลอง m³/s ไม่ใช่ระดับน้ำ ม.รทก. และห้ามใช้ตัดสินความปลอดภัยหรือออกคำเตือนภัยโดยลำพัง ·
+    <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener noreferrer">ข้อมูล CC BY 4.0</a> · เครดิต Open-Meteo / Copernicus GloFAS</footer>
+</main>
+<div class="compact-strip" aria-label="แถบข้อมูลเฝ้าระวังน้ำ">
+  <span class="title" id="strip-title">คลองข้าวเม่า · กำลังตรวจสอบข้อมูล</span>
+  <span class="value" id="strip-value">รอข้อมูล</span>
+  <span class="source" id="strip-source">UNAVAILABLE</span>
+</div>
+<script defer src="./water.js"></script>
+</body>
+</html>
