@@ -9,3 +9,5 @@ The news registry ranks sources Uthai district (priority 1), Ayutthaya province 
 Start safely: in the script editor run `dryRunWatch` and authorize, inspect its result. Then run `runWatch` once and verify Sheet rows/source labels and the run log. Only after this succeeds run `installThirtyMinuteTrigger` once, which is idempotent and changes triggers ONLY in this separate script. Rollback is `disableWatchTrigger`. Do not use `createDailyTrigger` from the legacy PM2.5 project.
 
 Provenance: Open-Meteo Flood API https://open-meteo.com/en/docs/flood-api and CC BY 4.0. No official Thai station/vertical datum or threshold has been connected. An absent news cue NEVER means no flood. No credentials in Git, HTML, Sheet or logs.
+
+Location ranking uses the approved source's area for Uthai-only headlines, marked SOURCE_CONTEXT_ONLY until a reviewer checks the actual incident location. A headline naming the area is marked HEADLINE_TEXT but remains UNVERIFIED. Province-3 ranking requires explicit nearby-province content, not source priority alone.

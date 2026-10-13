@@ -93,7 +93,7 @@ function priorityForNews_(headline, trustedSourceArea, sourcePriority) {
   if (sourcePriority === 1 && /อุทัย/.test(trustedSourceArea)) return 1;
   if (uthaiClaim && isAyutthaya) return 1;
   if (isAyutthaya || (sourcePriority === 2 && /อยุธยา/.test(trustedSourceArea))) return 2;
-  if (NEIGHBOR_PROVINCES.test(title) || sourcePriority === 3) return 3;
+  if (NEIGHBOR_PROVINCES.test(title)) return 3;
   return null;
 }
 function readyNewsSources_() {
@@ -139,8 +139,10 @@ function collectEvidence_(now) {
         const priority = priorityForNews_(title, source.area, source.priority);
         if (!date || !url || !title || priority === null || date.getTime() > nowMs + 300000 ||
             nowMs - date.getTime() > WATER_WATCH.NEWS_MAX_AGE_HOURS * 3600000) continue;
+        const matchedPlace = /อุทัย|อยุธยา|อายุธยา|พระนครศรีอยุธยา|อ่างทอง|ปทุมธานี|สระบุรี|ลพบุรี|สุพรรณบุรี/.test(title) && !/อุทัยธานี/.test(title);
         gathered.push({id: watchId_(source.name + '|' + url + '|' + date.toISOString()),
-          captured: watchClock_(now), priority, area: source.area, platform: source.platform,
+          captured: watchClock_(now), priority, area: source.area,
+          location_basis: matchedPlace ? 'HEADLINE_TEXT' : 'SOURCE_CONTEXT_ONLY', platform: source.platform,
           name: source.name, published: date.toISOString(), title, url,
           type: source.type, event: /น้ำท่วม|น้ำล้น|น้ำหลาก/.test(title) ? 'FLOOD_CLAIM' : 'WATER_LEVEL_CLAIM'});
       }
@@ -174,9 +176,9 @@ function addNewsRows_(sheet, articles) {
   let inserted = 0;
   for (const n of articles.slice(0, 100)) {
     if (existing.has(n.id) || staged.has(n.id)) continue;
-    sheet.appendRow([n.id,n.captured,n.priority,sheetSafeText_(n.area),sheetSafeText_(n.platform),
+    sheet.appendRow([n.id,n.captured,n.priority,sheetSafeText_(n.area + ' [' + n.location_basis + ']'),sheetSafeText_(n.platform),
       sheetSafeText_(n.name),n.published,sheetSafeText_(n.title),sheetSafeText_(n.url),
-      n.type,'UNVERIFIED','PENDING_REVIEW',n.event,'','','AI ไม่ใช่การยืนยันเหตุการณ์']);
+      n.type,'UNVERIFIED','PENDING_REVIEW',n.event,'','','ต้องตรวจพิกัดเหตุการณ์จากต้นข่าว - AI ไม่ใช่การยืนยัน']);
     inserted++; staged.add(n.id);
   }
   return inserted;

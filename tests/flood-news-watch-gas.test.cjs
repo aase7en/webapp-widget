@@ -81,3 +81,41 @@ test('untrusted news title is never treated as a Sheets formula',()=> {
  assert.equal(e.ctx.sheetSafeText_('@SUM(1,2)').startsWith("'"),true);
  assert.equal(e.ctx.sheetSafeText_('ข่าวระดับน้ำ อยุธยา'),'ข่าวระดับน้ำ อยุธยา');
 });
+test('approved RSS source ingests once, holds headline for human review and preserves source-area basis',()=>{
+ const pub=new Date(Date.now()-3600000).toUTCString();
+ const sourceRow=[1,'อำเภออุทัย','เทศบาลตำบลอุทัย','Website','OFFICIAL','https://feed.example.org/rss','APPROVED_RSS','APPROVED','YES','authorized-test-feed'];
+ const e=env({sourceRow});
+ const item=(title,link,when)=>({getChildText:k=>({title,link,pubDate:when})[k]||''});
+ e.ctx.XmlService.parse=()=>({getRootElement:()=>({getName:()=> 'rss',getChild:n=>n==='channel'?{getChildren:k=>k==='item'?[
+   item('น้ำหลาก ถนนหน้าอำเภอ', 'https://feed.example.org/article?id=41',pub),
+   item('กิจกรรมวันเด็ก', 'https://feed.example.org/article?id=42',pub),
+   item('น้ำท่วม อุทัยธานี', 'https://feed.example.org/article?id=43',pub),
+   item('ระดับน้ำ อุทัย อยุธยา', 'https://feed.example.org/article?id=44',pub),
+   item('น้ำสูง อยุธยา', 'https://feed.example.org/article?id=45','2000-01-01T00:00:00Z')
+ ]:[]}:null})});
+ const r=e.ctx.runWatch();assert.equal(r.news_records,2);
+ assert.equal(e.data.news.length,3);
+ assert.equal(e.data.news[1][11],'PENDING_REVIEW');
+ assert.equal(e.data.news[1][10],'UNVERIFIED');
+ assert.match(e.data.news[1][3],/SOURCE_CONTEXT_ONLY/);
+ assert.match(e.data.news[2][3],/HEADLINE_TEXT/);
+ e.ctx.runWatch();assert.equal(e.data.news.length,3);
+});
+test('approved Atom source parses correctly and source errors do not fabricate news',()=>{
+ const now=new Date(Date.now()-3600000).toISOString();
+ const sourceRow=[2,'จังหวัดพระนครศรีอยุธยา','ศูนย์ข่าวท้องถิ่น','Website','OFFICIAL','https://feed.example.org/atom','APPROVED_RSS','APPROVED','YES','authorized'];
+ const e=env({sourceRow});
+ const ns={};
+ e.ctx.XmlService.parse=()=>({getRootElement:()=>({getName:()=> 'feed',getNamespace:()=>ns,
+   getChildren:key=>key==='entry'?[{
+     getChildText:key=>({title:'แจ้งเตือนระดับน้ำ พระนครศรีอยุธยา',published:now})[key]||'',
+     getChildren:key=>key==='link'?[{getAttribute:key=>key==='href'?{getValue:()=> 'https://feed.example.org/news?id=10'}:null}]:[]
+   }]:[]})});
+ assert.equal(e.ctx.runWatch().news_records,1);
+ assert.equal(e.data.news[1][2],2);
+ const f=env({sourceRow});
+ f.ctx.XmlService.parse=()=>{throw Error('malformed xml')};
+ assert.throws(()=>f.ctx.runWatch(),/WATCH_RUN_PARTIAL/);
+ assert.equal(f.data.news.length,1);
+ assert.equal(f.data.runs[1][3],'PARTIAL_OR_FAILED');
+});
