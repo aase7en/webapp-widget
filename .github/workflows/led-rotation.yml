@@ -1,0 +1,30 @@
+name: Uthai LED rotation
+on:
+  pull_request:
+    paths:
+      - index.html
+      - led-rotation.js
+      - tests/led-rotation.test.cjs
+      - LED-ROTATION.md
+      - .github/workflows/led-rotation.yml
+  push:
+    branches: [main]
+    paths:
+      - index.html
+      - led-rotation.js
+      - tests/led-rotation.test.cjs
+      - LED-ROTATION.md
+      - .github/workflows/led-rotation.yml
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    permissions: {contents: read}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node --check led-rotation.js
+      - run: node --test tests/led-rotation.test.cjs
+      - name: Confirm original PM2.5 exec identifier
+        run: grep -q 'AKfycbwwUQCeJoz4N0P9UuRJF39pt17mBjPz0_yMDDxTO7BoiUiTQaO7Yay0UKq80EvE6dk/exec' index.html
