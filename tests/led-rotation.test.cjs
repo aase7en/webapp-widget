@@ -54,6 +54,10 @@ test('legacy iframe ID is unchanged; three panels and high-contrast large text',
    assert.ok(html.includes('id="'+id+'"'),id);
  assert.match(html,/class="slide active"/);
  assert.match(html,/font-size:19px/);
+ assert.match(html,/@media\(min-height:220px\)/);
+ assert.match(html,/flex:30 1 0;min-height:0/);
+ assert.match(html,/flex:38 1 0;min-height:0/);
+ assert.match(html,/flex:26 1 0;min-height:0/);
  assert.match(html,/id="water-value">—/);
  assert.match(html,/รอข้อมูลจริง/);
  assert.match(html,/คลองข้าวเม่า/);
