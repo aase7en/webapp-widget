@@ -1,10 +1,62 @@
-<!DOCTYPE html>
-<html>
+<!doctype html>
+<html lang="th">
 <head>
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<base target="_top">
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>โรงพยาบาลอุทัย · สิ่งแวดล้อม</title>
+<style>
+*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden}
+body{font-family:"Kanit",Tahoma,system-ui,sans-serif;color:#263238;background:#fff}
+.led{position:relative;width:100%;height:100%;min-height:40px;overflow:hidden}
+.slide{position:absolute;inset:0;background:#fff;visibility:hidden;pointer-events:none}
+.slide.active{visibility:visible;pointer-events:auto}
+.legacy{width:100%;height:100%;border:0;display:block}
+.bar{display:flex;width:100%;height:100%;align-items:center;overflow:hidden}
+.label{flex:0 0 30%;min-width:0;height:100%;display:flex;align-items:center;justify-content:center;gap:4px;padding:2px 4px;color:#fff}
+.label svg{width:25px;height:25px;flex-shrink:0}
+.label span{font-weight:700;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.reading{flex:0 0 21%;display:flex;flex-direction:column;justify-content:center;align-items:center;min-width:0;height:100%}
+.reading strong{font-size:19px;line-height:1;font-weight:800}
+.reading small{font-size:9px;line-height:1.1;margin-top:2px;white-space:nowrap}
+.status{flex:1;min-width:0;height:100%;display:flex;align-items:center;justify-content:center;padding:0 5px}
+.status span{font-weight:650;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.water .label{background:#176b95}.water .reading{color:#165b80}.water .status{background:#e7f4fc;color:#15516f}
+.heat .label{background:#c76a21}.heat .reading{color:#a64b14}.heat .status{background:#fff2e5;color:#743c13}
+.heat.no-data .label{background:#788696}.heat.no-data .reading{color:#566273}.heat.no-data .status{background:#f1f3f5;color:#475569}
+@media(min-height:120px){
+ .bar{flex-direction:column;gap:8px;padding:10px;justify-content:space-around}
+ .label{width:100%;height:30%;flex:none;border-radius:8px;gap:12px}
+ .label svg{width:clamp(35px,8vh,65px);height:clamp(35px,8vh,65px)}
+ .label span{font-size:clamp(23px,5vw,41px)}
+ .reading{width:100%;height:38%;flex:none}
+ .reading strong{font-size:clamp(42px,12vw,78px)}
+ .reading small{font-size:clamp(16px,3vw,23px)}
+ .status{width:100%;height:26%;flex:none;border-radius:7px}
+ .status span{font-size:clamp(20px,4vw,36px)}
+}
+@media(prefers-reduced-motion:reduce){.slide{transition:none!important}}
+</style>
 </head>
 <body>
-<iframe style="position: absolute;top: 0;left: 0;width: 100%;height: 100%;border: 0;" src="https://script.google.com/macros/s/AKfycbwwUQCeJoz4N0P9UuRJF39pt17mBjPz0_yMDDxTO7BoiUiTQaO7Yay0UKq80EvE6dk/exec"></iframe>
+<main class="led" aria-label="ข้อมูลสิ่งแวดล้อมโรงพยาบาลอุทัย">
+  <!-- Keep the original PM2.5 production iframe intact. It stays visible without JS. -->
+  <section id="slide-pm" class="slide active" aria-label="PM2.5">
+    <iframe class="legacy" title="PM2.5 โรงพยาบาลอุทัย" src="https://script.google.com/macros/s/AKfycbwwUQCeJoz4N0P9UuRJF39pt17mBjPz0_yMDDxTO7BoiUiTQaO7Yay0UKq80EvE6dk/exec" loading="eager" referrerpolicy="strict-origin-when-cross-origin"></iframe>
+  </section>
+  <section id="slide-water" class="slide water" aria-label="ระดับน้ำคลองข้าวเม่า">
+    <div class="bar">
+      <div class="label"><svg viewBox="0 0 48 48" aria-hidden="true"><path d="M24 3C20 10 9 22 9 30a15 15 0 0 0 30 0C39 22 28 10 24 3Z" fill="none" stroke="currentColor" stroke-width="3"/><path d="M15 32q9-7 18 0M17 39q7-5 14 0" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg><span>ระดับน้ำ</span></div>
+      <div class="reading"><strong id="water-value">—</strong><small>ม. · คลองข้าวเม่า</small></div>
+      <div class="status"><span id="water-status">รอข้อมูลจริง</span></div>
+    </div>
+  </section>
+  <section id="slide-heat" class="slide heat no-data" aria-label="ดัชนีความร้อนตำบลอุทัย">
+    <div class="bar">
+      <div class="label"><svg viewBox="0 0 48 48" aria-hidden="true"><path d="M27 27V9a6 6 0 0 0-12 0v18a11 11 0 1 0 12 0Z" fill="none" stroke="currentColor" stroke-width="3"/><circle cx="21" cy="35" r="5" fill="currentColor"/><path d="M21 15v20M33 10h9M35 17h6M33 24h9" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg><span>ดัชนีร้อน</span></div>
+      <div class="reading"><strong id="heat-value">—</strong><small>°C · ต.อุทัย</small></div>
+      <div class="status"><span id="heat-status">รอข้อมูล</span></div>
+    </div>
+  </section>
+</main>
+<script defer src="./led-rotation.js"></script>
 </body>
 </html>
