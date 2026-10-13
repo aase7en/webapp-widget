@@ -82,7 +82,7 @@
   let running = false;
   function cards() {
     const flow = model.state === 'MODELLED'
-      ? {name:'GloFAS (แบบจำลอง)',label:formatFlow(model),source:'MODELLED · ไม่ใช่ระดับน้ำจริง'}
+      ? {name:'GloFAS (แบบจำลอง)',label:formatFlow(model),source:'MODELLED'}
       : {name:'GloFAS (แบบจำลอง)',label:'ไม่มีข้อมูล',source:'UNAVAILABLE'};
     return [...STATIONS,flow];
   }

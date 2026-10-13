@@ -73,6 +73,10 @@ test('LED page is independent of unchanged legacy iframe and is 40px-responsive'
   const legacy=fs.readFileSync(require('node:path').resolve(__dirname,'../index.html'),'utf8');
   assert.match(legacy,/AKfycbwwUQCeJoz4N0P9UuRJF39pt17mBjPz0_yMDDxTO7BoiUiTQaO7Yay0UKq80EvE6dk/);
   assert.match(page,/compact-strip/);
+  for (const id of ['flow-value','flow-detail','updated','strip-title','strip-value','strip-source']) {
+    assert.match(page,new RegExp('id=\"'+id+'\"'));
+  }
+  assert.match(js,/source:'MODELLED'/);
   assert.match(page,/max-height:100px/);
   assert.match(page,/ปตร\.กลางคลองข้าวเม่า/);
   assert.match(page,/492335/);
