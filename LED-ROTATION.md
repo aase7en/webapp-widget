@@ -37,3 +37,5 @@ alert or reliable station-plus-authorised location-specific thresholds
 is integrated and reviewed. The water slide **currently uses grey
 UNAVAILABLE** with em dash and "รอข้อมูลจริง". Missing data, absent news,
 and modelled GloFAS discharge must never render a green safe water condition.
+
+Independent review prevention: A model heat reading is rechecked against its actual source timestamp every minute, before the heat slide becomes visible, and when browser visibility returns. Any reading older than three hours becomes an unavailable grey dash even if a background browser paused/throttled its normal 15-minute fetch timer.

@@ -81,6 +81,18 @@ test('water stays neutral with no real gauge and colours are reserved for confir
  assert.match(html,/id="water-value">—/);
  assert.match(html,/รอข้อมูลจริง/);
 });
+test('stale heat-model readings expire regardless of refresh timers',()=>{
+  const now=Date.parse('2026-10-14T10:00:00+07:00');
+  const good={value:41.9,time:now-w.HEAT_FRESHNESS_MS,type:'DERIVED'};
+  assert.equal(w.freshHeat(good,now).value,41.9);
+  assert.equal(w.freshHeat(good,now+1),null);
+  assert.equal(w.freshHeat({...good,time:now-4*3600000},now),null);
+  assert.equal(w.freshHeat({...good,time:now+6*60000},now),null);
+  assert.equal(w.freshHeat({...good,type:'MEASURED'},now),null);
+  assert.equal(w.freshHeat(null,now),null);
+  assert.equal(w.freshHeat({value:null,time:now,type:'DERIVED'},now),null);
+  assert.match(require('node:fs').readFileSync(require('node:path').join(__dirname,'../led-rotation.js'),'utf8'),/visibilitychange/);
+});
 test('short labels are marked as derived, not an official safety warning',()=>{
  assert.match(w.shortHeatLabel(40),/คำนวณ/);
  assert.match(w.shortHeatLabel(44),/คำนวณ/);

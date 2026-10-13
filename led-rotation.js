@@ -4,6 +4,7 @@
 'use strict';
 const ROTATE_MS = 12000;
 const REFRESH_MS = 15*60*1000;
+const HEAT_FRESHNESS_MS = 3*3600000;
 const URL = 'https://api.open-meteo.com/v1/forecast?latitude=14.36147&longitude=100.64424&current=temperature_2m%2Crelative_humidity_2m&timezone=Asia%2FBangkok&forecast_days=1';
 const finite = x => typeof x === 'number' && Number.isFinite(x);
 function heatCelsius(temp, humidity){
@@ -32,7 +33,7 @@ function parseHeat(payload,now){
       payload.current_units.temperature_2m!=='°C'||
       payload.current_units.relative_humidity_2m!=='%')return null;
   const time=parseBangkokTime(payload.current.time);
-  if(time===null||time>now+5*60000||now-time>3*3600000)return null;
+  if(time===null||time>now+5*60000||now-time>HEAT_FRESHNESS_MS)return null;
   const v=heatCelsius(payload.current.temperature_2m,payload.current.relative_humidity_2m);
   return v===null?null:{value:v,type:'DERIVED',time};
 }
@@ -60,7 +61,13 @@ function heatSeverity(value){
   return {cls:'heat-below',label:'ต่ำกว่าเกณฑ์ · คำนวณ'};
 }
 function shortHeatLabel(v){return heatSeverity(v).label;}
-const api={heatCelsius,parseBangkokTime,parseHeat,requestHeat,heatSeverity,shortHeatLabel,ROTATE_MS,REFRESH_MS,URL};
+function freshHeat(reading,nowMs){
+  if(!reading||!finite(reading.value)||!finite(reading.time)||
+      reading.type!=='DERIVED'||!finite(nowMs)||
+      reading.time>nowMs+5*60000||nowMs-reading.time>HEAT_FRESHNESS_MS)return null;
+  return reading;
+}
+const api={heatCelsius,parseBangkokTime,parseHeat,requestHeat,heatSeverity,shortHeatLabel,freshHeat,ROTATE_MS,REFRESH_MS,HEAT_FRESHNESS_MS,URL};
 if(typeof module!=='undefined'&&module.exports)module.exports=api;
 root.UthaiLEDRotation=api;
 if(!root.document)return;
@@ -69,8 +76,11 @@ const heatValue=root.document.getElementById('heat-value');
 const heatStatus=root.document.getElementById('heat-status');
 const heatPanel=root.document.getElementById('slide-heat');
 if(slides.some(x=>!x)||!heatValue||!heatStatus||!heatPanel)return;
-let index=0,running=false;
+let index=0,running=false,latestReading=null;
 function show(i){
+  // Revalidate the timestamp at every heat-slide exposure, including after
+  // background-tab throttling or an overnight power/sleep resumption.
+  if(i===2)paintHeat();
   index=i;
   slides.forEach((el,n)=>{
     const active=n===i;
@@ -86,17 +96,27 @@ function renderHeat(value){
   heatValue.textContent=value===null?'—':value.toFixed(1);
   heatStatus.textContent=severity.label;
 }
+function paintHeat(){
+  const fresh=freshHeat(latestReading,Date.now());
+  if(!fresh)latestReading=null;
+  renderHeat(fresh?fresh.value:null);
+}
 async function update(){
   if(running)return;
   running=true;
   try{
-    const r=typeof root.fetch==='function'?await requestHeat(root.fetch.bind(root),()=>Date.now()):null;
-    renderHeat(r?r.value:null);
-  }catch{renderHeat(null);}
-  finally{running=false;}
+    latestReading=typeof root.fetch==='function'
+      ? await requestHeat(root.fetch.bind(root),()=>Date.now()):null;
+  }catch{latestReading=null;}
+  finally{running=false;paintHeat();}
 }
 show(0);
 update();
 root.setInterval(()=>show((index+1)%slides.length),ROTATE_MS);
 root.setInterval(update,REFRESH_MS);
+root.setInterval(paintHeat,60000);
+if(root.document.addEventListener)root.document.addEventListener('visibilitychange',()=>{
+  paintHeat();
+  if(root.document.visibilityState==='visible')update();
+});
 })(typeof window!=='undefined'?window:globalThis);
