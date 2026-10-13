@@ -1,0 +1,29 @@
+name: Water LED
+on:
+  pull_request:
+    paths:
+      - 'water.html'
+      - 'water.js'
+      - 'tests/water-led.test.cjs'
+      - '.github/workflows/water-led.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'water.html'
+      - 'water.js'
+      - 'tests/water-led.test.cjs'
+      - '.github/workflows/water-led.yml'
+jobs:
+  water-led-test:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: node --check water.js
+      - run: node --test tests/water-led.test.cjs
+      - name: Verify legacy hospital LED remains unchanged
+        run: grep -q 'AKfycbwwUQCeJoz4N0P9UuRJF39pt17mBjPz0_yMDDxTO7BoiUiTQaO7Yay0UKq80EvE6dk' index.html
