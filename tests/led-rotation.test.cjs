@@ -42,6 +42,45 @@ test('failed, invalid or offline weather API degrades only heat slide',async()=>
  },()=>now);
  assert.equal(got.type,'DERIVED');
 });
+test('Thai heat severity colours use displayed one-decimal temperature and agency cutoffs',()=>{
+  const levels=[
+    [26.9,'heat-below','ต่ำกว่าเกณฑ์'],
+    [27,'heat-watch','เฝ้าระวัง'],
+    [32.9,'heat-watch','เฝ้าระวัง'],
+    [33,'heat-caution','เตือนภัย'],
+    [41.9,'heat-caution','เตือนภัย'],
+    [42,'heat-danger','อันตราย'],
+    [51.9,'heat-danger','อันตราย'],
+    [52,'heat-extreme','อันตรายมาก'],
+    [32.95,'heat-caution','เตือนภัย'],
+    [41.95,'heat-danger','อันตราย'],
+    [51.95,'heat-extreme','อันตรายมาก']
+  ];
+  for(const [num,cls,name] of levels){
+    const result=w.heatSeverity(num);
+    assert.equal(result.cls,cls,String(num));
+    assert.match(result.label,new RegExp(name),String(num));
+    assert.match(result.label,/คำนวณ/,String(num));
+  }
+  assert.equal(w.heatSeverity(null).cls,'no-data');
+  assert.equal(w.heatSeverity(NaN).cls,'no-data');
+  assert.notEqual(w.heatSeverity(0).cls,'no-data');
+});
+test('water stays neutral with no real gauge and colours are reserved for confirmed agency alerts',()=>{
+ const html=fs.readFileSync(path.join(__dirname,'../index.html'),'utf8');
+ assert.match(html,/id="slide-water" class="slide water no-data"/);
+ assert.match(html,/\.water\.water-watch \.label/);
+ assert.match(html,/\.water\.water-warning \.label/);
+ assert.match(html,/\.water\.water-danger \.label/);
+ assert.match(html,/\.water\.water-critical \.label/);
+ assert.match(html,/\.heat\.heat-watch \.label/);
+ assert.match(html,/\.heat\.heat-caution \.label/);
+ assert.match(html,/\.heat\.heat-danger \.label/);
+ assert.match(html,/\.heat\.heat-extreme \.label/);
+ assert.match(html,/\.heat\.no-data \.label/);
+ assert.match(html,/id="water-value">—/);
+ assert.match(html,/รอข้อมูลจริง/);
+});
 test('short labels are marked as derived, not an official safety warning',()=>{
  assert.match(w.shortHeatLabel(40),/คำนวณ/);
  assert.match(w.shortHeatLabel(44),/คำนวณ/);

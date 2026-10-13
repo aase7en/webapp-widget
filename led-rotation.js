@@ -46,13 +46,21 @@ async function requestHeat(fetcher,now){
   }catch{return null;}
   finally{clearTimeout(timeout);}
 }
-function shortHeatLabel(v){
-  if(!finite(v))return 'รอข้อมูล';
-  if(v>=41)return 'ร้อนจัด · คำนวณ';
-  if(v>=33)return 'ร้อนมาก · คำนวณ';
-  return 'คำนวณ';
+const HEAT_CLASSES=['heat-below','heat-watch','heat-caution','heat-danger','heat-extreme'];
+// Ministry of Natural Resources and Environment / public-health impact bands:
+// green 27–32.9, yellow 33–41.9, orange 42–51.9, red >= 52 °C.
+// Below 27 is NOT an official green "safe" classification.
+function heatSeverity(value){
+  if(!finite(value))return {cls:'no-data',label:'รอข้อมูล'};
+  const shown=Number(value.toFixed(1));
+  if(shown>=52)return {cls:'heat-extreme',label:'อันตรายมาก · คำนวณ'};
+  if(shown>=42)return {cls:'heat-danger',label:'อันตราย · คำนวณ'};
+  if(shown>=33)return {cls:'heat-caution',label:'เตือนภัย · คำนวณ'};
+  if(shown>=27)return {cls:'heat-watch',label:'เฝ้าระวัง · คำนวณ'};
+  return {cls:'heat-below',label:'ต่ำกว่าเกณฑ์ · คำนวณ'};
 }
-const api={heatCelsius,parseBangkokTime,parseHeat,requestHeat,shortHeatLabel,ROTATE_MS,REFRESH_MS,URL};
+function shortHeatLabel(v){return heatSeverity(v).label;}
+const api={heatCelsius,parseBangkokTime,parseHeat,requestHeat,heatSeverity,shortHeatLabel,ROTATE_MS,REFRESH_MS,URL};
 if(typeof module!=='undefined'&&module.exports)module.exports=api;
 root.UthaiLEDRotation=api;
 if(!root.document)return;
@@ -71,9 +79,12 @@ function show(i){
   });
 }
 function renderHeat(value){
+  const severity=heatSeverity(value);
+  for(const cls of HEAT_CLASSES)heatPanel.classList.remove(cls);
+  heatPanel.classList.toggle('no-data',severity.cls==='no-data');
+  if(severity.cls!=='no-data')heatPanel.classList.add(severity.cls);
   heatValue.textContent=value===null?'—':value.toFixed(1);
-  heatStatus.textContent=shortHeatLabel(value);
-  heatPanel.classList.toggle('no-data',value===null);
+  heatStatus.textContent=severity.label;
 }
 async function update(){
   if(running)return;

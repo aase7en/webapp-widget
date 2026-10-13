@@ -19,9 +19,46 @@ body{font-family:"Kanit",Tahoma,system-ui,sans-serif;color:#263238;background:#f
 .reading small{font-size:9px;line-height:1.1;margin-top:2px;white-space:nowrap}
 .status{flex:1;min-width:0;height:100%;display:flex;align-items:center;justify-content:center;padding:0 5px}
 .status span{font-weight:650;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.water .label{background:#176b95}.water .reading{color:#165b80}.water .status{background:#e7f4fc;color:#15516f}
-.heat .label{background:#c76a21}.heat .reading{color:#a64b14}.heat .status{background:#fff2e5;color:#743c13}
-.heat.no-data .label{background:#788696}.heat.no-data .reading{color:#566273}.heat.no-data .status{background:#f1f3f5;color:#475569}
+/* The water display MUST stay neutral until an authenticated, location-matched
+   agency alert or verified gauge and approved thresholds are integrated.
+   Future agency-alert classes below are inert: NO severity is inferred
+   from GloFAS discharge, news, missing reports, or unknown gauge readings. */
+.water .label,.water.no-data .label{background:#677381}
+.water .reading,.water.no-data .reading{color:#4b5563}
+.water .status,.water.no-data .status{background:#eef0f3;color:#374151}
+.water.water-watch .label{background:#176b95}
+.water.water-watch .reading{color:#145c83}
+.water.water-watch .status{background:#e5f3fc;color:#16486b}
+.water.water-warning .label{background:#946200}
+.water.water-warning .reading{color:#825900}
+.water.water-warning .status{background:#fff2bd;color:#664700}
+.water.water-danger .label{background:#b94b13}
+.water.water-danger .reading{color:#963c0b}
+.water.water-danger .status{background:#ffe3cc;color:#7f330d}
+.water.water-critical .label{background:#aa2031}
+.water.water-critical .reading{color:#8c1a27}
+.water.water-critical .status{background:#ffe1e4;color:#861c2b}
+/* Heat levels: Thai public-health impact bands, based on DERIVED Heat Index.
+   Classification of the DISPLAYED (one-decimal) value prevents colour/text
+   disagreement at 32.95, 41.95 and 51.95 degrees Celsius. */
+.heat .label,.heat.heat-below .label{background:#176b90}
+.heat .reading,.heat.heat-below .reading{color:#155a7a}
+.heat .status,.heat.heat-below .status{background:#e7f4fc;color:#154d69}
+.heat.heat-watch .label{background:#147444}
+.heat.heat-watch .reading{color:#11643a}
+.heat.heat-watch .status{background:#def6e8;color:#155735}
+.heat.heat-caution .label{background:#946600}
+.heat.heat-caution .reading{color:#855d00}
+.heat.heat-caution .status{background:#fff3bb;color:#6e4900}
+.heat.heat-danger .label{background:#b94d14}
+.heat.heat-danger .reading{color:#9c420f}
+.heat.heat-danger .status{background:#ffe4d1;color:#80340b}
+.heat.heat-extreme .label{background:#aa1b2c}
+.heat.heat-extreme .reading{color:#911827}
+.heat.heat-extreme .status{background:#ffe0e3;color:#8f1827}
+.heat.no-data .label{background:#788696}
+.heat.no-data .reading{color:#566273}
+.heat.no-data .status{background:#f1f3f5;color:#475569}
 @media(min-height:220px){
  .bar{flex-direction:column;gap:8px;padding:10px;justify-content:space-around}
  .label{width:100%;height:auto;flex:30 1 0;min-height:0;border-radius:8px;gap:12px}
@@ -42,7 +79,7 @@ body{font-family:"Kanit",Tahoma,system-ui,sans-serif;color:#263238;background:#f
   <section id="slide-pm" class="slide active" aria-label="PM2.5">
     <iframe class="legacy" title="PM2.5 โรงพยาบาลอุทัย" src="https://script.google.com/macros/s/AKfycbwwUQCeJoz4N0P9UuRJF39pt17mBjPz0_yMDDxTO7BoiUiTQaO7Yay0UKq80EvE6dk/exec" loading="eager" referrerpolicy="strict-origin-when-cross-origin"></iframe>
   </section>
-  <section id="slide-water" class="slide water" aria-label="ระดับน้ำคลองข้าวเม่า">
+  <section id="slide-water" class="slide water no-data" aria-label="ระดับน้ำคลองข้าวเม่า">
     <div class="bar">
       <div class="label"><svg viewBox="0 0 48 48" aria-hidden="true"><path d="M24 3C20 10 9 22 9 30a15 15 0 0 0 30 0C39 22 28 10 24 3Z" fill="none" stroke="currentColor" stroke-width="3"/><path d="M15 32q9-7 18 0M17 39q7-5 14 0" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg><span>ระดับน้ำ</span></div>
       <div class="reading"><strong id="water-value">—</strong><small>ม. · คลองข้าวเม่า</small></div>

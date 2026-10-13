@@ -15,3 +15,25 @@ Verification: `node --check led-rotation.js` and `node --test tests/led-rotation
 **Rollback:** revert only the corresponding `index.html` and `led-rotation.js` change or restore the earlier GitHub Pages main commit `0abf8196010fd44371240a6708a9ebc3b4744de4` through a safe revert PR. Do not rotate PM2.5 Apps Script credentials or touch its triggers. Follow accepted PR/CI/release gates.
 
 Independent review found a potential clipped status at intermediate heights (120–220 CSS px). The revised layout retains the horizontal bar below 220px and uses min-height=0 flex-weighted vertical regions above it. Screenshot-verified at 432×220 and 432×288.
+
+## Heat and water severity colours (2026-10-14)
+
+Heat Index uses explicit Thai public-health impact bands for the *derived*
+one-decimal value: below 27°C light blue (below the watch band; NOT a
+declaration of safety), 27.0–32.9 green/watch, 33.0–41.9 yellow/alert,
+42.0–51.9 orange/danger, >=52.0 red/extreme danger. Colour is accompanied by
+short Thai wording including "คำนวณ" so passengers do not mistake computed
+weather-model data for an official warning or measured hospital thermometer.
+No-data/stale/API error is GREY with an em dash and "รอข้อมูล". Classification
+uses the displayed rounded value, not an invisible second precision.
+
+Source bands: https://hub.mnre.go.th/th/knowledge/detail/65788 and
+https://spd.moph.go.th/wp-content/uploads/2025/03/5.2-Heat-V2.pdf
+(NOAA algorithm: https://www.weather.gov/ama/heatindex).
+
+Water has future thematic classes (watch blue, warning yellow, danger orange,
+critical red). They MUST NOT be activated until a verified local agency
+alert or reliable station-plus-authorised location-specific thresholds
+is integrated and reviewed. The water slide **currently uses grey
+UNAVAILABLE** with em dash and "รอข้อมูลจริง". Missing data, absent news,
+and modelled GloFAS discharge must never render a green safe water condition.
