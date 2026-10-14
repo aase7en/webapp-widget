@@ -5,8 +5,11 @@
 <title>โรงพยาบาลอุทัย · สิ่งแวดล้อม</title>
 <style>
 *{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden}
-body{font-family:"Kanit",Tahoma,system-ui,sans-serif;color:#263238;background:#fff}
-.led{position:relative;width:100%;height:100%;min-height:40px;overflow:hidden}
+body{font-family:"Kanit",Tahoma,system-ui,sans-serif;color:#263238;background:#000}
+/* Match the existing PM2.5 widget: all three slides are exactly one
+   40-CSS-pixel LED strip, even on a tall phone/desktop viewport.
+   The rest of the page stays black, never an enlarged vertical card. */
+.led{position:relative;width:100%;height:40px;max-height:100%;min-height:0;overflow:hidden}
 .slide{position:absolute;inset:0;background:#fff;visibility:hidden;pointer-events:none}
 .slide.active{visibility:visible;pointer-events:auto}
 .legacy{width:100%;height:100%;border:0;display:block}
@@ -59,17 +62,6 @@ body{font-family:"Kanit",Tahoma,system-ui,sans-serif;color:#263238;background:#f
 .heat.no-data .label{background:#788696}
 .heat.no-data .reading{color:#566273}
 .heat.no-data .status{background:#f1f3f5;color:#475569}
-@media(min-height:220px){
- .bar{flex-direction:column;gap:8px;padding:10px;justify-content:space-around}
- .label{width:100%;height:auto;flex:30 1 0;min-height:0;border-radius:8px;gap:12px}
- .label svg{width:clamp(35px,8vh,65px);height:clamp(35px,8vh,65px)}
- .label span{font-size:clamp(23px,5vw,41px)}
- .reading{width:100%;height:auto;flex:38 1 0;min-height:0}
- .reading strong{font-size:clamp(42px,12vw,78px)}
- .reading small{font-size:clamp(16px,3vw,23px)}
- .status{width:100%;height:auto;flex:26 1 0;min-height:0;border-radius:7px}
- .status span{font-size:clamp(20px,4vw,36px)}
-}
 @media(prefers-reduced-motion:reduce){.slide{transition:none!important}}
 </style>
 </head>

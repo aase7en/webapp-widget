@@ -98,6 +98,17 @@ test('short labels are marked as derived, not an official safety warning',()=>{
  assert.match(w.shortHeatLabel(44),/คำนวณ/);
  assert.equal(w.shortHeatLabel(null),'รอข้อมูล');
 });
+test('same 40px widget for phone, desktop preview and physical LED',()=>{
+  const html=fs.readFileSync(path.join(__dirname,'../index.html'),'utf8');
+  assert.match(html,/height:40px;max-height:100%;min-height:0/);
+  assert.match(html,/\.slide\{position:absolute;inset:0/);
+  assert.match(html,/\.legacy\{width:100%;height:100%;border:0/);
+  assert.match(html,/\.bar\{display:flex;width:100%;height:100%/);
+  assert.doesNotMatch(html,/@media\(min-height:[0-9]+px\)/);
+  // No new target or behaviour: this only constrains outer geometry.
+  assert.match(html,/class="slide active"/);
+  assert.match(html,/AKfycbwwUQCeJoz4N0P9UuRJF39pt17mBjPz0_yMDDxTO7BoiUiTQaO7Yay0UKq80EvE6dk/);
+});
 test('legacy iframe ID is unchanged; three panels and high-contrast large text',()=>{
  const html=fs.readFileSync(path.join(__dirname,'../index.html'),'utf8');
  assert.match(html,/AKfycbwwUQCeJoz4N0P9UuRJF39pt17mBjPz0_yMDDxTO7BoiUiTQaO7Yay0UKq80EvE6dk\/exec/);
@@ -105,10 +116,10 @@ test('legacy iframe ID is unchanged; three panels and high-contrast large text',
    assert.ok(html.includes('id="'+id+'"'),id);
  assert.match(html,/class="slide active"/);
  assert.match(html,/font-size:19px/);
- assert.match(html,/@media\(min-height:220px\)/);
- assert.match(html,/flex:30 1 0;min-height:0/);
- assert.match(html,/flex:38 1 0;min-height:0/);
- assert.match(html,/flex:26 1 0;min-height:0/);
+ assert.match(html,/\.led\{position:relative;width:100%;height:40px;max-height:100%;min-height:0;overflow:hidden\}/);
+ assert.match(html,/body\{font-family:[^}]*background:#000\}/);
+ assert.doesNotMatch(html,/@media\(min-height:/);
+ assert.doesNotMatch(html,/\.bar\{[^}]*flex-direction:column/);
  assert.match(html,/id="water-value">—/);
  assert.match(html,/รอข้อมูลจริง/);
  assert.match(html,/คลองข้าวเม่า/);
