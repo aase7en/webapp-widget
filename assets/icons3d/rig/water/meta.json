@@ -1,0 +1,106 @@
+{
+ "generatedBy": "preview/tools/make_water_rig.py",
+ "canvas": [
+  256,
+  256
+ ],
+ "bboxArt": [
+  28,
+  23,
+  228,
+  239
+ ],
+ "displaySize": "water icon-scene: 34x34 CSS px slot; art height maps to element height via object-fit:contain (pillarboxed); one-sided flood barrier cross-section (wall + upstream water + dry downstream)",
+ "scaleYPctOrigin": 0.9028,
+ "liquidTopArt": 26,
+ "liquidBaseArt": 218,
+ "crestLineArtY": 26.0,
+ "markerTopPct": 1.39,
+ "bandCol": 160,
+ "wallFaceCol": 142,
+ "waterRightCol": 142,
+ "bands": [
+  {
+   "key": "normal",
+   "rgb": [
+    64,
+    214,
+    110
+   ],
+   "rowTop": 108.6,
+   "rowBottom": 195.0
+  },
+  {
+   "key": "watch",
+   "rgb": [
+    250,
+    208,
+    52
+   ],
+   "rowTop": 60.6,
+   "rowBottom": 108.6
+  },
+  {
+   "key": "warning",
+   "rgb": [
+    255,
+    158,
+    40
+   ],
+   "rowTop": 26.0,
+   "rowBottom": 60.6
+  },
+  {
+   "key": "danger",
+   "rgb": [
+    244,
+    74,
+    66
+   ],
+   "rowTop": 13.0,
+   "rowBottom": 26.0
+  },
+  {
+   "key": "critical",
+   "rgb": [
+    214,
+    44,
+    70
+   ],
+   "rowTop": 3.0,
+   "rowBottom": 13.0
+  }
+ ],
+ "states": {
+  "normal": {
+   "level": 0.45,
+   "waveTopPct": 50.28,
+   "glow": 0.0
+  },
+  "watch": {
+   "level": 0.7,
+   "waveTopPct": 28.06,
+   "glow": 0.0
+  },
+  "warning": {
+   "level": 0.88,
+   "waveTopPct": 12.06,
+   "glow": 0.1
+  },
+  "danger": {
+   "level": 1.02,
+   "waveTopPct": -0.39,
+   "glow": 0.26
+  },
+  "critical": {
+   "level": 1.15,
+   "waveTopPct": -11.94,
+   "glow": 0.38
+  },
+  "unavailable": {
+   "level": 0.12,
+   "waveTopPct": 79.61,
+   "glow": 0.0
+  }
+ }
+}

@@ -1,0 +1,496 @@
+/* Unified LED frame with a fixed clock and two rotating content columns. */
+:root { --ink:#f7fbff; --muted:#a9bfd0; }
+html, body { margin:0; padding:0; background:#000; }
+body { color:var(--ink); font-family:Kanit,"Leelawadee UI",Tahoma,system-ui,sans-serif; -webkit-font-smoothing:antialiased; }
+.stage { box-sizing:border-box; position:absolute; left:0; top:0; transform-origin:top left; width:432px; height:40px; overflow:hidden;
+  border:1px solid transparent; border-radius:7px;
+  background:linear-gradient(180deg,#0b1d29 0%,#02090e 53%,#07131d 100%) padding-box,
+             linear-gradient(120deg,#78c8ed 0%,#1a567d 24%,#147aaa 53%,#5bb9e5 100%) border-box;
+  box-shadow:inset 0 1px 0 rgba(207,243,255,.23),inset 0 -1px 0 rgba(28,126,179,.2),0 0 7px rgba(0,146,232,.21); }
+/* Two opaque, stationary dividers: the core widens softly at mid-height. */
+.stage::before,.stage::after { content:""; position:absolute; z-index:5; top:1px; width:5px; height:38px; pointer-events:none;
+  background:url("./assets/ui-divider.png?v=20261017-prod1") center / 5px 38px no-repeat; }
+.stage::before { left:93px; }
+.stage::after { left:267px; }
+.clock-panel { box-sizing:border-box; position:absolute; z-index:2; left:1px; top:1px; width:94px; height:38px;
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  background:linear-gradient(180deg,rgba(12,34,48,.25),rgba(2,10,16,.12)); }
+.slide[data-sev="good"] { --accent:#46f565; --pill-top:#15992a; --pill-bottom:#09551a; --pill-edge:#5bf468; --glow:42,226,75; }
+.slide[data-sev="watch"] { --accent:#ffd047; --pill-top:#a9770d; --pill-bottom:#604008; --pill-edge:#fbd24e; --glow:255,185,37; }
+.slide[data-sev="danger"] { --accent:#ff9245; --pill-top:#b45c16; --pill-bottom:#612b0a; --pill-edge:#ff9a50; --glow:255,129,42; }
+.slide[data-sev="critical"] { --accent:#ff686d; --pill-top:#a62f39; --pill-bottom:#571820; --pill-edge:#ff7077; --glow:255,75,84; }
+.slide[data-sev="heat-below"],.slide[data-sev="water-normal"],.slide[data-sev="pm-good"] { --accent:#36d3ff; --pill-top:#0d7ba7; --pill-bottom:#0b3c59; --pill-edge:#4edcff; --glow:0,174,255; }
+.slide[data-sev="unavailable"] { --accent:#aebfc9; --pill-top:#405260; --pill-bottom:#26333e; --pill-edge:#708a99; --glow:95,137,163; }
+.slide { box-sizing:border-box; position:absolute; left:95px; top:1px; width:335px; height:38px; display:grid; grid-template-columns:174px 159px; align-items:center; visibility:hidden; opacity:0; }
+.slide.active,.slide.leaving,.slide.entering { visibility:visible; }
+.slide.active { opacity:1; z-index:1; }
+.slide.leaving { z-index:2; animation:ledFadeOut 1000ms cubic-bezier(.2,.7,.2,1) forwards; }
+.slide.entering { z-index:1; animation:ledFadeInUp 650ms cubic-bezier(.2,.7,.2,1) 1000ms both; }
+@keyframes ledFadeOut { from { opacity:1; } to { opacity:0; } }
+@keyframes ledFadeInUp { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:translateY(0); } }
+@media(prefers-reduced-motion:reduce) { .slide.leaving,.slide.entering {animation:none!important;} .slide.leaving{opacity:0;} .slide.entering{opacity:1;} }
+.panel { box-sizing:border-box; min-width:0; height:38px; margin:0; border:0; border-radius:0; background:transparent; box-shadow:none; }
+.panel.primary { display:flex; align-items:center; padding:0 3px; }
+.panel.status { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:1px; padding:0 3px; }
+.col.icon { width:38px; height:34px; flex:none; display:grid; place-items:center; position:relative; }
+.col.icon img { display:block; width:34px; height:34px; object-fit:contain; }
+.col.icon img.error,.col.icon.no-img img { display:none; }
+.icon-fallback { display:none; box-sizing:border-box; width:27px; height:27px; border:1px solid var(--accent,#8194a4); border-radius:50%; color:var(--accent,#8194a4); font:700 10px/25px Tahoma,sans-serif; text-align:center; }
+.col.icon img.error+.icon-fallback,.col.icon.no-img .icon-fallback { display:block; }
+.reading { min-width:0; display:flex; align-items:center; margin-left:3px; height:34px; }
+.reading-label { display:block; margin-left:3px; color:#b9d1de; font-size:7px; font-weight:700; line-height:10px; white-space:nowrap; }
+.reading-label b { display:inline-block; margin-left:3px; padding:0 2px; border:1px solid rgba(141,190,212,.7); border-radius:2px; color:#d7f0f7; font:700 6px/7px Tahoma,sans-serif; vertical-align:1px; }
+.reading-main { display:flex; align-items:baseline; gap:2px; white-space:nowrap; }
+.reading-main strong { display:block; color:#fff; font-size:20px; font-weight:800; line-height:22px; letter-spacing:-.7px; font-variant-numeric:tabular-nums; text-shadow:0 0 6px rgba(225,247,255,.13); }
+.reading-main small { display:block; color:#a5bdcc; font-size:8.4px; font-weight:600; line-height:12px; }
+#slide-water .reading-main strong { color:#d8e6eb; }
+.status-note { display:block; max-width:100%; color:#b5cbd8; font-size:8.5px; font-weight:600; line-height:11px; white-space:nowrap; }
+.pill { box-sizing:border-box; display:inline-flex; align-items:center; justify-content:center; gap:4px; max-width:100%; height:19px; padding:0 8px;
+  border:1px solid var(--pill-edge,#7b9aaa); border-radius:11px; background:linear-gradient(180deg,var(--pill-top,#314858),var(--pill-bottom,#1d2c36));
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.26),0 0 6px rgba(var(--glow,90,130,155),.3); color:#fff; font-size:10px; font-weight:700; line-height:16px; white-space:nowrap; flex-wrap:nowrap; text-shadow:0 1px 1px rgba(0,0,0,.5); }
+.pill .dot { flex:none; width:5px; height:5px; border-radius:50%; background:#edfff0; box-shadow:0 0 4px var(--accent,#aab9c2); }
+.pill .dot.diamond { border-radius:1px; transform:rotate(45deg); }
+#slide-pm:not([data-sev="pm-good"]) .pm-context { display:none; }
+#slide-weather[data-sev="good"] .pill { --pill-top:#a97812; --pill-bottom:#5d3c05; --pill-edge:#ffd24c; --glow:255,190,34; }
+.weather-status { gap:0!important; }
+.weather-metrics { display:flex; align-items:center; justify-content:center; gap:13px; width:100%; height:18px; }
+.weather-metrics > span { display:flex; align-items:baseline; gap:3px; white-space:nowrap; }
+.weather-metrics strong { font-size:12px; line-height:16px; font-weight:800; }
+.weather-metrics > span:first-child strong { color:#ffca53; }
+.weather-metrics > span:last-child strong { color:#4cdbff; }
+.weather-metrics small { color:#bbcfda; font-size:7px; font-weight:600; line-height:9px; }
+.weather-status .pill { height:15px; min-width:87px; font-size:8.5px; line-height:13px; }
+.day { position:absolute; top:0; display:block; color:#c1d6e5; font-size:8.2px; font-weight:600; line-height:11px; white-space:nowrap; }
+.time { position:absolute; top:14px; display:block; color:#fff; font-size:16px; font-weight:800; line-height:18px; letter-spacing:-.5px; font-variant-numeric:tabular-nums; white-space:nowrap; text-shadow:0 1px 3px #071320; }
+
+/* Reference order and proportions: Bangkok clock / hero measurement / status. */
+.day { top:0; font-size:8px; line-height:10px; }
+.time { top:13px; font-size:17px; line-height:18px; letter-spacing:-.7px; }
+.panel.primary { padding:0 2px; }
+.col.icon { width:39px; }
+.col.icon img { width:34px; height:34px; filter:drop-shadow(0 0 3px rgba(var(--glow),.35)); }
+.reading { flex:1; min-width:0; margin-left:2px; justify-content:center; }
+.reading-main strong { font-size:23px; line-height:25px; }
+.reading-main small { font-size:8px; }
+.reading-label { font-size:7px; margin-left:3px; }
+.panel.status { gap:2px; padding:0 3px; }
+.pill { height:20px; min-width:110px; font-size:11px; border-width:1px; border-radius:11px; box-shadow:inset 0 1px 0 rgba(255,255,255,.4),inset 0 -2px 2px rgba(0,0,0,.28),0 0 7px rgba(var(--glow),.43); }
+.status-symbol { box-sizing:border-box; flex:none; display:grid; place-items:center; width:16px; height:16px; border-radius:50%; border:1px solid rgba(255,255,255,.74); background:radial-gradient(circle at 34% 24%,#fff 0%,var(--accent) 32%,var(--pill-top) 77%,var(--pill-bottom) 100%); box-shadow:inset 0 1px 2px rgba(255,255,255,.7),0 1px 3px rgba(0,0,0,.55),0 0 5px var(--accent); color:#092110; font:900 10px/1 Tahoma,sans-serif; text-shadow:0 1px rgba(255,255,255,.4); }
+/* Hazard cue stays UPRIGHT with ONE glyph: the markup/strip.js text node is
+   the single source, and diamond hazard states recolour that one glyph white
+   for legibility on the hot medallion (user feedback: the retired ::before
+   painted a second, black ghost "!" underneath). */
+.status-symbol.diamond { border-radius:50%; transform:none; color:#fff; font-size:11px; text-shadow:0 1px 2px rgba(0,0,0,.55); }
+.status-note { font-size:8.5px; line-height:10px; }
+.weather-reading { height:34px; flex-direction:column; align-items:flex-start; justify-content:center; gap:0; }
+.reading-top { display:flex; align-items:center; height:23px; white-space:nowrap; }
+.weather-reading .reading-main strong { font-size:17px; line-height:19px; }
+.weather-reading .reading-label { font-size:6.5px; }
+.weather-metrics { display:flex; align-items:center; justify-content:flex-start; gap:7px; width:auto; height:10px; font-size:7px; line-height:9px; white-space:nowrap; color:#c6d9e6; }
+.weather-metrics > span { display:flex; align-items:baseline; gap:2px; white-space:nowrap; }
+.weather-metrics strong { font-size:9px; line-height:10px; }
+.weather-metrics small { font-size:6px; line-height:8px; }
+.weather-status .pill { height:20px; min-width:108px; font-size:10px; line-height:16px; }
+.water-reading { align-items:flex-start; flex-direction:column; }
+.water-reading .reading-main strong { font-size:18px; line-height:20px; }
+.water-reading .reading-main small { font-size:8px; }
+.water-reading .reading-label { margin-left:0; margin-top:3px; }
+#slide-weather[data-sev="good"] .status-symbol { --accent:#ffd047; --pill-top:#a97812; --pill-bottom:#5d3c05; }
+
+
+
+/* Weather: temperature/HI and forecast each own their icon and metric. */
+#slide-weather .panel.primary { padding:0; }
+#slide-weather .temp-zone,#slide-weather .forecast-zone { box-sizing:border-box; display:flex; flex:none; align-items:center; height:36px; min-width:0; }
+#slide-weather .temp-zone { width:97px; }
+#slide-weather .forecast-zone { width:77px; border-left:1px solid rgba(173,227,255,.55); }
+#slide-weather .wx-scene { width:34px; height:34px; }
+#slide-weather .weather-temp { width:42px; }
+#slide-weather .weather-heat { width:43px; }
+#slide-weather .weather-rain { width:42px; }
+#slide-weather .weather-metric {
+  box-sizing:border-box; position:relative; display:flex;
+  flex-direction:column; align-items:center; justify-content:center;
+  height:36px; gap:1px; min-width:0; white-space:nowrap;
+}
+#slide-weather .weather-value {
+  box-sizing:border-box; display:flex; align-items:baseline; justify-content:center;
+  width:100%; height:22px; gap:1px; white-space:nowrap; line-height:22px;
+}
+#slide-weather .weather-temp .reading-main strong {
+  font-size:20px; line-height:22px; letter-spacing:-.8px; color:#fff;
+}
+#slide-weather .weather-temp .reading-main small {
+  font-size:8px; line-height:12px; color:#a8d8f3;
+}
+#slide-weather .weather-temp .reading-label {
+  display:block; margin:0; font-size:8.5px; font-weight:700;
+  line-height:10px; color:#d1eafd; text-shadow:none;
+}
+#slide-weather .weather-heat .metric-prefix {
+  color:#b9d5e8; font-size:8.5px; font-weight:500; line-height:12px;
+}
+#slide-weather .weather-heat .weather-value strong {
+  color:#ffbe35; font-size:17px; font-weight:800; line-height:22px;
+  letter-spacing:-.6px; font-variant-numeric:tabular-nums;
+}
+#slide-weather .weather-rain .weather-value strong {
+  color:#2bd4ff; font-size:16px; font-weight:800; line-height:22px;
+  letter-spacing:-.8px; font-variant-numeric:tabular-nums;
+}
+#slide-weather .weather-caption {
+  display:block; color:#c0d6e6; font-size:7.2px; font-weight:600;
+  line-height:10px; white-space:nowrap;
+}
+#slide-weather[data-sev="unavailable"] .weather-heat .weather-value strong,
+#slide-weather[data-sev="unavailable"] .weather-rain .weather-value strong { color:#bdc7ce; }
+
+/* Tiny icon theatre: all layers stay inside the fixed 34px artwork footprint. */
+.icon-scene { isolation:isolate; overflow:visible; }
+.icon-scene img { position:relative; z-index:1; }
+.icon-scene > span:not(.icon-fallback) { position:absolute; pointer-events:none; }
+.icon-scene .icon-fallback { position:relative; z-index:3; }
+.icon-scene.asset-failed > span:not(.icon-fallback) { display:none!important; }
+.icon-scene.asset-failed .icon-fallback { display:block; }
+.pm-scene img,.wx-scene img,.water-scene img { transform-origin:50% 55%; }
+
+/* PM character (Thai AQI reference image, user-approved): the SEVERITY COLOUR
+   lives in the base sphere (blue -> green -> yellow -> orange -> red; grey =
+   no data; the green top leaf was removed) and the expression layer stays
+   neutral. Motion per band: 0–25 bounce + animated teeth grin · 26–37 blink
+   + CLOSED still smile (no teeth, no mouth animation) · 38–50 sad in slow
+   motion · 51–90 sad + N95 mask stacked ABOVE the mouth layer so the lips
+   stay fully hidden (eyes/tear readable above it) + animated tear · ≥91 X
+   eyes + wavy mouth · unavailable neutral. */
+.pm-rig { position:absolute; inset:0; left:50%; right:auto; width:34px; height:34px; margin-left:-17px; z-index:2; display:block; animation:iconFloat 3.8s ease-in-out infinite; }
+.pm-rig img { position:absolute; inset:0; width:100%; height:100%; display:block; }
+.pm-scene img.pm-eyes-img { transform-origin:50% 44%; animation:pmBlink 4.8s ease-in-out infinite; opacity:0; }
+#slide-pm .pm-scene img.pm-eyes-img[data-eyes="happy"],
+#slide-pm .pm-scene img.pm-eyes-img[data-eyes="x"] { animation:none; }
+#slide-pm[data-pm-mood="unhealthy"] .pm-scene img.pm-eyes-img { animation-duration:9.6s; }
+.pm-scene img.pm-base { opacity:0; }
+#slide-pm:not([data-pm-mood]) .pm-scene img[data-pm-base="good"],
+#slide-pm[data-pm-mood="good"] .pm-scene img[data-pm-base="good"],
+#slide-pm[data-pm-mood="moderate"] .pm-scene img[data-pm-base="moderate"],
+#slide-pm[data-pm-mood="unhealthy"] .pm-scene img[data-pm-base="unhealthy"],
+#slide-pm[data-pm-mood="protective"] .pm-scene img[data-pm-base="protective"],
+#slide-pm[data-pm-mood="severe"] .pm-scene img[data-pm-base="severe"],
+#slide-pm[data-pm-mood="unavailable"] .pm-scene img[data-pm-base="unavailable"] { opacity:1; }
+.pm-scene img.pm-mouth-img { transform-origin:50% 62%; opacity:0; }
+/* The mask rides ABOVE every mouth layer (z-index 2 > mouth 1): the orange
+   51–90 band hides the lips completely; only brows/eyes/tear stay readable. */
+.pm-scene img.pm-mask-img { transform-origin:50% 66%; opacity:0; z-index:2; }
+#slide-pm[data-pm-mood="protective"] .pm-scene img.pm-mask-img { opacity:1; }
+#slide-pm:not([data-pm-mood]) .pm-scene img[data-mouth="grin"],
+#slide-pm[data-pm-mood="good"] .pm-scene img[data-mouth="grin"],
+#slide-pm[data-pm-mood="moderate"] .pm-scene img[data-mouth="smile"],
+#slide-pm[data-pm-mood="unhealthy"] .pm-scene img[data-mouth="worry"],
+#slide-pm[data-pm-mood="protective"] .pm-scene img[data-mouth="frown"],
+#slide-pm[data-pm-mood="severe"] .pm-scene img[data-mouth="wavy"] { opacity:1; }
+#slide-pm:not([data-pm-mood]) .pm-scene img[data-eyes="happy"],
+#slide-pm[data-pm-mood="good"] .pm-scene img[data-eyes="happy"],
+#slide-pm[data-pm-mood="moderate"] .pm-scene img[data-eyes="normal"],
+#slide-pm[data-pm-mood="unhealthy"] .pm-scene img[data-eyes="normal"],
+#slide-pm[data-pm-mood="protective"] .pm-scene img[data-eyes="normal"],
+#slide-pm[data-pm-mood="severe"] .pm-scene img[data-eyes="x"],
+#slide-pm[data-pm-mood="unavailable"] .pm-scene img[data-eyes="normal"] { opacity:1; }
+.pm-scene img.pm-brows-img { opacity:0; }
+#slide-pm[data-pm-mood="unhealthy"] .pm-brows-img,
+#slide-pm[data-pm-mood="protective"] .pm-brows-img { opacity:1; }
+/* Band motion: good bounces with an animated teeth grin; moderate keeps a
+   calm closed smile with NO mouth animation; unhealthy moves in slow motion. */
+#slide-pm[data-pm-mood="good"] .pm-rig { animation:pmBounce 3.2s ease-in-out infinite; }
+#slide-pm[data-pm-mood="good"] .pm-scene img[data-mouth="grin"] { animation:pmGrin 2.2s ease-in-out infinite; }
+#slide-pm[data-pm-mood="unhealthy"] .pm-rig { animation:iconFloat 7.6s ease-in-out infinite; }
+#slide-pm[data-pm-mood="unavailable"] .pm-scene img.pm-eyes-img { animation:none; }
+#slide-pm[data-pm-mood="unavailable"] .pm-scene img[data-mouth="flat"] { opacity:.5; }
+/* Animated tear (51–90): a glossy drop slips from the left eye and fades. */
+.pm-tear { z-index:3; left:11px; top:16px; width:4px; height:6px; opacity:0;
+  background:radial-gradient(ellipse 55% 38% at 45% 22%,rgba(255,255,255,.95),rgba(150,222,250,.95) 45%,rgba(58,152,230,.95) 100%);
+  border-radius:50% 50% 50% 50%/62% 62% 38% 38%; }
+#slide-pm[data-pm-mood="protective"] .pm-tear { animation:pmTear 2.6s ease-in infinite; }
+
+/* Weather v2 miniature scenes (iPhone-weather motion language, ORIGINAL
+   procedural art from tools/make_weather_rig.py). One distinctive scene per
+   data-wx-motion state; every layer stays inside the 34px slot and inherits
+   the .icon-scene guards (reduced motion / hidden tab / asset failure). */
+.wx-scene img.wx-sun-img { position:absolute; z-index:1; left:1px; top:1px; width:28px; height:28px; opacity:0; }
+.wx-scene img#wx-icon { position:absolute; z-index:2; left:2px; top:2px; width:30px; height:30px; }
+.wx-scene img.wx-cloud-back { position:absolute; z-index:1; left:4px; top:2px; width:20px; height:12px; opacity:0; }
+.wx-scene img.wx-cloud-shade { position:absolute; z-index:3; left:2px; top:2px; width:30px; height:30px; opacity:0; }
+.wx-scene img.wx-cloud-front { position:absolute; z-index:3; left:12px; top:13px; width:17px; height:10px; opacity:0; }
+.wx-scene img.wx-bolt-img { position:absolute; z-index:4; left:12px; top:12px; width:9px; height:19px; opacity:0; }
+.wx-scene img.wx-cloud-back.error, .wx-scene img.wx-cloud-shade.error,
+.wx-scene img.wx-cloud-front.error, .wx-scene img.wx-bolt-img.error { opacity:0!important; }
+.wx-unknown { z-index:4; left:0; right:0; top:9px; height:16px; text-align:center; font:800 13px/16px Tahoma,sans-serif;
+  color:#eef4f8; text-shadow:0 1px 2px rgba(8,18,26,.9),0 0 4px rgba(130,160,180,.65); opacity:0; }
+/* rain: staggered gradient teardrops below the cloud (5 rain · 7 storm) */
+.wx-rain { z-index:3; left:5px; top:24px; width:25px; height:10px; opacity:0; overflow:hidden; }
+.wx-rain i { position:absolute; top:-9px; width:2.8px; height:7.5px; border-radius:45% 45% 62% 62% / 28% 28% 72% 72%;
+  background:linear-gradient(180deg,rgba(198,234,255,.45),rgba(140,216,255,.95) 30%,#2b90da 85%,rgba(32,116,196,.95));
+  box-shadow:inset 0 .5px .5px rgba(255,255,255,.9),0 0 2px rgba(88,198,255,.6); }
+.wx-rain i:nth-child(1) { left:2px; }
+.wx-rain i:nth-child(2) { left:7px; animation-delay:-.15s; }
+.wx-rain i:nth-child(3) { left:12px; animation-delay:-.3s; }
+.wx-rain i:nth-child(4) { left:17px; animation-delay:-.45s; }
+.wx-rain i:nth-child(5) { left:22px; animation-delay:-.6s; }
+.wx-rain i:nth-child(6) { left:5px; animation-delay:-.5s; }
+.wx-rain i:nth-child(7) { left:19px; animation-delay:-.25s; }
+.wx-rain::after { content:""; position:absolute; left:2px; right:2px; bottom:0; height:2.5px; opacity:0; border-radius:50%;
+  background:radial-gradient(ellipse 50% 100% at 50% 100%,rgba(198,238,255,.95),rgba(198,238,255,0) 72%); }
+/* transient strike halo: scoped to the CLOUD region (not the whole scene) */
+.wx-flash { z-index:5; left:5px; top:3px; width:22px; height:15px; border-radius:50%; opacity:0;
+  background:radial-gradient(ellipse 48% 44% at 50% 42%,rgba(242,250,255,.95),rgba(242,250,255,0) 72%); }
+#slide-weather[data-wx-motion="sunny"] .wx-sun-img,
+#slide-weather[data-wx-motion="partly"] .wx-sun-img { opacity:1; animation:sunRise 4.5s ease-in-out infinite; }
+/* The weather base is the cleaned artwork (baked drops removed at asset
+   level); state scenes compose extra procedural layers around it. */
+#slide-weather[data-wx-motion="unavailable"] .wx-unknown { opacity:1; }
+#slide-weather[data-wx-motion="unavailable"] .wx-scene img { filter:grayscale(1) brightness(.65); }
+/* two cloud layers with INDEPENDENT parallax (back slow drift, front bob) */
+#slide-weather[data-wx-motion="partly"] .wx-scene img.wx-cloud-back { opacity:1; animation:wxDriftBack 7s ease-in-out infinite; }
+#slide-weather[data-wx-motion="cloudy"] .wx-scene img.wx-cloud-back { opacity:1; animation:wxDriftBack 7s ease-in-out infinite; }
+#slide-weather[data-wx-motion="fog"] .wx-scene img.wx-cloud-back { opacity:1; animation:wxDriftBack 7s ease-in-out infinite; }
+#slide-weather[data-wx-motion="windy"] .wx-scene img.wx-cloud-back { opacity:1; animation:wxLeanBack 2.6s ease-in-out infinite; }
+#slide-weather[data-wx-motion="cloudy"] .wx-scene img.wx-cloud-front { opacity:1; animation:wxBobFront 4.6s ease-in-out infinite; animation-delay:-2.1s; }
+#slide-weather[data-wx-motion="rain"] .wx-scene img.wx-cloud-front { opacity:1; animation:wxBobFront 4.6s ease-in-out infinite; animation-delay:-2.1s; }
+#slide-weather[data-wx-motion="heavy-rain"] .wx-scene img.wx-cloud-front { opacity:1; animation:wxBobFront 4.6s ease-in-out infinite; animation-delay:-2.1s; }
+#slide-weather[data-wx-motion="thunder"] .wx-scene img.wx-cloud-front { opacity:1; animation:wxBobFront 4.6s ease-in-out infinite; animation-delay:-2.1s; }
+#slide-weather[data-wx-motion="windy"] .wx-scene img.wx-cloud-front { opacity:1; animation:wxLeanFront 2.6s ease-in-out infinite; animation-delay:-1.3s; }
+#slide-weather[data-wx-motion="partly"] .wx-scene #wx-icon,
+#slide-weather[data-wx-motion="cloudy"] .wx-scene #wx-icon { animation:iconFloat 4.5s ease-in-out infinite; }
+/* Sunny and fog keep their cloud alive too (user feedback: static cloud):
+   sunny = gentle sway beside the rising sun; fog = slow drift under haze. */
+#slide-weather[data-wx-motion="sunny"] .wx-scene #wx-icon { animation:cloudSway 7s ease-in-out infinite; }
+#slide-weather[data-wx-motion="fog"] .wx-scene #wx-icon { animation:cloudSway 11s ease-in-out infinite; }
+#slide-weather[data-wx-motion="fog"] .wx-scene img.wx-cloud-back { opacity:.55; }
+/* Windy: gust sprites sweep past and the whole cloud group LEANS into them. */
+#slide-weather[data-wx-motion="windy"] .wx-scene #wx-icon { animation:windRock 2.6s ease-in-out infinite; }
+.wx-wind { z-index:3; left:0; right:1px; top:7px; height:22px; opacity:0; overflow:hidden; }
+.wx-wind i { position:absolute; left:-14px; width:18px; height:5px; border-radius:3px;
+  background:url("./assets/icons3d/rig/wx-gust.png?v=20261017-prod1") 0 0 / 100% 100% no-repeat; }
+.wx-wind i:nth-child(1) { top:3px; }
+.wx-wind i:nth-child(2) { top:10px; width:22px; animation-delay:-.5s; }
+.wx-wind i:nth-child(3) { top:16px; width:14px; animation-delay:-1s; }
+#slide-weather[data-wx-motion="windy"] .wx-wind { opacity:1; }
+#slide-weather[data-wx-motion="windy"] .wx-wind i { animation:gustSweep 1.5s linear infinite; }
+/* storm clouds darken through the aligned shade layer (never a flat filter) */
+#slide-weather[data-wx-motion="heavy-rain"] .wx-scene img.wx-cloud-shade { opacity:1; }
+#slide-weather[data-wx-motion="thunder"] .wx-scene img.wx-cloud-shade { opacity:1; }
+#slide-weather[data-wx-motion="rain"] .wx-rain,
+#slide-weather[data-wx-motion="heavy-rain"] .wx-rain,
+#slide-weather[data-wx-motion="thunder"] .wx-rain { opacity:1; }
+#slide-weather[data-wx-motion="rain"] .wx-rain i:nth-child(n+6) { display:none; }
+#slide-weather[data-wx-motion="thunder"] .wx-rain i:nth-child(7) { display:none; }
+#slide-weather[data-wx-motion="rain"] .wx-rain i { animation:rainFall .72s linear infinite; }
+#slide-weather[data-wx-motion="heavy-rain"] .wx-rain i { animation:rainFallStorm .38s linear infinite; }
+#slide-weather[data-wx-motion="thunder"] .wx-rain i { animation:rainFallStorm .38s linear infinite; }
+#slide-weather[data-wx-motion="heavy-rain"] .wx-rain::after { animation:splashPop .38s ease-out infinite; }
+#slide-weather[data-wx-motion="thunder"] .wx-rain::after { animation:splashPop .38s ease-out infinite; }
+/* lightning: the ORIGINAL bolt stays visible at rest; the halo only kisses the
+   cloud twice per 5.5s cycle (≤2 flashes, never above 3 Hz), no brightness filter */
+#slide-weather[data-wx-motion="thunder"] .wx-scene img.wx-bolt-img { opacity:1; }
+#slide-weather[data-wx-motion="thunder"] .wx-scene img.wx-bolt-img { animation:boltGlow 5.5s linear infinite; }
+#slide-weather[data-wx-motion="thunder"] .wx-flash { animation:thunderFlash 5.5s linear infinite; }
+
+/* Fog reads distinct from cloudy: three feathered haze ribbons at different
+   speeds/directions partly veiling a still-breathing cloud (never hard bars). */
+.wx-fog { z-index:3; left:1px; right:2px; top:4px; height:26px; opacity:0; overflow:hidden; }
+.wx-fog i { position:absolute; left:-6px; right:-6px; height:6.5px; border-radius:50%;
+  background:linear-gradient(180deg,rgba(219,238,248,0),rgba(226,241,250,.62) 40%,rgba(212,234,247,.45) 64%,rgba(219,238,248,0)); }
+.wx-fog i:nth-child(1) { top:2px; }
+.wx-fog i:nth-child(2) { top:10px; height:8px; }
+.wx-fog i:nth-child(3) { top:18px; }
+#slide-weather[data-wx-motion="fog"] .wx-fog { opacity:1; }
+#slide-weather[data-wx-motion="fog"] .wx-fog i:nth-child(1) { animation:fogDrift 5.5s ease-in-out infinite; animation-delay:-1.2s; }
+#slide-weather[data-wx-motion="fog"] .wx-fog i:nth-child(2) { animation:fogDrift 7.3s ease-in-out infinite reverse; animation-delay:-3.4s; }
+#slide-weather[data-wx-motion="fog"] .wx-fog i:nth-child(3) { animation:fogDrift 9.1s ease-in-out infinite; animation-delay:-5.1s; }
+#slide-weather[data-wx-motion="fog"] .wx-scene #wx-icon { filter:saturate(.82) brightness(1.05); }
+
+/* HI thermometer mini-rig (replaces the retired hidden severity ring): the liquid level
+   and colour encode heat severity; bulb centre is the scale origin so the
+   column always drains into the bulb. Levels mirror heatSeverity() bands. */
+.heat-thermo { position:relative; flex:none; box-sizing:border-box; width:12px; height:30px; padding:2px;
+  z-index:4; isolation:isolate; border:1px solid rgba(140,200,235,.28); border-radius:8px;
+  background:linear-gradient(180deg,rgba(2,10,16,.52),rgba(2,10,16,.3)); }
+.heat-thermo img { position:absolute; inset:2px; width:calc(100% - 4px); height:calc(100% - 4px);
+  transform-origin:50% 84.62%; filter:none; }
+#slide-weather .heat-thermo img { width:8px; height:26px; filter:none; }
+.heat-thermo img.heat-liquid-img { opacity:0; transform:scaleY(var(--heat-level,.3));
+  transition:opacity .45s ease,transform .7s cubic-bezier(.2,.7,.2,1); }
+.heat-thermo img.heat-glass-img { z-index:2; }
+.heat-glow { position:absolute; z-index:0; left:50%; top:72%; width:12px; height:22px; transform:translate(-50%,-50%); border-radius:50%;
+  background:radial-gradient(circle,rgba(var(--heat-rgb,132,144,158),.55) 0%,rgba(var(--heat-rgb,132,144,158),0) 70%); opacity:0; }
+#slide-weather[data-heat="below"] .heat-thermo { --heat-level:.30; }
+#slide-weather[data-heat="watch"] .heat-thermo { --heat-level:.44; }
+#slide-weather[data-heat="caution"] .heat-thermo { --heat-level:.58; }
+#slide-weather[data-heat="danger"] .heat-thermo { --heat-level:.74; }
+#slide-weather[data-heat="extreme"] .heat-thermo { --heat-level:.92; }
+#slide-weather[data-heat="no-data"] .heat-thermo { --heat-level:.30; filter:grayscale(1) brightness(.8); }
+#slide-weather[data-heat="below"] img[data-heat-liquid="below"],
+#slide-weather[data-heat="watch"] img[data-heat-liquid="watch"],
+#slide-weather[data-heat="caution"] img[data-heat-liquid="caution"],
+#slide-weather[data-heat="danger"] img[data-heat-liquid="danger"],
+#slide-weather[data-heat="extreme"] img[data-heat-liquid="extreme"],
+#slide-weather[data-heat="no-data"] img[data-heat-liquid="no-data"] { opacity:1; }
+#slide-weather[data-heat="watch"] .heat-glow,
+#slide-weather[data-heat="below"] .heat-glow { opacity:.5; }
+#slide-weather[data-heat="caution"] .heat-glow { opacity:.75; }
+#slide-weather[data-heat="danger"] .heat-glow,
+#slide-weather[data-heat="extreme"] .heat-glow { opacity:1; animation:heatPulse 2.6s ease-in-out infinite; }
+
+/* Water gauge rig v2 (DEMO states only; live stays unavailable and static):
+   the liquid is REALISTIC WATER in every state (clear blue-teal; turbid
+   teal-to-muddy flood water at danger/critical) and severity rides a flood
+   STAFF-GAUGE — muted colour bands baked into the tank with a per-state
+   highlight overlay on the band the water reaches, dashed ระดับตลิ่ง line,
+   rim/outer glow tinted by --water-rgb and an overflow spill at critical.
+   Levels mirror strip.js WATER_RGB/paintWater; the shared art bbox makes art
+   height == element height, so bbox percentages map 1:1 to the 34px slot. */
+.water-rig { position:absolute; inset:0; left:50%; right:auto; width:34px; height:34px; margin-left:-17px; z-index:2; isolation:isolate; }
+@property --water-level { syntax:'<number>'; inherits:true; initial-value:.12; }
+.water-rig img { position:absolute; inset:0; width:100%; height:100%; object-fit:contain; transform-origin:50% 90.28%; }
+.water-glow { position:absolute; z-index:0; left:50%; top:60%; width:30px; height:30px; transform:translate(-50%,-50%); border-radius:50%; opacity:0;
+  background:radial-gradient(circle,rgba(var(--water-rgb,158,158,158),.7) 0%,rgba(var(--water-rgb,158,158,158),0) 72%); }
+.water-rig img.water-liquid-img { z-index:1; opacity:0; transform:scaleY(var(--water-level,.12));
+  transition:--water-level .7s cubic-bezier(.2,.7,.2,1), opacity .45s ease;
+  animation:waterSwell var(--wave-dur,5.6s) ease-in-out infinite; }
+.water-rig img.water-wall-img { z-index:2; }
+.water-rig img.water-band-img { z-index:3; opacity:0; transition:opacity .45s ease; }
+.water-rig img.water-spill-img { z-index:4; opacity:0; }
+.water-wave { position:absolute; z-index:2; left:40%; width:44%; height:2px; border-radius:50%; transform:translate(-50%,0);
+  top:var(--water-wave-top,79.61%); opacity:0;
+  background:linear-gradient(90deg,rgba(255,255,255,0),rgba(255,255,255,.95) 30%,rgba(255,255,255,.85) 70%,rgba(255,255,255,0));
+  box-shadow:0 1.5px 3px rgba(255,255,255,.35); }
+.water-marker { position:absolute; z-index:5; left:9%; right:29%; top:1.39%; height:2px; opacity:0;
+  background:repeating-linear-gradient(90deg,rgba(255,255,255,.95) 0 6px,rgba(10,30,50,.9) 6px 11px); }
+#slide-water[data-water-motion="normal"] .water-rig { --water-level:.45; --water-wave-top:50.28%; --wave-dur:5.6s; }
+#slide-water[data-water-motion="watch"] .water-rig { --water-level:.70; --water-wave-top:28.06%; --wave-dur:4.2s; }
+#slide-water[data-water-motion="warning"] .water-rig { --water-level:.88; --water-wave-top:12.06%; --wave-dur:2.6s; }
+#slide-water[data-water-motion="danger"] .water-rig { --water-level:1.02; --water-wave-top:-0.39%; --wave-dur:1.3s; }
+#slide-water[data-water-motion="critical"] .water-rig { --water-level:1.15; --water-wave-top:-11.94%; --wave-dur:.7s; }
+#slide-water[data-water-motion="unavailable"] .water-rig { --water-level:.12; --water-wave-top:79.61%; --wave-dur:9s; filter:grayscale(1) brightness(.85); }
+#slide-water[data-water-motion="normal"] img[data-water-liquid="normal"],
+#slide-water[data-water-motion="watch"] img[data-water-liquid="watch"],
+#slide-water[data-water-motion="warning"] img[data-water-liquid="warning"],
+#slide-water[data-water-motion="danger"] img[data-water-liquid="danger"],
+#slide-water[data-water-motion="critical"] img[data-water-liquid="critical"],
+#slide-water[data-water-motion="unavailable"] img[data-water-liquid="unavailable"] { opacity:1; }
+#slide-water[data-water-motion="normal"] img[data-water-band="normal"] { opacity:1; }
+#slide-water[data-water-motion="watch"] img[data-water-band="watch"] { opacity:1; }
+#slide-water[data-water-motion="warning"] img[data-water-band="warning"] { opacity:1; }
+#slide-water[data-water-motion="danger"] img[data-water-band="danger"] { opacity:1; }
+#slide-water[data-water-motion="critical"] img[data-water-band="critical"] { opacity:1; }
+#slide-water[data-water-motion="unavailable"] img[data-water-band] { opacity:0; }
+#slide-water:not([data-water-motion="unavailable"]) .water-wave { opacity:1; animation:waterSwellLine var(--wave-dur,5.6s) ease-in-out infinite; }
+#slide-water[data-water-motion="normal"] .water-glow { opacity:0; }
+#slide-water[data-water-motion="watch"] .water-glow { opacity:.5; animation:waterBreathe 3.2s ease-in-out infinite; }
+#slide-water[data-water-motion="warning"] .water-glow { opacity:.65; animation:waterBreathe 2.4s ease-in-out infinite; }
+#slide-water[data-water-motion="danger"] .water-glow { opacity:.85; animation:waterPulse 1.1s ease-in-out infinite; }
+#slide-water[data-water-motion="critical"] .water-glow { opacity:1; animation:waterPulse .7s ease-in-out infinite; }
+#slide-water[data-water-motion="unavailable"] .water-glow { opacity:0; }
+#slide-water[data-water-motion="normal"] .water-rig img.water-wall-img { filter:drop-shadow(0 0 1px rgba(var(--water-rgb),.25)); }
+#slide-water[data-water-motion="watch"] .water-rig img.water-wall-img { filter:drop-shadow(0 0 1px rgba(var(--water-rgb),.3)); }
+#slide-water[data-water-motion="warning"] .water-rig img.water-wall-img { filter:drop-shadow(0 0 2px rgba(var(--water-rgb),.4)); }
+#slide-water[data-water-motion="danger"] .water-rig img.water-wall-img { filter:drop-shadow(0 0 3px rgba(var(--water-rgb),.55)); }
+#slide-water[data-water-motion="critical"] .water-rig img.water-wall-img { filter:drop-shadow(0 0 4px rgba(var(--water-rgb),.7)); }
+#slide-water[data-water-motion="danger"] .water-marker { opacity:1; animation:waterAlarm 1.2s ease-in-out infinite; }
+#slide-water[data-water-motion="critical"] .water-marker { opacity:1; animation:waterAlarm .6s ease-in-out infinite; }
+/* overflow over the crest: lapping sheet at danger, full stream + drip at critical */
+#slide-water[data-water-motion="danger"] img.water-spill-img[data-water-spill="danger"] { opacity:.6; animation:waterLap 2.6s ease-in-out infinite; }
+#slide-water[data-water-motion="critical"] img.water-spill-img[data-water-spill="critical"] { opacity:.9; animation:waterSpill 1.3s ease-in-out infinite; }
+.water-rig::after { content:""; position:absolute; z-index:6; left:89%; top:14%; width:3px; height:4.5px; opacity:0;
+  border-radius:50% 50% 50% 50%/62% 62% 38% 38%; background:rgba(var(--water-rgb,158,158,158),.85); }
+#slide-water[data-water-motion="critical"] .water-rig::after { animation:waterDrip .9s linear infinite; }
+
+@keyframes iconFloat { 50% { transform:translateY(-3px); } }
+@keyframes cloudSway { 0%,100% { transform:translateX(-1.5px); } 50% { transform:translateX(1.5px); } }
+@keyframes wxDriftBack { 0%,100% { transform:translate(-1.5px,0); } 50% { transform:translate(2px,-1px); } }
+@keyframes wxBobFront { 0%,100% { transform:translate(1px,.5px); } 50% { transform:translate(-2px,-1px); } }
+@keyframes wxLeanBack { 0%,100% { transform:translateX(-1px) rotate(-5deg); } 50% { transform:translateX(1.5px) rotate(4deg); } }
+@keyframes wxLeanFront { 0%,100% { transform:translateX(1px) rotate(-6deg); } 50% { transform:translateX(-1.5px) rotate(5deg); } }
+@keyframes windRock { 0%,100% { transform:translateX(-2px) rotate(-5deg); } 50% { transform:translateX(2px) rotate(3deg); } }
+@keyframes gustSweep { from { transform:translateX(-16px); opacity:0; } 25% { opacity:1; } 78% { opacity:1; } to { transform:translateX(34px); opacity:0; } }
+@keyframes pmBlink { 0%,43%,47%,100% { transform:scaleY(1); } 45% { transform:scaleY(.15); } }
+@keyframes pmBounce { 50% { transform:translateY(-2px); } }
+@keyframes pmGrin { 0%,100% { transform:scale(1,1); } 50% { transform:scale(1.06,1.12); } }
+@keyframes pmTear { 0% { opacity:0; transform:translateY(-1px) scale(.6); } 18% { opacity:.95; } 70% { opacity:.9; transform:translateY(9px) scale(1); } 100% { opacity:0; transform:translateY(13px) scale(.85); } }
+@keyframes iconGleam { 50% { opacity:.85; transform:translateX(2px); } }
+@keyframes rainFall {
+  from { transform:translate(0,-9px) rotate(13deg); opacity:0; }
+  14% { opacity:1; }
+  80% { opacity:1; }
+  to { transform:translate(3px,19px) rotate(13deg); opacity:0; }
+}
+@keyframes rainFallStorm {
+  from { transform:translate(0,-9px) rotate(16deg); opacity:0; }
+  12% { opacity:1; }
+  82% { opacity:1; }
+  to { transform:translate(5px,22px) rotate(16deg); opacity:0; }
+}
+@keyframes splashPop { 0% { transform:scaleX(.4); opacity:0; } 30% { opacity:.8; } 100% { transform:scaleX(1); opacity:0; } }
+@keyframes sunRise { 50% { transform:translateY(-3px) scale(1.08); opacity:.8; filter:drop-shadow(0 0 3px rgba(255,205,75,.8)); } }
+@keyframes thunderFlash {
+  0%,46%,52%,100% { opacity:0; }
+  47.5% { opacity:.55; }
+  48.4% { opacity:.16; }
+  49.4% { opacity:.52; }
+}
+@keyframes boltGlow {
+  0%,46%,52%,100% { filter:drop-shadow(0 0 0 rgba(255,238,150,0)); }
+  47.5%,49.4% { filter:drop-shadow(0 0 2px rgba(255,238,150,.85)); }
+  48.4% { filter:drop-shadow(0 0 1px rgba(255,238,150,.3)); }
+}
+@keyframes waterSwell { 0%,100% { transform:scaleY(var(--water-level,.12)); } 50% { transform:scaleY(calc(var(--water-level,.12) + .04)); } }
+@keyframes waterSwellLine { 0%,100% { transform:translate(-50%,0); } 50% { transform:translate(-50%,-1.2px); } }
+@keyframes waterPulse { 50% { opacity:.9; transform:translate(-50%,-50%) scale(1.3); } }
+@keyframes waterBreathe { 50% { opacity:.75; transform:translate(-50%,-50%) scale(1.14); } }
+@keyframes waterAlarm { 50% { opacity:.35; } }
+@keyframes waterLap { 0%,100% { opacity:.45; } 50% { opacity:.8; } }
+@keyframes waterSpill { 0%,100% { opacity:.8; } 50% { opacity:1; } }
+@keyframes waterDrip { 0% { transform:translateY(0); opacity:0; } 18% { opacity:.95; } 100% { transform:translateY(14px); opacity:0; } }
+@keyframes fogDrift { 0%,100% { transform:translateX(-4px); opacity:.45; } 50% { transform:translateX(4px); opacity:.8; } }
+@keyframes heatPulse { 50% { opacity:.55; transform:translate(-50%,-50%) scale(1.12); } }
+html.preview-hidden .icon-scene *,html.preview-hidden .icon-scene *::before,html.preview-hidden .icon-scene *::after,
+html.preview-hidden .heat-thermo *,html.preview-hidden .heat-thermo *::before,html.preview-hidden .heat-thermo *::after { animation-play-state:paused!important; }
+@media (prefers-reduced-motion:reduce) {
+  .icon-scene *, .icon-scene *::before, .icon-scene *::after,
+  .heat-thermo *, .heat-thermo *::before, .heat-thermo *::after { animation:none!important; }
+  .wx-scene img { animation:none!important; }
+  /* representative STATIC shapes stay visible: teardrops rest mid-fall,
+     haze ribbons and gust streaks hold their drift pose, the bolt keeps
+     its state opacity (a random screenshot still reads the weather) */
+  .wx-rain i { top:2px; transform:rotate(13deg); opacity:1; }
+  .wx-rain i:nth-child(1) { top:2px; }
+  .wx-rain i:nth-child(2) { top:5px; }
+  .wx-rain i:nth-child(3) { top:1px; }
+  .wx-rain i:nth-child(4) { top:4px; }
+  .wx-rain i:nth-child(5) { top:6px; }
+  .wx-rain i:nth-child(6) { top:3px; }
+  .wx-rain i:nth-child(7) { top:5px; }
+  .wx-fog i { opacity:.8; transform:none; }
+  .wx-wind i:nth-child(1) { left:5px; }
+  .wx-wind i:nth-child(2) { left:2px; }
+  .wx-wind i:nth-child(3) { left:8px; }
+  .wx-flash, .wx-rain::after { opacity:0!important; }
+  .water-wave { transform:translate(-50%,0); }
+  /* transitions are motion too: the water rig must read its level and band
+     instantly when frozen — no .7s level glide, no .45s liquid/band crossfade
+     (a fresh state would otherwise be caught mid-transition at the start value) */
+  .water-rig img.water-liquid-img, .water-rig img.water-band-img { transition:none; }
+  /* tear stays as a static drop when motion is reduced (mood must still read) */
+  #slide-pm[data-pm-mood="protective"] .pm-tear { opacity:.85; transform:translateY(7px); }
+}
+
+/* Multi-location labels (2026-10-17): active-location captions may be longer
+ * than the fixed slots; clip in place instead of changing LED geometry. */
+.pm-context,.reading-label,.status-note{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%;min-width:0}
+
+/* Open-Meteo licence attribution (2026-10-17-prod1): the /en/licence requires a
+ * visible link next to displayed data. One readable microcaption anchor in the
+ * weather status row — fixed safe URL, no dynamic hrefs, focus-visible ring.
+ * Deliberately NOT a 1px/0px legal workaround: ~8.5px caption, same scale as
+ * the existing weather captions, clipped in place (no LED geometry change). */
+.wx-attribution{flex:none;display:inline-flex;align-items:center;box-sizing:border-box;margin-left:4px;padding:2px 6px;border-radius:4px;background:rgba(4,16,12,.72);border:1px solid rgba(120,190,255,.28);color:#9fd8ff;font:500 8.5px/1 Kanit,"Leelawadee UI",Tahoma,sans-serif;text-decoration:underline;text-underline-offset:1px;white-space:nowrap;max-width:96px;overflow:hidden;text-overflow:ellipsis;cursor:pointer}
+.wx-attribution:hover{color:#cfeeff}
+.wx-attribution:focus-visible{outline:2px solid #7fd0ff;outline-offset:1px}

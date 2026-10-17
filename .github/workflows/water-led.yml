@@ -4,6 +4,7 @@ on:
     paths:
       - 'water.html'
       - 'water.js'
+      - 'index.html'
       - 'tests/water-led.test.cjs'
       - '.github/workflows/water-led.yml'
   push:
@@ -11,6 +12,7 @@ on:
     paths:
       - 'water.html'
       - 'water.js'
+      - 'index.html'
       - 'tests/water-led.test.cjs'
       - '.github/workflows/water-led.yml'
 jobs:
@@ -25,5 +27,8 @@ jobs:
           node-version: 22
       - run: node --check water.js
       - run: node --test tests/water-led.test.cjs
-      - name: Verify legacy hospital LED remains unchanged
-        run: grep -q 'AKfycbwwUQCeJoz4N0P9UuRJF39pt17mBjPz0_yMDDxTO7BoiUiTQaO7Yay0UKq80EvE6dk' index.html
+      - name: Verify main strip keeps water UNAVAILABLE with no iframe
+        run: |
+          grep -q 'รอข้อมูลจริง' index.html
+          grep -q 'id="wa-value">—' index.html
+          ! grep -q 'script.google.com' index.html

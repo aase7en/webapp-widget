@@ -1,0 +1,137 @@
+{
+ "pm": {
+  "size": [
+   256,
+   256
+  ],
+  "eyes": {
+   "cxPct": 0.4531,
+   "cyPct": 0.4414,
+   "box": [
+    75,
+    101,
+    157,
+    125
+   ],
+   "opaquePx": 1224
+  },
+  "mouth": {
+   "cxPct": 0.4531,
+   "cyPct": 0.6172,
+   "box": [
+    89,
+    149,
+    143,
+    167
+   ],
+   "opaquePx": 443
+  },
+  "residueDarkInBase": 0,
+  "mouthBrightGreenPx": 0,
+  "reconstructedPx": 10008,
+  "variants": [
+   "pm-mouth.png(closed smile, stroke only, no teeth)",
+   "pm-mouth-grin.png(wide grin, teeth)",
+   "pm-mouth-flat.png",
+   "pm-mouth-worry.png(open sad)",
+   "pm-mouth-frown.png(deep sad, inside cup)",
+   "pm-mouth-wavy.png"
+  ],
+  "eyesVariants": [
+   "pm-eyes.png(almond)",
+   "pm-eyes-happy.png(curved happy)",
+   "pm-eyes-x.png(x eyes, severe)"
+  ],
+  "mask": {
+   "cxPct": 0.4551,
+   "cyPct": 0.6641,
+   "box": [
+    59,
+    147,
+    174,
+    193
+   ],
+   "opaquePx": 3043
+  },
+  "maskVariant": "pm-mask.png(protective N95 cup, thick ear straps; stacked above the mouth \u2014 eyes+tear stay clear above)"
+ },
+ "wx": {
+  "size": [
+   256,
+   256
+  ],
+  "cloudCutY": 186,
+  "cloudCutPct": 0.727,
+  "pxRemoved": 6246,
+  "solarPxSeparated": 12694,
+  "opaqueBelowCut": 0
+ },
+ "origins": {
+  "eyesOriginYpct": 0.4414,
+  "mouthOriginYpct": 0.6172
+ },
+ "generatedBy": "preview/tools/make_pm_face.py + rig_extract.py (base untouched)",
+ "bases": {
+  "generatedBy": "preview/tools/make_pm_base.py",
+  "note": "Thai-reference severity colours from the user image (blue/green/yellow/orange/red/grey); visual reference only, not a verified official standard; green top leaf removed (user direction), pure glossy spheres; protective mask lives in make_pm_face.py; severe uses X eyes + wavy mouth",
+  "states": {
+   "good": {
+    "file": "pm-base-good.png",
+    "hsl": [
+     203,
+     0.78,
+     0.52
+    ]
+   },
+   "moderate": {
+    "file": "pm-base-moderate.png",
+    "hsl": [
+     133,
+     0.62,
+     0.42
+    ]
+   },
+   "unhealthy": {
+    "file": "pm-base-unhealthy.png",
+    "hsl": [
+     45,
+     0.82,
+     0.55
+    ]
+   },
+   "protective": {
+    "file": "pm-base-protective.png",
+    "hsl": [
+     24,
+     0.88,
+     0.54
+    ]
+   },
+   "severe": {
+    "file": "pm-base-severe.png",
+    "hsl": [
+     357,
+     0.8,
+     0.52
+    ]
+   },
+   "unavailable": {
+    "file": "pm-base-unavailable.png",
+    "hsl": [
+     210,
+     0.07,
+     0.5
+    ]
+   }
+  },
+  "brows": {
+   "file": "pm-brows.png",
+   "box": [
+    89,
+    102,
+    144,
+    111
+   ]
+  }
+ }
+}

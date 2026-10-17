@@ -1,0 +1,1084 @@
+/**
+ * BackendApi.gs — PROPOSED, UNDEPLOYED additive JSON API + config/history layer
+ * for the Uthai hospital LED backend (Apps Script project "API Report_PM2.5").
+ *
+ * STATUS (2026-10-17 fix wave): local implementation + tests only. NOT pushed
+ * to the live Apps Script project. The REMOTE CANDIDATE is built from the
+ * backed-up live source (/tmp/widget-production-live-source-20261017, @24)
+ * with a minimal patch (doGet hook + createDailyTrigger guard + this file) —
+ * never a blind push of the repo reference. This public repo copy is a
+ * SANITIZED REFERENCE (live WAQI token and commented LINE tokens redacted to
+ * Script Property NAMES; see apps-script/Code.gs header). Legacy functions in
+ * Code.gs are preserved byte-for-byte from live @24 except the two documented
+ * patches:
+ *   1. doGet hook:     function doGet(e) { return BackendApi_doGet(e); }
+ *   2. createDailyTrigger guard (legacy body deleted ALL project triggers —
+ *      now refuses without explicit authorization + valid config).
+ * No action on doGet = legacy HtmlService UI (staged migration / rollback).
+ *
+ * Canonical contract (must match frontend led-rotation.js normalizePayload —
+ * cross-checked by tests/backend-contract.test.cjs):
+ *   GET {exec}?action=data&v=1[&callback=IDENT]
+ *   -> { schema:1, generatedAt, location:{id,label,lat,lon},
+ *        pm25:{status:'ok'|'stale'|'missing', value, unit:'µg/m³',
+ *              observedAt, source, band, provenance{provider,agency,service,
+ *              areaId,stationId,sourceUrl,termsUrl,timeZone,unit,datum}},
+ *        weather:{status, temperatureC, humidityPct, weatherCode(0..99 int),
+ *                 tmaxC, tminC, rainPct, observedAt, forecastDate(today BKK),
+ *                 source, provenance},
+ *        water:{status:'missing', available:false, value:null, unit:'m',
+ *               observedAt:null, source, provenance},
+ *        errors:[{channel,code,message}] }
+ *  - provenance keys are canonical singular/plural-exact: timeZone, unit.
+ *    GISTDA PM is a TAMBON AREA aggregate (areaId), never claimed as a
+ *    station/sensor; no PCD attribution claims.
+ *  - observedAt is ALWAYS the upstream observation time (Bangkok +07:00 ISO);
+ *    never substituted with generatedAt/fetch time. Unknown -> missing.
+ *    Future >5 min rejects; age >3h -> 'stale'.
+ *  - Read route performs ZERO Sheet/history/trigger/notification/property
+ *    writes. Cache key = location id + config_version + fingerprint
+ *    (coords+providers+areaId+station+datum) so Sheet edits without a version
+ *    bump can never serve another station/coords' cache.
+ *  - History = exactly TWO scheduled batches/day (morning+evening), one row
+ *    per enabled location, idempotent per (date, slot, location); a batch run
+ *    only records inside an explicit ±2h jitter window around its configured
+ *    hour (manual noon run cannot preconsume the evening batch).
+ */
+
+var BackendApi = (function () {
+  'use strict';
+
+  var SCHEMA = 1;
+  var PM_UNIT = 'µg/m³';
+  var FRESH_MS = 3 * 3600000;
+  var FUTURE_MS = 5 * 60000;
+  var LASTGOOD_TTL_S = 6 * 3600;
+  var DATA_TTL_S = 600;
+  var GISTDA_BASE = 'https://pm25.gistda.or.th/rest/getPm25byTambon';
+  var OPEN_METEO_BASE = 'https://api.open-meteo.com/v1/forecast';
+  var BANGKOK_OFFSET_MS = 7 * 3600000;
+  var CALLBACK_RE = /^[A-Za-z_$][A-Za-z0-9_$]*$/;
+  var URL_ALLOWLIST = /^https:\/\/(pm25\.gistda\.or\.th|api\.open-meteo\.com|open-meteo\.com|air4thai\.pcd\.go\.th|www\.numron\.go\.th)(\/|$)/;
+  var SAFE_ID_RE = /^[a-z0-9_]{1,32}$/;
+  var PM_PROVIDER_ENUM = ['gistda'];
+  var WEATHER_PROVIDER_ENUM = ['open-meteo'];
+  var WATER_PROVIDER_ENUM = ['', 'none'];
+  var PM_BANDS = [[91, 'unhealthy'], [51, 'unhealthy_sensitive'], [38, 'moderate'], [26, 'good']];
+  var SLOT_JITTER_H = 2; /* batch records only within configuredHour ± 2h */
+  var LEGACY_HISTORY_HANDLERS = ['main', 'logGistdaData'];
+  var OWNED_HISTORY_HANDLER = 'BackendApiHistoryBatch_';
+  var OWNER_EMAIL_FALLBACK = ''; /* set only if Session identity is ambiguous; empty = strict session equality */
+  var THAI_MONTHS_FULL = ['มกราคม', 'กุมภาพันธ์', 'มีนาคม', 'เมษายน', 'พฤษภาคม', 'มิถุนายน',
+    'กรกฎาคม', 'สิงหาคม', 'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม'];
+  var THAI_MONTHS_ABBR = ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.',
+    'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'];
+
+  var TAB_SETTINGS = 'Settings';
+  var TAB_LOCATIONS = 'Locations';
+  var TAB_SOURCES = 'API_Sources';
+  var TAB_HISTORY = 'History_Batch';
+
+  function nowMs() { return new Date().getTime(); }
+  function pad2(n) { return (n < 10 ? '0' : '') + n; }
+
+  function bangkokParts(ms) {
+    var d = new Date(ms + BANGKOK_OFFSET_MS);
+    return { y: d.getUTCFullYear(), mo: d.getUTCMonth() + 1, d: d.getUTCDate(), h: d.getUTCHours(), mi: d.getUTCMinutes() };
+  }
+  function bangkokDateStr(ms) {
+    var p = bangkokParts(ms);
+    return p.y + '-' + pad2(p.mo) + '-' + pad2(p.d);
+  }
+  function bangkokIsoObserved(ms) {
+    var p = bangkokParts(ms);
+    return p.y + '-' + pad2(p.mo) + '-' + pad2(p.d) + 'T' + pad2(p.h) + ':' + pad2(p.mi) + '+07:00';
+  }
+  function isoZ(ms) { return new Date(ms).toISOString(); }
+  function safeParse(s) { try { var v = JSON.parse(s); return v && typeof v === 'object' ? v : null; } catch (e) { return null; } }
+
+  /** GISTDA datetimeThai -> {iso, ms}; พ.ศ.>2400 -> -543; calendar roundtrip
+   * verified; null when unparseable (channel must then go missing). */
+  function parseThaiDateTime(dt) {
+    if (!dt || typeof dt !== 'object') return null;
+    /* Real GISTDA shape: dateThai 'วันเสาร์ที่ 17 ตุลาคม 2569',
+     * timeThai 'เวลา 06:05 น.' — optional weekday + เวลา prefixes. */
+    var dm = /^(?:วัน[\u0e00-\u0e7f]+ที่\s*)?(\d{1,2})\s+(\S+)\s+(\d{4})$/.exec(String(dt.dateThai || '').trim().normalize('NFC'));
+    var tm = /^(?:เวลา\s*)?(\d{1,2}):(\d{2})/.exec(String(dt.timeThai || '').trim().normalize('NFC'));
+    if (!dm || !tm) return null;
+    var day = parseInt(dm[1], 10), monthName = dm[2], year = parseInt(dm[3], 10);
+    var month = -1;
+    for (var i = 0; i < 12; i++) if (monthName === THAI_MONTHS_FULL[i] || monthName === THAI_MONTHS_ABBR[i]) { month = i + 1; break; }
+    if (month < 1) return null;
+    if (year > 2400) year -= 543;
+    if (year < 1000 || year > 3000) return null;
+    var hour = parseInt(tm[1], 10), minute = parseInt(tm[2], 10);
+    if (hour > 23 || minute > 59) return null;
+    var ms = Date.UTC(year, month - 1, day, hour, minute) - BANGKOK_OFFSET_MS;
+    var back = bangkokParts(ms);
+    if (back.y !== year || back.mo !== month || back.d !== day || back.h !== hour || back.mi !== minute) return null;
+    return { iso: bangkokIsoObserved(ms), ms: ms };
+  }
+
+  function parseBangkokLocalTime(v) {
+    if (typeof v !== 'string') return null;
+    var m = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})$/.exec(v);
+    if (!m) return null;
+    var ms = Date.UTC(+m[1], +m[2] - 1, +m[3], +m[4], +m[5]) - BANGKOK_OFFSET_MS;
+    if (bangkokDateStr(ms) !== m[1] + '-' + m[2] + '-' + m[3]) return null;
+    return ms;
+  }
+
+  function band(value) {
+    if (typeof value !== 'number' || !isFinite(value) || value < 0) return null;
+    for (var i = 0; i < PM_BANDS.length; i++) if (value >= PM_BANDS[i][0]) return PM_BANDS[i][1];
+    return 'very_good';
+  }
+
+  function freshness(obsMs, now) {
+    if (obsMs === null || obsMs === undefined) return 'missing';
+    if (obsMs > now + FUTURE_MS) return 'future';
+    if (now - obsMs > FRESH_MS) return 'stale';
+    return 'ok';
+  }
+
+  function err(channel, code, message) {
+    var msg = String(message == null ? '' : message).split('\n')[0];
+    return { channel: channel, code: code, message: msg.slice(0, 120) };
+  }
+
+  /**
+   * Owner authentication. A verifiedHistoryOnly-style bool is CONSENT UX,
+   * never authentication: the legacy public HtmlService UI exposes every
+   * non-underscore top-level function to google.script.run, executing as the
+   * deploying owner. The only acceptable proofs here:
+   *   (a) editor/owner session: Session.getActiveUser().getEmail() is
+   *       non-empty AND equals getEffectiveUser().getEmail() (the signed-in
+   *       caller IS the owner); or
+   *   (b) scheduled context: ScriptApp.getScriptTrigger() returns the time
+   *       trigger whose handler is exactly fnName (legacy owner-installed
+   *       triggers keep working through staged migration).
+   * Anonymous webapp viewers have activeUser === '' and no script trigger.
+   */
+  function isOwnerSession() {
+    var a = '', e = '';
+    try { a = String(Session.getActiveUser().getEmail() || '').toLowerCase(); } catch (x) { a = ''; }
+    try { e = String(Session.getEffectiveUser().getEmail() || '').toLowerCase(); } catch (x) { e = ''; }
+    if (OWNER_EMAIL_FALLBACK) return a !== '' && a === String(OWNER_EMAIL_FALLBACK).toLowerCase();
+    return a !== '' && e !== '' && a === e;
+  }
+  function isScheduledFor(fnName) {
+    try {
+      var t = ScriptApp.getScriptTrigger();
+      return !!(t && t.getHandlerFunction && t.getHandlerFunction() === fnName);
+    } catch (x) { return false; }
+  }
+  function assertTrustedCaller(fnName, strictOwnerOnly) {
+    if (!strictOwnerOnly && isScheduledFor(fnName)) return;
+    if (isOwnerSession()) return;
+    throw new Error('BackendApi guard: caller is not the trusted owner (fn=' + fnName + ') — refusing.');
+  }
+
+  /* Sheets-formula-injection guard for string cells written to History:
+   * neutralise leading = + - @ (tab/CR). Numeric values pass through
+   * untouched (negative temperatures stay numbers). */
+  function safeSheetString(v) {
+    if (typeof v !== 'string') return v;
+    if (/^[=+\-@\t\r]/.test(v)) return "'" + v;
+    return v;
+  }
+
+  function openSpreadsheet() {
+    var id = (typeof CONFIG !== 'undefined' && CONFIG && CONFIG.SPREADSHEET_ID) ? CONFIG.SPREADSHEET_ID : '';
+    return SpreadsheetApp.openById(id);
+  }
+  function readTabRows(name) {
+    var sheet = openSpreadsheet().getSheetByName(name);
+    if (!sheet) return null;
+    return sheet.getDataRange().getValues();
+  }
+  function truthy(v) {
+    return v === true || v === 1 || v === '1' || (typeof v === 'string' && /^(true|yes|y)$/i.test(v.trim()));
+  }
+  function asNumber(v) {
+    if (typeof v === 'number') return isFinite(v) ? v : null;
+    if (typeof v === 'string' && v.trim() !== '' && isFinite(Number(v))) return Number(v);
+    return null;
+  }
+  function rowsToObjects(rows) {
+    if (!rows || rows.length < 2) return [];
+    var head = rows[0], out = [];
+    for (var r = 1; r < rows.length; r++) {
+      var o = {}, empty = true;
+      for (var c = 0; c < head.length; c++) {
+        o[String(head[c])] = rows[r][c];
+        if (rows[r][c] !== '' && rows[r][c] !== null && rows[r][c] !== undefined) empty = false;
+      }
+      if (!empty) out.push(o);
+    }
+    return out;
+  }
+
+  function configError(reason) { return { ok: false, reason: reason }; }
+
+  function loadConfig() {
+    var settingsRows = readTabRows(TAB_SETTINGS);
+    var locationRows = readTabRows(TAB_LOCATIONS);
+    if (!settingsRows || !locationRows) return configError('missing tabs');
+    var sourceRows = readTabRows(TAB_SOURCES);
+
+    var settings = {};
+    rowsToObjects(settingsRows).forEach(function (r) { settings[String(r.key)] = r.value; });
+    var activeId = String(settings.active_location_id || '').trim();
+    if (!activeId) return configError('active_location_id');
+    if (!SAFE_ID_RE.test(activeId)) return configError('active_location_id unsafe');
+    var morning = asNumber(settings.history_morning_hour);
+    var evening = asNumber(settings.history_evening_hour);
+    if (morning === null || morning < 0 || morning > 23) morning = 6;
+    if (evening === null || evening < 0 || evening > 23) evening = 16;
+    if (morning === evening) return configError('morning==evening hour');
+    if (Math.abs(morning - evening) <= 2 * SLOT_JITTER_H) return configError('slot windows overlap');
+    var tz = String(settings.timezone || 'Asia/Bangkok').trim();
+    if (tz !== 'Asia/Bangkok') return configError('timezone');
+    var configVersion = asNumber(settings.config_version);
+    if (configVersion === null || configVersion < 1) configVersion = 1;
+
+    var locations = rowsToObjects(locationRows);
+    var active = null, enabledSeen = {}, ambiguity = false;
+    for (var i = 0; i < locations.length; i++) {
+      var L = locations[i];
+      var id = String(L.id || '').trim();
+      var enabled = truthy(L.enabled);
+      /* Disabled malformed rows must NOT blank the active config. Only the
+       * active row and enabled rows are strictly validated; a disabled row
+       * sharing the active id is ambiguous and fails closed. */
+      if (!enabled) {
+        if (id === activeId) ambiguity = true;
+        continue;
+      }
+      if (!SAFE_ID_RE.test(id)) return configError('enabled location id unsafe');
+      if (enabledSeen[id]) return configError('duplicate enabled location id');
+      enabledSeen[id] = true;
+      if (id === activeId && active) ambiguity = true; /* cannot happen with dup check; kept explicit */
+      var lat = asNumber(L.lat), lon = asNumber(L.lon);
+      if (lat === null || lat < -90 || lat > 90) return configError('lat range');
+      if (lon === null || lon < -180 || lon > 180) return configError('lon range');
+      var pmProvider = String(L.pm_provider || '').trim();
+      if (PM_PROVIDER_ENUM.indexOf(pmProvider) < 0) return configError('pm_provider enum');
+      var pmLocId = String(L.pm_location_id == null ? '' : L.pm_location_id).trim();
+      if (pmProvider === 'gistda' && !/^\d{1,10}$/.test(pmLocId)) return configError('pm_location_id');
+      /* OPTIONAL per-location tambon name (header may not exist on the live
+       * tab — absent is valid). The ONLY default is the vetted legacy seed:
+       * id uthai + area 1414 == tambon อุทัย (matches live Code.js
+       * tb_tn === 'อุทัย'). Everything else must configure it explicitly;
+       * names are never inferred from labels or coordinates. */
+      var pmTambon = String(L.pm_tambon_name == null ? '' : L.pm_tambon_name).trim().normalize('NFC');
+      if (pmTambon.length > 60) return configError('pm_tambon_name too long');
+      if (pmTambon === '' && id === 'uthai' && pmLocId === '1414') pmTambon = 'อุทัย';
+      var wxProvider = String(L.weather_provider || '').trim();
+      if (WEATHER_PROVIDER_ENUM.indexOf(wxProvider) < 0) return configError('weather_provider enum');
+      var waterProvider = String(L.water_provider == null ? '' : L.water_provider).trim();
+      if (WATER_PROVIDER_ENUM.indexOf(waterProvider) < 0) return configError('water_provider enum');
+      var waterStation = String(L.water_station_id == null ? '' : L.water_station_id).trim();
+      if (waterStation !== '' && !/^\d{1,20}$/.test(waterStation)) return configError('water_station_id');
+      if (id === activeId) {
+        active = {
+          id: id, label: String(L.label || id).trim(), lat: lat, lon: lon,
+          pmProvider: pmProvider, pmAreaId: pmLocId, pmTambonName: pmTambon, wxProvider: wxProvider,
+          waterProvider: waterProvider, waterStationId: waterStation,
+          waterDatum: String(L.water_datum == null ? '' : L.water_datum).trim(),
+        };
+      }
+    }
+    if (ambiguity) return configError('ambiguous active id');
+    if (!active) return configError('no enabled active location');
+
+    var sources = {};
+    var sourceObjs = sourceRows ? rowsToObjects(sourceRows) : [];
+    for (var s = 0; s < sourceObjs.length; s++) {
+      var S = sourceObjs[s];
+      var provider = String(S.provider || '').trim();
+      if (!provider) continue;
+      ['source_url', 'docs_url', 'terms_url'].forEach(function (k) {
+        var u = String(S[k] == null ? '' : S[k]).trim();
+        if (u !== '' && !URL_ALLOWLIST.test(u)) throw { config: 'url allowlist: ' + provider };
+      });
+      var credProp = String(S.credential_property == null ? '' : S.credential_property).trim();
+      if (credProp !== '' && !/^[A-Za-z0-9_.]{1,64}$/.test(credProp)) throw { config: 'credential_property: ' + provider };
+      for (var key in S) {
+        if (Object.prototype.hasOwnProperty.call(S, key) && /token=|secret|password|Bearer\s/i.test(String(S[key]))) {
+          throw { config: 'secret-shaped value in API_Sources' };
+        }
+      }
+      sources[provider] = {
+        agency: String(S.agency || '').trim(),
+        service: String(S.service || '').trim(),
+        sourceUrl: String(S.source_url || '').trim(),
+        termsUrl: String(S.terms_url || '').trim(),
+        unit: String(S.units || '').trim(),
+        datum: String(S.datum || '').trim(),
+      };
+    }
+
+    return {
+      ok: true, active: active, locations: locations, settings: {
+        activeId: activeId, morningHour: morning, eveningHour: evening,
+        timezone: tz, configVersion: configVersion,
+      }, sources: sources,
+    };
+  }
+  function loadConfigSafe() {
+    try { return loadConfig(); }
+    catch (x) { return (x && x.config) ? configError(String(x.config)) : configError('config exception'); }
+  }
+
+  function fetchJson(url) {
+    var response = UrlFetchApp.fetch(url, { muteHttpExceptions: true, followRedirects: true });
+    if (response.getResponseCode() !== 200) throw new Error('http ' + response.getResponseCode());
+    return JSON.parse(response.getContentText());
+  }
+
+  /* provenance keys are canonical EXACT: timeZone / unit (not timezone/units).
+   * areaId = provider area key (GISTDA tambon id); stationId reserved for a
+   * real station id (water, when a verified one exists). */
+  function provenance(cfg, provider, extra) {
+    var s = (cfg.sources && cfg.sources[provider]) || {};
+    extra = extra || {};
+    return {
+      provider: provider,
+      agency: s.agency || '',
+      service: s.service || '',
+      areaId: extra.areaId != null ? extra.areaId : null,
+      areaLevel: provider === 'gistda' ? 'amphoe (district) id — response lists tambons' : null,
+      tambonName: extra.tambonName != null && extra.tambonName !== '' ? extra.tambonName : null,
+      stationId: extra.stationId != null ? extra.stationId : null,
+      sourceUrl: s.sourceUrl || '',
+      termsUrl: s.termsUrl || '',
+      timeZone: 'Asia/Bangkok',
+      unit: extra.unit || s.unit || '',
+      datum: extra.datum || s.datum || null,
+    };
+  }
+
+  function pm25Missing() {
+    return { status: 'missing', value: null, unit: PM_UNIT, observedAt: null, source: '', band: null, provenance: null, _err: null };
+  }
+
+  function channelPm25(cfg, now) {
+    var loc = cfg.active;
+    var prov = provenance(cfg, loc.pmProvider, { areaId: loc.pmAreaId, unit: PM_UNIT, tambonName: loc.pmTambonName });
+    var base = pm25Missing();
+    base.provenance = prov;
+    base.source = 'GISTDA getPm25byTambon · ต.' + (loc.pmTambonName || '?') + ' จากพื้นที่อำเภอ (เฉลี่ยระดับตำบล · ไม่ใช่สถานีวัดโดยตรง)';
+    if (loc.pmTambonName === '') {
+      base._err = err('pm25', 'CONFIG', 'pm_tambon_name not configured for this location');
+      return base;
+    }
+    try {
+      var payload = fetchJson(GISTDA_BASE + '?ap_idn=' + encodeURIComponent(loc.pmAreaId));
+      var rows = payload && payload.data;
+      if (!Array.isArray(rows) || rows.length === 0) {
+        base._err = err('pm25', 'PARSE', 'GISTDA returned no rows for configured area');
+        return base;
+      }
+      /* ap_idn is DISTRICT (amphoe) level: response lists every tambon.
+       * EXACT NFC+trim tb_tn equality only — no first-row, substring, label
+       * or coordinate inference. Zero or duplicate matches -> missing. */
+      var want = loc.pmTambonName;
+      var matches = rows.filter(function (r) {
+        return String(r && r.tb_tn != null ? r.tb_tn : '').trim().normalize('NFC') === want;
+      });
+      if (matches.length !== 1) {
+        base._err = err('pm25', 'PARSE', matches.length === 0
+          ? 'GISTDA row for configured tambon not found in area response'
+          : 'GISTDA tambon match ambiguous (duplicates)');
+        return base;
+      }
+      var item = matches[0];
+      var raw = asNumber(item.pm25);
+      if (raw === null || raw < 0) { base._err = err('pm25', 'PARSE', 'invalid pm25 value'); return base; }
+      /* observedAt: the ROW's own dt (source time) first; weekday-tolerant
+       * datetimeThai fallback. Never fetch time / generatedAt. */
+      var obsMs = null;
+      if (typeof item.dt === 'string' && item.dt !== '') {
+        /* GISTDA row dt is BANGKOK WALL TIME mislabeled with a 'Z' suffix
+         * (verified: dt '23:00:00.000Z' pairs with timeThai 'เวลา 23:00 น.'
+         * for the same rows). Parse the wall components as +07:00. */
+        var dw = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/.exec(item.dt);
+        if (dw) {
+          var ms = Date.UTC(+dw[1], +dw[2] - 1, +dw[3], +dw[4], +dw[5]) - BANGKOK_OFFSET_MS;
+          if (bangkokDateStr(ms) === dw[1] + '-' + dw[2] + '-' + dw[3]) obsMs = ms;
+        }
+      }
+      if (obsMs === null) {
+        var thai = parseThaiDateTime(payload.datetimeThai);
+        if (thai) obsMs = thai.ms;
+      }
+      if (obsMs === null) { base._err = err('pm25', 'OBSERVED_AT', 'no usable source timestamp on row/payload'); return base; }
+      var fresh = freshness(obsMs, now);
+      if (fresh === 'future') {
+        var m2 = pm25Missing(); m2.provenance = prov; m2.source = base.source;
+        m2._err = err('pm25', 'OBSERVED_AT', 'future timestamp rejected');
+        return m2;
+      }
+      var value = Math.round(raw * 10) / 10;
+      return {
+        status: fresh === 'stale' ? 'stale' : 'ok', value: value, unit: PM_UNIT,
+        observedAt: bangkokIsoObserved(obsMs), source: base.source, band: band(value),
+        provenance: prov, _err: null,
+      };
+    } catch (x) {
+      base._err = err('pm25', 'UPSTREAM', 'PM source unavailable');
+      return base;
+    }
+  }
+
+    function weatherMissing(prov) {
+    return {
+      status: 'missing', temperatureC: null, humidityPct: null, weatherCode: null,
+      tmaxC: null, tminC: null, rainPct: null, observedAt: null, forecastDate: null,
+      source: '', provenance: prov || null, _err: null,
+    };
+  }
+
+  function channelWeather(cfg, now) {
+    var loc = cfg.active;
+    var prov = provenance(cfg, loc.wxProvider, { unit: '°C / % / WMO code' });
+    var base = weatherMissing(prov);
+    base.source = 'Open-Meteo weather model · พิกัด ' + loc.lat + ',' + loc.lon + ' (DERIVED ไม่ใช่การวัดที่ รพ.)';
+    try {
+      var url = OPEN_METEO_BASE +
+        '?latitude=' + encodeURIComponent(String(loc.lat)) +
+        '&longitude=' + encodeURIComponent(String(loc.lon)) +
+        '&current=temperature_2m%2Crelative_humidity_2m%2Cweather_code' +
+        '&daily=temperature_2m_max%2Ctemperature_2m_min%2Cprecipitation_probability_max' +
+        '&timezone=Asia%2FBangkok&forecast_days=1';
+      var p = fetchJson(url);
+      if (!p || p.timezone !== 'Asia/Bangkok' || !p.current || !p.current_units ||
+        p.current_units.temperature_2m !== '°C' || p.current_units.relative_humidity_2m !== '%' ||
+        !p.daily || !Array.isArray(p.daily.time) || p.daily.time.length < 1) {
+        base._err = err('weather', 'PARSE', 'unexpected Open-Meteo shape/units');
+        return base;
+      }
+      var obsMs = parseBangkokLocalTime(p.current.time);
+      if (obsMs === null) { base._err = err('weather', 'OBSERVED_AT', 'current.time unparseable'); return base; }
+      var fresh = freshness(obsMs, now);
+      if (fresh === 'future') {
+        var m = weatherMissing(prov); m.source = base.source;
+        m._err = err('weather', 'OBSERVED_AT', 'future timestamp rejected');
+        return m;
+      }
+      var t = asNumber(p.current.temperature_2m);
+      var rh = asNumber(p.current.relative_humidity_2m);
+      var code = p.current.weather_code;
+      if (t === null || t < -40 || t > 65 || rh === null || rh < 0 || rh > 100 ||
+        typeof code !== 'number' || !isFinite(code) || Math.floor(code) !== code || code < 0 || code > 99) {
+        base._err = err('weather', 'PARSE', 'weather fields invalid (code must be int 0..99)');
+        return base;
+      }
+      /* forecastDate strict: calendar format AND Bangkok TODAY, else the
+       * forecast-day fields drop independently of current conditions. */
+      var today = bangkokDateStr(now);
+      var fdate = p.daily.time[0];
+      var forecastOk = typeof fdate === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(fdate) && fdate === today;
+      var tmax = asNumber(p.daily.temperature_2m_max && p.daily.temperature_2m_max[0]);
+      var tmin = asNumber(p.daily.temperature_2m_min && p.daily.temperature_2m_min[0]);
+      var rain = asNumber(p.daily.precipitation_probability_max && p.daily.precipitation_probability_max[0]);
+      return {
+        status: fresh === 'stale' ? 'stale' : 'ok',
+        temperatureC: t, humidityPct: rh, weatherCode: code,
+        tmaxC: forecastOk && tmax !== null && tmax >= -80 && tmax <= 80 ? tmax : null,
+        tminC: forecastOk && tmin !== null && tmin >= -80 && tmin <= 80 ? tmin : null,
+        rainPct: forecastOk && rain !== null && rain >= 0 && rain <= 100 ? rain : null,
+        observedAt: bangkokIsoObserved(obsMs),
+        forecastDate: forecastOk ? fdate : null,
+        source: base.source, provenance: prov, _err: null,
+      };
+    } catch (x) {
+      base._err = err('weather', 'UPSTREAM', 'weather source unavailable');
+      return base;
+    }
+  }
+
+  function channelWater(cfg) {
+    var loc = cfg.active;
+    var stationNote = loc.waterStationId !== '' ? ' · ทะเบียน ' + loc.waterStationId + ' (ยังไม่มีช่องทางข้อมูลที่ยืนยัน)' : '';
+    return {
+      status: 'missing', available: false, value: null, unit: 'm', observedAt: null,
+      source: 'ไม่มีสถานีระดับน้ำที่ยืนยันแล้ว — รอข้อมูลจริง' + stationNote +
+        ' (GloFAS discharge = MODELLED แสดงเฉพาะหน้า water เท่านั้น ห้ามแปลงเป็นระดับ/ความรุนแรง; คลัง HII รายเดือนสิ้นสุด 30 ก.ย. = ไม่ใช่ real-time)',
+      provenance: {
+        provider: 'none', agency: '', service: '',
+        areaId: null, stationId: loc.waterStationId !== '' ? loc.waterStationId : null,
+        sourceUrl: '', termsUrl: '', timeZone: 'Asia/Bangkok', unit: 'm',
+        datum: loc.waterDatum !== '' ? loc.waterDatum : null,
+        note: 'no verified station API; HII monthly archive ends Sep 30 (stale); thresholds pending engineer confirmation; station coords may differ ~131m from OSM hospital pin — no coord shift applied',
+      },
+      _err: null,
+    };
+  }
+
+  function stripInternal(ch) {
+    var out = {};
+    for (var k in ch) if (k !== '_err' && Object.prototype.hasOwnProperty.call(ch, k)) out[k] = ch[k];
+    return out;
+  }
+
+  function buildChannels(cfg, now) {
+    var pm = channelPm25(cfg, now);
+    var wx = channelWeather(cfg, now);
+    var water = channelWater(cfg);
+    var errors = [];
+    if (pm._err) errors.push(pm._err);
+    if (wx._err) errors.push(wx._err);
+    return { pm25: stripInternal(pm), weather: stripInternal(wx), water: stripInternal(water), errors: errors };
+  }
+
+  /* Cache key fingerprint: everything about the location that changes what
+   * upstream data means — coords, providers, PM area id, station, datum —
+   * so a Sheet edit without config_version bump can never serve stale-key
+   * data from another station/coords. */
+  function locationFingerprint(loc) {
+    var raw = [loc.lat, loc.lon, loc.pmProvider, loc.pmAreaId, loc.pmTambonName, loc.wxProvider, loc.waterProvider, loc.waterStationId, loc.waterDatum].join('|');
+    var h = 5381;
+    for (var i = 0; i < raw.length; i++) h = ((h << 5) + h + raw.charCodeAt(i)) & 0xffffffff;
+    return (h >>> 0).toString(36);
+  }
+  function dataKeys(cfg) {
+    var base = 'bapi_v1_' + cfg.active.id + '_' + cfg.settings.configVersion + '_' + locationFingerprint(cfg.active);
+    return { primary: base, lastGood: base + '_lg' };
+  }
+
+  function cache() { return CacheService.getScriptCache(); }
+
+  function revalidateStaleness(channels, now) {
+    ['pm25', 'weather'].forEach(function (name) {
+      var ch = channels[name];
+      if (ch && ch.status === 'ok' && typeof ch.observedAt === 'string') {
+        var ms = Date.parse(ch.observedAt);
+        if (isFinite(ms) && now - ms > FRESH_MS) ch.status = 'stale';
+      }
+    });
+    return channels;
+  }
+
+  function getDataPayload(cfg, now) {
+    var keys = dataKeys(cfg);
+    var c = cache();
+    var hit = safeParse(c.get(keys.primary));
+    if (hit) return revalidateStaleness(hit, now);
+
+    var lock = LockService.getScriptLock();
+    var got = false;
+    try { got = lock.tryLock(10000); } catch (e) { got = false; }
+    if (!got) {
+      var lg0 = safeParse(c.get(keys.lastGood));
+      return lg0 ? revalidateStaleness(lg0, now)
+        : { pm25: stripInternal(pm25Missing()), weather: stripInternal(weatherMissing(null)), water: stripInternal(channelWater(cfg)), errors: [err('pm25', 'UPSTREAM', 'busy'), err('weather', 'UPSTREAM', 'busy')] };
+    }
+    try {
+      hit = safeParse(c.get(keys.primary));
+      if (hit) return revalidateStaleness(hit, now);
+      var built = buildChannels(cfg, now);
+      var lastGood = safeParse(c.get(keys.lastGood));
+      if (lastGood) {
+        var swapped = false;
+        ['pm25', 'weather'].forEach(function (name) {
+          if (built[name].status === 'missing' && lastGood[name] && lastGood[name].value != null) {
+            built[name] = lastGood[name]; swapped = true;
+          }
+        });
+        if (swapped) revalidateStaleness(built, now);
+      }
+      c.put(keys.primary, JSON.stringify(built), DATA_TTL_S);
+      c.put(keys.lastGood, JSON.stringify(built), LASTGOOD_TTL_S);
+      return built;
+    } finally {
+      try { lock.releaseLock(); } catch (e) { /* noop */ }
+    }
+  }
+
+  function allMissingEnvelope(errors, location) {
+    return {
+      schema: SCHEMA, generatedAt: isoZ(nowMs()),
+      location: location || { id: '', label: '', lat: null, lon: null },
+      pm25: stripInternal(pm25Missing()),
+      weather: stripInternal(weatherMissing(null)),
+      water: stripInternal(channelWater({ active: { label: '', waterStationId: '', waterDatum: '' } })),
+      errors: errors,
+    };
+  }
+
+  function textOutput(obj) {
+    return ContentService.createTextOutput(JSON.stringify(obj)).setMimeType(ContentService.MimeType.JSON);
+  }
+  function jsonpOutput(callbackId, obj) {
+    var safe = JSON.stringify(obj).replace(/\u2028/g, '\\u2028').replace(/\u2029/g, '\\u2029');
+    return ContentService.createTextOutput(callbackId + '(' + safe + ');').setMimeType(ContentService.MimeType.JAVASCRIPT);
+  }
+  /** Every data-route response (success OR error envelope) honors a valid
+   * callback with the same wrap; only invalid callbacks are never wrapped. */
+  function respond(callbackId, errors, fields) {
+    var envelope = fields ? {
+      schema: SCHEMA, generatedAt: fields.generatedAt, location: fields.location,
+      pm25: fields.pm25, weather: fields.weather, water: fields.water, errors: errors,
+    } : allMissingEnvelope(errors);
+    return callbackId === null ? textOutput(envelope) : jsonpOutput(callbackId, envelope);
+  }
+
+  function doGet(e) {
+    var params = (e && e.parameter) || {};
+    if (params.action !== 'data') {
+      return HtmlService.createTemplateFromFile('index')
+        .evaluate().setTitle('Air Quality Widget')
+        .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
+    }
+    var callbackId = params.callback == null ? null : String(params.callback);
+    if (callbackId !== null && !CALLBACK_RE.test(callbackId)) {
+      /* rejected BEFORE any cache/upstream/Sheet access; never wrapped */
+      return textOutput(allMissingEnvelope([err('callback', 'CALLBACK', 'callback must be a single identifier')]));
+    }
+    if (params.v !== '1') {
+      return respond(callbackId, [err('version', 'VERSION', 'unsupported or missing v (expected 1)')], null);
+    }
+    var cfg = loadConfigSafe();
+    if (!cfg.ok) {
+      return respond(callbackId, [err('config', 'CONFIG', 'configuration invalid: ' + cfg.reason)], null);
+    }
+    var now = nowMs();
+    var channels = getDataPayload(cfg, now);
+    return respond(callbackId, channels.errors || [], {
+      schema: SCHEMA, generatedAt: isoZ(now),
+      location: { id: cfg.active.id, label: cfg.active.label, lat: cfg.active.lat, lon: cfg.active.lon },
+      pm25: channels.pm25, weather: channels.weather, water: channels.water,
+    });
+  }
+
+  /* ---------------- history: exactly two batches per day ---------------- */
+
+  /* Slot windows are explicit: a run records only when the current Bangkok
+   * hour is within configuredHour ± SLOT_JITTER_H. Non-overlap is enforced
+   * at settings load (|morning-evening| > 2*jitter). A manual noon run can
+   * therefore never preconsume the 16:00 batch. */
+  function slotForRun(hour, settings) {
+    var slots = [['morning', settings.morningHour], ['evening', settings.eveningHour]];
+    for (var i = 0; i < slots.length; i++) {
+      if (Math.abs(hour - slots[i][1]) <= SLOT_JITTER_H) return slots[i][0];
+    }
+    return null;
+  }
+
+  function historyRowKey(batchId, locationId) { return batchId + '|' + locationId; }
+
+  function historyBatch() {
+    assertTrustedCaller(OWNED_HISTORY_HANDLER, false); /* scheduled or owner only */
+    var cfg = loadConfigSafe();
+    if (!cfg.ok) { Logger.log('BackendApi history: config invalid, skipping'); return; }
+    var sheet = openSpreadsheet().getSheetByName(TAB_HISTORY);
+    if (!sheet) { Logger.log('BackendApi history: ' + TAB_HISTORY + ' tab missing, run setup first'); return; }
+    var now = nowMs();
+    var p = bangkokParts(now);
+    var slot = slotForRun(p.h, cfg.settings);
+    if (!slot) { Logger.log('BackendApi history: hour ' + p.h + ' outside ±' + SLOT_JITTER_H + 'h of configured slots, no batch recorded'); return; }
+    var batchDate = bangkokDateStr(now);
+    var batchId = batchDate + ':' + slot;
+
+    var lock = LockService.getScriptLock();
+    var got = false;
+    try { got = lock.tryLock(15000); } catch (e) { got = false; }
+    if (!got) { Logger.log('BackendApi history: another batch run holds the lock, exiting'); return; }
+    try {
+      var existing = {};
+      var rows = sheet.getDataRange().getValues();
+      var scanFrom = Math.max(1, rows.length - 500); /* bounded duplicate lookup */
+      for (var r = scanFrom; r < rows.length; r++) {
+        existing[historyRowKey(String(rows[r][0]), String(rows[r][3]))] = true;
+      }
+      var locations = cfg.locations.filter(function (L) { return truthy(L.enabled); });
+      for (var i = 0; i < locations.length; i++) {
+        var L = locations[i];
+        var locId = String(L.id).trim();
+        if (existing[historyRowKey(batchId, locId)]) continue; /* appendSuccess/crash/retry safe */
+        var single = singleLocationConfig(cfg, L);
+        if (!single.ok) {
+          appendHistoryRow(sheet, batchId, batchDate, slot, L,
+            stripInternal(pm25Missing()), stripInternal(weatherMissing(null)),
+            stripInternal(channelWater({ active: { label: '', waterStationId: '', waterDatum: '' } })),
+            [err('config', 'CONFIG', 'location config invalid')]);
+          existing[historyRowKey(batchId, locId)] = true;
+          continue;
+        }
+        var built = buildChannels(single, now);
+        appendHistoryRow(sheet, batchId, batchDate, slot, L, built.pm25, built.weather, built.water, built.errors);
+        existing[historyRowKey(batchId, locId)] = true;
+      }
+    } finally {
+      try { lock.releaseLock(); } catch (e) { /* noop */ }
+    }
+  }
+
+  function singleLocationConfig(cfg, L) {
+    var loc = {
+      id: String(L.id || '').trim(), label: String(L.label || L.id || '').trim(),
+      lat: asNumber(L.lat), lon: asNumber(L.lon),
+      pmProvider: String(L.pm_provider || '').trim(),
+      pmAreaId: String(L.pm_location_id == null ? '' : L.pm_location_id).trim(),
+      pmTambonName: String(L.pm_tambon_name == null ? '' : L.pm_tambon_name).trim().normalize('NFC'),
+      wxProvider: String(L.weather_provider || '').trim(),
+      waterProvider: String(L.water_provider == null ? '' : L.water_provider).trim(),
+      waterStationId: String(L.water_station_id == null ? '' : L.water_station_id).trim(),
+      waterDatum: String(L.water_datum == null ? '' : L.water_datum).trim(),
+    };
+    if (!SAFE_ID_RE.test(loc.id) || loc.lat === null || loc.lat < -90 || loc.lat > 90 ||
+      loc.lon === null || loc.lon < -180 || loc.lon > 180 ||
+      PM_PROVIDER_ENUM.indexOf(loc.pmProvider) < 0 ||
+      WEATHER_PROVIDER_ENUM.indexOf(loc.wxProvider) < 0 ||
+      (loc.pmProvider === 'gistda' && !/^\d{1,10}$/.test(loc.pmAreaId))) {
+      return { ok: false };
+    }
+    if (loc.pmTambonName === '' && loc.id === 'uthai' && loc.pmAreaId === '1414') loc.pmTambonName = 'อุทัย';
+    return { ok: true, active: loc, sources: cfg.sources, settings: cfg.settings };
+  }
+
+  function singleTambon(L) {
+    var t = String(L.pm_tambon_name == null ? '' : L.pm_tambon_name).trim().normalize('NFC');
+    if (t === '' && String(L.id || '').trim() === 'uthai' && String(L.pm_location_id || '').trim() === '1414') return 'อุทัย';
+    return t;
+  }
+  function appendHistoryRow(sheet, batchId, batchDate, slot, L, pm, wx, water, errors) {
+    var locId = String(L.id || '').trim();
+    var lat = asNumber(L.lat), lon = asNumber(L.lon);
+    var pmProvider = String(L.pm_provider || '').trim();
+    var pmAreaId = String(L.pm_location_id == null ? '' : L.pm_location_id).trim();
+    var waterStationId = String(L.water_station_id == null ? '' : L.water_station_id).trim();
+    var waterDatum = String(L.water_datum == null ? '' : L.water_datum).trim();
+    var wxProvider = String(L.weather_provider || '').trim();
+    sheet.appendRow([
+      safeSheetString(batchId), safeSheetString(batchDate), safeSheetString(slot), safeSheetString(locId),
+      lat, lon,
+      pm && pm.status !== 'missing' ? pm.value : null,
+      pm ? pm.observedAt : null,
+      pm ? safeSheetString(pm.status) : 'missing',
+      safeSheetString(pmProvider), safeSheetString(pmAreaId), safeSheetString(singleTambon(L)),
+      wx && wx.status !== 'missing' ? wx.temperatureC : null,
+      wx && wx.status !== 'missing' ? wx.humidityPct : null,
+      wx && wx.status !== 'missing' ? wx.weatherCode : null,
+      wx ? wx.observedAt : null,
+      wx ? safeSheetString(wx.status) : 'missing',
+      safeSheetString(wxProvider),
+      water ? safeSheetString(water.status) : 'missing',
+      safeSheetString(waterStationId), safeSheetString(waterDatum),
+      isoZ(nowMs()),
+    ]);
+    if (errors && errors.length) Logger.log('BackendApi history ' + locId + ' errors: ' + errors.length);
+  }
+
+  /* ---------------- setup (idempotent, preserves existing data) ---------------- */
+
+  var SETUP_TABS = [
+    {
+      name: TAB_SETTINGS, header: ['key', 'value'],
+      seed: [
+        ['active_location_id', 'uthai'],
+        ['history_morning_hour', '6'],
+        ['history_evening_hour', '16'],
+        ['timezone', 'Asia/Bangkok'],
+        ['config_version', '1'],
+      ],
+    },
+    {
+      name: TAB_LOCATIONS,
+      header: ['id', 'label', 'enabled', 'lat', 'lon', 'pm_provider', 'pm_location_id', 'pm_tambon_name', 'weather_provider', 'water_provider', 'water_station_id', 'water_datum', 'official_bank_crest_m', 'water_thresholds'],
+      seed: [
+        ['uthai', 'ต.อุทัย อ.พระนครศรีอยุธยา', 'TRUE', 14.36147, 100.64424, 'gistda', '1414', 'อุทัย', 'open-meteo', '', '', '', '', ''],
+      ],
+    },
+    {
+      name: TAB_SOURCES,
+      header: ['provider', 'agency', 'service', 'source_url', 'docs_url', 'terms_url', 'auth_method', 'units', 'datum', 'credential_property', 'notes'],
+      seed: [
+        ['gistda', 'GISTDA', 'getPm25byTambon (tambon area aggregate, not a station)', 'https://pm25.gistda.or.th/', 'https://pm25.gistda.or.th/', 'https://pm25.gistda.or.th/', 'none (public)', 'µg/m³', '', '', ''],
+        ['open-meteo', 'Open-Meteo', 'forecast v1 (weather model)', 'https://api.open-meteo.com/', 'https://open-meteo.com/en/docs', 'https://open-meteo.com/en/terms', 'none (keyless)', '°C, %, WMO code', '', '', 'NOT hospital thermometry; HI derived client-side'],
+      ],
+    },
+    { name: TAB_HISTORY, header: ['batch_id', 'batch_date', 'slot', 'location_id', 'lat', 'lon', 'pm25_value', 'pm25_observed_at', 'pm25_status', 'pm25_provider', 'pm25_area_id', 'pm25_tambon_name', 'wx_temp_c', 'wx_rh_pct', 'wx_code', 'wx_observed_at', 'wx_status', 'wx_provider', 'water_status', 'water_station_id', 'water_datum', 'created_at'], seed: [] },
+  ];
+
+  function setupSheets() {
+    var ss = openSpreadsheet();
+    SETUP_TABS.forEach(function (def) {
+      var sheet = ss.getSheetByName(def.name);
+      if (sheet) return; /* existing tab never rewritten, data preserved */
+      sheet = ss.insertSheet(def.name);
+      sheet.getRange(1, 1, 1, def.header.length).setValues([def.header]);
+      (def.seed || []).forEach(function (row) { sheet.appendRow(row); });
+      Logger.log('BackendApi setup: created tab ' + def.name);
+    });
+    Logger.log('BackendApi setup complete (idempotent)');
+  }
+
+  /* ---------------- triggers + two-batch/day migration ---------------- */
+
+  function settingsHours() {
+    var map = {};
+    rowsToObjects(readTabRows(TAB_SETTINGS) || []).forEach(function (r) { map[String(r.key)] = r.value; });
+    var m = asNumber(map.history_morning_hour), e = asNumber(map.history_evening_hour);
+    if (m === null || m < 0 || m > 23) m = 6;
+    if (e === null || e < 0 || e > 23) e = 16;
+    if (m === e || Math.abs(m - e) <= 2 * SLOT_JITTER_H) { m = 6; e = 16; }
+    return { morning: m, evening: e };
+  }
+
+  function ownedTriggerCount() {
+    return ScriptApp.getProjectTriggers().filter(function (t) {
+      return t.getHandlerFunction() === OWNED_HISTORY_HANDLER;
+    }).length;
+  }
+
+  function installTriggers() {
+    var hours = settingsHours();
+    ScriptApp.getProjectTriggers().forEach(function (t) {
+      if (t.getHandlerFunction() === OWNED_HISTORY_HANDLER) ScriptApp.deleteTrigger(t);
+    });
+    /* Apps Script daily triggers fire at an approximate hour, not exact minute. */
+    ScriptApp.newTrigger(OWNED_HISTORY_HANDLER).timeBased().atHour(hours.morning).everyDays(1).create();
+    ScriptApp.newTrigger(OWNED_HISTORY_HANDLER).timeBased().atHour(hours.evening).everyDays(1).create();
+    Logger.log('BackendApi triggers installed at ~' + hours.morning + ' and ~' + hours.evening + ' Bangkok');
+    return ownedTriggerCount();
+  }
+
+  function backupTriggerMetadata(label) {
+    var list = ScriptApp.getProjectTriggers().map(function (t) { return { handler: t.getHandlerFunction() }; });
+    PropertiesService.getScriptProperties()
+      .setProperty('bapi_trigger_backup_' + label + '_' + nowMs(), JSON.stringify(list));
+    return list;
+  }
+
+  function planLegacyMigration() {
+    var list = backupTriggerMetadata('plan'); /* metadata backup is write-safe */
+    return {
+      triggers: list,
+      legacyHistoryHandlers: LEGACY_HISTORY_HANDLERS,
+      legacyHistoryTriggers: list.filter(function (t) { return LEGACY_HISTORY_HANDLERS.indexOf(t.handler) >= 0; }),
+      ownedTriggerCount: ownedTriggerCount(),
+      proposedActions: [
+        'install/verify exactly TWO owned ' + OWNED_HISTORY_HANDLER + ' triggers at configured hours',
+        'retire legacy HISTORY handlers main (06/16 ชีต1) + logGistdaData (08/20 ชีต2) — live source verified history-only at @24 (main has no active LINE send; logger is history-only)',
+        'refuse to report cadenceComplete while any legacy history trigger remains',
+      ],
+      notes: 'Read-only plan. Creator limitation: Apps Script triggers do not expose their creator, so retirement matches by exact handler NAME from the verified known-history list — unrelated/notification handlers are never touched.',
+    };
+  }
+
+  /**
+   * Safe two-batch/day migration. Default REFUSES to retire anything and
+   * reports cadenceComplete:false — legacy main 06/16 + logGistdaData 08/20
+   * would otherwise run 4 history batches/day. Retirement happens only when
+   * opts.verifiedHistoryOnly === true (source-level verification that live
+   * main()/logGistdaData() are history-only — done against the live pull),
+   * and even then the result reports cadenceComplete:false if any legacy
+   * history trigger survived (e.g., recreated concurrently).
+   */
+  function installAndMigrate(opts) {
+    opts = opts || {};
+    var before = backupTriggerMetadata('pre');
+    var ownedAfter = installTriggers(); /* rebuilds OWNED triggers only */
+    var retired = [];
+    var refusal = null;
+    if (opts.verifiedHistoryOnly === true) {
+      ScriptApp.getProjectTriggers().forEach(function (t) {
+        var handler = t.getHandlerFunction();
+        if (LEGACY_HISTORY_HANDLERS.indexOf(handler) >= 0) {
+          try {
+            ScriptApp.deleteTrigger(t);
+            retired.push(handler);
+          } catch (e) {
+            Logger.log('BackendApi migration: delete failed for ' + handler + ' (concurrent change?) — will report incomplete');
+          }
+        }
+      });
+    } else {
+      refusal = 'verifiedHistoryOnly flag missing — legacy history handlers (main, logGistdaData) retained; cadence is NOT 2/day yet';
+    }
+    var remainingLegacy = backupTriggerMetadata('post').filter(function (t) {
+      return LEGACY_HISTORY_HANDLERS.indexOf(t.handler) >= 0;
+    });
+    return {
+      installed: ownedAfter === 2, ownedTriggerCount: ownedAfter,
+      retired: retired, remainingLegacyHistoryTriggers: remainingLegacy,
+      cadenceComplete: ownedAfter === 2 && remainingLegacy.length === 0,
+      refusalReason: refusal, inventoryBefore: before,
+    };
+  }
+
+  /* Kept for editor convenience; same safe semantics as installAndMigrate. */
+  function applyLegacyMigration(confirm, opts) {
+    if (confirm !== true) return { applied: false, reason: 'requires explicit confirm=true' };
+    var r = installAndMigrate({ verifiedHistoryOnly: (opts && opts.verifiedHistoryOnly) === true });
+    r.applied = true;
+    return r;
+  }
+
+  /**
+   * ONE owner entry point for deployment: creates any missing config tabs
+   * (never overwrites), validates config, backs up trigger inventory,
+   * installs/verifies exactly two owned BackendApiHistoryBatch_ triggers,
+   * then retires the known history-only legacy handlers. Never appends a
+   * sample history row. STRICT owner-session guard (no scheduled bypass).
+   * Returns a sanitized summary (no trigger ids, tokens, or history data).
+   */
+  function ownerInitialize() {
+    assertTrustedCaller('BackendApiOwnerInitialize_', true);
+    var before = ScriptApp.getProjectTriggers().map(function (t) { return t.getHandlerFunction(); });
+    setupSheets();
+    var cfg = loadConfigSafe();
+    if (!cfg.ok) {
+      return { ok: false, stage: 'config', reason: cfg.reason, tabsTouched: tabNames(), legacyRetired: [], ownedTriggerCount: ownedTriggerCount() };
+    }
+    var backup = backupTriggerMetadata('init');
+    var ownedAfter = installTriggers();
+    var retired = [];
+    ScriptApp.getProjectTriggers().forEach(function (t) {
+      var handler = t.getHandlerFunction();
+      if (LEGACY_HISTORY_HANDLERS.indexOf(handler) >= 0) {
+        try { ScriptApp.deleteTrigger(t); retired.push(handler); } catch (e) { /* reported below */ }
+      }
+    });
+    var remaining = ScriptApp.getProjectTriggers().map(function (t) { return t.getHandlerFunction(); })
+      .filter(function (h) { return LEGACY_HISTORY_HANDLERS.indexOf(h) >= 0; });
+    return {
+      ok: ownedAfter === 2 && remaining.length === 0,
+      stage: 'done',
+      activeLocationId: cfg.active.id,
+      configVersion: cfg.settings.configVersion,
+      morningHour: cfg.settings.morningHour, eveningHour: cfg.settings.eveningHour,
+      ownedHandler: OWNED_HISTORY_HANDLER,
+      ownedTriggerCount: ownedAfter,
+      legacyRetired: retired,
+      legacyRemaining: remaining,
+      cadenceComplete: ownedAfter === 2 && remaining.length === 0,
+      tabsTouched: tabNames(),
+      inventoryBackedUp: backup.length,
+    };
+  }
+
+  /** Read-only owner verification summary (counts only, no ids/tokens/rows). */
+  function ownerVerify() {
+    assertTrustedCaller('BackendApiOwnerVerify_', true);
+    var cfg = loadConfigSafe();
+    var handlers = ScriptApp.getProjectTriggers().map(function (t) { return t.getHandlerFunction(); });
+    var historySheet = openSpreadsheet().getSheetByName(TAB_HISTORY);
+    return {
+      ok: cfg.ok,
+      activeLocationId: cfg.ok ? cfg.active.id : null,
+      configVersion: cfg.ok ? cfg.settings.configVersion : null,
+      tabs: tabNames(),
+      historyRowCount: historySheet ? Math.max(0, historySheet.getLastRow() - 1) : 0,
+      ownedTriggerCount: handlers.filter(function (h) { return h === OWNED_HISTORY_HANDLER; }).length,
+      legacyHistoryTriggers: handlers.filter(function (h) { return LEGACY_HISTORY_HANDLERS.indexOf(h) >= 0; }).length,
+      otherHandlers: handlers.filter(function (h) { return h !== OWNED_HISTORY_HANDLER && LEGACY_HISTORY_HANDLERS.indexOf(h) < 0; }).length,
+    };
+  }
+
+  function tabNames() {
+    var names = [];
+    SETUP_TABS.forEach(function (def) {
+      if (openSpreadsheet().getSheetByName(def.name)) names.push(def.name);
+    });
+    return names;
+  }
+
+  return {
+    SCHEMA: SCHEMA, PM_UNIT: PM_UNIT, FRESH_MS: FRESH_MS, FUTURE_MS: FUTURE_MS,
+    SLOT_JITTER_H: SLOT_JITTER_H,
+    parseThaiDateTime: parseThaiDateTime, band: band, freshness: freshness,
+    loadConfig: loadConfigSafe, buildChannels: buildChannels,
+    doGet: doGet, historyBatch: historyBatch, setupSheets: setupSheets,
+    installTriggers: installTriggers,
+    planLegacyMigration: planLegacyMigration,
+    installAndMigrate: installAndMigrate,
+    applyLegacyMigration: applyLegacyMigration,
+    ownerInitialize: ownerInitialize,
+    ownerVerify: ownerVerify,
+    isOwnerSession: isOwnerSession,
+    assertTrustedCaller: assertTrustedCaller,
+    locationFingerprint: locationFingerprint,
+    TABS: { settings: TAB_SETTINGS, locations: TAB_LOCATIONS, sources: TAB_SOURCES, history: TAB_HISTORY },
+  };
+})();
+
+/* Entry points. EVERYTHING mutating or inventory-sensitive ends with a
+ * trailing underscore so google.script.run can never reach it from the
+ * public legacy UI (official Apps Script private-function rule). There is NO
+ * public mutator and no public inventory reader. The only public read paths
+ * remain the routed doGet (HTTP) and the legacy UI's own getWidgetData. */
+function BackendApiHistoryBatch_() { return BackendApi.historyBatch(); }
+function BackendApiOwnerInitialize_() { return BackendApi.ownerInitialize(); }
+function BackendApiOwnerVerify_() { return BackendApi.ownerVerify(); }
+/* Private test/editor helpers (read-only, still not client-callable). */
+function BackendApi_band_(v) { return BackendApi.band(v); }
+function BackendApi_parseThaiDateTime_(dt) { return BackendApi.parseThaiDateTime(dt); }
+/* Mutating private wrappers also carry a strict owner guard (defense in depth:
+ * underscore already blocks google.script.run; the guard blocks any other
+ * top-level-caller path that might ever appear). */
+function BackendApiSetupSheets_() { BackendApi.assertTrustedCaller('BackendApiSetupSheets_', true); return BackendApi.setupSheets(); }
+function BackendApiInstallTriggers_() { BackendApi.assertTrustedCaller('BackendApiInstallTriggers_', true); return BackendApi.installTriggers(); }
+function BackendApiPlanLegacyMigration_() { BackendApi.assertTrustedCaller('BackendApiPlanLegacyMigration_', true); return BackendApi.planLegacyMigration(); }
+function BackendApiInstallAndMigrate_(opts) { BackendApi.assertTrustedCaller('BackendApiInstallAndMigrate_', true); return BackendApi.installAndMigrate(opts); }
+
+/* ---------- VISIBLE owner entry points (usability fix 2026-10-17) ----------
+ * The Apps Script editor Run dropdown HIDES trailing-underscore functions,
+ * so the owner could not select BackendApiOwnerInitialize_. These no-arg,
+ * clearly-named wrappers are selectable in the editor file BackendApi.js.
+ * They ARE reachable via google.script.run while the legacy UI is public —
+ * by design: the STRICT owner guard (Session active non-empty AND equal to
+ * effective) executes FIRST; anonymous callers and spoofed arguments are
+ * refused before any write, tab creation, or inventory access. No token,
+ * Sheet id, raw history, trigger id, or email ever appears in logs/returns. */
+function setupLedBackend() {
+  BackendApi.assertTrustedCaller('BackendApiOwnerInitialize_', true);
+  var r = BackendApi.ownerInitialize();
+  var log = {
+    ok: r.ok, stage: r.stage, cadenceComplete: r.cadenceComplete,
+    ownedTriggerCount: r.ownedTriggerCount,
+    legacyRetiredCount: (r.legacyRetired || []).length,
+    legacyRemainingCount: (r.legacyRemaining || []).length,
+    activeLocationId: r.activeLocationId || null,
+    slots: (r.morningHour != null ? r.morningHour + '/' + r.eveningHour : null),
+  };
+  try { Logger.log('setupLedBackend: ' + JSON.stringify(log)); } catch (e) { /* logging must never break init */ }
+  return r;
+}
+function verifyLedBackend() {
+  BackendApi.assertTrustedCaller('BackendApiOwnerVerify_', true);
+  var v = BackendApi.ownerVerify();
+  try { Logger.log('verifyLedBackend: ' + JSON.stringify(v)); } catch (e) { /* noop */ }
+  return v;
+}
+
+/* Root-cause diagnostics (2026-10-17 22:50 incident): Session.getActiveUser
+ * email is BLANK unless the userinfo.email scope is actually granted — the
+ * shipped manifest relied on automatic scope detection and a legit
+ * owner-editor run presented active==='' with effective===owner, so the
+ * strict equality guard correctly refused. This READ-ONLY, visible function
+ * reports ONLY BOOLEANS about the identity predicates so the operator can
+ * see exactly which one fails. It never prints emails/ids, performs zero
+ * writes, and NEVER infers trust from effectiveUser alone. */
+function ledOwnerDiagnostics() {
+  var a = '', e = '';
+  try { a = String(Session.getActiveUser().getEmail() || '').toLowerCase(); } catch (x) { a = ''; }
+  try { e = String(Session.getEffectiveUser().getEmail() || '').toLowerCase(); } catch (x) { e = ''; }
+  var sched = false;
+  try {
+    var t = ScriptApp.getScriptTrigger();
+    sched = !!(t && t.getHandlerFunction && t.getHandlerFunction());
+  } catch (x) { sched = false; }
+  var d = {
+    activeEmailPresent: a !== '',
+    effectiveEmailPresent: e !== '',
+    activeEqualsEffective: a !== '' && e !== '' && a === e,
+    scheduledContext: sched,
+    trusted: (a !== '' && e !== '' && a === e),
+  };
+  try { Logger.log('ledOwnerDiagnostics: ' + JSON.stringify(d)); } catch (x) { /* noop */ }
+  return d;
+}

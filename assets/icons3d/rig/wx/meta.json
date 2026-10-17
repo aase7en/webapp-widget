@@ -1,0 +1,38 @@
+{
+ "art": "original procedural (tools/make_weather_rig.py; Pillow+numpy) \u2014 no traced/copied assets",
+ "drops": {
+  "rain": 5,
+  "heavy": 7,
+  "thunder": 6
+ },
+ "speeds": {
+  "rainMs": 720,
+  "heavyMs": 380,
+  "thunderMs": 380
+ },
+ "flash": {
+  "cycleMs": 5500,
+  "flashes": 2,
+  "maxOpacity": 0.55
+ },
+ "clouds": {
+  "backSpeedMs": 7000,
+  "frontSpeedMs": 4600,
+  "leanSpeedMs": 2600
+ },
+ "fog": {
+  "ribbons": 3,
+  "speedsMs": [
+   5500,
+   7300,
+   9100
+  ]
+ },
+ "gust": {
+  "sweepMs": 1500
+ },
+ "slot": {
+  "px": 34,
+  "canvas": 128
+ }
+}

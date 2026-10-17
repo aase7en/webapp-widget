@@ -1,19 +1,36 @@
 name: Uthai LED rotation
+# NOTE: this CI does NOT run the real-Chrome browser suite (no browser deps in
+# the repo by design). Run it locally before release, exact command documented
+# in LED-ROTATION.md → "Verification".
 on:
   pull_request:
     paths:
       - index.html
       - led-rotation.js
-      - tests/led-rotation.test.cjs
+      - strip.js
+      - strip.css
+      - assets/**
+      - apps-script/**
+      - tests/**
+      - water.html
+      - water.js
       - LED-ROTATION.md
+      - WATER-LED.md
       - .github/workflows/led-rotation.yml
   push:
     branches: [main]
     paths:
       - index.html
       - led-rotation.js
-      - tests/led-rotation.test.cjs
+      - strip.js
+      - strip.css
+      - assets/**
+      - apps-script/**
+      - tests/**
+      - water.html
+      - water.js
       - LED-ROTATION.md
+      - WATER-LED.md
       - .github/workflows/led-rotation.yml
 jobs:
   verify:
@@ -24,7 +41,27 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - run: node --check led-rotation.js
-      - run: node --test tests/led-rotation.test.cjs
-      - name: Confirm original PM2.5 exec identifier
-        run: grep -q 'AKfycbwwUQCeJoz4N0P9UuRJF39pt17mBjPz0_yMDDxTO7BoiUiTQaO7Yay0UKq80EvE6dk/exec' index.html
+      - name: Frontend syntax
+        run: node --check led-rotation.js && node --check strip.js && node --check water.js
+      - name: Backend Apps Script syntax (parse-only VM check, no execution)
+        run: |
+          if [ -f apps-script/BackendApi.gs ]; then
+            node -e "const fs=require('fs'),vm=require('vm');new vm.Script(fs.readFileSync('apps-script/BackendApi.gs','utf8'),{filename:'BackendApi.gs'});console.log('BackendApi.gs parses OK')"
+          else
+            echo 'no BackendApi.gs yet — skipped'
+          fi
+      - name: All node suites (frontend + location/provenance + water + backend contract)
+        run: node --test tests/*.test.cjs
+      - name: Browser test file parses (real run is local-only; see LED-ROTATION.md)
+        run: node --check tests/browser-led.test.mjs
+      - name: Native strip replaced the legacy PM2.5 iframe (user-approved 2026-10-17)
+        run: |
+          grep -q 'id="slide-pm"' index.html
+          grep -q 'strip.js?v=20261017-prod1' index.html
+          ! grep -q 'script.google.com' index.html
+          ! grep -q 'AKfycb' index.html
+      - name: Exactly one fixed Open-Meteo licence attribution link
+        run: |
+          [ "$(grep -c '<a ' index.html)" = "1" ]
+          grep -q 'href="https://open-meteo.com/"' index.html
+          grep -q 'rel="noopener noreferrer"' index.html

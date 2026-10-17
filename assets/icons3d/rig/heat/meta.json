@@ -1,0 +1,66 @@
+{
+ "generatedBy": "preview/tools/make_heat_thermo.py",
+ "canvas": [
+  320,
+  320
+ ],
+ "bboxArt": [
+  120,
+  12,
+  200,
+  272
+ ],
+ "displaySize": "strip capsule badge: element 8x26 CSS px (exact 80x260 art aspect) and gallery 44px",
+ "scaleYPctOrigin": 0.8462,
+ "cavityTopArt": 14,
+ "states": {
+  "below": {
+   "rgb": [
+    63,
+    169,
+    245
+   ],
+   "level": 0.3
+  },
+  "watch": {
+   "rgb": [
+    53,
+    209,
+    111
+   ],
+   "level": 0.44
+  },
+  "caution": {
+   "rgb": [
+    245,
+    197,
+    66
+   ],
+   "level": 0.58
+  },
+  "danger": {
+   "rgb": [
+    255,
+    146,
+    45
+   ],
+   "level": 0.74
+  },
+  "extreme": {
+   "rgb": [
+    255,
+    68,
+    91
+   ],
+   "level": 0.92
+  },
+  "no-data": {
+   "rgb": [
+    132,
+    144,
+    158
+   ],
+   "level": 0.3
+  }
+ }
+}
