@@ -2,14 +2,16 @@
  * BackendApi.gs — PROPOSED, UNDEPLOYED additive JSON API + config/history layer
  * for the Uthai hospital LED backend (Apps Script project "API Report_PM2.5").
  *
- * STATUS (2026-10-17 fix wave): local implementation + tests only. NOT pushed
- * to the live Apps Script project. The REMOTE CANDIDATE is built from the
- * backed-up live source (/tmp/widget-production-live-source-20261017, @24)
+ * STATUS (2026-10-18 charts wave): local implementation + tests only (adds
+ * the 'Charts' dashboard tab + embedded charts; see the charts block below).
+ * NOT
+ * pushed to the live Apps Script project. The REMOTE CANDIDATE is built from a
+ * FRESH pull of the live source (@31 or whatever is current at deploy time)
  * with a minimal patch (doGet hook + createDailyTrigger guard + this file) —
  * never a blind push of the repo reference. This public repo copy is a
  * SANITIZED REFERENCE (live WAQI token and commented LINE tokens redacted to
  * Script Property NAMES; see apps-script/Code.gs header). Legacy functions in
- * Code.gs are preserved byte-for-byte from live @24 except the two documented
+ * Code.gs are preserved byte-for-byte from live except the two documented
  * patches:
  *   1. doGet hook:     function doGet(e) { return BackendApi_doGet(e); }
  *   2. createDailyTrigger guard (legacy body deleted ALL project triggers —
@@ -31,18 +33,48 @@
  *        errors:[{channel,code,message}] }
  *  - provenance keys are canonical singular/plural-exact: timeZone, unit.
  *    GISTDA PM is a TAMBON AREA aggregate (areaId), never claimed as a
- *    station/sensor; no PCD attribution claims.
+ *    station/sensor; no PCD attribution claims. GISTDA publishes official
+ *    hourly area ESTIMATES (satellite + ground assimilation) — not a physical
+ *    measurement station at the hospital. Open-Meteo is a weather MODEL
+ *    (current conditions interpolated), not an on-site measurement; no
+ *    accuracy percentage is claimed anywhere.
  *  - observedAt is ALWAYS the upstream observation time (Bangkok +07:00 ISO);
  *    never substituted with generatedAt/fetch time. Unknown -> missing.
  *    Future >5 min rejects; age >3h -> 'stale'.
  *  - Read route performs ZERO Sheet/history/trigger/notification/property
- *    writes. Cache key = location id + config_version + fingerprint
- *    (coords+providers+areaId+station+datum) so Sheet edits without a version
- *    bump can never serve another station/coords' cache.
+ *    writes (CacheService only). Cache is PER-CHANNEL under the shared
+ *    ScriptCache: key = 'bapi_v2_' + location id + config_version +
+ *    fingerprint (coords+providers+areaId+tambon+station+datum+label) so
+ *    Sheet edits without a version bump can never serve another
+ *    station/coords/label's cache. PM TTL 1800 s, weather TTL 600 s,
+ *    per-channel last-good 21600 s (CacheService maximum). Cadence is
+ *    on-demand best-effort: CacheService may evict early and NO scheduler
+ *    refreshes the read cache — without client requests there are zero
+ *    upstream fetches, so "30 min" means max staleness while clients poll,
+ *    never a guaranteed wall-clock refresh rate.
+ *  - Upstream HTTP 429/5xx (and network/HTTP failures generally) trigger a
+ *    bounded PASSIVE cooldown stored in the same cache (default 300 s;
+ *    Retry-After honored as seconds ONLY when the provider actually sends
+ *    it — no assumed guarantee — clamped to 30..3600 s). While a channel is
+ *    in cooldown the read route serves that channel's last-good (relabeled
+ *    stale when older than 3 h) or honest 'missing' — never 0, never
+ *    fabricated freshness. No retry loop exists anywhere.
+ *  - Location labels: the KNOWN legacy default 'ต.อุทัย อ.พระนครศรีอยุธยา'
+ *    (wrong: tambon อุทัย is in amphoe อุทัย) is canonicalized IN MEMORY to
+ *    'ต.อุทัย อ.อุทัย จ.พระนครศรีอยุธยา' by pure loadConfig normalization.
+ *    The Sheet cell is NEVER rewritten by the backend — the physical text
+ *    stays until the owner corrects it; every other label passes through
+ *    untouched. The label is part of the cache fingerprint so a stale
+ *    provenance/label can never linger in cache.
  *  - History = exactly TWO scheduled batches/day (morning+evening), one row
  *    per enabled location, idempotent per (date, slot, location); a batch run
  *    only records inside an explicit ±2h jitter window around its configured
- *    hour (manual noon run cannot preconsume the evening batch).
+ *    hour (manual noon run cannot preconsume the evening batch). Batches
+ *    REUSE the per-channel read cache (refreshing only channels past their
+ *    TTL inside the existing fetch helper) so history adds at most a
+ *    TTL-bounded refresh per channel per batch, never a guaranteed extra
+ *    fetch; recorded rows always carry the source observedAt/status of the
+ *    data actually used.
  */
 
 var BackendApi = (function () {
@@ -52,8 +84,26 @@ var BackendApi = (function () {
   var PM_UNIT = 'µg/m³';
   var FRESH_MS = 3 * 3600000;
   var FUTURE_MS = 5 * 60000;
+  /* Per-channel cadence (best-effort, request-driven; CacheService may evict
+   * earlier). PM 30 min / weather 10 min / last-good 6 h (= service max). */
+  var PM_TTL_S = 1800;
+  var WX_TTL_S = 600;
   var LASTGOOD_TTL_S = 6 * 3600;
-  var DATA_TTL_S = 600;
+  /* Bounded passive failure cooldown: default when the provider sends no
+   * usable Retry-After; Retry-After (delta-seconds) honored only if actually
+   * present. Clamped to [COOLDOWN_MIN_S, COOLDOWN_MAX_S]. */
+  var COOLDOWN_DEFAULT_S = 300;
+  var COOLDOWN_MIN_S = 30;
+  var COOLDOWN_MAX_S = 3600;
+  /* Location label canonicalization (PURE normalization — never a Sheet
+   * write). Map is EXACT-match on the trimmed NFC legacy default only;
+   * every other label passes through untouched. */
+  var CANONICAL_UTHAI_LABEL = 'ต.อุทัย อ.อุทัย จ.พระนครศรีอยุธยา';
+  var LEGACY_LABEL_FIXES = (function () {
+    var m = {};
+    m['ต.อุทัย อ.พระนครศรีอยุธยา'] = CANONICAL_UTHAI_LABEL; /* legacy default seed: tambon อุทัย sits in amphoe อุทัย */
+    return m;
+  })();
   var GISTDA_BASE = 'https://pm25.gistda.or.th/rest/getPm25byTambon';
   var OPEN_METEO_BASE = 'https://api.open-meteo.com/v1/forecast';
   var BANGKOK_OFFSET_MS = 7 * 3600000;
@@ -77,6 +127,43 @@ var BackendApi = (function () {
   var TAB_LOCATIONS = 'Locations';
   var TAB_SOURCES = 'API_Sources';
   var TAB_HISTORY = 'History_Batch';
+  var TAB_CHARTS = 'Charts';
+
+  /* ---------------- charts dashboard ('Charts' tab) ----------------
+   * Sheets EMBEDDED charts (official EmbeddedChartBuilder surface only:
+   * sheet.newChart()/asLineChart()/addRange()/setOption()/setPosition()/
+   * build()/insertChart()/getCharts()/removeChart()). Data comes from
+   * History_Batch BY HEADER NAME for the ACTIVE location over the last
+   * CHART_WINDOW_DAYS days. Missing cells are never rewritten — charts
+   * reference raw cells so gaps stay gaps (never 0). Owned charts carry a
+   * title marker; refresh removes ONLY marked charts (user charts are never
+   * touched) then re-inserts. Rain ('wx_rain_pct') and water
+   * ('water_level_m') columns are NOT in the shipped history schema — those
+   * charts appear automatically as soon as the columns carry real recorded
+   * data; water additionally requires >=1 numeric value (never a fabricated
+   * placeholder series). History_Batch rows/headers are NEVER modified. */
+  var CHART_WINDOW_DAYS = 30;
+  var CHART_MARKER = ' [อัตโนมัติ]';
+  var CHART_W = 600;
+  var CHART_H = 300;
+  var CHART_ANCHOR_ROW = 2;   /* first chart band; A1 holds the auto-note */
+  var CHART_ANCHOR_COL = 1;
+  var CHART_COL_SPAN = 7;     /* 600px ~= 6 default 100px columns + gutter */
+  var CHART_ROW_SPAN = 16;    /* 300px ~= 15 default 21px rows + gutter */
+  var CHART_GRID_COLOR = '#eeeeee';
+  var CHART_CHANNELS = (function () {
+    var defs = [
+      { key: 'pm25', name: 'PM2.5 (µg/m³)', col: 'pm25_value', color: '#FF8C00' },
+      { key: 'temp', name: 'อุณหภูมิ (°C)', col: 'wx_temp_c', color: '#E53935' },
+      { key: 'humidity', name: 'ความชื้นสัมพัทธ์ (%)', col: 'wx_rh_pct', color: '#42A5F5' },
+      { key: 'rain', name: 'โอกาสฝนวันนี้ (%)', col: 'wx_rain_pct', color: '#1E88E5' },
+      { key: 'water', name: 'ระดับน้ำหน้า รพ. (ม.)', col: 'water_level_m', color: '#1565C0', needsNumeric: true },
+    ];
+    return defs.map(function (d) {
+      d.title = d.name + ' ย้อนหลัง ' + CHART_WINDOW_DAYS + ' วัน';
+      return d;
+    });
+  })();
 
   function nowMs() { return new Date().getTime(); }
   function pad2(n) { return (n < 10 ? '0' : '') + n; }
@@ -95,6 +182,10 @@ var BackendApi = (function () {
   }
   function isoZ(ms) { return new Date(ms).toISOString(); }
   function safeParse(s) { try { var v = JSON.parse(s); return v && typeof v === 'object' ? v : null; } catch (e) { return null; } }
+  function canonicalLocationLabel(label) {
+    var t = String(label == null ? '' : label).trim().normalize('NFC');
+    return Object.prototype.hasOwnProperty.call(LEGACY_LABEL_FIXES, t) ? LEGACY_LABEL_FIXES[t] : t;
+  }
 
   /** GISTDA datetimeThai -> {iso, ms}; พ.ศ.>2400 -> -543; calendar roundtrip
    * verified; null when unparseable (channel must then go missing). */
@@ -282,7 +373,7 @@ var BackendApi = (function () {
       if (waterStation !== '' && !/^\d{1,20}$/.test(waterStation)) return configError('water_station_id');
       if (id === activeId) {
         active = {
-          id: id, label: String(L.label || id).trim(), lat: lat, lon: lon,
+          id: id, label: canonicalLocationLabel(L.label || id), lat: lat, lon: lon,
           pmProvider: pmProvider, pmAreaId: pmLocId, pmTambonName: pmTambon, wxProvider: wxProvider,
           waterProvider: waterProvider, waterStationId: waterStation,
           waterDatum: String(L.water_datum == null ? '' : L.water_datum).trim(),
@@ -331,10 +422,50 @@ var BackendApi = (function () {
     catch (x) { return (x && x.config) ? configError(String(x.config)) : configError('config exception'); }
   }
 
+  /* Retry-After: delta-seconds form only (HTTP-date form ignored — no
+   * assumed provider guarantee). null when absent/unusable. */
+  function parseRetryAfterS(v) {
+    if (v == null) return null;
+    var s = String(v).trim();
+    if (!/^\d{1,5}$/.test(s)) return null;
+    var n = parseInt(s, 10);
+    return n >= 0 && n <= 86400 ? n : null;
+  }
+  function cooldownSeconds(retryAfterS) {
+    var s = retryAfterS != null ? retryAfterS : COOLDOWN_DEFAULT_S;
+    return Math.max(COOLDOWN_MIN_S, Math.min(s, COOLDOWN_MAX_S));
+  }
   function fetchJson(url) {
     var response = UrlFetchApp.fetch(url, { muteHttpExceptions: true, followRedirects: true });
-    if (response.getResponseCode() !== 200) throw new Error('http ' + response.getResponseCode());
+    var code = response.getResponseCode();
+    if (code !== 200) {
+      var e = new Error('http ' + code);
+      e.httpCode = code;
+      var hdr = null;
+      try { hdr = response.getHeaders ? response.getHeaders() : null; } catch (x) { hdr = null; }
+      e.retryAfterSec = hdr ? parseRetryAfterS(hdr['Retry-After'] != null ? hdr['Retry-After'] : hdr['retry-after']) : null;
+      throw e;
+    }
     return JSON.parse(response.getContentText());
+  }
+  /* Uniform bounded passive failure marker: every upstream failure (HTTP or
+   * network) sets a cooldown so concurrent/serial read requests cannot hammer
+   * a struggling provider; rate-limit responses may extend it via the
+   * provider's own Retry-After. Error CODE stays 'UPSTREAM' (stable contract);
+   * only the human message varies. */
+  function upstreamFailure(base, channel, x, label) {
+    var code = x && x.httpCode ? x.httpCode : 0;
+    if (code === 429 || code >= 500) {
+      base._err = err(channel, 'UPSTREAM', label + ' source rate-limited (http ' + code + ') — passive cooldown');
+      base._cooldownS = cooldownSeconds(x && x.retryAfterSec);
+    } else if (code > 0) {
+      base._err = err(channel, 'UPSTREAM', label + ' source unavailable (http ' + code + ')');
+      base._cooldownS = COOLDOWN_DEFAULT_S;
+    } else {
+      base._err = err(channel, 'UPSTREAM', label + ' source unavailable');
+      base._cooldownS = COOLDOWN_DEFAULT_S;
+    }
+    return base;
   }
 
   /* provenance keys are canonical EXACT: timeZone / unit (not timezone/units).
@@ -363,7 +494,7 @@ var BackendApi = (function () {
     return { status: 'missing', value: null, unit: PM_UNIT, observedAt: null, source: '', band: null, provenance: null, _err: null };
   }
 
-  function channelPm25(cfg, now) {
+  function pm25Base(cfg) {
     var loc = cfg.active;
     var prov = provenance(cfg, loc.pmProvider, { areaId: loc.pmAreaId, unit: PM_UNIT, tambonName: loc.pmTambonName });
     var base = pm25Missing();
@@ -371,8 +502,15 @@ var BackendApi = (function () {
     base.source = 'GISTDA getPm25byTambon · ต.' + (loc.pmTambonName || '?') + ' จากพื้นที่อำเภอ (เฉลี่ยระดับตำบล · ไม่ใช่สถานีวัดโดยตรง)';
     if (loc.pmTambonName === '') {
       base._err = err('pm25', 'CONFIG', 'pm_tambon_name not configured for this location');
-      return base;
     }
+    return base;
+  }
+
+  function channelPm25(cfg, now) {
+    var loc = cfg.active;
+    var base = pm25Base(cfg);
+    var prov = base.provenance;
+    if (base._err) return base;
     try {
       var payload = fetchJson(GISTDA_BASE + '?ap_idn=' + encodeURIComponent(loc.pmAreaId));
       var rows = payload && payload.data;
@@ -427,8 +565,7 @@ var BackendApi = (function () {
         provenance: prov, _err: null,
       };
     } catch (x) {
-      base._err = err('pm25', 'UPSTREAM', 'PM source unavailable');
-      return base;
+      return upstreamFailure(base, 'pm25', x, 'PM');
     }
   }
 
@@ -440,11 +577,18 @@ var BackendApi = (function () {
     };
   }
 
-  function channelWeather(cfg, now) {
+  function weatherBase(cfg) {
     var loc = cfg.active;
     var prov = provenance(cfg, loc.wxProvider, { unit: '°C / % / WMO code' });
     var base = weatherMissing(prov);
     base.source = 'Open-Meteo weather model · พิกัด ' + loc.lat + ',' + loc.lon + ' (DERIVED ไม่ใช่การวัดที่ รพ.)';
+    return base;
+  }
+
+  function channelWeather(cfg, now) {
+    var loc = cfg.active;
+    var base = weatherBase(cfg);
+    var prov = base.provenance;
     try {
       var url = OPEN_METEO_BASE +
         '?latitude=' + encodeURIComponent(String(loc.lat)) +
@@ -494,8 +638,7 @@ var BackendApi = (function () {
         source: base.source, provenance: prov, _err: null,
       };
     } catch (x) {
-      base._err = err('weather', 'UPSTREAM', 'weather source unavailable');
-      return base;
+      return upstreamFailure(base, 'weather', x, 'weather');
     }
   }
 
@@ -519,7 +662,7 @@ var BackendApi = (function () {
 
   function stripInternal(ch) {
     var out = {};
-    for (var k in ch) if (k !== '_err' && Object.prototype.hasOwnProperty.call(ch, k)) out[k] = ch[k];
+    for (var k in ch) if (k !== '_err' && k !== '_cooldownS' && Object.prototype.hasOwnProperty.call(ch, k)) out[k] = ch[k];
     return out;
   }
 
@@ -534,67 +677,98 @@ var BackendApi = (function () {
   }
 
   /* Cache key fingerprint: everything about the location that changes what
-   * upstream data means — coords, providers, PM area id, station, datum —
-   * so a Sheet edit without config_version bump can never serve stale-key
-   * data from another station/coords. */
+   * upstream data means — coords, providers, PM area id, station, datum and
+   * the canonicalized human label — so a Sheet edit without config_version
+   * bump can never serve stale-key data from another station/coords/label. */
   function locationFingerprint(loc) {
-    var raw = [loc.lat, loc.lon, loc.pmProvider, loc.pmAreaId, loc.pmTambonName, loc.wxProvider, loc.waterProvider, loc.waterStationId, loc.waterDatum].join('|');
+    var raw = [loc.lat, loc.lon, loc.pmProvider, loc.pmAreaId, loc.pmTambonName, loc.wxProvider, loc.waterProvider, loc.waterStationId, loc.waterDatum, canonicalLocationLabel(loc.label)].join('|');
     var h = 5381;
     for (var i = 0; i < raw.length; i++) h = ((h << 5) + h + raw.charCodeAt(i)) & 0xffffffff;
     return (h >>> 0).toString(36);
   }
-  function dataKeys(cfg) {
-    var base = 'bapi_v1_' + cfg.active.id + '_' + cfg.settings.configVersion + '_' + locationFingerprint(cfg.active);
-    return { primary: base, lastGood: base + '_lg' };
+  function channelKeys(cfg, ch) {
+    var base = 'bapi_v2_' + cfg.active.id + '_' + cfg.settings.configVersion + '_' + locationFingerprint(cfg.active);
+    return { primary: base + ':' + ch, lastGood: base + ':' + ch + '_lg', cooldown: base + ':' + ch + '_cd' };
   }
 
   function cache() { return CacheService.getScriptCache(); }
 
-  function revalidateStaleness(channels, now) {
-    ['pm25', 'weather'].forEach(function (name) {
-      var ch = channels[name];
-      if (ch && ch.status === 'ok' && typeof ch.observedAt === 'string') {
-        var ms = Date.parse(ch.observedAt);
-        if (isFinite(ms) && now - ms > FRESH_MS) ch.status = 'stale';
-      }
-    });
-    return channels;
+  /* Re-derive staleness on every read so an aged cached channel greys out
+   * instead of lying; observedAt is the upstream time, never fabricated. */
+  function rechannelStaleness(ch, now) {
+    var out = {};
+    for (var k in ch) if (Object.prototype.hasOwnProperty.call(ch, k)) out[k] = ch[k];
+    if (out.status === 'ok' && typeof out.observedAt === 'string') {
+      var ms = Date.parse(out.observedAt);
+      if (isFinite(ms) && now - ms > FRESH_MS) out.status = 'stale';
+    }
+    return out;
   }
 
-  function getDataPayload(cfg, now) {
-    var keys = dataKeys(cfg);
+  function lastGoodOrMissing(cfg, ch, makeBase, keys, now, busy) {
+    var lg = safeParse(cache().get(keys.lastGood));
+    if (lg) return rechannelStaleness(lg, now);
+    var m = makeBase(cfg);
+    m._err = err(ch, 'UPSTREAM', busy ? 'busy' : 'upstream cooldown (rate-limit backoff)');
+    return m;
+  }
+
+  /* Shared refresh used by BOTH the read route and history batches: fetch the
+   * channel, record a bounded cooldown on failure, persist primary+last-good
+   * on success, and fall back to last-good on a failing build (relabeled
+   * stale when aged; the live outage reason is surfaced in errors[]). */
+  function refreshChannel(cfg, ch, fetchFresh, makeBase, ttlS, now, c, keys) {
+    var built = fetchFresh(cfg, now);
+    if (built._cooldownS) {
+      try { c.put(keys.cooldown, '1', built._cooldownS); } catch (e) { /* cooldown is best-effort */ }
+    }
+    if (built.status !== 'missing') {
+      c.put(keys.primary, JSON.stringify(stripInternal(built)), ttlS);
+      c.put(keys.lastGood, JSON.stringify(stripInternal(built)), LASTGOOD_TTL_S);
+      return built;
+    }
+    var lg = safeParse(c.get(keys.lastGood));
+    if (lg) {
+      var out = rechannelStaleness(lg, now);
+      if (built._err) out._err = built._err;
+      return out;
+    }
+    return built; /* honest missing — never 0, never fabricated freshness */
+  }
+
+  /* On-demand per-channel read (PM 1800 s / weather 600 s best-effort; no
+   * scheduler drives it — zero requests means zero upstream calls).
+   * noLock=true ONLY for callers that already hold the script lock (history
+   * batch) so the nested tryLock can never self-deadlock. */
+  function getChannelCached(cfg, ch, fetchFresh, makeBase, ttlS, now, noLock) {
+    var keys = channelKeys(cfg, ch);
     var c = cache();
     var hit = safeParse(c.get(keys.primary));
-    if (hit) return revalidateStaleness(hit, now);
-
+    if (hit) return rechannelStaleness(hit, now);
+    if (c.get(keys.cooldown)) return lastGoodOrMissing(cfg, ch, makeBase, keys, now, false);
+    if (noLock) return refreshChannel(cfg, ch, fetchFresh, makeBase, ttlS, now, c, keys);
     var lock = LockService.getScriptLock();
     var got = false;
     try { got = lock.tryLock(10000); } catch (e) { got = false; }
-    if (!got) {
-      var lg0 = safeParse(c.get(keys.lastGood));
-      return lg0 ? revalidateStaleness(lg0, now)
-        : { pm25: stripInternal(pm25Missing()), weather: stripInternal(weatherMissing(null)), water: stripInternal(channelWater(cfg)), errors: [err('pm25', 'UPSTREAM', 'busy'), err('weather', 'UPSTREAM', 'busy')] };
-    }
+    if (!got) return lastGoodOrMissing(cfg, ch, makeBase, keys, now, true);
     try {
       hit = safeParse(c.get(keys.primary));
-      if (hit) return revalidateStaleness(hit, now);
-      var built = buildChannels(cfg, now);
-      var lastGood = safeParse(c.get(keys.lastGood));
-      if (lastGood) {
-        var swapped = false;
-        ['pm25', 'weather'].forEach(function (name) {
-          if (built[name].status === 'missing' && lastGood[name] && lastGood[name].value != null) {
-            built[name] = lastGood[name]; swapped = true;
-          }
-        });
-        if (swapped) revalidateStaleness(built, now);
-      }
-      c.put(keys.primary, JSON.stringify(built), DATA_TTL_S);
-      c.put(keys.lastGood, JSON.stringify(built), LASTGOOD_TTL_S);
-      return built;
+      if (hit) return rechannelStaleness(hit, now);
+      if (c.get(keys.cooldown)) return lastGoodOrMissing(cfg, ch, makeBase, keys, now, false);
+      return refreshChannel(cfg, ch, fetchFresh, makeBase, ttlS, now, c, keys);
     } finally {
       try { lock.releaseLock(); } catch (e) { /* noop */ }
     }
+  }
+
+  function getDataPayload(cfg, now) {
+    var pm = getChannelCached(cfg, 'pm25', channelPm25, pm25Base, PM_TTL_S, now, false);
+    var wx = getChannelCached(cfg, 'weather', channelWeather, weatherBase, WX_TTL_S, now, false);
+    var water = channelWater(cfg);
+    var errors = [];
+    if (pm._err) errors.push(pm._err);
+    if (wx._err) errors.push(wx._err);
+    return { pm25: stripInternal(pm), weather: stripInternal(wx), water: stripInternal(water), errors: errors };
   }
 
   function allMissingEnvelope(errors, location) {
@@ -707,9 +881,25 @@ var BackendApi = (function () {
           existing[historyRowKey(batchId, locId)] = true;
           continue;
         }
-        var built = buildChannels(single, now);
-        appendHistoryRow(sheet, batchId, batchDate, slot, L, built.pm25, built.weather, built.water, built.errors);
+        /* History REUSES the per-channel read cache inside the same fetch
+         * helper (noLock: this batch already holds the script lock): a warm
+         * batch adds ZERO upstream calls; only channels past their TTL are
+         * refreshed. Rows record the observedAt/status of the data actually
+         * used — a cached PM value may be up to 30 min old at batch time. */
+        var pm = getChannelCached(single, 'pm25', channelPm25, pm25Base, PM_TTL_S, now, true);
+        var wx = getChannelCached(single, 'weather', channelWeather, weatherBase, WX_TTL_S, now, true);
+        var water = channelWater(single);
+        var errs = [];
+        if (pm._err) errs.push(pm._err);
+        if (wx._err) errs.push(wx._err);
+        appendHistoryRow(sheet, batchId, batchDate, slot, L, stripInternal(pm), stripInternal(wx), stripInternal(water), errs);
         existing[historyRowKey(batchId, locId)] = true;
+      }
+      /* Charts rebuild AFTER appends in the same guarded scheduled context.
+       * Lazily creates the 'Charts' tab on the first batch (zero extra owner
+       * step post-deploy). Chart failures must NEVER break history rows. */
+      try { refreshCharts(); } catch (chartErr) {
+        Logger.log('BackendApi history: chart refresh failed (history rows intact): ' + chartErr);
       }
     } finally {
       try { lock.releaseLock(); } catch (e) { /* noop */ }
@@ -718,7 +908,7 @@ var BackendApi = (function () {
 
   function singleLocationConfig(cfg, L) {
     var loc = {
-      id: String(L.id || '').trim(), label: String(L.label || L.id || '').trim(),
+      id: String(L.id || '').trim(), label: canonicalLocationLabel(L.label || L.id),
       lat: asNumber(L.lat), lon: asNumber(L.lon),
       pmProvider: String(L.pm_provider || '').trim(),
       pmAreaId: String(L.pm_location_id == null ? '' : L.pm_location_id).trim(),
@@ -772,6 +962,139 @@ var BackendApi = (function () {
     if (errors && errors.length) Logger.log('BackendApi history ' + locId + ' errors: ' + errors.length);
   }
 
+  /* ---------------- charts dashboard (auto-managed 'Charts' tab) ---------------- */
+
+  /** Idempotent tab creation: only creates when absent, writes the A1 note
+   * exactly once, never touches any other tab. Called from setup, from the
+   * scheduled history batch (lazy: zero extra owner step post-deploy), and
+   * from the owner refresh wrapper. */
+  function ensureChartsTab(ss) {
+    var sheet = ss.getSheetByName(TAB_CHARTS);
+    if (sheet) return { sheet: sheet, created: false };
+    sheet = ss.insertSheet(TAB_CHARTS);
+    sheet.getRange(1, 1, 1, 1).setValues([[
+      'กราฟอัตโนมัติจาก History_Batch · ย้อนหลัง ' + CHART_WINDOW_DAYS +
+      ' วัน · สร้างใหม่เองหลังบันทึกประวัติเช้า/เย็น หรือรัน refreshLedCharts · ห้ามลบแท็บนี้',
+    ]]);
+    Logger.log('BackendApi charts: created tab ' + TAB_CHARTS);
+    return { sheet: sheet, created: true };
+  }
+
+  function chartColumnsByHeader(header) {
+    var map = {};
+    for (var c = 0; c < header.length; c++) map[String(header[c] != null ? header[c] : '').trim()] = c + 1;
+    return map;
+  }
+
+  /** Removes ONLY charts whose title carries CHART_MARKER. Charts created
+   * by a human (no marker) are never touched. */
+  function removeOwnedCharts(sheet, result) {
+    sheet.getCharts().forEach(function (ch) {
+      var t = '';
+      try { t = String((ch.getOptions() || {}).title || ''); } catch (x) { t = ''; }
+      if (t.indexOf(CHART_MARKER) >= 0) {
+        sheet.removeChart(ch);
+        result.removed++;
+      }
+    });
+  }
+
+  /** Rebuilds the embedded line charts from History_Batch for the ACTIVE
+   * location over the last CHART_WINDOW_DAYS days. Safe on empty history
+   * (tab exists, zero charts), skips honestly when the active location's
+   * rows are interleaved with other locations (never charts mixed data),
+   * and never writes to History_Batch. */
+  function refreshCharts() {
+    var ss = openSpreadsheet();
+    var tab = ensureChartsTab(ss);
+    var sheet = tab.sheet;
+    var result = { ok: true, tab: TAB_CHARTS, created: tab.created, charts: [], removed: 0, skipped: [] };
+    var hist = ss.getSheetByName(TAB_HISTORY);
+    var rows = hist ? hist.getDataRange().getValues() : null;
+    if (!rows || rows.length < 2) {
+      removeOwnedCharts(sheet, result);
+      result.skipped.push('no history rows yet — charts appear after the first batch');
+      return result;
+    }
+    var cfg = loadConfigSafe();
+    if (!cfg.ok) {
+      removeOwnedCharts(sheet, result);
+      result.skipped.push('config invalid: ' + cfg.reason);
+      return result;
+    }
+    var activeId = cfg.settings.activeId;
+    var cols = chartColumnsByHeader(rows[0]);
+    var dateCol = cols['batch_date'], locCol = cols['location_id'];
+    if (!dateCol || !locCol) {
+      removeOwnedCharts(sheet, result);
+      result.skipped.push('history header lacks batch_date/location_id');
+      return result;
+    }
+    var cutoff = bangkokDateStr(nowMs() - CHART_WINDOW_DAYS * 86400000);
+    var firstIdx = -1, r;
+    for (r = 1; r < rows.length; r++) {
+      var locId = String(rows[r][locCol - 1] != null ? rows[r][locCol - 1] : '').trim();
+      var d = String(rows[r][dateCol - 1] != null ? rows[r][dateCol - 1] : '').trim();
+      if (locId === activeId && /^\d{4}-\d{2}-\d{2}$/.test(d) && d >= cutoff) { firstIdx = r; break; }
+    }
+    if (firstIdx < 0) {
+      removeOwnedCharts(sheet, result);
+      result.skipped.push('no ' + activeId + ' rows in the last ' + CHART_WINDOW_DAYS + '-day window');
+      return result;
+    }
+    for (r = firstIdx; r < rows.length; r++) {
+      var mid = String(rows[r][locCol - 1] != null ? rows[r][locCol - 1] : '').trim();
+      if (mid !== activeId) {
+        removeOwnedCharts(sheet, result);
+        result.skipped.push('active-location rows interleaved with other locations — charts skipped (never mixed data)');
+        return result;
+      }
+    }
+    var enabledCount = 0;
+    (cfg.locations || []).forEach(function (L) { if (truthy(L.enabled)) enabledCount++; });
+    var labelSuffix = enabledCount > 1 ? ' · ' + cfg.active.label : '';
+    var numRows = rows.length - firstIdx;
+    removeOwnedCharts(sheet, result);
+    CHART_CHANNELS.forEach(function (ch) {
+      var colIdx = cols[ch.col];
+      if (!colIdx) {
+        result.skipped.push(ch.key + ' column absent in history');
+        return;
+      }
+      if (ch.needsNumeric) {
+        var seen = 0;
+        for (var r2 = firstIdx; r2 < rows.length; r2++) if (asNumber(rows[r2][colIdx - 1]) !== null) seen++;
+        if (seen === 0) {
+          result.skipped.push(ch.key + ' รอข้อมูลจริง (no numeric value in window — never fabricated)');
+          return;
+        }
+      }
+      var title = ch.title + labelSuffix + CHART_MARKER;
+      var chart = sheet.newChart()
+        .asLineChart()
+        .addRange(hist.getRange(firstIdx + 1, dateCol, numRows, 1))
+        .addRange(hist.getRange(firstIdx + 1, colIdx, numRows, 1))
+        .setOption('title', title)
+        .setOption('colors', [ch.color])
+        .setOption('curveType', 'function')
+        .setOption('pointSize', 4)
+        .setOption('lineWidth', 2)
+        .setOption('legend', { position: 'bottom' })
+        .setOption('hAxis', { format: 'd MMM', gridlines: { color: CHART_GRID_COLOR } })
+        .setOption('vAxis', { format: 'decimal', gridlines: { color: CHART_GRID_COLOR } })
+        .setOption('width', CHART_W)
+        .setOption('height', CHART_H)
+        .setPosition(
+          CHART_ANCHOR_ROW + Math.floor(result.charts.length / 2) * CHART_ROW_SPAN,
+          CHART_ANCHOR_COL + (result.charts.length % 2) * CHART_COL_SPAN,
+          0, 0)
+        .build();
+      sheet.insertChart(chart);
+      result.charts.push(title);
+    });
+    return result;
+  }
+
   /* ---------------- setup (idempotent, preserves existing data) ---------------- */
 
   var SETUP_TABS = [
@@ -789,7 +1112,7 @@ var BackendApi = (function () {
       name: TAB_LOCATIONS,
       header: ['id', 'label', 'enabled', 'lat', 'lon', 'pm_provider', 'pm_location_id', 'pm_tambon_name', 'weather_provider', 'water_provider', 'water_station_id', 'water_datum', 'official_bank_crest_m', 'water_thresholds'],
       seed: [
-        ['uthai', 'ต.อุทัย อ.พระนครศรีอยุธยา', 'TRUE', 14.36147, 100.64424, 'gistda', '1414', 'อุทัย', 'open-meteo', '', '', '', '', ''],
+        ['uthai', 'ต.อุทัย อ.อุทัย จ.พระนครศรีอยุธยา', 'TRUE', 14.36147, 100.64424, 'gistda', '1414', 'อุทัย', 'open-meteo', '', '', '', '', ''],
       ],
     },
     {
@@ -813,6 +1136,7 @@ var BackendApi = (function () {
       (def.seed || []).forEach(function (row) { sheet.appendRow(row); });
       Logger.log('BackendApi setup: created tab ' + def.name);
     });
+    ensureChartsTab(ss); /* dashboard tab, idempotent, header-less note only */
     Logger.log('BackendApi setup complete (idempotent)');
   }
 
@@ -990,9 +1314,14 @@ var BackendApi = (function () {
   return {
     SCHEMA: SCHEMA, PM_UNIT: PM_UNIT, FRESH_MS: FRESH_MS, FUTURE_MS: FUTURE_MS,
     SLOT_JITTER_H: SLOT_JITTER_H,
+    PM_TTL_S: PM_TTL_S, WX_TTL_S: WX_TTL_S, LASTGOOD_TTL_S: LASTGOOD_TTL_S,
+    COOLDOWN_DEFAULT_S: COOLDOWN_DEFAULT_S, COOLDOWN_MIN_S: COOLDOWN_MIN_S, COOLDOWN_MAX_S: COOLDOWN_MAX_S,
+    canonicalLocationLabel: canonicalLocationLabel,
     parseThaiDateTime: parseThaiDateTime, band: band, freshness: freshness,
     loadConfig: loadConfigSafe, buildChannels: buildChannels,
     doGet: doGet, historyBatch: historyBatch, setupSheets: setupSheets,
+    refreshCharts: refreshCharts, ensureChartsTab: ensureChartsTab,
+    CHART_WINDOW_DAYS: CHART_WINDOW_DAYS,
     installTriggers: installTriggers,
     planLegacyMigration: planLegacyMigration,
     installAndMigrate: installAndMigrate,
@@ -1002,7 +1331,7 @@ var BackendApi = (function () {
     isOwnerSession: isOwnerSession,
     assertTrustedCaller: assertTrustedCaller,
     locationFingerprint: locationFingerprint,
-    TABS: { settings: TAB_SETTINGS, locations: TAB_LOCATIONS, sources: TAB_SOURCES, history: TAB_HISTORY },
+    TABS: { settings: TAB_SETTINGS, locations: TAB_LOCATIONS, sources: TAB_SOURCES, history: TAB_HISTORY, charts: TAB_CHARTS },
   };
 })();
 
@@ -1053,6 +1382,27 @@ function verifyLedBackend() {
   var v = BackendApi.ownerVerify();
   try { Logger.log('verifyLedBackend: ' + JSON.stringify(v)); } catch (e) { /* noop */ }
   return v;
+}
+
+/* Charts dashboard owner entry (2026-10-18 charts wave): rebuilds the
+ * embedded line charts on the 'Charts' tab from History_Batch (last
+ * CHART_WINDOW_DAYS days, active location). Strict owner guard first —
+ * anonymous callers and spoofed arguments are refused before any tab
+ * creation or chart mutation. The returned summary and editor log carry
+ * titles/counts only: no emails, Sheet ids, tokens, or raw history. */
+function BackendApiRefreshLedCharts_() {
+  BackendApi.assertTrustedCaller('BackendApiRefreshLedCharts_', true);
+  return BackendApi.refreshCharts();
+}
+function refreshLedCharts() {
+  BackendApi.assertTrustedCaller('BackendApiRefreshLedCharts_', true);
+  var r = BackendApi.refreshCharts();
+  var log = {
+    ok: r.ok, tab: r.tab, created: r.created,
+    charts: r.charts.length, removed: r.removed, skipped: r.skipped.length,
+  };
+  try { Logger.log('refreshLedCharts: ' + JSON.stringify(log)); } catch (e) { /* logging must never break refresh */ }
+  return r;
 }
 
 /* Root-cause diagnostics (2026-10-17 22:50 incident): Session.getActiveUser

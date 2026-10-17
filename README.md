@@ -92,10 +92,44 @@ Spreadsheet ID: `1kBUKdezfAxIziq167e-RJV1nNZkeiaz6YQcpVAMja9w`
 
 - `observedAt` = เวลาที่ต้นทางวัดเท่านั้น ห้ามแทนด้วยเวลา fetch/generatedAt — ไม่รู้เวลาวัด = `missing`
 - อนาคต > 5 นาที ถูกตีตก; อายุ > 3 ชม. = `stale` (frontend แสดงเทา)
-- Read route ไม่เขียน Sheet/trigger/properties ใดๆ ทั้งสิ้น; ใช้ CacheService 10 นาที
-  (key แยกตาม location + config_version) + LockService กัน stampede; upstream ล่ม
-  เสิร์บ last-good (≤6 ชม.) พร้อมยกเป็น `stale`
+- Read route ไม่เขียน Sheet/trigger/properties ใดๆ ทั้งสิ้น (cooldown ก็เก็บใน
+  CacheService อย่างเดียว); ใช้ CacheService แบบแยกรายช่อง: PM2.5 TTL 1,800 วิ
+  (30 นาที) / อากาศ TTL 600 วิ (10 นาที) / last-good รายช่อง 21,600 วิ (6 ชม. =
+  ค่าสูงสุดของบริการ); key = `bapi_v2_{location}_{config_version}_
+  {fingerprint(พิกัด+providers+areaId+tambon+station+datum+label)}` +
+  LockService กัน stampede; upstream ล่มเสิร์บ last-good รายช่อง พร้อมยกเป็น
+  `stale` — ไม่เคยปลอมค่าสด ไม่เคยคืน 0
 - ไม่มี secret/token/Spreadsheet ID/ประวัติดิบใน payload เด็ดขาด
+
+### จังหวะการดึงข้อมูล (cadence — best-effort ทั้งหมด ห้ามอ้างเป็น rate ที่แน่นอน)
+
+- frontend: อ่าน backend ทุก 15 นาที (`REFRESH_MS` ใน led-rotation.js, ไม่เปลี่ยน)
+  และ refresh เมื่อแท็บกลับมา visible; freshness tick 60 วิ เป็นการ repaint
+  จาก observedAt เท่านั้น (ไม่มี network); ไม่มี retry loop — JSONP fallback
+  ครั้งเดียวเฉพาะกรณี CORS
+- backend → upstream: PM2.5 (GISTDA) เติมใหม่เมื่อพ้น 30 นาที / อากาศ
+  (Open-Meteo) เมื่อพ้น 10 นาที "ต่อการเข้ามาอ่าน" — cache หมดอายุจะถูกเติม
+  เฉพาะเมื่อมี request เข้ามา (ไม่มี scheduler/cron รีเฟรช read cache)
+  ไม่มี client เปิดอยู่ = ไม่มีการยิง upstream; CacheService อาจ evict
+  ก่อนอายุจริง ดังนั้นทุกตัวเลข cadence เป็น best-effort upper bound
+  ของความสด ไม่ใช่การรับประกันจังหวะเข็มนาฬิกา
+- งบเรียกต่อวัน (ต่อ active location, กรณี LED เปิดตลอด): GISTDA ~48 ครั้ง
+  + มากสุด ~2 จาก history batch; Open-Meteo ~96 + ~2 — history กับ read route
+  ใช้ cache/helper เดียวกัน ช่องที่ยังอุ่นไม่ fetch เพิ่ม (batch อุ่น = 0 call
+  เพิ่ม) จึงห้ามเขียนว่า "48 เป๊ะ" — ให้เขียน "~48+2 best-effort"
+- HTTP 429/5xx หรือ network failure → cooldown แบบ passive เก็บใน cache รายช่อง
+  (ค่าเริ่มต้น 300 วิ; ใช้ `Retry-After` เฉพาะเมื่อต้นทางส่งจริง — delta-seconds
+  เท่านั้น — กันขอบไว้ 30–3,600 วิ) ระหว่าง cooldown: เสิร์บ last-good รายช่อง
+  (เก่าเกิน 3 ชม. ขึ้น `stale`/เทา พร้อม observedAt เดิม) หรือ `missing`
+  ตรงๆ หากไม่เคยมีค่าดี — ไม่มี retry storm จากฝั่งไหน
+- history: ยังวันละ 2 รอบเช้า/เย็นตามเดิมทุกประการ (cadence ไม่เปลี่ยน)
+  เพียงดึงข้อมูลผ่าน per-channel cache เดียวกับ read route; แถวบันทึก
+  observedAt/status ของข้อมูลที่ใช้จริง (ค่า PM ในแถวอาจเก่าได้ถึง 30 นาที
+  ถ้า batch เดินทางมาตอน cache ยังอุ่น)
+- ชนิดของข้อมูล: GISTDA = ค่าประมาณรายชั่วโมงระดับตำบล (official estimate:
+  ดาวเทียม+ภาคพื้นผสม) ไม่ใช่สถานีวัดหน้าโรงพยาบาล; Open-Meteo = โมเดลอากาศ
+  (current เป็นค่า interpolate ของโมเดล) ไม่ใช่การวัดจริงที่ รพ. — ไม่มี
+  การอ้างเปอร์เซ็นต์ความแม่นยำของสภาพอากาศในที่ใดของเอกสาร/หน้าจอ
 
 ### การตั้งค่า (แท็บใหม่ใน Spreadsheet เดิม — ไม่แตะ ชีต1/ชีต2)
 
@@ -106,6 +140,12 @@ Spreadsheet ID: `1kBUKdezfAxIziq167e-RJV1nNZkeiaz6YQcpVAMja9w`
   official_bank_crest_m,water_thresholds (ค่า datum/threshold เว้นว่างจนกว่า
   วิศวกรยืนยันสถานี) — สร้างแท็บโดยรัน `BackendApiSetupSheets()` (idempotent,
   อยู่แล้วไม่ทับ)
+  - label: default เดิมที่ผิด `'ต.อุทัย อ.พระนครศรีอยุธยา'` (ต.อุทัยอยู่ใน อ.อุทัย)
+    ถูกแปลงเป็น `'ต.อุทัย อ.อุทัย จ.พระนครศรีอยุธยา'` แบบ pure normalization
+    ตอน backend อ่านค่า — API/หน้าจอคืนข้อความที่ถูกต้อง โดยที่ backend
+    ไม่เขียนแก้ cell ใน Sheet เด็ดขาด (ข้อความเดิมใน cell คงอยู่จนเจ้าของ
+    แก้เอง); label อื่นที่ไม่ใช่ legacy ตัวนี้ผ่านค่าตรงๆ ไม่ถูกแตะ
+    และ label เป็นส่วนหนึ่งของ cache fingerprint (แก้ label = cache เปลี่ยน)
 - `API_Sources`: metadata สาธารณะของ provider (URL ต้องผ่าน allowlist แค่ใช้
   อ้างอิง ไม่ถูก fetch จาก sheet; ห้ามใส่ API key — ใช้ชื่อ Script Property
   อย่างเดียวถ้าจำเป็น)
@@ -126,6 +166,27 @@ Spreadsheet ID: `1kBUKdezfAxIziq167e-RJV1nNZkeiaz6YQcpVAMja9w`
 - `createDailyTrigger` เดิม (เคยลบ trigger ทั้งโปรเจ็กต์) ถูก guard ใน candidate:
   ไม่ทำงานเว้นแต่เรียกพร้อม flag และ config ถูกต้อง แล้ว redirect ไป installer ใหม่
   (2 รอบ/วัน) เท่านั้น
+
+### แท็บ Charts (กราฟฝังใน Google Sheet — สร้างอัตโนมัติ)
+
+- ดูกราฟ: เปิด Spreadsheet → แท็บ **Charts** — กราฟเส้น (smooth) ฝังในชีต
+  PM2.5 (#FF8C00), อุณหภูมิ (#E53935), ความชื้น (#42A5F5) จากข้อมูล
+  `History_Batch` ของพื้นที่ active **ย้อนหลัง 30 วัน** (แกนวันที่ `d MMM`,
+  ค่าที่ขาดหายเป็นช่องว่าง ไม่เติม 0; ไม่แตะแถว/คอลัมน์ History_Batch เด็ดขาด)
+- ระบบสร้างกราฟใหม่เองหลังบันทึกประวัติเช้า/เย็นทุกรอบ (สร้างแท็บครั้งแรก
+  แบบ lazy — เจ้าของไม่ต้อง setup เพิ่ม) และเจ้าของรัน
+  **refreshLedCharts** ใน Editor (dropdown ของไฟล์ BackendApi.js) เพื่อ
+  refresh ด้วยมือได้ทันที — ปลอดภัยแม้ยังไม่มีข้อมูล (จะไม่สร้างกราฟ ไม่พัง)
+- กราฟของระบบมี title ลงท้าย `[อัตโนมัติ]` — refresh จะลบ/สร้างใหม่เฉพาะ
+  กราฟที่มี marker นี้ กราฟที่มนุษย์สร้างเองไม่ถูกแตะ; route อ่านข้อมูล
+  (`?action=data`) ไม่แตะกราฟ/แท็บเลย
+- **ฝน** (`wx_rain_pct`) และ **ระดับน้ำ** (`water_level_m`): ยังไม่มีคอลัมน์
+  ใน History_Batch ปัจจุบัน — กราฟจะปรากฏเองทันทีเมื่อมีคอลัมน์พร้อมข้อมูล
+  จริงที่บันทึก; กราฟน้ำต้องมีอย่างน้อย 1 ค่าตัวเลขจริงในหน้าต่าง 30 วัน
+  (ไม่สร้างชุดข้อมูลปลอม — "น้ำรอข้อมูลจริง" เช่นเดียวกับหน้าจอ LED)
+- หลาย location ที่ enabled พร้อมกัน: ถ้าแถวต่าง location สลับกันระบบจะ
+  ไม่วาดกราฟ (ไม่ปนกัน) และเขียนเหตุผลไว้ในผลลัพธ์ของ refreshLedCharts
+
 
 ### ขั้นตอน deploy และ rollback (เมื่ออนุมัติ)
 

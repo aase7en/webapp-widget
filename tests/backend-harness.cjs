@@ -82,6 +82,7 @@ function makeContext(opts = {}) {
   const calls = {
     fetches: [], appends: [], deleteRows: [], rangeSets: [], propSets: [],
     triggerCreates: [], triggerDeletes: [], sheetInserts: [], logs: [], threw: [],
+    chartInserts: [], chartRemoves: [], chartUpdates: [],
   };
   let mockNow = opts.now != null ? opts.now : NOW_MS;
   class CtxDate extends Date {
@@ -94,16 +95,62 @@ function makeContext(opts = {}) {
     put(k, v, s) { store.set(k, { v, exp: mockNow + s * 1000 }); },
     remove(k) { store.delete(k); },
   };
-  let held = false;
+  /* holdLock: simulate another execution holding the script lock */
+  let held = opts.holdLock === true;
   const lock = {
     tryLock() { if (held) return false; held = true; return true; },
     releaseLock() { held = false; },
     hasLock: () => held,
   };
   const tabs = new Map(Object.entries(opts.tabs || defaultTabs()));
+  /* Embedded charts, mirroring the official Sheets API surface used by
+   * BackendApi: sheet.newChart() -> builder(asLineChart/addRange/setOption/
+   * setPosition/build), sheet.insertChart/getCharts/removeChart/updateChart,
+   * chart.getOptions/getRanges/getContainerInfo/getChartId/modify(). */
+  const sheetCharts = new Map();
+  let nextChartId = 1000;
+  function makeChart(state) {
+    const ch = {
+      _id: -1,
+      _meta: state,
+      getChartId() { return ch._id; },
+      getOptions() { return Object.assign({}, state.options); },
+      getRanges() { return state.ranges.slice(); },
+      getContainerInfo() {
+        return {
+          getAnchorRow: () => state.anchor.row,
+          getAnchorColumn: () => state.anchor.col,
+          getOffsetX: () => state.anchor.offX,
+          getOffsetY: () => state.anchor.offY,
+        };
+      },
+      modify() { return newChartBuilder(state.sheetName, ch); },
+    };
+    return ch;
+  }
+  function newChartBuilder(sheetName, fromChart) {
+    const st = fromChart
+      ? { sheetName, type: fromChart._meta.type, ranges: fromChart._meta.ranges.slice(),
+          options: Object.assign({}, fromChart._meta.options), anchor: Object.assign({}, fromChart._meta.anchor) }
+      : { sheetName, type: null, ranges: [], options: {}, anchor: { row: 1, col: 1, offX: 0, offY: 0 } };
+    const b = {
+      asLineChart() { st.type = 'LINE'; return b; },
+      asAreaChart() { st.type = 'AREA'; return b; },
+      setChartType(t) { st.type = t; return b; },
+      addRange(rg) { st.ranges.push(rg); return b; },
+      removeRange(rg) { const i = st.ranges.indexOf(rg); if (i >= 0) st.ranges.splice(i, 1); return b; },
+      clearRanges() { st.ranges = []; return b; },
+      setOption(k, v) { st.options[k] = v; return b; },
+      setPosition(r, c, ox, oy) { st.anchor = { row: r, col: c, offX: ox, offY: oy }; return b; },
+      build() { return makeChart(st); },
+    };
+    return b;
+  }
   function sheetFor(name) {
     const rows = tabs.get(name);
     if (!rows) return null;
+    if (!sheetCharts.has(name)) sheetCharts.set(name, []);
+    const charts = sheetCharts.get(name);
     return {
       getLastRow: () => rows.length,
       getRange(r, c, nr = 1, nc = 1) {
@@ -115,6 +162,7 @@ function makeContext(opts = {}) {
           out.push(seg);
         }
         return {
+          sheetName: name, r, c, nr, nc,
           getValues: () => out,
           setValues(vals) {
             calls.rangeSets.push({ sheet: name, r, c });
@@ -129,11 +177,32 @@ function makeContext(opts = {}) {
       appendRow(row) { calls.appends.push({ sheet: name, row: row.slice() }); rows.push(row.slice()); },
       deleteRows() { calls.deleteRows.push(name); },
       getDataRange() { const w = Math.max(1, ...rows.map(r => r.length)); return this.getRange(1, 1, Math.max(1, rows.length), w); },
+      newChart: () => newChartBuilder(name),
+      insertChart(chart) {
+        chart._id = nextChartId++;
+        charts.push(chart);
+        calls.chartInserts.push({ sheet: name, title: chart.getOptions().title });
+        return chart;
+      },
+      getCharts: () => charts.slice(),
+      removeChart(chart) {
+        const i = charts.indexOf(chart);
+        if (i >= 0) { charts.splice(i, 1); calls.chartRemoves.push({ sheet: name, title: chart.getOptions().title }); }
+      },
+      updateChart(chart) {
+        const i = charts.findIndex(c => c.getChartId() === chart.getChartId());
+        if (i >= 0) { charts[i] = chart; calls.chartUpdates.push({ sheet: name, title: chart.getOptions().title }); }
+      },
     };
   }
   const ss = {
     getSheetByName: sheetFor,
-    insertSheet(name) { calls.sheetInserts.push(name); if (!tabs.has(name)) tabs.set(name, []); return sheetFor(name); },
+    insertSheet(name) {
+      calls.sheetInserts.push(name);
+      if (opts.insertSheetError && opts.insertSheetError.includes(name)) throw new Error('mock insertSheet failure: ' + name);
+      if (!tabs.has(name)) tabs.set(name, []);
+      return sheetFor(name);
+    },
   };
   const props = new Map(opts.props || []);
   const scriptProps = {
@@ -165,7 +234,12 @@ function makeContext(opts = {}) {
       const next = queue.shift();
       if (!next) throw new Error('no fixture');
       if (next.error) throw next.error;
-      return { getContentText: () => next.body, getResponseCode: () => 200 };
+      const code = next.code != null ? next.code : 200;
+      return {
+        getContentText: () => next.body != null ? next.body : '',
+        getResponseCode: () => code,
+        getHeaders: () => next.headers || {},
+      };
     },
   };
   let outputs = [];
@@ -204,6 +278,7 @@ function makeContext(opts = {}) {
   } catch (e) { calls.threw.push(String(e && e.message)); }
   return {
     ctx, calls, tabs, cacheStore: store,
+    sheet: sheetFor, charts: name => (sheetCharts.get(name) || []).slice(),
     outputs: () => outputs, outputsReset: () => { outputs = []; },
     setNow: ms => { mockNow = ms; },
   };

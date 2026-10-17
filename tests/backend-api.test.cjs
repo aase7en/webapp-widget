@@ -90,7 +90,10 @@ test('data route happy path: canonical envelope shape', () => {
   assert.equal(body.water.unit, 'm');
   assert.equal(body.water.observedAt, null);
   assert.deepEqual(body.errors, []);
-  assert.deepEqual(body.location, { id: 'uthai', label: 'ต.อุทัย อ.พระนครศรีอยุธยา', lat: 14.36147, lon: 100.64424 });
+  /* legacy WRONG default cell ('ต.อุทัย อ.พระนครศรีอยุธยา' — tambon อุทัย is in
+   * amphoe อุทัย) stays in the harness Sheet; the API must return the
+   * canonicalized label via pure loadConfig normalization (no Sheet write). */
+  assert.deepEqual(body.location, { id: 'uthai', label: 'ต.อุทัย อ.อุทัย จ.พระนครศรีอยุธยา', lat: 14.36147, lon: 100.64424 });
   /* canonical provenance keys: timeZone / unit; PM is an AREA not a station */
   assert.equal(body.pm25.provenance.provider, 'gistda');
   assert.equal(body.pm25.provenance.areaId, '1414');
@@ -849,7 +852,7 @@ test('no public (non-underscore) mutating top-level function exists in either .g
     const visibleOk = new Set(['doGet', 'getWidgetData', 'include', 'main', 'importDataToSpreadsheet',
       'logGistdaData', 'logPm25ToSheet2', 'createDailyTrigger', 'fetchAirQualityData', 'getPM25Advice',
       'formatThaiDateTime', 'createMessage', 'handleError', 'optionalPM25_', 'gistdaForMain_',
-      'assertOwnerCaller_', 'fetchWithRetry', 'setupLedBackend', 'verifyLedBackend', 'ledOwnerDiagnostics']);
+      'assertOwnerCaller_', 'fetchWithRetry', 'setupLedBackend', 'verifyLedBackend', 'ledOwnerDiagnostics', 'refreshLedCharts']);
     for (const n of names) {
       if (n.startsWith('BackendApi')) assert.ok(n.endsWith('_'), 'BackendApi surface must be underscore-private: ' + n);
       else assert.ok(visibleOk.has(n) || n.endsWith('_'), 'unexpected public surface: ' + n);
