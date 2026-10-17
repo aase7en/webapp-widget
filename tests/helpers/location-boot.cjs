@@ -6,7 +6,7 @@ const vm=require('node:vm');
 const D=require('../../led-rotation.js');
 
 const IDS=['clock-a','day-a','pm-value','pm-unit','pm-badge','pm-note','pm-loc','slide-pm',
-  'wx-temp','wx-hi','wx-rain','wx-badge','wx-note','wx-dot','wx-loc','wx-credit','heat-thermo','slide-weather',
+  'wx-temp','wx-hi','wx-rain','wx-badge','wx-note','wx-dot','wx-loc','heat-thermo','slide-weather',
   'wa-value','wa-badge','wa-loc','water-rig','slide-water','stage'];
 function makeEl(id){
   const el={id,textContent:'',style:{setProperty(k,v){this[k]=v;}},dataset:{},attrs:{},

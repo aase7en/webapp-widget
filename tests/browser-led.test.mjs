@@ -347,9 +347,8 @@ test('Chrome: active-location labels and inspectable provenance render on all sl
     assert.match(await p2.locator('#slide-weather').getAttribute('title'), /Open-Meteo/);
     const waTitle = await p2.locator('#slide-water').getAttribute('title');
     assert.match(waTitle, /ยังไม่มีแหล่งข้อมูล/);
-    /* exactly one sanctioned anchor: the fixed Open-Meteo attribution */
-    assert.equal(await p2.locator('a').count(), 1);
-    assert.equal(await p2.locator('a').getAttribute('href'), 'https://open-meteo.com/');
+    /* zero anchors anywhere: attribution is off-display only (prod3) */
+    assert.equal(await p2.locator('a').count(), 0);
     await capture(p2.locator('.led'), 'location-b-labels');
     await c2.context.close();
   } finally { await browser.close(); }
@@ -412,52 +411,46 @@ test('Chrome: malicious location/provenance metadata stays inert text', {skip: b
   } finally { await browser.close(); }
 });
 
-test('Chrome: single readable Open-Meteo attribution anchor, fixed safe URL', {skip: browserSkip}, async () => {
+/* ---------- 2026-10-18-prod3: visible credit fully removed ---------- */
+test('Chrome: zero anchors and zero visible Open-Meteo text in the strip at all viewports', {skip: browserSkip}, async () => {
   const browser = await chromium.launch({headless:true, executablePath:chrome});
   try {
-    const {context, page} = await openPage(browser, {payload: payload(), viewport:{width:432, height:40}, reduce:false});
-    await page.locator('#slide-pm[data-pm-mood="good"]').waitFor();
-    await show(page, "slide-weather"); /* credit is visible exactly while weather data shows */
-    const anchors = page.locator('a');
-    assert.equal(await anchors.count(), 1);
-    const a = page.locator('#wx-credit');
-    assert.equal(await a.getAttribute('href'), 'https://open-meteo.com/');
-    assert.equal(await a.getAttribute('target'), '_blank');
-    assert.equal(await a.getAttribute('rel'), 'noopener noreferrer');
-    assert.match(await a.textContent(), /Open-Meteo/);
-    const geo = await a.evaluate(el => {
-      const r = el.getBoundingClientRect();
-      const cs = getComputedStyle(el);
-      return {x:r.x, y:r.y, w:r.width, h:r.height, fontSize:parseFloat(cs.fontSize), visible:cs.visibility==='visible' && cs.display!=='none'};
-    });
-    assert.equal(geo.visible, true);
-    assert.ok(geo.fontSize >= 8, 'readable microcaption, got ' + geo.fontSize + 'px');
-    assert.ok(geo.fontSize < 40, 'not a giant replacement panel');
-    assert.ok(geo.x >= 0 && geo.y >= 0 && geo.y + geo.h <= 40.6 && geo.x + geo.w <= 432.6,
-      'anchor inside the 432x40 stage: ' + JSON.stringify(geo));
-    const box = await page.locator('.stage').evaluate(el => {const r = el.getBoundingClientRect(); return {h:r.height, w:r.width};});
-    assert.ok(Math.abs(box.h - 40) < 0.6 && Math.abs(box.w - 432) < 0.6, 'strip geometry unchanged');
-    await show(page, "slide-weather");
-    await capture(page.locator('#slide-weather'), 'attribution-432x40');
-    await context.close();
-    /* 390/320: attribution stays inside the scaled strip */
-    for (const vp of [{width:390, height:844}, {width:320, height:568}]) {
-      const c2 = await openPage(browser, {payload: payload(), viewport: vp});
-      const g2 = await c2.page.locator('#wx-credit').evaluate(el => {
-        const r = el.getBoundingClientRect();
-        return {x:r.x, y:r.y, w:r.width, h:r.height};
-      });
-      assert.ok(g2.x >= 0 && g2.y >= 0 && g2.x + g2.w <= vp.width + 0.6, vp.width + ' ' + JSON.stringify(g2));
-      await capture(c2.page.locator('.led'), 'final-' + vp.width);
-      await c2.context.close();
+    for (const vp of [{width:432, height:40}, {width:390, height:844}, {width:320, height:568}]) {
+      const {context, page} = await openPage(browser, {payload: payload(), viewport: vp});
+      await page.locator('#slide-pm[data-pm-mood="good"]').waitFor();
+      await show(page, "slide-weather");
+      assert.equal(await page.locator('a').count(), 0, vp.width + ' anchors');
+      assert.equal(await page.locator('#wx-credit').count(), 0, vp.width + ' credit element');
+      /* textContent scan of the whole stage: title/aria attributes are NOT
+       * included in textContent, so any hit means visible text */
+      const stageText = await page.locator('.stage').evaluate(el => el.textContent);
+      assert.ok(!stageText.includes('Open-Meteo'), vp.width + ' visible Open-Meteo text');
+      /* off-display provenance survives: forecast label + slide title */
+      assert.match(await page.locator('#wx-rain').getAttribute('title'), /พยากรณ์ Open-Meteo/);
+      assert.match(await page.locator('#slide-weather').getAttribute('title'), /Open-Meteo/);
+      assert.match(await page.locator('#wx-rain').textContent(), /%$/);
+      const box = await page.locator('.stage').evaluate(el => {const r = el.getBoundingClientRect(); return {h:r.height, w:r.width};});
+      if (vp.width === 432) {
+        assert.ok(Math.abs(box.h - 40) < 0.6 && Math.abs(box.w - 432) < 0.6, 'strip geometry unchanged');
+      } else {
+        assert.ok(box.h < 40 && box.w <= vp.width + 0.6, 'scaled down, not reflowed: ' + JSON.stringify(box));
+      }
+      if (vp.width === 432) await capture(page.locator('#slide-weather'), 'credit-off-432x40');
+      if (vp.width === 390) await capture(page.locator('.led'), 'credit-off-390');
+      if (vp.width === 320) await capture(page.locator('.led'), 'credit-off-320');
+      await context.close();
     }
   } finally { await browser.close(); }
 });
 
-/* ---------- 2026-10-18-prod2: credit relocated out of the alert column ---------- */
-test('Chrome: credit box never intersects alert pill / HI / thermo / temp / note at any viewport or state', {skip: browserSkip}, async () => {
+test('Chrome: removing the credit causes zero layout shift — rain value keeps its exact box', {skip: browserSkip}, async () => {
   const browser = await chromium.launch({headless:true, executablePath:chrome});
   try {
+    /* boxes measured on 20261018-prod2 (credit present) — must not move */
+    const pinned = {
+      432: {rain:{x:228, y:5, w:42, h:22}},
+      390: {rain:{x:205.83, y:4.51, w:37.92, h:19.86}},
+    };
     const states = [
       ['ok', payload()],
       ['danger', (() => {const b = payload(); b.weather.weatherCode = 95; b.weather.temperatureC = 38; b.weather.humidityPct = 70; return b;})()],
@@ -475,40 +468,28 @@ test('Chrome: credit box never intersects alert pill / HI / thermo / temp / note
             const r = el.getBoundingClientRect();
             return {x:r.x, y:r.y, w:r.width, h:r.height};
           };
-          const credit = g('#wx-credit');
-          const cs = getComputedStyle(document.getElementById('wx-credit'));
           return {
-            credit,
+            rain: g('.weather-rain .weather-value'),
             pill: g('#slide-weather .pill'),
             hi: g('#wx-hi'),
             thermo: g('#heat-thermo'),
             temp: g('.weather-temp'),
             note: g('#wx-note'),
             clock: g('.clock-panel'),
-            fontSize: parseFloat(cs.fontSize),
-            border: cs.borderStyle !== 'none' && parseFloat(cs.borderWidth) > 0,
-            bg: cs.backgroundColor !== 'rgba(0, 0, 0, 0)',
-            pad: parseFloat(cs.paddingTop) + parseFloat(cs.paddingLeft),
           };
         });
-        assert.ok(m.credit, vp.width + ' credit exists');
+        assert.ok(m.rain, vp.width + '/' + name + ' rain value still rendered');
         const ix = (a, b) => !a || !b ? 0 :
           Math.max(0, Math.min(a.x+a.w, b.x+b.w) - Math.max(a.x, b.x)) *
           Math.max(0, Math.min(a.y+a.h, b.y+b.h) - Math.max(a.y, b.y));
         for (const k of ['pill', 'hi', 'thermo', 'temp', 'note', 'clock'])
-          assert.equal(ix(m.credit, m[k]), 0, `${vp.width}/${name}: credit×${k} overlap`);
-        assert.ok(m.fontSize >= 8, vp.width + '/' + name + ' fontSize ' + m.fontSize);
-        if (vp.width >= 432) {
-          assert.ok(m.credit.h >= 8, vp.width + '/' + name + ' credit box readable height ' + m.credit.h);
-        } else {
-          /* natural scale-down of the whole strip is allowed below 432 */
-          assert.ok(m.credit.h >= 5, vp.width + '/' + name + ' scaled credit height ' + m.credit.h);
-        }
-        assert.equal(m.border, false, 'no button border');
-        assert.equal(m.bg, false, 'no button background');
-        assert.equal(m.pad, 0, 'no button padding');
-        assert.ok(m.credit.y >= 0 && m.credit.y + m.credit.h <= 40.6 && m.credit.x >= 0 &&
-          m.credit.x + m.credit.w <= vp.width + 0.6, vp.width + '/' + name + ' inside strip');
+          assert.equal(ix(m.rain, m[k]), 0, `${vp.width}/${name}: rain×${k} overlap`);
+        assert.ok(m.rain.y >= 0 && m.rain.y + m.rain.h <= 40.6 && m.rain.x >= 0 &&
+          m.rain.x + m.rain.w <= vp.width + 0.6, vp.width + '/' + name + ' inside strip');
+        const pin = pinned[vp.width];
+        if (pin) for (const k of ['x', 'y', 'w', 'h'])
+          assert.ok(Math.abs(m.rain[k] - pin.rain[k]) <= 1.2,
+            `${vp.width}/${name}: rain ${k} ${m.rain[k]} vs pinned ${pin.rain[k]}`);
         if (vp.width === 432 && name === 'ok')
           await capture(page.locator('#slide-weather'), 'after-432x40-weather');
         if (vp.width === 390)

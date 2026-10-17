@@ -57,11 +57,14 @@ jobs:
       - name: Native strip replaced the legacy PM2.5 iframe (user-approved 2026-10-17)
         run: |
           grep -q 'id="slide-pm"' index.html
-          grep -q 'strip.js?v=20261018-prod2' index.html
+          grep -q 'strip.js?v=20261018-prod3' index.html
           ! grep -q 'script.google.com' index.html
           ! grep -q 'AKfycb' index.html
-      - name: Exactly one fixed Open-Meteo licence attribution link
+      - name: No visible credit in the strip; Open-Meteo attribution off-display only
         run: |
-          [ "$(grep -c '<a ' index.html)" = "1" ]
-          grep -q 'href="https://open-meteo.com/"' index.html
-          grep -q 'rel="noopener noreferrer"' index.html
+          [ "$(grep -c '<a ' index.html)" = "0" ]
+          ! grep -q 'wx-credit' index.html strip.css strip.js
+          grep -q 'title="ปริมาณฝนวันนี้ (พยากรณ์ Open-Meteo)"' index.html
+          grep -q 'name="description"' index.html
+          grep -q 'Open-Meteo' index.html   # meta description + slide title only
+          grep -q 'creativecommons.org/licenses/by/4.0' WATER-LED.md

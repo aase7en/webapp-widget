@@ -219,51 +219,47 @@ test('water display never exposes thresholds or heights in any v1 state',()=>{
   assert.ok(!/\d+\s*(ม\.|m)\b.*(?:วิกฤต|อันตราย|เฝ้าระวัง)/.test(title));
 });
 
-/* ---------- Open-Meteo licence attribution (HIGH fix, 2026-10-17-prod1) ---------- */
-test('weather credit is a fixed markup label; strip.js never rewrites text or href',()=>{
+/* ---------- Open-Meteo attribution: off-display only (2026-10-18-prod3) ---------- */
+test('no credit node exists at runtime; provenance stays text-only on slides',()=>{
   const {reg,api}=require('./helpers/location-boot.cjs').boot(payload(),now);
   api.paintAllFrom(payload(),now);
-  const credit=reg['wx-credit'];
-  assert.ok(credit,'wx-credit anchor stub');
-  /* fixed short provider label lives in the markup; payload data never
-   * touches the credit text or href (pinned statically in led-strip.test.cjs) */
-  assert.equal(credit.textContent,'');
-  assert.equal(credit.attrs['href'],undefined);
+  assert.equal(reg['wx-credit'],undefined,'no credit element in the DOM registry');
+  /* hostile payload data must not conjure any credit back — and provenance
+   * titles keep carrying the provider off-display */
   const evil=payload();
   evil.weather.provenance.provider='javascript:window.__xssC=1';
   evil.weather.source='<script>window.__xssC2=1</script>';
   api.paintAllFrom(evil,now);
-  assert.equal(credit.textContent,'');
-  assert.equal(credit.attrs['href'],undefined);
+  assert.equal(reg['wx-credit'],undefined,'no credit element after hostile payload');
+  /* provenance stays text-only: title is a plain string attribute, never
+   * markup (inert even under hostile source strings; rendering is pinned
+   * textContent-only in led-strip + browser suites) */
+  assert.equal(typeof reg['slide-weather'].attrs['title'],'string');
 });
 
-/* ---------- 2026-10-18-prod2: credit moved out of the alert column ---------- */
-test('credit anchor lives in the forecast rain column, never in the alert row',()=>{
+/* ---------- 2026-10-18-prod3: visible credit removed, attribution off-display ---------- */
+test('index.html has zero anchors and zero visible Open-Meteo text in the stage',()=>{
   const html=fs.readFileSync(path.join(__dirname,'../index.html'),'utf8');
-  const rainSpan=html.slice(html.indexOf('class="weather-metric weather-rain"'),html.indexOf('</span>\n      </div>\n    </div>\n    <div class="panel status weather-status">'));
-  assert.ok(rainSpan.includes('id="wx-credit"'),'anchor inside weather-rain metric');
-  const statusRow=html.slice(html.indexOf('class="panel status weather-status"'),html.indexOf('</section>\n  <section class="slide no-value"'));
-  assert.ok(!statusRow.includes('wx-credit'),'anchor removed from alert/severity row');
-  assert.ok(!rainSpan.includes('weather-caption'),'credit replaces the caption line (no 3-row squeeze)');
-  assert.match(html,/id="wx-rain" title="ปริมาณฝนวันนี้ \(พยากรณ์ Open-Meteo\)"/);
-  assert.match(html,/title="พยากรณ์ · Open-Meteo"/);
+  assert.equal([...html.matchAll(/<a\b[^>]*>/g)].length,0,'zero anchors in document');
+  assert.ok(!html.includes('wx-credit'),'credit element gone');
+  assert.ok(!html.includes('open-meteo.com/'),'no credit href anywhere');
   assert.ok(!html.includes('wx-attribution'),'button class retired');
-  assert.match(html,/href="https:\/\/open-meteo\.com\/"/);
-  assert.match(html,/rel="noopener noreferrer"/);
+  const stage=html.slice(html.indexOf('class="stage"'),html.indexOf('</main>'));
+  const visibleText=stage.replace(/<[^>]*>/g,' ').replace(/&[a-z]+;/g,' ');
+  assert.ok(!visibleText.includes('Open-Meteo'),'no visible Open-Meteo text node in .stage');
+  /* off-display provenance pins */
+  assert.match(html,/id="wx-rain" title="ปริมาณฝนวันนี้ \(พยากรณ์ Open-Meteo\)"/);
+  assert.match(html,/name="description"[^>]*Open-Meteo/);
 });
-test('no button chrome on the credit; fixed label, strip.js never rewrites it',()=>{
+test('credit CSS is fully removed; rain value keeps its position; strip.js stays clean',()=>{
   const css=fs.readFileSync(path.join(__dirname,'../strip.css'),'utf8');
-  const rule=css.match(/\.wx-credit\s*\{[^}]*\}/);
-  assert.ok(rule,'.wx-credit rule present');
-  assert.ok(!/border\s*:/.test(rule[0]),'no border');
-  assert.ok(!/background\s*:/.test(rule[0]),'no background fill');
-  assert.ok(!/padding\s*:/.test(rule[0]),'no padding');
-  assert.ok(!/box-shadow|glow/i.test(rule[0]),'no glow');
-  const size=Number((rule[0].match(/font(?:-size)?\s*:\s*[^;]*?(\d+(?:\.\d+)?)px/)||[])[1]);
-  assert.ok(size>=8,'readable >=8 CSS px native, got '+size);
-  assert.match(css,/\.wx-credit:focus-visible/);
+  assert.ok(!/\.wx-credit/.test(css),'no .wx-credit rules left');
+  assert.ok(!css.includes('wx-attribution'),'no retired button class');
+  /* the rain metric keeps the old top-aligned 2px inset so removing the
+   * credit element causes zero layout shift on the LED */
+  assert.match(css,/#slide-weather \.weather-rain \{ justify-content:flex-start; padding-top:2px; \}/);
   const js=fs.readFileSync(path.join(__dirname,'../strip.js'),'utf8');
-  assert.ok(!js.includes('wx-credit'),'strip.js leaves the fixed label alone (no dynamic text)');
+  assert.ok(!js.includes('wx-credit'),'strip.js renders no credit');
   assert.ok(!/พระนครศรีอยุธยา|ต\.อุทัย/.test(js),'no hardcoded location strings in frontend');
 });
 test('water label regression: correct Sheet label renders verbatim, wrong seed never auto-fixed',()=>{

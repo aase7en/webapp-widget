@@ -91,7 +91,7 @@ test('every asset reference is a relative, versioned URL that exists on disk',()
   for(const ref of refs){
     assert.ok(!ref.startsWith('http'),ref);
     const [file,query]=ref.split('?');
-    assert.equal(query,'v=20261018-prod2',ref);
+    assert.equal(query,'v=20261018-prod3',ref);
     assert.ok(fs.existsSync(path.join(ROOT,file)),ref);
   }
   const pngs=[...html.matchAll(/src="(\.\/assets\/[^"?]+\.png)\?v=/g)].map(m=>m[1]);
@@ -105,20 +105,27 @@ test('every asset reference is a relative, versioned URL that exists on disk',()
       ? (need==='ui-divider.png'?fs.existsSync(path.join(ROOT,'assets/ui-divider.png')):shipped.includes(need))
       : false, need);
 });
-test('exactly one fixed, plain-text Open-Meteo credit sits in the forecast rain column',()=>{
+test('zero visible credit anywhere in the strip; Open-Meteo attribution is off-display only (2026-10-18-prod3)',()=>{
+  /* owner decision: the LED shows NO credit text/anchor at all; licence-
+   * reasonable attribution lives in title/aria, meta description and docs. */
   const anchors=[...html.matchAll(/<a\b[^>]*>/g)].map(m=>m[0]);
-  assert.equal(anchors.length,1,'exactly one anchor element');
-  assert.match(anchors[0],/class="wx-credit"/);
-  assert.match(anchors[0],/href="https:\/\/open-meteo\.com\/"/);   /* fixed safe URL */
-  assert.match(anchors[0],/rel="noopener noreferrer"/);
-  assert.match(anchors[0],/target="_blank"/);
-  assert.match(anchors[0],/id="wx-credit"/);
-  const rainSpan=html.slice(html.indexOf('class="weather-metric weather-rain"'),html.indexOf('panel status weather-status'));
-  assert.ok(rainSpan.includes('wx-credit'),'anchor lives in the forecast rain column');
-  const statusRow=html.slice(html.indexOf('panel status weather-status'),html.indexOf('id="slide-water"'));
-  assert.ok(!statusRow.includes('wx-credit'),'anchor gone from the alert/severity row');
-  assert.ok(!css.includes('wx-attribution'),'button styling retired');
+  assert.equal(anchors.length,0,'zero anchor elements in index.html');
+  assert.ok(!html.includes('wx-credit'),'credit element fully removed');
+  assert.ok(!css.includes('wx-credit')&&!css.includes('wx-attribution'),'credit styling fully removed');
+  assert.ok(!js.includes('wx-credit'),'no credit hook in strip.js');
+  /* text-node scan of the stage: strip tags so title/aria attributes are
+   * excluded, then assert no visible Open-Meteo text remains */
+  const stage=html.slice(html.indexOf('class="stage"'),html.indexOf('</main>'));
+  const visibleText=stage.replace(/<[^>]*>/g,' ').replace(/&[a-z]+;/g,' ');
+  assert.ok(!visibleText.includes('Open-Meteo'),'no visible Open-Meteo text node in .stage');
+  /* off-display attribution preserved: forecast label + provenance titles */
   assert.match(html,/id="wx-rain" title="ปริมาณฝนวันนี้ \(พยากรณ์ Open-Meteo\)"/),'forecast label preserved via title';
+  assert.match(html,/name="description"[^>]*Open-Meteo/),'meta description carries provenance';
+  assert.match(html,/Attribution is kept off-display/),'licence comment documents the policy';
+  /* licence-reasonable credit outside the display surface stays intact */
+  assert.match(read('WATER-LED.md'),/creativecommons\.org\/licenses\/by\/4\.0/);
+  assert.match(read('WATER-LED.md'),/เครดิต[^\n]*open-meteo\.com/i);
+  assert.match(read('README.md'),/Open-Meteo/);
 });
 test('approved documents are updated without touching backend surfaces',()=>{
   const led=read('LED-ROTATION.md');

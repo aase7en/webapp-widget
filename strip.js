@@ -251,11 +251,10 @@ function applyLocation(state) {
   setSlideProvenance('slide-water', waKnown
     ? provenanceTitle('ระดับน้ำ', wa.provenance, wa.source, loc)
     : provenanceTitle('ระดับน้ำ — ยังไม่มีแหล่งข้อมูลที่ยืนยัน', null, null, loc));
-  /* Open-Meteo licence: visible credit next to the data. The anchor text may
-   * come from the sanitized provider field; the href stays a FIXED safe URL
-   * written in the markup and is never rewritten from payload data. */
-  /* The Open-Meteo credit is a fixed markup label in the forecast rain column
-   * (see index.html); strip.js never rewrites its text or href. */
+  /* Open-Meteo licence (CC BY 4.0): the on-LED visible credit was removed by
+   * the data owner (2026-10-18-prod3). Attribution stays off-display only —
+   * the slide provenance title/aria above, the page meta description and the
+   * README / WATER-LED.md notes. strip.js renders no credit text or anchor. */
 }
 
 /* ---------- rotation with sequential hand-off (approved demo motion) ---------- */
