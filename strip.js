@@ -238,7 +238,11 @@ function applyLocation(state) {
   const short = shortLabel(loc.label);
   for (const id of ['pm-loc', 'wx-loc', 'wa-loc']) {
     const el = $(id);
-    if (el) el.textContent = short;
+    if (el) {
+      el.textContent = short;
+      /* native title carries the FULL label where the strip shows ellipsis */
+      if (typeof loc.label === 'string' && loc.label) el.setAttribute('title', loc.label);
+    }
   }
   const pm = st.pm || {}, wx = st.weather || {}, wa = st.water || {};
   setSlideProvenance('slide-pm', provenanceTitle('PM2.5', pm.provenance, pm.source, loc));
@@ -250,14 +254,8 @@ function applyLocation(state) {
   /* Open-Meteo licence: visible credit next to the data. The anchor text may
    * come from the sanitized provider field; the href stays a FIXED safe URL
    * written in the markup and is never rewritten from payload data. */
-  const credit = $('wx-credit');
-  if (credit) {
-    let name = D && D.sanitizeText(
-      (wx.provenance && wx.provenance.provider) || wx.source, 24);
-    if (name && /^(javascript|data|vbscript|blob):/i.test(name)) name = null;
-    credit.textContent = /open-meteo/i.test(name || '') ? 'Open-Meteo'
-      : (name ? name + ' · Open-Meteo' : 'Open-Meteo');
-  }
+  /* The Open-Meteo credit is a fixed markup label in the forecast rain column
+   * (see index.html); strip.js never rewrites its text or href. */
 }
 
 /* ---------- rotation with sequential hand-off (approved demo motion) ---------- */

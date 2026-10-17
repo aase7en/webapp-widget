@@ -9,7 +9,7 @@ body { color:var(--ink); font-family:Kanit,"Leelawadee UI",Tahoma,system-ui,sans
   box-shadow:inset 0 1px 0 rgba(207,243,255,.23),inset 0 -1px 0 rgba(28,126,179,.2),0 0 7px rgba(0,146,232,.21); }
 /* Two opaque, stationary dividers: the core widens softly at mid-height. */
 .stage::before,.stage::after { content:""; position:absolute; z-index:5; top:1px; width:5px; height:38px; pointer-events:none;
-  background:url("./assets/ui-divider.png?v=20261017-prod1") center / 5px 38px no-repeat; }
+  background:url("./assets/ui-divider.png?v=20261018-prod2") center / 5px 38px no-repeat; }
 .stage::before { left:93px; }
 .stage::after { left:267px; }
 .clock-panel { box-sizing:border-box; position:absolute; z-index:2; left:1px; top:1px; width:94px; height:38px;
@@ -268,7 +268,7 @@ body { color:var(--ink); font-family:Kanit,"Leelawadee UI",Tahoma,system-ui,sans
 #slide-weather[data-wx-motion="windy"] .wx-scene #wx-icon { animation:windRock 2.6s ease-in-out infinite; }
 .wx-wind { z-index:3; left:0; right:1px; top:7px; height:22px; opacity:0; overflow:hidden; }
 .wx-wind i { position:absolute; left:-14px; width:18px; height:5px; border-radius:3px;
-  background:url("./assets/icons3d/rig/wx-gust.png?v=20261017-prod1") 0 0 / 100% 100% no-repeat; }
+  background:url("./assets/icons3d/rig/wx-gust.png?v=20261018-prod2") 0 0 / 100% 100% no-repeat; }
 .wx-wind i:nth-child(1) { top:3px; }
 .wx-wind i:nth-child(2) { top:10px; width:22px; animation-delay:-.5s; }
 .wx-wind i:nth-child(3) { top:16px; width:14px; animation-delay:-1s; }
@@ -486,11 +486,11 @@ html.preview-hidden .heat-thermo *,html.preview-hidden .heat-thermo *::before,ht
  * than the fixed slots; clip in place instead of changing LED geometry. */
 .pm-context,.reading-label,.status-note{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%;min-width:0}
 
-/* Open-Meteo licence attribution (2026-10-17-prod1): the /en/licence requires a
- * visible link next to displayed data. One readable microcaption anchor in the
- * weather status row — fixed safe URL, no dynamic hrefs, focus-visible ring.
- * Deliberately NOT a 1px/0px legal workaround: ~8.5px caption, same scale as
- * the existing weather captions, clipped in place (no LED geometry change). */
-.wx-attribution{flex:none;display:inline-flex;align-items:center;box-sizing:border-box;margin-left:4px;padding:2px 6px;border-radius:4px;background:rgba(4,16,12,.72);border:1px solid rgba(120,190,255,.28);color:#9fd8ff;font:500 8.5px/1 Kanit,"Leelawadee UI",Tahoma,sans-serif;text-decoration:underline;text-underline-offset:1px;white-space:nowrap;max-width:96px;overflow:hidden;text-overflow:ellipsis;cursor:pointer}
-.wx-attribution:hover{color:#cfeeff}
-.wx-attribution:focus-visible{outline:2px solid #7fd0ff;outline-offset:1px}
+/* Open-Meteo licence credit (2026-10-18-prod2): plain-text link inside the
+ * forecast rain column — its own zone, NOT the alert/severity column. No
+ * border/padding/background/glow (no button look); readable 8px CSS with
+ * slight negative tracking to fit the 42px column; focus-visible ring kept
+ * for keyboard users. href is a fixed safe URL, never payload-controlled. */
+.wx-credit{display:block;flex:none;box-sizing:border-box;height:9px;line-height:9px;width:100%;text-align:center;color:#9fd8ff;font:500 8px/9px Tahoma,sans-serif;letter-spacing:-0.15px;text-decoration:underline;text-underline-offset:1px;white-space:nowrap;overflow:hidden;cursor:pointer}
+.wx-credit:hover{color:#cfeeff}
+.wx-credit:focus-visible{outline:2px solid #7fd0ff;outline-offset:1px}

@@ -57,7 +57,7 @@ jobs:
       - name: Native strip replaced the legacy PM2.5 iframe (user-approved 2026-10-17)
         run: |
           grep -q 'id="slide-pm"' index.html
-          grep -q 'strip.js?v=20261017-prod1' index.html
+          grep -q 'strip.js?v=20261018-prod2' index.html
           ! grep -q 'script.google.com' index.html
           ! grep -q 'AKfycb' index.html
       - name: Exactly one fixed Open-Meteo licence attribution link

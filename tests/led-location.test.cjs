@@ -8,6 +8,8 @@
  * data. */
 const test=require('node:test');
 const assert=require('node:assert/strict');
+const fs=require('node:fs');
+const path=require('node:path');
 const w=require('../led-rotation.js');
 const strip=require('../strip.js');
 const now=Date.parse('2026-10-17T08:25:00+07:00');
@@ -218,23 +220,65 @@ test('water display never exposes thresholds or heights in any v1 state',()=>{
 });
 
 /* ---------- Open-Meteo licence attribution (HIGH fix, 2026-10-17-prod1) ---------- */
-test('weather attribution anchor exists, is fixed-URL and carries the provider name',()=>{
+test('weather credit is a fixed markup label; strip.js never rewrites text or href',()=>{
   const {reg,api}=require('./helpers/location-boot.cjs').boot(payload(),now);
   api.paintAllFrom(payload(),now);
   const credit=reg['wx-credit'];
   assert.ok(credit,'wx-credit anchor stub');
-  /* strip.js NEVER writes href from payload data — the fixed safe URL lives
-   * only in the markup (pinned statically in led-strip.test.cjs). */
+  /* fixed short provider label lives in the markup; payload data never
+   * touches the credit text or href (pinned statically in led-strip.test.cjs) */
+  assert.equal(credit.textContent,'');
   assert.equal(credit.attrs['href'],undefined);
-  assert.match(credit.textContent,/Open-Meteo/);
-  const raw=payload();
-  raw.weather.provenance.provider=null;
-  raw.weather.source='OPEN_METEO';
-  api.paintAllFrom(raw,now);
-  assert.match(credit.textContent,/Open-Meteo/); /* stable fallback text */
   const evil=payload();
   evil.weather.provenance.provider='javascript:window.__xssC=1';
+  evil.weather.source='<script>window.__xssC2=1</script>';
   api.paintAllFrom(evil,now);
-  assert.ok(!/javascript:/.test(credit.textContent),credit.textContent);
+  assert.equal(credit.textContent,'');
   assert.equal(credit.attrs['href'],undefined);
+});
+
+/* ---------- 2026-10-18-prod2: credit moved out of the alert column ---------- */
+test('credit anchor lives in the forecast rain column, never in the alert row',()=>{
+  const html=fs.readFileSync(path.join(__dirname,'../index.html'),'utf8');
+  const rainSpan=html.slice(html.indexOf('class="weather-metric weather-rain"'),html.indexOf('</span>\n      </div>\n    </div>\n    <div class="panel status weather-status">'));
+  assert.ok(rainSpan.includes('id="wx-credit"'),'anchor inside weather-rain metric');
+  const statusRow=html.slice(html.indexOf('class="panel status weather-status"'),html.indexOf('</section>\n  <section class="slide no-value"'));
+  assert.ok(!statusRow.includes('wx-credit'),'anchor removed from alert/severity row');
+  assert.ok(!rainSpan.includes('weather-caption'),'credit replaces the caption line (no 3-row squeeze)');
+  assert.match(html,/id="wx-rain" title="ปริมาณฝนวันนี้ \(พยากรณ์ Open-Meteo\)"/);
+  assert.match(html,/title="พยากรณ์ · Open-Meteo"/);
+  assert.ok(!html.includes('wx-attribution'),'button class retired');
+  assert.match(html,/href="https:\/\/open-meteo\.com\/"/);
+  assert.match(html,/rel="noopener noreferrer"/);
+});
+test('no button chrome on the credit; fixed label, strip.js never rewrites it',()=>{
+  const css=fs.readFileSync(path.join(__dirname,'../strip.css'),'utf8');
+  const rule=css.match(/\.wx-credit\s*\{[^}]*\}/);
+  assert.ok(rule,'.wx-credit rule present');
+  assert.ok(!/border\s*:/.test(rule[0]),'no border');
+  assert.ok(!/background\s*:/.test(rule[0]),'no background fill');
+  assert.ok(!/padding\s*:/.test(rule[0]),'no padding');
+  assert.ok(!/box-shadow|glow/i.test(rule[0]),'no glow');
+  const size=Number((rule[0].match(/font(?:-size)?\s*:\s*[^;]*?(\d+(?:\.\d+)?)px/)||[])[1]);
+  assert.ok(size>=8,'readable >=8 CSS px native, got '+size);
+  assert.match(css,/\.wx-credit:focus-visible/);
+  const js=fs.readFileSync(path.join(__dirname,'../strip.js'),'utf8');
+  assert.ok(!js.includes('wx-credit'),'strip.js leaves the fixed label alone (no dynamic text)');
+  assert.ok(!/พระนครศรีอยุธยา|ต\.อุทัย/.test(js),'no hardcoded location strings in frontend');
+});
+test('water label regression: correct Sheet label renders verbatim, wrong seed never auto-fixed',()=>{
+  const full='ต.อุทัย อ.อุทัย จ.พระนครศรีอยุธยา';
+  const raw2=payload();
+  raw2.location={id:'uthai_tambon',label:full,lat:14.36147,lon:100.64424};
+  const {reg,api}=require('./helpers/location-boot.cjs').boot(raw2,now);
+  api.paintAllFrom(raw2,now);
+  assert.match(reg['slide-water'].attrs['title'],new RegExp(full));
+  assert.equal(reg['wa-loc'].attrs['title'],full); /* full label in native title */
+  assert.ok(!/อ\.พระนครศรีอยุธยา/.test(reg['slide-water'].attrs['title']));
+  /* frontend renders whatever the backend sends without rewriting labels */
+  const wrong=payload();
+  wrong.location={id:'uthai_tambon',label:'ต.อุทัย อ.พระนครศรีอยุธยา',lat:14.36147,lon:100.64424};
+  const wr=require('./helpers/location-boot.cjs').boot(wrong,now);
+  wr.api.paintAllFrom(wrong,now);
+  assert.equal(wr.reg['wa-loc'].attrs['title'],'ต.อุทัย อ.พระนครศรีอยุธยา'); /* verbatim, no silent fix */
 });

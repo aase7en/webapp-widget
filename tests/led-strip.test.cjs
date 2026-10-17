@@ -48,7 +48,7 @@ test('boot state is honest grey placeholders with no fixture values',()=>{
   assert.match(html,/id="pm-value">—</);
   assert.match(html,/id="wx-temp">—</);
   assert.match(html,/id="wx-hi">—</);
-  assert.match(html,/id="wx-rain">—%</);
+  assert.match(html,/id="wx-rain"[^>]*>—%</);
   assert.match(html,/id="wa-value">—</);
   for(const fake of ['20.9','>25°<','>31°<','>55%<','DEMO','demo','จำลอง','SIMULATED'])
     assert.ok(!html.includes(fake),fake);
@@ -91,7 +91,7 @@ test('every asset reference is a relative, versioned URL that exists on disk',()
   for(const ref of refs){
     assert.ok(!ref.startsWith('http'),ref);
     const [file,query]=ref.split('?');
-    assert.equal(query,'v=20261017-prod1',ref);
+    assert.equal(query,'v=20261018-prod2',ref);
     assert.ok(fs.existsSync(path.join(ROOT,file)),ref);
   }
   const pngs=[...html.matchAll(/src="(\.\/assets\/[^"?]+\.png)\?v=/g)].map(m=>m[1]);
@@ -105,23 +105,20 @@ test('every asset reference is a relative, versioned URL that exists on disk',()
       ? (need==='ui-divider.png'?fs.existsSync(path.join(ROOT,'assets/ui-divider.png')):shipped.includes(need))
       : false, need);
 });
-test('exactly one fixed, readable Open-Meteo attribution anchor sits in the weather slide',()=>{
+test('exactly one fixed, plain-text Open-Meteo credit sits in the forecast rain column',()=>{
   const anchors=[...html.matchAll(/<a\b[^>]*>/g)].map(m=>m[0]);
   assert.equal(anchors.length,1,'exactly one anchor element');
-  assert.match(anchors[0],/class="wx-attribution"/);
+  assert.match(anchors[0],/class="wx-credit"/);
   assert.match(anchors[0],/href="https:\/\/open-meteo\.com\/"/);   /* fixed safe URL */
   assert.match(anchors[0],/rel="noopener noreferrer"/);
   assert.match(anchors[0],/target="_blank"/);
   assert.match(anchors[0],/id="wx-credit"/);
-  const slideWeather=html.slice(html.indexOf('id="slide-weather"'),html.indexOf('id="slide-water"'));
-  assert.ok(slideWeather.includes('wx-credit'),'anchor lives in the weather slide');
-  /* readable microcaption, not a 1px legal hack */
-  const cssRule=css.match(/\.wx-attribution\s*\{[^}]*\}/);
-  assert.ok(cssRule,'wx-attribution CSS present');
-  const size=Number((cssRule[0].match(/font:(?:\s|\S)*?(\d+(?:\.\d+)?)px/)||[])[1]);
-  assert.ok(size>=8,'attribution font-size '+size+'px must be >=8px');
-  assert.match(css,/\.wx-attribution:focus-visible/);
-  assert.doesNotMatch(css,/\.wx-attribution\s*\{[^}]*font-size:\s*0/);
+  const rainSpan=html.slice(html.indexOf('class="weather-metric weather-rain"'),html.indexOf('panel status weather-status'));
+  assert.ok(rainSpan.includes('wx-credit'),'anchor lives in the forecast rain column');
+  const statusRow=html.slice(html.indexOf('panel status weather-status'),html.indexOf('id="slide-water"'));
+  assert.ok(!statusRow.includes('wx-credit'),'anchor gone from the alert/severity row');
+  assert.ok(!css.includes('wx-attribution'),'button styling retired');
+  assert.match(html,/id="wx-rain" title="ปริมาณฝนวันนี้ \(พยากรณ์ Open-Meteo\)"/),'forecast label preserved via title';
 });
 test('approved documents are updated without touching backend surfaces',()=>{
   const led=read('LED-ROTATION.md');

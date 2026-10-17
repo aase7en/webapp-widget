@@ -453,3 +453,70 @@ test('Chrome: single readable Open-Meteo attribution anchor, fixed safe URL', {s
     }
   } finally { await browser.close(); }
 });
+
+/* ---------- 2026-10-18-prod2: credit relocated out of the alert column ---------- */
+test('Chrome: credit box never intersects alert pill / HI / thermo / temp / note at any viewport or state', {skip: browserSkip}, async () => {
+  const browser = await chromium.launch({headless:true, executablePath:chrome});
+  try {
+    const states = [
+      ['ok', payload()],
+      ['danger', (() => {const b = payload(); b.weather.weatherCode = 95; b.weather.temperatureC = 38; b.weather.humidityPct = 70; return b;})()],
+      ['missing', (() => {const b = payload(); b.weather.status = 'missing'; return b;})()],
+    ];
+    for (const vp of [{width:432, height:40}, {width:390, height:844}, {width:320, height:568}]) {
+      for (const [name, body] of states) {
+        const {context, page} = await openPage(browser, {payload: body, viewport: vp});
+        await page.locator('#slide-pm[data-pm-mood="good"]').waitFor();
+        await show(page, 'slide-weather');
+        const m = await page.evaluate(() => {
+          const g = sel => {
+            const el = document.querySelector(sel);
+            if (!el) return null;
+            const r = el.getBoundingClientRect();
+            return {x:r.x, y:r.y, w:r.width, h:r.height};
+          };
+          const credit = g('#wx-credit');
+          const cs = getComputedStyle(document.getElementById('wx-credit'));
+          return {
+            credit,
+            pill: g('#slide-weather .pill'),
+            hi: g('#wx-hi'),
+            thermo: g('#heat-thermo'),
+            temp: g('.weather-temp'),
+            note: g('#wx-note'),
+            clock: g('.clock-panel'),
+            fontSize: parseFloat(cs.fontSize),
+            border: cs.borderStyle !== 'none' && parseFloat(cs.borderWidth) > 0,
+            bg: cs.backgroundColor !== 'rgba(0, 0, 0, 0)',
+            pad: parseFloat(cs.paddingTop) + parseFloat(cs.paddingLeft),
+          };
+        });
+        assert.ok(m.credit, vp.width + ' credit exists');
+        const ix = (a, b) => !a || !b ? 0 :
+          Math.max(0, Math.min(a.x+a.w, b.x+b.w) - Math.max(a.x, b.x)) *
+          Math.max(0, Math.min(a.y+a.h, b.y+b.h) - Math.max(a.y, b.y));
+        for (const k of ['pill', 'hi', 'thermo', 'temp', 'note', 'clock'])
+          assert.equal(ix(m.credit, m[k]), 0, `${vp.width}/${name}: credit×${k} overlap`);
+        assert.ok(m.fontSize >= 8, vp.width + '/' + name + ' fontSize ' + m.fontSize);
+        if (vp.width >= 432) {
+          assert.ok(m.credit.h >= 8, vp.width + '/' + name + ' credit box readable height ' + m.credit.h);
+        } else {
+          /* natural scale-down of the whole strip is allowed below 432 */
+          assert.ok(m.credit.h >= 5, vp.width + '/' + name + ' scaled credit height ' + m.credit.h);
+        }
+        assert.equal(m.border, false, 'no button border');
+        assert.equal(m.bg, false, 'no button background');
+        assert.equal(m.pad, 0, 'no button padding');
+        assert.ok(m.credit.y >= 0 && m.credit.y + m.credit.h <= 40.6 && m.credit.x >= 0 &&
+          m.credit.x + m.credit.w <= vp.width + 0.6, vp.width + '/' + name + ' inside strip');
+        if (vp.width === 432 && name === 'ok')
+          await capture(page.locator('#slide-weather'), 'after-432x40-weather');
+        if (vp.width === 390)
+          await capture(page.locator('.led'), 'after-390');
+        if (vp.width === 320)
+          await capture(page.locator('.led'), 'after-320');
+        await context.close();
+      }
+    }
+  } finally { await browser.close(); }
+});
