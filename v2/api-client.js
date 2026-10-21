@@ -32,7 +32,13 @@ function freshBy(iso,tnow,maxAge){
 }
 async function fetchJson(url,timeoutMs,tnow){
  const ctl=new AbortController(),timer=setTimeout(()=>ctl.abort(),timeoutMs);
- try{const res=await fetch(url,{cache:'no-store',signal:ctl.signal});
+ try{const init={cache:'no-store',signal:ctl.signal};
+  // ThaiWater currently returns 429 to browser requests containing a GitHub
+  // Pages Referer, even when the same public API returns 200 with CORS Origin.
+  // Limit the privacy-preserving no-referrer policy to this one public URL;
+  // all validation, station IDs, freshness windows and fail-closed rules stay.
+  if(url===API)init.referrerPolicy='no-referrer';
+  const res=await fetch(url,init);
   if(!res.ok)throw Error('source unavailable');return await res.json();
  }finally{clearTimeout(timer)}
 }

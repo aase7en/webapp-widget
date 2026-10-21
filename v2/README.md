@@ -92,3 +92,21 @@ node --test tests/*.test.cjs
 - No water-level animation, observation, hospital reading, forecast, threshold,
   API/backend or source semantics are changed by this visual release. The
   separate movable spillway/dam prototype is intentionally not installed.
+
+## ThaiWater/HII HTTP 429 from GitHub Pages Referer (2026-10-22)
+
+- Observed in the real Chrome GitHub Pages origin: the public HII
+  `waterlevel_load` endpoint returned 429 with a browser Referer header,
+  even as a plain server GET returned 200 and fresh official station rows.
+- Browser reproducible control: the same source/origin with
+  `referrerPolicy: 'no-referrer'` returned HTTP 200 and HDA004/S5
+  readings. The request still carries its CORS Origin; this option merely
+  suppresses the referring document address on this single public API call.
+- The fetch timeout, retry backoff, 240-second successful cache, station
+  identifiers, observedAt 3-hour freshness, min_bank calculations and
+  no-data fail-closed display are **unchanged**. No reading is synthesized
+  from cached webpage data or a different station.
+- The provider can impose other traffic limits; if 429 persists even without
+  Referer, do not hammer or spoof providers. Contact ThaiWater/HII about
+  authorized access and consider an approved low-rate shared data cache,
+  while preserving actual observation timestamps and missing states.
