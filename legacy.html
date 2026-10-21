@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>UTH Uthai Hospital LED</title>
-<meta name="description" content="บอร์ดข้อมูลสิ่งแวดล้อมโรงพยาบาลอุทัยธานี — PM2.5 จาก GISTDA, อากาศ/พยากรณ์ฝนจาก Open-Meteo (ข้อมูล CC BY 4.0), ดัชนีความร้อนคำนวณจากโมเดลอากาศ ไม่ใช่การวัดที่โรงพยาบาล">
+<meta name="description" content="บอร์ดข้อมูลสิ่งแวดล้อมโรงพยาบาลอุทัย จ.พระนครศรีอยุธยา — PM2.5 จาก GISTDA, อากาศ/พยากรณ์ฝนจาก Open-Meteo (ข้อมูล CC BY 4.0), ดัชนีความร้อนคำนวณจากโมเดลอากาศ ไม่ใช่การวัดที่โรงพยาบาล">
 <!-- Production LED frontend: fixed 432x40 strip (clock + PM2.5 / water / weather+HI),
      single backend read API, no synthetic fixtures, no state parameters. -->
 <!-- Open-Meteo licence (CC BY 4.0): the on-LED visible credit was removed by the
@@ -18,8 +18,8 @@ html,body{margin:0;padding:0;background:#000}
 </style>
 </head>
 <body class="led-page">
-<main class="led" aria-label="บอร์ดข้อมูลสิ่งแวดล้อมโรงพยาบาลอุทัยธานี">
-<div class="stage" id="stage" data-sev="unavailable" role="region" aria-label="สถานะสิ่งแวดล้อมโรงพยาบาลอุทัยธานี">
+<main class="led" aria-label="บอร์ดข้อมูลสิ่งแวดล้อมโรงพยาบาลอุทัย จ.พระนครศรีอยุธยา">
+<div class="stage" id="stage" data-sev="unavailable" role="region" aria-label="สถานะสิ่งแวดล้อมโรงพยาบาลอุทัย จ.พระนครศรีอยุธยา">
   <div class="clock-panel" aria-label="วันและเวลาปัจจุบันในประเทศไทย"><span class="day" id="day-a"></span><span class="time" id="clock-a">--:--</span></div>
   <section class="slide active" id="slide-pm" data-slide="pm" data-pm-mood="unavailable" data-sev="unavailable" aria-label="คุณภาพอากาศ PM2.5">
     <div class="panel primary">

@@ -85,3 +85,165 @@ test('production root embeds exact physical 432x40 rotation, preserving a legacy
  assert.match(screen,/22000/);
  assert.match(screen,/\.led-current/);
 });
+
+/* ---------- Review-fix P1 harness: controllable clock + failure phases ---------- */
+function bootCtl(){
+ let t=Date.now();
+ const now=()=>t;
+ const calls={backend:0,openMeteo:0,water:0};
+ const state={backendFails:false,waterFails:false,omFails:false,backendDelayMs:0,pm:23.1};
+ const iso=(ageMin)=>new Date(t-ageMin*60000).toISOString();
+ const forecastFor=()=>{
+  const hourly=[];
+  for(let h=1;h<=8;h++){
+   const d=new Date(Math.floor((t+7*3600000)/3600000)*3600000+h*3600000-7*3600000);
+   hourly.push(bangkokStamp(d).replace(' ','T'));
+  }
+  return {timezone:'Asia/Bangkok',hourly:{time:hourly,weather_code:hourly.map(()=>61),
+   precipitation_probability:hourly.map(()=>35)},current:{wind_speed_10m:12}};
+ };
+ const dataFor=()=>({location:{id:'uthai',lat:14.36147,lon:100.64424},
+  pm25:{status:'ok',unit:'µg/m³',value:state.pm,observedAt:iso(20),source:'GISTDA Uthai'},
+  weather:{status:'ok',temperatureC:29,humidityPct:81,weatherCode:53,observedAt:iso(20),source:'Open-Meteo model'}});
+ const waterFor=()=>({waterlevel_data:{result:'OK',data:[
+  {station:{id:471583,min_bank:3.03,ground_level:0.227},waterlevel_datetime:bangkokStamp(new Date(t-20*60000)),waterlevel_msl:2.87},
+  {station:{id:2607,min_bank:4.70,ground_level:-8.59},waterlevel_datetime:bangkokStamp(new Date(t-20*60000)),waterlevel_msl:3.15}
+ ]}});
+ const wait=ms=>new Promise(r=>setTimeout(r,ms));
+ const window={fetch:async(url)=>{
+   if(url.includes('open-meteo')){calls.openMeteo++;if(state.omFails)throw Error('net');return{ok:true,json:async()=>forecastFor()}}
+   calls.water++;if(state.waterFails)throw Error('net');return{ok:true,json:async()=>waterFor()}
+  },
+  UthaiLEDRotation:{requestBackendData:async()=>{
+   calls.backend++;if(state.backendDelayMs)await wait(state.backendDelayMs);
+   if(state.backendFails)return{ok:false};
+   return{ok:true,raw:dataFor()};
+  }}};
+ const context=vm.createContext({window,fetch:window.fetch,Date,Math,Number,Set,URLSearchParams,AbortController,setTimeout,clearTimeout,Promise,Error,Intl});
+ vm.runInContext(SOURCE,context,{filename:'api-client.js'});
+ return {api:window.UthApiClient,calls,state,advance:ms=>{t+=ms},now};
+}
+test('P1 cache policy constants are pinned and sane',()=>{
+ const ctl=bootCtl();
+ const p=ctl.api.CACHE_POLICY;
+ assert.equal(p.liveTtlMs,180000);assert.equal(p.waterTtlMs,240000);
+ assert.ok(p.retryAfterFailMs>=30000&&p.retryAfterFailMs<=60000);
+ assert.equal(p.staleKeepMs,3*3600000);
+});
+test('P1 success is cached for the success TTL (no duplicate fetch)',async()=>{
+ const ctl=bootCtl();
+ const first=await ctl.api.getLive({now:ctl.now});
+ assert.equal(first.pm25.status,'latest');assert.equal(ctl.calls.backend,1);
+ ctl.advance(60000);
+ const second=await ctl.api.getLive({now:ctl.now});
+ assert.equal(ctl.calls.backend,1);
+ assert.equal(second.pm25.value,first.pm25.value);
+});
+test('P1 single backend failure serves last-known-good, retries only after the retry window, then recovers',async()=>{
+ const ctl=bootCtl();
+ await ctl.api.getLive({now:ctl.now});           // seed success
+ ctl.advance(200000);                            // past success TTL
+ ctl.state.backendFails=true;
+ const during=await ctl.api.getLive({now:ctl.now}); // failure attempt #2
+ assert.equal(ctl.calls.backend,2);
+ assert.equal(during.pm25.status,'latest');       // last-good, same observation
+ assert.equal(during.pm25.value,23.1);
+ ctl.advance(30000);                             // still inside 45 s retry window
+ const held=await ctl.api.getLive({now:ctl.now});
+ assert.equal(ctl.calls.backend,2);               // no refetch yet
+ assert.equal(held.pm25.status,'latest');
+ ctl.advance(20000);                             // retry window expired
+ ctl.state.backendFails=false;
+ const recovered=await ctl.api.getLive({now:ctl.now});
+ assert.equal(ctl.calls.backend,3);               // retry happened
+ assert.equal(recovered.pm25.status,'latest');assert.equal(recovered.pm25.value,23.1);
+});
+test('P1 last-known-good past the freshness window is demoted, never shown as current and never zero',async()=>{
+ const ctl=bootCtl();
+ const seeded=await ctl.api.getLive({now:ctl.now});
+ assert.equal(seeded.pm25.status,'latest');
+ ctl.advance((3*3600000)+ (25*60000));           // success TTL long gone; observation now >3 h old
+ ctl.state.backendFails=true;
+ const aged=await ctl.api.getLive({now:ctl.now});
+ assert.notEqual(aged.pm25.status,'latest');
+ assert.equal(aged.pm25.status,'unavailable');
+ assert.equal(aged.pm25.value,undefined);         // not 0, not a number
+ assert.equal(aged.weather.status,'unavailable');
+ assert.equal(aged.forecast.status,'unavailable'); // all forecast slots already elapsed
+ assert.equal(aged.forecast.hours.length,0);
+});
+test('P1 first-load failure stays unavailable (no synthetic data) and recovers when the API returns',async()=>{
+ const ctl=bootCtl();
+ ctl.state.backendFails=true;
+ const first=await ctl.api.getLive({now:ctl.now});
+ assert.equal(first.pm25.status,'unavailable');
+ assert.equal(first.pm25.value,undefined);
+ assert.equal(first.forecast.hours.length,0);
+ ctl.advance(30000);
+ const held=await ctl.api.getLive({now:ctl.now});
+ assert.equal(ctl.calls.backend,1);               // inside retry window: no spam
+ ctl.advance(20000);
+ ctl.state.backendFails=false;
+ const recovered=await ctl.api.getLive({now:ctl.now});
+ assert.equal(ctl.calls.backend,2);
+ assert.equal(recovered.pm25.status,'latest');assert.equal(recovered.pm25.value,23.1);
+});
+test('P1 water failure keeps last-known-good, then demotes to missing (not zero) once observations expire',async()=>{
+ const ctl=bootCtl();
+ const seeded=await ctl.api.getWater({now:ctl.now});
+ assert.equal(seeded.stations.HDA004.status,'ok');
+ assert.equal(seeded.stations.HDA004.levelMsl,2.87);
+ ctl.advance(300000);                            // past water success TTL
+ ctl.state.waterFails=true;
+ const during=await ctl.api.getWater({now:ctl.now});
+ assert.equal(during.stations.HDA004.status,'ok'); // last-good with real timestamp
+ assert.equal(during.stations.HDA004.levelMsl,2.87);
+ ctl.advance(30000);
+ const held=await ctl.api.getWater({now:ctl.now});
+ assert.equal(ctl.calls.water,2);                 // inside retry window: no refetch
+ ctl.advance((3*3600000)+(25*60000));
+ const aged=await ctl.api.getWater({now:ctl.now});
+ assert.equal(ctl.calls.water,3);                 // retry window long expired
+ assert.equal(aged.stations.HDA004.status,'missing');
+ assert.equal(aged.stations.HDA004.levelMsl,null); // never 0
+ assert.equal(aged.stations.HDA004.risk,'unassessed');
+ assert.equal(aged.stations.HDA004.bankM,3.03);    // static station geometry retained
+});
+test('P1 concurrent callers share one in-flight request',async()=>{
+ const ctl=bootCtl();
+ ctl.state.backendDelayMs=40;
+ const [a,b]=await Promise.all([ctl.api.getLive({now:ctl.now}),ctl.api.getLive({now:ctl.now})]);
+ assert.equal(ctl.calls.backend,1);
+ assert.equal(a.pm25.status,b.pm25.status);
+});
+test('P3 rotation order is pinned PM → Weather → Water and pages depend on led-rotation.js',()=>{
+ const screen=fs.readFileSync(path.join(ROOT,'v2/index.html'),'utf8');
+ const weatherPage=fs.readFileSync(path.join(ROOT,'v2/weather.html'),'utf8');
+ const pmPos=screen.indexOf('id="pm"');
+ const wxPos=screen.indexOf('./weather.html');
+ const waPos=screen.indexOf('id="water"');
+ assert.ok(pmPos>-1&&wxPos>-1&&waPos>-1,'all three strip markers present');
+ assert.ok(pmPos<wxPos&&wxPos<waPos,'article DOM order pm → weather → water');
+ assert.match(screen,/src="\.\.\/led-rotation\.js"/,'v2/index.html loads the canonical backend reader');
+ assert.match(weatherPage,/src="\.\.\/led-rotation\.js"/,'v2/weather.html loads the canonical backend reader');
+});
+test('P3 review cleanup: dead QA CSS removed and legacy geography corrected',()=>{
+ const screen=fs.readFileSync(path.join(ROOT,'v2/index.html'),'utf8');
+ assert.doesNotMatch(screen,/expression-review|expression-face|blinkOnce|happy-swap-now/);
+ assert.match(screen,/@supports \(mix-blend-mode:screen\)/,'specular layers degrade gracefully');
+ const legacy=fs.readFileSync(path.join(ROOT,'legacy.html'),'utf8');
+ assert.doesNotMatch(legacy,/อุทัยธานี/);
+ assert.match(legacy,/โรงพยาบาลอุทัย จ\.พระนครศรีอยุธยา/);
+});
+test('P2 legacy-engine syntax floor: v2 scripts avoid .at(), replaceChildren and optional chaining',()=>{
+ for(const file of ['v2/api-client.js','v2/weather-live.js','v2/live-widgets.js']){
+  const src=fs.readFileSync(path.join(ROOT,file),'utf8');
+  assert.doesNotMatch(src,/\.at\(/,file+' no Array.prototype.at');
+  assert.doesNotMatch(src,/replaceChildren/,file+' no replaceChildren');
+  assert.doesNotMatch(src,/\?\./,file+' no optional chaining');
+  assert.doesNotMatch(src,/(\w|\))\?\?/,file+' no nullish coalescing');
+ }
+ const screen=fs.readFileSync(path.join(ROOT,'v2/index.html'),'utf8');
+ assert.doesNotMatch(screen,/\.at\(-?\d/,'v2/index.html inline scripts avoid Array.prototype.at');
+ assert.match(screen,/#pm \.mascot::before\{animation:none!important\}/,'halo pseudo-animation killed under reduced motion');
+});

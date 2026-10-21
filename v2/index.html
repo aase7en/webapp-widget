@@ -117,28 +117,7 @@ article h2{font-size:15px;margin:0 0 10px;color:#eaf7ff}article small{color:#aec
 #water .trend .caption{color:#a8d5e7}
 #water .water-station[data-trend="rising"] .trend .caption{color:#eec785}
 #water .water-station[data-trend="falling"] .trend .caption{color:#5ee8ff}
-/* Independent QA panel: distinct from operational strip, references original vetted rig sprites */
-#expression-review{border:1px solid #356c82;border-radius:12px;background:#092333;padding:12px;margin:12px 0}
-#expression-review h2{margin:0 0 12px;font-size:15px}
-.expression-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(134px,1fr));gap:8px}
-.expression-card{display:flex;align-items:center;gap:6px;border:1px solid #3c677d;border-radius:9px;padding:8px;background:linear-gradient(150deg,#132d42,#041421);min-height:70px}
-.expression-face{width:56px;height:56px;flex:none;position:relative;isolation:isolate}
-.expression-face img{width:66px;height:66px;position:absolute;top:-5px;left:-5px}
-.expression-face .blink{position:absolute;z-index:6;top:19.8px;width:9.7px;height:8.3px;
- border-radius:53% 53% 45% 45%;background:linear-gradient(180deg,var(--lid-hi,#f3a061),var(--lid-color,#c86c29) 75%,var(--lid-dark,#803d17));
- border-bottom:1px solid #2f311d;transform:scaleY(0);transform-origin:50% 0;opacity:0;
- animation:uthBlinkVisible 5s linear infinite}
-.expression-face .blink-left{left:13.8px}.expression-face .blink-right{left:26.9px}
-.expression-face img[data-mask]{z-index:7}
-.expression-card strong{font-size:11px;display:block}
-.expression-card small{font-size:10px;display:block;color:#9dbcd1}
-@keyframes blinkOnce{0%,100%{opacity:0;transform:scaleY(0)}18%,74%{opacity:1;transform:scaleY(1)}}
-#pm .mascot.blink-now .blink,.expression-face.blink-now .blink{animation:blinkOnce .36s ease-in-out 1 both!important}
-@media(prefers-reduced-motion:reduce){
- #pm .mascot .blink,.expression-face .blink{animation:none!important;opacity:0}
- #pm .mascot.blink-now .blink,.expression-face.blink-now .blink{animation:none!important;opacity:0!important}
- #water .gate .ripple,#water .gate .ripple::before,#water .gate .ripple::after{animation:none!important}
-}
+/* Color is tied only to documented PM2.5 classification, not decorative static amber. */
 
 /* Color is tied only to documented PM2.5 classification, not decorative static amber. */
 #pm[data-pm-band="good"] .pill{background:linear-gradient(#2994b8,#125270);border-color:#8cdefd;box-shadow:0 0 3px #65d0ff6b,inset 0 1px 2px #e4f9ff8a}
@@ -150,21 +129,14 @@ article h2{font-size:15px;margin:0 0 10px;color:#eaf7ff}article small{color:#aec
 
 /* Blue/green only: wide-open black pupils alternate with smiling shut eyes.
    Existing happy-eyes PNG supplies the smiling arches; an eyelash overlay makes them explicit. */
-#pm .mascot img[data-happy-open],#pm .mascot img[data-happy-lashes],
-.expression-face img[data-happy-open],.expression-face img[data-happy-lashes]{
+#pm .mascot img[data-happy-open],#pm .mascot img[data-happy-lashes]{
  position:absolute;pointer-events:none;opacity:0}
-#pm .mascot.happy-eye-mode .blink,
-.expression-face.happy-eye-mode .blink{display:none}
-#pm .mascot.happy-eye-mode [data-eyes],
-.expression-face.happy-eye-mode [data-eyes]{animation:uthJoyClosed 5.6s linear infinite}
-#pm .mascot.happy-eye-mode [data-happy-open],
-.expression-face.happy-eye-mode [data-happy-open]{animation:uthJoyOpen 5.6s linear infinite}
-#pm .mascot.happy-eye-mode [data-happy-lashes],
-.expression-face.happy-eye-mode [data-happy-lashes]{animation:uthJoyClosed 5.6s linear infinite}
+#pm .mascot.happy-eye-mode .blink{display:none}
+#pm .mascot.happy-eye-mode [data-eyes]{animation:uthJoyClosed 5.6s linear infinite}
+#pm .mascot.happy-eye-mode [data-happy-open]{animation:uthJoyOpen 5.6s linear infinite}
+#pm .mascot.happy-eye-mode [data-happy-lashes]{animation:uthJoyClosed 5.6s linear infinite}
 #pm .mascot.happy-eye-mode img[data-happy-open],
 #pm .mascot.happy-eye-mode img[data-happy-lashes]{z-index:3}
-.expression-face.happy-eye-mode img[data-happy-open],
-.expression-face.happy-eye-mode img[data-happy-lashes]{z-index:3}
 @keyframes uthJoyOpen{
  0%,30%{opacity:1}34%,47%{opacity:0}51%,69%{opacity:1}
  73%,86%{opacity:0}90%,100%{opacity:1}
@@ -173,21 +145,16 @@ article h2{font-size:15px;margin:0 0 10px;color:#eaf7ff}article small{color:#aec
  0%,30%{opacity:0}34%,47%{opacity:1}51%,69%{opacity:0}
  73%,86%{opacity:1}90%,100%{opacity:0}
 }
-/* The interactive QA button deliberately holds happy-shut eyes long enough to check lashes. */
-.happy-eye-mode.happy-swap-now [data-eyes],
-.happy-eye-mode.happy-swap-now [data-happy-lashes]{
- animation:uthJoyClosedOnce .95s ease-in-out 1 both!important}
-.happy-eye-mode.happy-swap-now [data-happy-open]{
- animation:uthJoyOpenOnce .95s ease-in-out 1 both!important}
-@keyframes uthJoyClosedOnce{0%,100%{opacity:0}17%,83%{opacity:1}}
-@keyframes uthJoyOpenOnce{0%,100%{opacity:1}17%,83%{opacity:0}}
 @media(prefers-reduced-motion:reduce){
  #pm .mascot.happy-eye-mode [data-eyes],
- #pm .mascot.happy-eye-mode [data-happy-lashes],
- .expression-face.happy-eye-mode [data-eyes],
- .expression-face.happy-eye-mode [data-happy-lashes]{animation:none!important;opacity:0!important}
- #pm .mascot.happy-eye-mode [data-happy-open],
- .expression-face.happy-eye-mode [data-happy-open]{animation:none!important;opacity:1!important}
+ #pm .mascot.happy-eye-mode [data-happy-lashes]{animation:none!important;opacity:0!important}
+ #pm .mascot.happy-eye-mode [data-happy-open]{animation:none!important;opacity:1!important}
+}
+/* Reduced-motion master kill for strip animations (kept after QA-panel removal). */
+@media(prefers-reduced-motion:reduce){
+ #pm .mascot .blink{animation:none!important;opacity:0}
+ #pm .mascot::before{animation:none!important}
+ #water .gate .ripple,#water .gate .ripple::before,#water .gate .ripple::after{animation:none!important}
 }
 
 /* Glassy / convex glass separation — still exact 432x40 LED viewport.
@@ -300,7 +267,10 @@ box-shadow:inset 0 1px 1px #ceffffa8,inset 0 -1px 2px #30e7ff80,0 0 6px #19bbff6
  -webkit-text-stroke:0!important;
  paint-order:normal;
 }
-/* Bounded material/specular response on existing PM face (not a glass panel). */
+/* Bounded material/specular response on existing PM face (not a glass panel).
+   Wrapped in @supports: blend/clip-path are progressive decoration only —
+   engines without them simply render the un-tinted artwork (graceful fallback). */
+@supports (mix-blend-mode:screen) and (clip-path:circle(48% at 51% 51%)){
 #pm .mascot .uth-mascot-specular{
  position:absolute;left:2px;top:1px;width:39px;height:37px;z-index:2;
  overflow:hidden;border-radius:50%;pointer-events:none;
@@ -315,6 +285,7 @@ box-shadow:inset 0 1px 1px #ceffffa8,inset 0 -1px 2px #30e7ff80,0 0 6px #19bbff6
  transform:translateX(-50%) rotate(19deg);
  opacity:.65;animation:uth-mascot-specular-sweep 8s ease-in-out infinite;
 }
+}
 #pm .mascot img[data-base]{z-index:1}
 #pm .mascot img[data-eyes],
 #pm .mascot img[data-happy-open],
@@ -322,7 +293,9 @@ box-shadow:inset 0 1px 1px #ceffffa8,inset 0 -1px 2px #30e7ff80,0 0 6px #19bbff6
 #pm .mascot img[data-brows]{z-index:3}
 #pm .mascot img[data-mouth]{z-index:4}
 #pm .mascot img[data-mask]{z-index:6}
-/* Existing gate art receives crisp white/cyan light reflections, no broad glow. */
+/* Existing gate art receives crisp white/cyan light reflections, no broad glow.
+   @supports-guarded decorative layer (see mascot note above). */
+@supports (mix-blend-mode:screen){
 #water .gate .uth-gate-specular{
  position:absolute;inset:2px 3px 3px 3px;z-index:5;
  pointer-events:none;overflow:hidden;border-radius:2px;
@@ -334,6 +307,7 @@ box-shadow:inset 0 1px 1px #ceffffa8,inset 0 -1px 2px #30e7ff80,0 0 6px #19bbff6
  background:linear-gradient(90deg,transparent,#fffef000,#ddfcff91,#ffffff00);
  transform:translateX(-40%) rotate(14deg);
  opacity:.4;animation:uth-gate-specular-sweep 9.5s ease-in-out infinite;
+}
 }
 @keyframes uth-mascot-specular-sweep{
  0%,12%{transform:translateX(-50%) rotate(19deg);opacity:0}
@@ -508,8 +482,9 @@ function set(id,value,observed,points,bank,ground,risk){
  if(Array.isArray(points)&&points.length>=2){
   const mn=Math.min(...points),mx=Math.max(...points),span=Math.max(.1,mx-mn);
   chart.setAttribute('d',points.map((n,i)=>(i?'L':'M')+(2+i*40/(points.length-1)).toFixed(1)+' '+(13-(n-mn)/span*11).toFixed(1)).join(' '));
-  cap.textContent='Δ '+(points.at(-1)-points.at(-2)>=0?'+':'')+(points.at(-1)-points.at(-2)).toFixed(2)+' ม.';
-  box.dataset.trend=points.at(-1)>points.at(-2)?'rising':points.at(-1)<points.at(-2)?'falling':'stable';
+  const last=points[points.length-1],prev=points[points.length-2],delta=last-prev;
+  cap.textContent='Δ '+(delta>=0?'+':'')+delta.toFixed(2)+' ม.';
+  box.dataset.trend=delta>0?'rising':delta<0?'falling':'stable';
  }else{chart.setAttribute('d','');cap.textContent='Δ —'}
 }
 document.getElementById('real').onclick=async()=>{

@@ -2,6 +2,8 @@
 (()=>{
 'use strict';
 const $=s=>document.querySelector(s),valid=n=>typeof n==='number'&&Number.isFinite(n);
+/* Older-engine safe node clearing (firstChild loop). */
+const clearNode=el=>{while(el&&el.firstChild)el.removeChild(el.firstChild)};
 function showSource(text){
  const label=(parent!==window?parent.document:document).getElementById('weather-source');
  if(label)label.textContent=text;
@@ -64,7 +66,7 @@ function setClock(){
 }
 function noData(){
  $('.temp strong').textContent='—';$('.hi strong').textContent='—';$('.place').textContent='ต.อุทัย · รอข้อมูล';
- $('#hours').replaceChildren();
+ clearNode($('#hours'));
  for(let i=0;i<5;i++){
  const item=document.createElement('div');item.className='hour';item.dataset.weather='none';
  const lbl=document.createElement('span');lbl.className='t';lbl.textContent='--:--';
@@ -82,14 +84,15 @@ function paint(d){
  const hi=heat(weather.temperatureC,weather.humidityPct);
  $('.hi strong').textContent=valid(hi)?Math.round(hi)+'°':'—';
  const kind=weatherIcon(weather.weatherCode);
- const icon=$('#current-weather-icon'),box=icon?.closest('.current');
+ const icon=$('#current-weather-icon');
+ const box=icon?icon.closest('.current'):null;
  if(icon&&box){
  box.dataset.weather=kind==='partly'?'partly':kind;
- icon.setAttribute('viewBox','0 0 32 32');icon.replaceChildren();
+ icon.setAttribute('viewBox','0 0 32 32');clearNode(icon);
  const scene=createSVG(kind);while(scene.firstChild)icon.append(scene.firstChild);
  }
  $('.place').textContent='ต.อุทัย · แบบจำลอง';
- $('#hours').replaceChildren();
+ clearNode($('#hours'));
  const hourData=f.status==='model_forecast'?f.hours:[];
  for(let i=0;i<5;i++){
  const forecast=hourData[i]||{},wx=weatherIcon(forecast.weatherCode);
