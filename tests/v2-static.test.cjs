@@ -373,3 +373,15 @@ test('Rain percentages are labeled as hourly precipitation probability with colo
  assert.match(js,/ไม่มีข้อมูลโอกาสฝนตกสำหรับช่วงเวลานี้/);
  assert.match(js,/showSource\('Open-Meteo/);
 });
+
+test('PM 84% weather cell explicitly labels relative humidity and keeps unknown unavailable',()=>{
+ const html=fs.readFileSync(path.join(ROOT,'v2/index.html'),'utf8');
+ const js=fs.readFileSync(path.join(ROOT,'v2/live-widgets.js'),'utf8');
+ assert.match(html,/class="climate-humidity-label">ความชื้น<\/span>/);
+ assert.match(html,/title="ความชื้นสัมพัทธ์ \(Relative Humidity\) หน่วยเปอร์เซ็นต์"/);
+ assert.match(html,/จากแบบจำลอง Open-Meteo แยกจากค่าฝุ่น PM2\.5/);
+ assert.match(html,/#pm \.climate \.climate-humidity-value\{font-size:9px;line-height:10px/);
+ assert.match(js,/const humidity=\$\('\.climate-humidity-value'\)/);
+ assert.match(js,/NUM\(w\.humidityPct\)\?Math\.round\(w\.humidityPct\)\+'%'/);
+ assert.match(js,/temperature\.textContent='—';humidity\.textContent='—';wind\.textContent='ลม —'/);
+});

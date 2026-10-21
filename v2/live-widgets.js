@@ -83,12 +83,16 @@ function paintPm(d){
 }
 function paintWeatherSmall(d){
  const w=d.weather||{};
- const fields=$('.climate').querySelectorAll('strong,small');
- if(w.status!=='model_latest'){fields.forEach(n=>n.textContent='—');return;}
- const temperature=NUM(w.temperatureC)?Math.round(w.temperatureC)+'°':'—';
- const humidity=NUM(w.humidityPct)?Math.round(w.humidityPct)+'%':'—';
- const wind=NUM(w.windKmh)?Math.round(w.windKmh)+' กม./ชม.':'—';
- fields[0].textContent=temperature;fields[1].textContent=humidity;fields[2].textContent='ลม '+wind;
+ const temperature=$('.climate-temp');
+ const humidity=$('.climate-humidity-value');
+ const wind=$('.climate-wind');
+ if(w.status!=='model_latest'){
+  temperature.textContent='—';humidity.textContent='—';wind.textContent='ลม —';
+  return;
+ }
+ temperature.textContent=NUM(w.temperatureC)?Math.round(w.temperatureC)+'°':'—';
+ humidity.textContent=NUM(w.humidityPct)?Math.round(w.humidityPct)+'%':'—';
+ wind.textContent='ลม '+(NUM(w.windKmh)?Math.round(w.windKmh)+' กม./ชม.':'—');
 }
 async function refresh(){
  try{
