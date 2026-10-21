@@ -30,9 +30,10 @@ until the separate release/cutover gate is satisfied.
 
 ## Release
 
-UI at `/v2/` currently presents **three separate 432 × 40 CSS pixel
-strips for visual inspection**. It is not yet a native 432 × 40
-single-slide rotating production replacement. Do not redirect the public
+UI at `/v2/` presents three separate 432 × 40 CSS-pixel strips
+for visual inspection. `/v2/index.html?display=led` presents a single
+432 × 40 strip rotating PM2.5 → Weather → Water every 22 seconds.
+Only presentation changes with this URL parameter; the data source is fixed. Do not redirect the public
 root to it until a suitable single-slide/rotation cutover is agreed and
 accepted.
 
