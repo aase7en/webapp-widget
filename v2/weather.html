@@ -155,6 +155,7 @@ box-shadow:inset 0 1px 1px #d3f9ff8a,inset 0 -1px 1px #279cd365}
 .led .warning .under{font-size:7.2px!important;line-height:9px!important;
  font-weight:750!important;max-width:100%;white-space:nowrap;color:#badbea!important}
 .led .warning .under:last-child{color:#83c7e6!important}
+.led .current-info .place{color:#28d2ff!important;font-size:7.4px!important;font-weight:900!important;line-height:8px!important;height:8px!important;text-shadow:0 0 4px #11a9fb44!important}
 </style>
 <!-- clear-gloss-outer-rim-weather v1 -->
 <style id="uth-clear-outer-rim-weather">
@@ -358,8 +359,8 @@ box-shadow:inset 0 1px 1px #d3f9ff8a,inset 0 -1px 1px #279cd365}
 <path d="M17.4 12.9Q20.5 10.5 23.2 13M11 17.7Q12.4 15.9 14.2 16" fill="none" stroke="#fff" stroke-width="1.05" stroke-linecap="round" opacity=".8"/>
 </symbol></svg>
 <div class="clock"><div class="day" id="mock-day">รอเวลา</div><div class="time" id="mock-time">--:--</div></div>
-<div class="current" data-weather="none"><svg class="sun-big current-weather-icon" id="current-weather-icon" viewBox="0 0 40 40" aria-hidden="true"><use href="#unknown"/></svg><div class="current-info"><div class="temp"><strong>—</strong><small>C</small></div><div class="hi" title="Heat Index: คำนวณจากอุณหภูมิและความชื้นที่ได้จากแบบจำลอง Open-Meteo ไม่ใช่เครื่องวัดที่โรงพยาบาล">HI <strong>—</strong></div><div class="place" id="current-weather-label">ต.อุทัย · รอข้อมูล</div></div></div>
-<div class="hour-group" id="hours"></div>
+<div class="current" data-weather="none"><svg class="sun-big current-weather-icon" id="current-weather-icon" viewBox="0 0 40 40" aria-hidden="true"><use href="#unknown"/></svg><div class="current-info"><div class="temp"><strong>—</strong><small>C</small></div><div class="hi" title="Heat Index: คำนวณจากอุณหภูมิและความชื้นที่ได้จากแบบจำลอง Open-Meteo ไม่ใช่เครื่องวัดที่โรงพยาบาล">HI <strong>—</strong></div><div class="place" id="current-weather-label" title="โอกาสฝนตกในแต่ละชั่วโมง (%): พยากรณ์จาก Open-Meteo ไม่ใช่ปริมาณฝนที่ตก" aria-label="โอกาสฝนตกตามรายชั่วโมง หน่วยเปอร์เซ็นต์">โอกาสฝน</div></div></div>
+<div class="hour-group" id="hours" role="group" aria-label="โอกาสฝนตกรายชั่วโมง หน่วยเปอร์เซ็นต์ จากพยากรณ์ Open-Meteo" title="ตัวเลข % ใต้แต่ละชั่วโมง คือโอกาสที่ฝนจะตกในช่วงเวลานั้น ไม่ใช่ปริมาณฝน"></div>
 <div class="warning" role="group" aria-label="คำแนะนำการเฝ้าระวังเบื้องต้นจากแบบจำลอง Open-Meteo ไม่ใช่ประกาศเตือนภัยอย่างเป็นทางการ" data-advisory="none"><div class="pill"><span class="forecast-dot" aria-hidden="true"></span><span class="forecast-label">รอข้อมูล</span></div><div class="under">พยากรณ์ไม่พร้อม</div><div class="under">Open-Meteo</div></div>
 </div></div></div></div>
 </main><script src="../led-rotation.js" defer></script>
