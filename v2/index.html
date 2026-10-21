@@ -470,6 +470,28 @@ html.led-screen .scale>div,html.led-screen .scale>iframe{transform:none!importan
  color:#39d6ff;font-weight:950;white-space:nowrap}
 #pm .climate .climate-wind{font-size:5.5px;line-height:8px;
  color:#91c5e6;font-weight:700;white-space:nowrap}
+/* PM composition: balance the mascot/value group inside its own 126px
+   panel; foreground sprites may overhang internal separators but the
+   actual 432×40 output remains clipped at the physical outer rim. */
+#pm .pm-core{padding-left:11px!important;overflow:visible!important;
+ z-index:28!important;isolation:auto!important}
+#pm .mascot{z-index:55!important;overflow:visible!important;
+ filter:drop-shadow(0 1px 1px #070e21) drop-shadow(0 0 1.8px #ffaa627e)!important}
+#pm .mascot img{overflow:visible;max-width:none}
+#pm .pm-text{position:relative;z-index:42!important}
+#pm .pm-unit{left:auto!important;right:2px!important;top:2px!important;
+ z-index:43!important}
+#pm .pm-status .pill i{position:relative;z-index:35;font-size:10px!important;
+ box-shadow:0 0 3px #fbd16e61}
+#water .water-station{overflow:visible!important;isolation:auto!important}
+#water .water-station .gate{z-index:48!important;overflow:visible!important;
+ contain:none!important;scale:1.09;filter:drop-shadow(0 0 2px #8ceaff89)}
+#water .water-station .gate img{overflow:visible!important}
+#water .water-station .spill-sheet{z-index:47!important;overflow:visible!important}
+#water .water-fig,#water .trend{position:relative;z-index:52}
+@media(prefers-reduced-motion:reduce){
+ #water .water-station .gate,#pm .mascot{animation:none!important}
+}
 </style>
 <!-- clear-gloss-outer-rim v1 -->
 </head>

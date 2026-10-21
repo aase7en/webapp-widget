@@ -76,3 +76,19 @@ node --test tests/*.test.cjs
   is hidden. Reduced Motion freezes the illustration.
 - The previous straight pipe-like seep/outflow visuals are suppressed;
   no backend, trigger, data source, spreadsheet, or logging contract changed.
+
+## Foreground icons and golden moon (2026-10-21)
+
+- Midnight/weather crescent uses a **gold PBR-inspired SVG gradient and animated
+  gloss**, with moon-and-cloud referencing the same golden crescent. It is
+  SVG/CSS 2.5D (not an actual GPU 3D scene) with a Reduced Motion still.
+- PM mascot/value grouping is optically centered within its 126px panel; PM
+  measurement units move next to the label to avoid overlap for 3-digit PM.
+- Mascot, weather clouds/moon, station gate and status glyph may extend over
+  **internal** dividers without content-box clipping. The physical LED output
+  remains **432 x 40 pixels**, so content cannot render outside the actual
+  device edge. Important numeric data/percentages remain readable and in front
+  where layers might otherwise collide.
+- No water-level animation, observation, hospital reading, forecast, threshold,
+  API/backend or source semantics are changed by this visual release. The
+  separate movable spillway/dam prototype is intentionally not installed.
