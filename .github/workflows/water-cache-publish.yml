@@ -1,0 +1,51 @@
+name: Uthai water reference cache
+on:
+  schedule:
+    - cron: '7,22,37,52 * * * *'
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: uthai-water-cache-publish
+  cancel-in-progress: false
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Fetch only verified ThaiWater station rows
+        id: water
+        shell: bash
+        run: |
+          if node scripts/build-water-feed.mjs "$RUNNER_TEMP/water.json"; then
+            echo "available=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "available=false" >> "$GITHUB_OUTPUT"
+            echo "Source unavailable; retaining prior file. Client observation-age guard will fail closed."
+          fi
+      - name: Update only water.json on separate water-data branch
+        if: steps.water.outputs.available == 'true'
+        shell: bash
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          if git ls-remote --exit-code --heads origin water-data >/dev/null; then
+            git fetch --no-tags origin water-data
+            git switch -c water-data FETCH_HEAD
+          else
+            git switch -c water-data
+          fi
+          cp "$RUNNER_TEMP/water.json" water.json
+          git add -- water.json
+          if git diff --cached --quiet; then
+            echo 'No new water observation. No commit.'
+            exit 0
+          fi
+          git commit -m 'data(water): verified station observations [skip ci]'
+          git push origin HEAD:refs/heads/water-data
