@@ -50,3 +50,29 @@ node --check v2/weather-live.js
 node --test tests/v2-static.test.cjs
 node --test tests/*.test.cjs
 ```
+
+## Glass, safety advice and illustrative overflow (2026-10-21)
+
+- The 432×40 glass edge is drawn as a thin, semi-transparent inset rim. The
+  center-top highlight is low opacity and placed **behind labels** to keep
+  timestamps, temperatures and station names legible.
+- The Weather advice badge is **not an official watch/warning**. It is a
+  source-based *informational* recommendation derived from fresh Open-Meteo
+  WMO code, a five-hour model forecast and (when available) the existing
+  derived Heat Index. Conditions outrank color/design: missing current data
+  shows UNAVAILABLE; missing forecast must not be described as all-clear.
+  Heat guidance: [WHO heat and health](https://www.who.int/news-room/fact-sheets/detail/climate-change-heat-and-health),
+  [CDC](https://www.cdc.gov/extreme-heat/signs-symptoms/index.html).
+  Thunder/lightning: [NWS](https://www.weather.gov/safety/lightning-safety-overview).
+  Fog driving: [NWS](https://www.weather.gov/safety/fog-driving).
+  The display's 33°C/40°C Heat Index bands are **local UI advice triggers**;
+  they are not authoritative Thailand or NWS official alert criteria.
+- Water crest/foam animations depict a water sheet over the colored-gate
+  illustration **only** when a fresh actual ThaiWater station value reaches
+  or exceeds its source bank reference (`data-risk=critical`). This is
+  still a visualization, not video evidence of a physical dam/wall spilling,
+  and does **not** represent hospital flood exposure or an official warning.
+  When below the station bank, WATCH, or UNKNOWN, the overbank spill sheet
+  is hidden. Reduced Motion freezes the illustration.
+- The previous straight pipe-like seep/outflow visuals are suppressed;
+  no backend, trigger, data source, spreadsheet, or logging contract changed.
