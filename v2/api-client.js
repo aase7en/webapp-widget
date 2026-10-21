@@ -65,7 +65,7 @@ function revalidateWater(src,tnow){
 }
 async function live(opts){
  const tnow=opts&&typeof opts.now==='function'?opts.now():realNow();
- if(cache.live&&tnow-cache.liveAt<LIVE_TTL_MS)return cache.live;
+ if(cache.live&&tnow-cache.liveAt<LIVE_TTL_MS)return revalidateLive(cache.live,tnow);
  if(cache.livePending)return cache.livePending;
  if(cache.liveFailAt&&tnow-cache.liveFailAt<RETRY_AFTER_FAIL_MS&&tnow-cache.liveAt>=LIVE_TTL_MS)
   return cache.live?revalidateLive(cache.live,tnow):cache.liveFail;
@@ -169,7 +169,7 @@ function parsedStation(r,code,tnow){
 }
 async function water(opts){
  const tnow=opts&&typeof opts.now==='function'?opts.now():realNow();
- if(cache.water&&tnow-cache.waterAt<WATER_TTL_MS)return cache.water;
+ if(cache.water&&tnow-cache.waterAt<WATER_TTL_MS)return revalidateWater(cache.water,tnow);
  if(cache.waterPending)return cache.waterPending;
  if(cache.waterFailAt&&tnow-cache.waterFailAt<RETRY_AFTER_FAIL_MS&&tnow-cache.waterAt>=WATER_TTL_MS)
   return cache.water?revalidateWater(cache.water,tnow):cache.waterFail;

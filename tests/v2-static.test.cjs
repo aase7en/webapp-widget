@@ -91,7 +91,7 @@ function bootCtl(){
  let t=Date.now();
  const now=()=>t;
  const calls={backend:0,openMeteo:0,water:0};
- const state={backendFails:false,waterFails:false,omFails:false,backendDelayMs:0,pm:23.1};
+ const state={backendFails:false,waterFails:false,omFails:false,backendDelayMs:0,pm:23.1,observationAgeMin:20};
  const iso=(ageMin)=>new Date(t-ageMin*60000).toISOString();
  const forecastFor=()=>{
   const hourly=[];
@@ -103,11 +103,11 @@ function bootCtl(){
    precipitation_probability:hourly.map(()=>35)},current:{wind_speed_10m:12}};
  };
  const dataFor=()=>({location:{id:'uthai',lat:14.36147,lon:100.64424},
-  pm25:{status:'ok',unit:'µg/m³',value:state.pm,observedAt:iso(20),source:'GISTDA Uthai'},
-  weather:{status:'ok',temperatureC:29,humidityPct:81,weatherCode:53,observedAt:iso(20),source:'Open-Meteo model'}});
+  pm25:{status:'ok',unit:'µg/m³',value:state.pm,observedAt:iso(state.observationAgeMin),source:'GISTDA Uthai'},
+  weather:{status:'ok',temperatureC:29,humidityPct:81,weatherCode:53,observedAt:iso(state.observationAgeMin),source:'Open-Meteo model'}});
  const waterFor=()=>({waterlevel_data:{result:'OK',data:[
-  {station:{id:471583,min_bank:3.03,ground_level:0.227},waterlevel_datetime:bangkokStamp(new Date(t-20*60000)),waterlevel_msl:2.87},
-  {station:{id:2607,min_bank:4.70,ground_level:-8.59},waterlevel_datetime:bangkokStamp(new Date(t-20*60000)),waterlevel_msl:3.15}
+  {station:{id:471583,min_bank:3.03,ground_level:0.227},waterlevel_datetime:bangkokStamp(new Date(t-state.observationAgeMin*60000)),waterlevel_msl:2.87},
+  {station:{id:2607,min_bank:4.70,ground_level:-8.59},waterlevel_datetime:bangkokStamp(new Date(t-state.observationAgeMin*60000)),waterlevel_msl:3.15}
  ]}});
  const wait=ms=>new Promise(r=>setTimeout(r,ms));
  const window={fetch:async(url)=>{
@@ -246,4 +246,29 @@ test('P2 legacy-engine syntax floor: v2 scripts avoid .at(), replaceChildren and
  const screen=fs.readFileSync(path.join(ROOT,'v2/index.html'),'utf8');
  assert.doesNotMatch(screen,/\.at\(-?\d/,'v2/index.html inline scripts avoid Array.prototype.at');
  assert.match(screen,/#pm \.mascot::before\{animation:none!important\}/,'halo pseudo-animation killed under reduced motion');
+});
+
+test('P1 hot cache never serves a value that aged past observation freshness within TTL',async()=>{
+ const ctl=bootCtl();
+ ctl.state.observationAgeMin=179;
+ const first=await ctl.api.getLive({now:ctl.now});
+ assert.equal(first.pm25.status,'latest');
+ assert.equal(first.weather.status,'model_latest');
+ ctl.advance(120000); // 181 min old, but cache entry still within 180-second success TTL
+ const second=await ctl.api.getLive({now:ctl.now});
+ assert.equal(ctl.calls.backend,1,'must not re-fetch within success TTL');
+ assert.equal(second.pm25.status,'unavailable');
+ assert.equal(second.pm25.value,undefined);
+ assert.equal(second.weather.status,'unavailable');
+ const waterCtl=bootCtl();
+ waterCtl.state.observationAgeMin=179;
+ const w1=await waterCtl.api.getWater({now:waterCtl.now});
+ assert.equal(w1.stations.HDA004.status,'ok');
+ waterCtl.advance(120000);
+ const w2=await waterCtl.api.getWater({now:waterCtl.now});
+ assert.equal(waterCtl.calls.water,1);
+ assert.equal(w2.stations.HDA004.status,'missing');
+ assert.equal(w2.stations.HDA004.levelMsl,null);
+ assert.equal(w2.stations.HDA004.risk,'unassessed');
+ assert.equal(w2.stations.S5.status,'missing');
 });
