@@ -12,6 +12,7 @@ on:
       - assets/**
       - apps-script/**
       - tests/**
+      - v2/**
       - water.html
       - water.js
       - LED-ROTATION.md
@@ -27,6 +28,7 @@ on:
       - assets/**
       - apps-script/**
       - tests/**
+      - v2/**
       - water.html
       - water.js
       - LED-ROTATION.md

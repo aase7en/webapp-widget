@@ -1,0 +1,266 @@
+<!doctype html>
+<html lang="th"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>UTH LED Weather · Isolated Visual Prototype</title>
+<style>
+:root{color-scheme:dark;font-family:Tahoma,"Noto Sans Thai",system-ui,sans-serif}*{box-sizing:border-box}body{margin:0;background:#07131f;color:#e4f4ff;padding:30px 22px}
+main{max-width:1150px;margin:auto}h1{font-size:21px;margin:0 0 5px}.muted{color:#a7bbc9;font-size:13px}.explain{margin:14px 0;font-size:12px;color:#c6d7e4}.stage-bg{margin:20px 0;background:#000;border:1px solid #29465e;border-radius:12px;min-height:126px;display:flex;align-items:center;justify-content:center;overflow:hidden}
+.zoom{width:864px;height:80px;position:relative;flex:none}.frame{transform:scale(2);transform-origin:top left;position:absolute;left:0;top:0}
+.led{width:432px;height:40px;position:relative;overflow:hidden;display:flex;border:1px solid #6dcdf7;border-radius:7px;box-shadow:inset 0 1px 0 #96dfff82,inset 0 -2px 0 #137eb380,0 0 8px #008de66a;background:linear-gradient(180deg,#0c2737 0%,#02070e 48%,#081826 100%);color:#fff}
+.led:before{content:"";position:absolute;inset:2px 1px auto;height:1px;background:linear-gradient(90deg,transparent,#59cbff80,transparent);pointer-events:none}
+.clock{width:79px;min-width:79px;text-align:center;display:flex;flex-direction:column;justify-content:center;padding:0 1px}
+.day{font-size:8.1px;font-weight:800;color:#c3e1f4;line-height:12px;white-space:nowrap}.time{font-size:19px;line-height:21px;font-weight:900;letter-spacing:-1px;color:#fff;text-shadow:0 0 5px #b6ecff70}
+.current{width:100px;min-width:100px;display:flex;align-items:center;position:relative;padding:0 2px 0 4px;border-left:2px solid #54ccff70}
+.current .sun-big{width:31px;height:31px;flex:none;filter:drop-shadow(0 0 3px #ffba4288);animation:slowbob 5s ease-in-out infinite}
+.current-info{min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0;flex:1}.temp{display:flex;align-items:baseline;gap:2px;white-space:nowrap;font-weight:900;line-height:15px;height:15px}.temp strong{font-size:17px;color:#fff;letter-spacing:-.7px;text-shadow:0 0 3px #85c5ff}.temp small{font-size:10px;color:#82cbff}.hi{font-size:9px;line-height:9px;height:9px;font-weight:750;color:#ffbc36}.hi strong{color:#ffbd35;font-size:11px}.place{color:#b9e3fd;font-size:6.5px;white-space:nowrap;font-weight:700;line-height:8px;height:8px}
+.hour-group{width:150px;min-width:150px;display:flex;height:38px;border-left:2px solid #6ac7fc60;border-right:2px solid #5caef880;align-items:stretch}
+.hour{width:29.6px;flex:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0;border-right:1px solid #126ca967;position:relative;white-space:nowrap}
+.hour:last-child{border-right:0}.hour .t{font-size:8px;color:#ecfaff;font-weight:800;line-height:10px}.hour svg{display:block;width:25px;height:18px;overflow:visible;filter:drop-shadow(0 1px 1px #031d3bb0) drop-shadow(0 0 2px #b3eeff45);will-change:transform}.hour .rain-pct{color:#28d2ff;font-size:10px;line-height:10px;font-weight:900;text-shadow:0 0 4px #11a9fb44}
+.hour[data-weather="storm"] svg{animation:cloudStormFloat 4.9s ease-in-out infinite}.hour[data-weather="rain"] svg{animation:cloud3dFloat 5.3s ease-in-out infinite}.hour[data-weather="partly"] svg{animation:cloud3dFloat 6.8s ease-in-out infinite}.hour[data-weather="cloud"] svg{animation:cloud3dFloat 7.2s ease-in-out infinite}
+.warning{min-width:0;flex:1;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:0;padding:1px 2px}
+.pill{height:21px;width:96px;max-width:100%;display:flex;align-items:center;justify-content:center;gap:4px;border-radius:14px;background:linear-gradient(180deg,#f6b934 0%,#97610e 52%,#573000 100%);border:1px solid #ffe272;box-shadow:inset 0 1px 2px #fff5a3,0 0 4px #e4a12580;font-weight:900;font-size:11px;text-shadow:0 1px 2px #6f3200}
+.pill .bang{width:16px;height:16px;display:grid;place-items:center;background:radial-gradient(circle at 30% 25%,#fff5b5,#edaa12 60%,#a26402);border:1px solid #ffeeba;border-radius:50%;font-size:12px;color:#351900;text-shadow:none}
+.under{font-size:7px;line-height:9px;color:#acc7da;text-align:center;font-weight:700;white-space:nowrap}
+.btns{display:flex;flex-wrap:wrap;gap:9px;margin:15px 0}button{cursor:pointer;color:#daf3ff;background:#163950;border:1px solid #6bbde0;border-radius:6px;padding:9px 13px;font-weight:750}button:hover{background:#205578}
+.note{padding:12px;border-radius:8px;border:1px solid #496173;background:#112737;color:#b9d0df;font-size:13px;line-height:1.65}
+@keyframes cloud3dFloat{0%,100%{transform:translate3d(0,0,0) rotate(-1deg);filter:drop-shadow(0 1px 1px #031d3bb0) drop-shadow(0 0 2px #b3eeff45)}45%{transform:translate3d(.7px,-1.3px,0) rotate(1deg);filter:drop-shadow(0 2px 2px #031d3ba0) drop-shadow(0 0 2.5px #d3f8ff88)}70%{transform:translate3d(-.4px,-.6px,0) rotate(-.5deg)}}@keyframes cloudStormFloat{0%,40%,100%{transform:translate3d(0,0,0);filter:drop-shadow(0 1px 1px #100c24) drop-shadow(0 0 2px #c3b2ff4a)}46%{transform:translate3d(0,-1px,0);filter:drop-shadow(0 0 3px #ffdc5caa)}50%{transform:translate3d(0,-.5px,0);filter:drop-shadow(0 0 2px #b6a7fb80)}65%{transform:translate3d(.6px,-1px,0)}}@keyframes slowbob{50%{transform:translateY(-1px)}}@keyframes stormpop{0%,45%,47%,80%,100%{filter:drop-shadow(0 0 2px #7cc7fa50)}46%{filter:drop-shadow(0 0 4px #ffdb55)}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
+/* Actual droplets move independently of the floating 3D cloud. Slightly
+   staggered travel makes rain appear continuous; lightning occurs in
+   two short, irregularly spaced pulses per gentle 6.4s cycle. */
+.hour .rain-drop{opacity:0;transform-box:fill-box;transform-origin:center;
+  animation:rainTravel 1.22s linear infinite;filter:drop-shadow(0 0 1.5px #75dfff)}
+.hour[data-weather="storm"] .rain-drop{animation-duration:.72s}
+.hour .lightning-bolt{opacity:0;transform-box:fill-box;transform-origin:50% 10%;
+  animation:lightningFlicker 6.4s linear infinite;filter:drop-shadow(0 0 1px #ffe57e)}
+@keyframes rainTravel{
+  0%{transform:translate3d(-.5px,-2px,0) scale(.8);opacity:0}
+  17%{opacity:.97}
+  69%{opacity:.95}
+  100%{transform:translate3d(1.1px,4.5px,0) scale(1);opacity:0}
+}
+@keyframes lightningFlicker{
+  0%,35%,36.3%,38.5%,40.5%,74%,75.3%,77%,100%{opacity:0;filter:drop-shadow(0 0 0 transparent)}
+  35.5%,36%{opacity:.96;filter:drop-shadow(0 0 3px #fff0a1)}
+  39%,39.5%{opacity:1;filter:drop-shadow(0 0 4px #fff6c8)}
+  74.5%,75%{opacity:.72;filter:drop-shadow(0 0 2px #ffdf7f)}
+  76%,76.4%{opacity:.94;filter:drop-shadow(0 0 3px #ffef91)}
+}
+@media(prefers-reduced-motion:reduce){
+  .hour .rain-drop{opacity:.85;transform:translateY(1px)}
+  .hour .lightning-bolt{opacity:1;filter:drop-shadow(0 0 1px #ffe57e)}
+}
+/* Current-conditions icon shares the exact 3D SVG scene assets and independent
+   rain/lightning overlays with hourly cells. 31x31 stays inside 432x40. */
+.current .sun-big{overflow:visible;will-change:transform;transform-origin:50% 50%}
+.current .current-sun-rotor{transform-box:fill-box;transform-origin:center;
+  animation:currentSunTurn 23s linear infinite}
+.current .current-sun-aura{fill:#ffb933;opacity:.35;filter:blur(2px);
+  animation:currentSunBreathe 4.8s ease-in-out infinite}
+.current .current-sun-glint{fill:#fffef2;opacity:.72;
+  animation:currentSunGlint 4.8s ease-in-out infinite}
+.current[data-weather="sunny"] .sun-big{animation:currentSunFloat 5s ease-in-out infinite}
+.current[data-weather="rain"] .sun-big,
+.current[data-weather="partly"] .sun-big,
+.current[data-weather="cloud"] .sun-big{animation:cloud3dFloat 6s ease-in-out infinite}
+.current[data-weather="storm"] .sun-big{animation:cloudStormFloat 4.9s ease-in-out infinite}
+.current[data-weather="none"] .sun-big{animation:none;filter:grayscale(1) brightness(.72)}
+.current .rain-drop{opacity:0;transform-box:fill-box;transform-origin:center;
+  animation:rainTravel 1.22s linear infinite;filter:drop-shadow(0 0 1.5px #75dfff)}
+.current[data-weather="storm"] .rain-drop{animation-duration:.72s}
+.current .lightning-bolt{opacity:0;transform-box:fill-box;transform-origin:50% 10%;
+  animation:lightningFlicker 6.4s linear infinite;filter:drop-shadow(0 0 1px #ffe57e)}
+@keyframes currentSunTurn{to{transform:rotate(360deg)}}
+@keyframes currentSunBreathe{0%,100%{opacity:.2;transform:scale(.94)}50%{opacity:.64;transform:scale(1.12)}}
+@keyframes currentSunGlint{0%,100%{opacity:.49}50%{opacity:.95}}
+@keyframes currentSunFloat{0%,100%{transform:translateY(.5px) scale(1)}50%{transform:translateY(-1.2px) scale(1.055)}}
+@media(prefers-reduced-motion:reduce){
+.current .current-sun-aura{opacity:.3;transform:none}
+.current .current-sun-glint{opacity:.75}
+.current .rain-drop{opacity:.85;transform:translateY(1px)}
+.current .lightning-bolt{opacity:1}
+}
+@media(max-width:930px){body{padding:20px 7px}.stage-bg{min-height:90px}.zoom{width:432px;height:40px}.frame{transform:scale(1)}}
+</style><style>
+:root{color-scheme:dark}
+html,body{padding:0!important;margin:0!important;width:432px!important;height:40px!important;min-height:40px!important;background:transparent!important;overflow:hidden!important}
+main{padding:0!important;margin:0!important;max-width:none!important;width:432px!important;height:40px!important;overflow:hidden!important}
+main>h1,main>.muted,main>.btns,main>.note{display:none!important}
+.stage-bg{margin:0!important;padding:0!important;width:432px!important;min-height:40px!important;height:40px!important;border:none!important;border-radius:0!important;display:block!important;background:transparent!important}
+.zoom{width:432px!important;height:40px!important}
+.frame{transform:none!important}
+</style>
+<style id="uth-weather-glass-layer">
+/* Convex clear glass — same visual family as PM/Water within 432×40. */
+.led{background:linear-gradient(175deg,#22405a,#071522 31%,#030911 61%,#123551);
+box-shadow:inset 0 1px 1px #caffffa0,inset 0 -1px 1px #45dfff99,0 0 6px #11bcff63}
+.led::after{content:"";position:absolute;inset:0;z-index:12;pointer-events:none;
+border-radius:7px;
+background:linear-gradient(168deg,#c8fbff20 0%,transparent 18%,transparent 71%,#7ad5ff0a);
+box-shadow:inset 0 1px 1px #d3f9ff8a,inset 0 -1px 1px #279cd365}
+.led .clock,.led .current,.led .hour,.led .warning{
+ border-radius:0!important;
+ background:transparent!important;
+ box-shadow:none!important;
+ position:relative;
+ border-right:0!important
+}
+.led .current,.led .hour,.led .warning{border-left:1px solid #55b9e640!important}
+.led .clock::before,.led .current::before,.led .hour::before,.led .warning::before{
+ content:none!important;display:none!important
+}
+</style>
+<style id="uth-weather-specular-icons">
+/* Weather: tiny reflective arcs attached to original icons only (not inner glass panels). */
+.led .hour svg .uth-icon-specular,
+.led .current .sun-big .uth-icon-specular{
+ opacity:.47;
+ filter:none!important;
+ transform-box:fill-box;transform-origin:center;
+ animation:uth-weather-specular 7.3s ease-in-out infinite;
+}
+.led .hour svg,
+.led .current .sun-big{
+ isolation:isolate;
+}
+@keyframes uth-weather-specular{
+ 0%,16%,100%{opacity:.26;transform:translateX(-.45px)}
+ 35%{opacity:.78;transform:translateX(.6px)}
+ 54%{opacity:.32;transform:translateX(.1px)}
+}
+@media(prefers-reduced-motion:reduce){
+ .led .hour svg .uth-icon-specular,
+ .led .current .sun-big .uth-icon-specular{
+  animation:none!important;opacity:.39!important;transform:none!important
+ }
+}
+</style>
+<!-- clear-gloss-outer-rim-weather v1 -->
+<style id="uth-clear-outer-rim-weather">
+/* UTH clear convex outer rim — ONLY the outermost LED frame.
+   Keep the 432x40 center dark enough to read status/numerals in daylight.
+   No blur or lens applied to internal segments. */
+.led{
+  border:1px solid rgba(180,246,255,.97)!important;
+  border-radius:10px!important;
+  overflow:hidden;
+  background:
+    radial-gradient(ellipse 120% 85% at 50% -23%,rgba(159,235,255,.20),transparent 58%),
+    linear-gradient(180deg,
+      rgba(95,202,247,.27) 0%,
+      rgba(27,90,129,.23) 12%,
+      rgba(4,17,30,.94) 31%,
+      rgba(3,13,23,.97) 69%,
+      rgba(63,158,209,.18) 100%)!important;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.69),
+    inset 0 -1px 0 rgba(130,238,255,.52),
+    inset 1px 0 0 rgba(212,254,255,.24),
+    inset -1px 0 0 rgba(212,254,255,.24),
+    0 0 2px rgba(24,184,228,.31),
+    0 0 6px rgba(42,185,226,.14)!important;
+}
+.led::before{
+  content:""!important;
+  position:absolute!important;
+  pointer-events:none!important;
+  inset:1px 2px auto 2px!important;
+  height:6px!important;
+  border-radius:9px 9px 13px 13px!important;
+  z-index:10!important;
+  opacity:.92;
+  background:
+    linear-gradient(112deg,transparent 0%,rgba(245,255,255,.02) 26%,rgba(255,255,255,.62) 52%,rgba(216,251,255,.03) 75%,transparent 100%),
+    linear-gradient(180deg,rgba(240,255,255,.46) 0%,rgba(209,245,255,.13) 48%,transparent 100%)!important;
+  background-size:28% 100%,100% 100%;
+  background-repeat:no-repeat;
+  background-position:-42% 0,0 0;
+  box-shadow:none!important;
+  animation:uth-clear-rim-glide 12s ease-in-out infinite;
+}
+.led::after{
+  content:""!important;
+  position:absolute!important;
+  inset:0!important;
+  z-index:11!important;
+  pointer-events:none!important;
+  border-radius:10px!important;
+  background:
+    radial-gradient(ellipse 45px 20px at 3% 1%,rgba(251,255,255,.27),transparent 80%),
+    radial-gradient(ellipse 50px 17px at 97% 99%,rgba(169,246,255,.14),transparent 83%),
+    linear-gradient(110deg,rgba(228,250,255,.07),transparent 16%,transparent 84%,rgba(160,231,255,.06))!important;
+  box-shadow:inset 0 1px 1px rgba(243,255,255,.30),
+             inset 0 -1px 1px rgba(131,234,255,.22)!important;
+}
+@keyframes uth-clear-rim-glide{
+  0%,20%{background-position:-42% 0,0 0}
+  53%{background-position:130% 0,0 0}
+  69%,100%{background-position:130% 0,0 0}
+}
+@media(prefers-reduced-motion:reduce){
+  .led::before{animation:none!important;
+    background-position:43% 0,0 0!important}
+}
+</style>
+</head>
+<body><main><h1>Weather Forecast · LED Luxury Prototype</h1><div class="muted">Separate visual preview — Original LED canvas 432 × 40 CSS px · ไม่แตะ Repository หรือ Production</div>
+<div class="stage-bg"><div class="zoom"><div class="frame"><div class="led" role="img" aria-label="ตัวอย่างจำลองแถบอากาศ LED อุณหภูมิ 28 องศา ดัชนีความร้อน 33 องศา พยากรณ์ฝน 5 ชั่วโมง">
+<svg xmlns="http://www.w3.org/2000/svg" width="0" height="0" style="position:absolute;overflow:hidden" aria-hidden="true"><defs>
+<radialGradient id="sunGrad" cx="29%" cy="23%" r="75%"><stop offset="0" stop-color="#fffdf3"/><stop offset=".25" stop-color="#fff6a5"/><stop offset=".6" stop-color="#ffc72e"/><stop offset=".85" stop-color="#ff920b"/><stop offset="1" stop-color="#cf5400"/></radialGradient>
+<radialGradient id="pearlPuff" cx="30%" cy="20%" r="88%"><stop offset="0" stop-color="#ffffff"/><stop offset=".23" stop-color="#f8fdff"/><stop offset=".49" stop-color="#d0e4f8"/><stop offset=".72" stop-color="#92accd"/><stop offset=".91" stop-color="#4b6e99"/><stop offset="1" stop-color="#254767"/></radialGradient>
+<radialGradient id="frontPuff" cx="38%" cy="8%" r="95%"><stop offset="0" stop-color="#ffffff"/><stop offset=".22" stop-color="#f4fbff"/><stop offset=".52" stop-color="#b1d0ec"/><stop offset=".8" stop-color="#628ab5"/><stop offset="1" stop-color="#284b78"/></radialGradient>
+<linearGradient id="cloudBody" x1="0" y1="0" x2=".2" y2="1"><stop offset="0" stop-color="#f7ffff"/><stop offset=".48" stop-color="#adcdea"/><stop offset=".8" stop-color="#7194bb"/><stop offset="1" stop-color="#2e567c"/></linearGradient>
+<radialGradient id="purplePuff" cx="29%" cy="21%" r="87%"><stop offset="0" stop-color="#e9ddff"/><stop offset=".26" stop-color="#c6bded"/><stop offset=".56" stop-color="#8d89d1"/><stop offset=".84" stop-color="#51477f"/><stop offset="1" stop-color="#252345"/></radialGradient>
+<radialGradient id="purpleFront" cx="34%" cy="15%" r="90%"><stop offset="0" stop-color="#efeaff"/><stop offset=".34" stop-color="#afa5da"/><stop offset=".68" stop-color="#70669e"/><stop offset="1" stop-color="#2c2953"/></radialGradient>
+<linearGradient id="purpleBody" x1="0" y1="0" x2=".2" y2="1"><stop offset="0" stop-color="#ddd3ff"/><stop offset=".45" stop-color="#867ac2"/><stop offset="1" stop-color="#373163"/></linearGradient>
+<linearGradient id="neonRain" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#dfffff"/><stop offset=".3" stop-color="#85efff"/><stop offset=".8" stop-color="#0dc5ff"/><stop offset="1" stop-color="#0784d9"/></linearGradient>
+<linearGradient id="goldBolt" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fffef4"/><stop offset=".3" stop-color="#fff27b"/><stop offset=".65" stop-color="#ffcb26"/><stop offset="1" stop-color="#ed8611"/></linearGradient>
+</defs>
+<symbol id="sun" viewBox="0 0 40 40"><g fill="#ffb929" stroke="#ffd860" stroke-width=".7"><path d="M19 0h3l1 7h-5z M19 33h3l1 7h-5z M0 19v3l7 1v-5z M33 19v3l7 1v-5z M5 5l2-2 6 5-4 4z M27 28l4-4 6 6-3 3z M34 4l2 3-6 6-4-4z M5 35l-2-2 6-6 4 4z"/></g><circle cx="20" cy="20" r="13" fill="url(#sunGrad)" stroke="#ffea8e" stroke-width="1"/></symbol>
+<symbol id="cloud" viewBox="0 0 32 32">
+<ellipse cx="16.5" cy="26" rx="10" ry="1.7" fill="#0c355c" opacity=".37"/>
+<path d="M6 22.8C1.1 21.8 1 15.6 5.5 14.2C5.6 9 11.1 6.4 14.8 9.7C17 4 24 5.6 25.5 11C32.4 12 31.6 21.6 27.4 22.8Z" fill="url(#cloudBody)" stroke="#d9f3ff" stroke-width=".6"/>
+<ellipse cx="11.4" cy="15.7" rx="7" ry="8" fill="url(#pearlPuff)"/>
+<circle cx="19.1" cy="12.4" r="9.1" fill="url(#pearlPuff)"/>
+<ellipse cx="25" cy="17" rx="6.5" ry="7.1" fill="url(#frontPuff)"/>
+<path d="M5.2 19C6.6 16.6 9.6 16.2 11.4 18.5C15 15 20 16.9 20.5 19.1C24.2 16.9 28.2 18.2 28 21.3C27.8 23.4 24.7 24.5 21.9 24.5H9.3C6.2 24.5 4.1 22.8 5.2 19Z" fill="url(#cloudBody)"/>
+<path d="M8.9 12.5C10 9.5 12.6 9.5 14 10.3M17.6 7.2C20.1 5.8 22.4 7.3 23.1 9.1" fill="none" stroke="#ffffff" stroke-width="1.2" stroke-linecap="round" opacity=".89"/>
+<path d="M8.5 23.1H25.9" stroke="#234c78" stroke-width=".7" opacity=".6"/>
+</symbol>
+<symbol id="rain" viewBox="0 0 32 32">
+<ellipse cx="16.5" cy="23.6" rx="12.4" ry="2" fill="#0d3c6a" opacity=".4"/>
+<path d="M5.3 18.9C1.1 17.8 2.2 11.8 6.4 11.6C7.6 6.3 12 4.9 15.5 8.7C18.6 2.5 25.4 6.5 26.4 11.2C31 12.3 31.9 19.9 27.3 21.4H9.1Z" fill="url(#cloudBody)" stroke="#c6eeff" stroke-width=".7"/>
+<ellipse cx="10.6" cy="14" rx="6.8" ry="7.3" fill="url(#pearlPuff)"/>
+<circle cx="19.2" cy="11.8" r="8.9" fill="url(#pearlPuff)"/>
+<ellipse cx="25.3" cy="16.8" rx="5.8" ry="5.7" fill="url(#frontPuff)"/>
+<path d="M5.4 16.9C8.7 15 12.4 16.3 13.9 18.3C16.9 16.2 20.7 16.7 22 18.9C24.6 17.2 29.2 17.7 28.5 20.2C28 22.5 7.7 24.2 5.4 20.2Z" fill="url(#cloudBody)"/>
+<path d="M9.2 11.1Q12 7.8 14 10.2M17 7.9Q20.2 5.5 22.7 8.2" fill="none" stroke="#fff" stroke-width="1" stroke-linecap="round" opacity=".75"/>
+
+</symbol>
+<symbol id="storm" viewBox="0 0 32 32">
+<ellipse cx="16.5" cy="24" rx="12" ry="2.1" fill="#271b49" opacity=".55"/>
+<path d="M5.5 20.8C1.5 19.2 1.7 13.8 6.2 11.9C7 6.6 13 5 16 8.7C18.2 2.8 25 6.1 26.4 11.5C32.1 13.1 32 21 27.2 22H9Z" fill="url(#purpleBody)" stroke="#c1b5e8" stroke-width=".6"/>
+<ellipse cx="11.2" cy="14.8" rx="7.4" ry="7.6" fill="url(#purplePuff)"/>
+<circle cx="19.3" cy="12.3" r="9.3" fill="url(#purplePuff)"/>
+<ellipse cx="25.4" cy="17.5" rx="6" ry="6" fill="url(#purpleFront)"/>
+<path d="M5.1 18.3C8.7 15.9 12.2 17.5 14.1 19.2C17.4 16.9 20.3 17.6 22 19.7C25 17.1 29.6 19.1 28.4 21.8C27.8 23.1 7.2 24.1 5.1 21.6Z" fill="url(#purpleBody)"/>
+<path d="M9.1 10.9C10.7 8.9 13 8.6 14.2 10M17.5 7.8C20 5.9 22.1 6.8 23.2 8.5" fill="none" stroke="#f0ebff" stroke-width="1" opacity=".65" stroke-linecap="round"/>
+
+
+</symbol>
+<symbol id="partly" viewBox="0 0 34 32">
+<circle cx="12.1" cy="12.2" r="9.3" fill="url(#sunGrad)" stroke="#ffe9a3" stroke-width=".8"/>
+<path d="M10.1 15.3C12.1 9.5 17 9.7 20 12.8C23.8 9.5 28.2 14 28 18.9C33.8 21.4 30.2 27.4 25.2 27.4H10.5C5.1 27.4 5 19.3 10.1 15.3Z" fill="url(#cloudBody)" stroke="#d6f1ff" stroke-width=".6"/>
+<ellipse cx="13.9" cy="19.5" rx="6.7" ry="7" fill="url(#frontPuff)"/>
+<circle cx="20.3" cy="16.9" r="8.9" fill="url(#pearlPuff)"/>
+<ellipse cx="26.1" cy="21.1" rx="5.6" ry="5.6" fill="url(#frontPuff)"/>
+<path d="M9 24.1C10.8 22.1 13.2 21.4 16.1 23.2C18.6 21.2 22.3 22.1 23.9 23.9H28C28.8 26.8 25.8 28 22.3 28H12.6C9.1 28 7.6 26 9 24.1Z" fill="url(#cloudBody)"/>
+<path d="M17.4 12.9Q20.5 10.5 23.2 13M11 17.7Q12.4 15.9 14.2 16" fill="none" stroke="#fff" stroke-width="1.05" stroke-linecap="round" opacity=".8"/>
+</symbol></svg>
+<div class="clock"><div class="day" id="mock-day">รอเวลา</div><div class="time" id="mock-time">--:--</div></div>
+<div class="current" data-weather="sunny"><svg class="sun-big current-weather-icon" id="current-weather-icon" viewBox="0 0 40 40" aria-hidden="true"><circle class="current-sun-aura" cx="20" cy="20" r="16"/><g class="current-sun-rotor"><use href="#sun"/></g><ellipse class="current-sun-glint" cx="16" cy="13" rx="4.6" ry="2.5" transform="rotate(-35 16 13)"/></svg><div class="current-info"><div class="temp"><strong>—</strong><small>C</small></div><div class="hi">HI <strong>—</strong></div><div class="place" id="current-weather-label">ต.อุทัย · แดดจัด</div></div></div>
+<div class="hour-group" id="hours"></div>
+<div class="warning"><div class="pill"><span class="bang">!</span>รอข้อมูล</div><div class="under">พยากรณ์รายชั่วโมง</div><div class="under">FE — · UV —</div></div>
+</div></div></div></div>
+</main><script src="../led-rotation.js" defer></script>
+<script src="./api-client.js" defer></script>
+<script src="./weather-live.js" defer></script>
+</body></html>
