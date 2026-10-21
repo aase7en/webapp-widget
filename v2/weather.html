@@ -244,6 +244,34 @@ box-shadow:inset 0 1px 1px #d3f9ff8a,inset 0 -1px 1px #279cd365}
 @keyframes uth-snow-fall{0%{transform:translateY(-2px);opacity:0}45%{opacity:.98}100%{transform:translateY(3px);opacity:0}}
 @media(prefers-reduced-motion:reduce){.led .fog-band,.led .snow-flake{animation:none!important;opacity:.8}}
 </style>
+<style id="uth-glass-soft-refraction">
+/* Thin half-pixel convex rim, low-opacity highlights behind information. */
+.led{border:1px solid transparent!important;
+ box-shadow:inset 0 0 0 .45px rgba(202,240,254,.52),inset 0 .5px 0 rgba(240,255,255,.36),
+ inset 0 -.5px 0 rgba(113,223,255,.27),0 0 2px rgba(56,177,235,.14)!important}
+.led::before{height:2px!important;inset:1px 4px auto!important;z-index:1!important;
+ opacity:.34!important;
+ background:linear-gradient(90deg,transparent,rgba(249,255,255,.03) 28%,rgba(242,255,255,.14) 52%,rgba(249,255,255,.03) 75%,transparent)!important;
+ background-size:100% 100%!important;animation:none!important;
+ box-shadow:none!important}
+.led::after{z-index:1!important;opacity:.28!important;
+ box-shadow:inset 0 .5px .5px rgba(240,255,255,.14),
+ inset 0 -.5px .5px rgba(148,237,255,.12)!important}
+.led .clock,.led .current,.led .hour,.led .warning{position:relative;z-index:2}
+.led .warning[data-advisory="storm"] .pill,
+.led .warning[data-advisory="heat-high"] .pill{
+ background:linear-gradient(180deg,#c69228,#7c440f 53%,#4f2808)!important;
+ border-color:#f0ce73!important;color:#fff2cd!important}
+.led .warning[data-advisory="heat"] .pill,
+.led .warning[data-advisory="rain"] .pill,
+.led .warning[data-advisory="fog"] .pill{
+ background:linear-gradient(180deg,#947021,#654c0c 53%,#392c0a)!important;
+ border-color:#c9b776!important;color:#fff5d4!important}
+.led .warning[data-advisory="storm"] .forecast-dot,
+.led .warning[data-advisory^="heat"] .forecast-dot{background:#ffd174;border-color:#fff2c3}
+.led .warning .pill{font-size:8.5px!important}
+.led .warning .under{font-size:7px!important}
+</style>
 </head>
 <body><main><h1>Weather Forecast · LED Luxury Prototype</h1><div class="muted">Separate visual preview — Original LED canvas 432 × 40 CSS px · ไม่แตะ Repository หรือ Production</div>
 <div class="stage-bg"><div class="zoom"><div class="frame"><div class="led" role="img" aria-label="แถบข้อมูลอากาศ Open-Meteo และพยากรณ์ล่วงหน้า 5 ชั่วโมง">
@@ -332,10 +360,11 @@ box-shadow:inset 0 1px 1px #d3f9ff8a,inset 0 -1px 1px #279cd365}
 <div class="clock"><div class="day" id="mock-day">รอเวลา</div><div class="time" id="mock-time">--:--</div></div>
 <div class="current" data-weather="none"><svg class="sun-big current-weather-icon" id="current-weather-icon" viewBox="0 0 40 40" aria-hidden="true"><use href="#unknown"/></svg><div class="current-info"><div class="temp"><strong>—</strong><small>C</small></div><div class="hi" title="Heat Index: คำนวณจากอุณหภูมิและความชื้นที่ได้จากแบบจำลอง Open-Meteo ไม่ใช่เครื่องวัดที่โรงพยาบาล">HI <strong>—</strong></div><div class="place" id="current-weather-label">ต.อุทัย · รอข้อมูล</div></div></div>
 <div class="hour-group" id="hours"></div>
-<div class="warning" role="group" aria-label="ข้อมูลพยากรณ์ฝนรายชั่วโมงจากแบบจำลอง Open-Meteo"><div class="pill"><span class="forecast-dot" aria-hidden="true"></span><span class="forecast-label">รอข้อมูล</span></div><div class="under">พยากรณ์ไม่พร้อม</div><div class="under">Open-Meteo</div></div>
+<div class="warning" role="group" aria-label="คำแนะนำการเฝ้าระวังเบื้องต้นจากแบบจำลอง Open-Meteo ไม่ใช่ประกาศเตือนภัยอย่างเป็นทางการ" data-advisory="none"><div class="pill"><span class="forecast-dot" aria-hidden="true"></span><span class="forecast-label">รอข้อมูล</span></div><div class="under">พยากรณ์ไม่พร้อม</div><div class="under">Open-Meteo</div></div>
 </div></div></div></div>
 </main><script src="../led-rotation.js" defer></script>
 <script src="./api-client.js" defer></script>
 <script src="./weather-conditions.js" defer></script>
+<script src="./weather-advisories.js" defer></script>
 <script src="./weather-live.js" defer></script>
 </body></html>

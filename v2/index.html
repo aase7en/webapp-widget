@@ -398,6 +398,59 @@ box-shadow:inset 0 1px 1px #ceffffa8,inset 0 -1px 2px #30e7ff80,0 0 6px #19bbff6
 #water .water-fig .num{line-height:18px}
 #water .water-fig .observed{line-height:7px;transform:translateY(-2px);font-size:5.7px}
 
+/* Reduced-glare convex outer rim; highlights must sit BEHIND labels. */
+.stage{border:1px solid transparent!important;
+ box-shadow:inset 0 0 0 .45px rgba(196,241,255,.51),inset 0 .5px 0 rgba(242,255,255,.38),
+ inset 0 -.65px 0 rgba(117,224,255,.31),0 0 2px rgba(41,187,231,.16)!important}
+.stage::before{height:2px!important;inset:1px 4px auto!important;
+ opacity:.35!important;z-index:1!important;
+ background:linear-gradient(90deg,transparent,rgba(241,253,255,.04) 27%,rgba(241,253,255,.16) 50%,rgba(241,253,255,.04) 73%,transparent)!important;
+ background-size:100% 100%!important;animation:none!important;
+ box-shadow:none!important}
+.stage::after{opacity:.31!important;z-index:1!important;
+ box-shadow:inset 0 .5px .5px rgba(243,255,255,.13),inset 0 -.5px .5px rgba(131,234,255,.12)!important}
+.stage .clock,.stage .seg{position:relative;z-index:2}
+
+/* Non-pipe overflow: irregular rolling sheet, foamy edge and drifting rivulets.
+   Only station waterlevel >= the HII station bank (data-risk=critical) can
+   show overbank illustrative water. No sensor/physical gate claim. */
+#water .water-station .water-outflow,
+#water .water-station .gate .wall-seep,
+#water .water-station .gate .water-tail{display:none!important}
+#water .water-station .spill-sheet{
+ position:absolute;left:11px;top:-1px;width:24px;height:42px;z-index:6;
+ pointer-events:none;overflow:visible;opacity:0;transform:translateX(-1px);
+ filter:drop-shadow(0 0 1px rgba(87,228,253,.40));
+ transition:opacity .45s ease}
+#water .water-station[data-water="ok"][data-risk="critical"] .spill-sheet{opacity:.93}
+#water .spill-sheet .spill-body{
+ transform-origin:12px 8px;animation:uth-overbank-surge 2.7s ease-in-out infinite}
+#water .spill-sheet .spill-foam{stroke:#ddfaff;stroke-width:1.6;
+ stroke-linecap:round;fill:none;opacity:.86;
+ animation:uth-overbank-foam 2.2s ease-in-out infinite}
+#water .spill-sheet .spill-curl{stroke:#8feaff;stroke-width:1.15;
+ fill:none;stroke-linecap:round;stroke-dasharray:6 3;
+ animation:uth-overbank-curl 2.5s ease-in-out infinite}
+@keyframes uth-overbank-surge{
+ 0%,100%{transform:translateX(-1.3px) scaleX(.94) rotate(-2deg);opacity:.74}
+ 43%{transform:translateX(1px) scaleX(1.08) rotate(2deg);opacity:.96}
+ 73%{transform:translateX(-.6px) scaleX(1.02) rotate(-1deg);opacity:.81}
+}
+@keyframes uth-overbank-foam{
+ 0%,100%{transform:translateX(-2px);opacity:.66}
+ 50%{transform:translateX(2px);opacity:1}
+}
+@keyframes uth-overbank-curl{
+ 0%{transform:translate(-1px,-1px);stroke-dashoffset:0;opacity:.37}
+ 60%{transform:translate(2px,2px);stroke-dashoffset:7;opacity:.82}
+ 100%{transform:translate(-2px,4px);stroke-dashoffset:12;opacity:.30}
+}
+@media(prefers-reduced-motion:reduce){
+ #water .spill-sheet .spill-body,#water .spill-sheet .spill-foam,
+ #water .spill-sheet .spill-curl{animation:none!important;transform:none!important}
+ #water .water-station .spill-sheet{transition:none!important}
+}
+
 /* Physical 432x40 LED mode: rotate exactly three approved UI strips. */
 html.led-screen,html.led-screen body{margin:0;padding:0;overflow:hidden;width:432px;height:40px;max-width:432px;max-height:40px;background:#000}
 html.led-screen main{width:432px;height:40px;max-width:432px;margin:0;overflow:hidden}
@@ -441,12 +494,30 @@ html.led-screen .scale>div,html.led-screen .scale>iframe{transform:none!importan
 <div class="clock"><div class="d">พ. 21 ต.ค. 69</div><div class="t">07:45</div></div>
 <div class="seg water-station" id="s1"><div class="gate">
 <img class="liquid" src="../assets/icons3d/rig/water/liquid-normal.png" alt="">
-<img src="../assets/icons3d/rig/water/wall.png" alt=""><span class="uth-gate-specular" aria-hidden="true"></span><span class="ripple"></span><span class="mini-crest"></span><span class="wall-seep" aria-hidden="true"></span><span class="water-tail" aria-hidden="true"></span></div><span class="water-outflow" aria-hidden="true"></span>
+<img src="../assets/icons3d/rig/water/wall.png" alt=""><span class="uth-gate-specular" aria-hidden="true"></span><span class="ripple"></span><span class="mini-crest"></span><span class="wall-seep" aria-hidden="true"></span><span class="water-tail" aria-hidden="true"></span></div><svg class="spill-sheet" viewBox="0 0 36 42" aria-hidden="true" focusable="false">
+<defs><linearGradient id="spill-crest-tone-hda" x1="0" y1="0" x2="1" y2=".6">
+<stop offset="0" stop-color="#e4ffff" stop-opacity=".75"/>
+<stop offset=".24" stop-color="#93f2ff" stop-opacity=".88"/>
+<stop offset=".59" stop-color="#1ba7dc" stop-opacity=".58"/>
+<stop offset="1" stop-color="#4ac9ef" stop-opacity=".18"/></linearGradient></defs>
+<path class="spill-body" fill="url(#spill-crest-tone-hda)" d="M0 12 Q5 7 10 10 T20 10 Q27 14 31 12 C25 17 34 22 29 29 Q34 35 28 42 L4 42 Q1 36 7 31 C0 26 10 22 4 18 Q1 15 0 12 Z"/>
+<path class="spill-foam" d="M0 12 Q6 7 11 10 T23 10 Q27 13 31 12 M8 22 Q14 18 18 22 T29 22"/>
+<path class="spill-curl" d="M6 16 Q1 22 9 27 T6 41 M17 17 Q25 21 18 27 T24 41 M28 17 Q32 23 25 29 T30 41"/>
+</svg>
 <div class="water-fig"><span class="name">HDA004 ช่องสะเดา</span><span class="num"><span class="level">—</span><span class="unit"> ม.</span></span><span class="observed">รอข้อมูล</span></div>
 <div class="trend"><svg viewBox="0 0 44 16" role="img" aria-label="กราฟแนวโน้มยังไม่มีข้อมูล"><path class="axis" d="M0 13H44M0 7H44"/><path class="line" d=""/></svg><span class="caption">แนวโน้ม —</span></div></div>
 <div class="seg water-station" id="s2"><div class="gate">
 <img class="liquid" src="../assets/icons3d/rig/water/liquid-normal.png" alt="">
-<img src="../assets/icons3d/rig/water/wall.png" alt=""><span class="uth-gate-specular" aria-hidden="true"></span><span class="ripple"></span><span class="mini-crest"></span><span class="wall-seep" aria-hidden="true"></span><span class="water-tail" aria-hidden="true"></span></div><span class="water-outflow" aria-hidden="true"></span>
+<img src="../assets/icons3d/rig/water/wall.png" alt=""><span class="uth-gate-specular" aria-hidden="true"></span><span class="ripple"></span><span class="mini-crest"></span><span class="wall-seep" aria-hidden="true"></span><span class="water-tail" aria-hidden="true"></span></div><svg class="spill-sheet" viewBox="0 0 36 42" aria-hidden="true" focusable="false">
+<defs><linearGradient id="spill-crest-tone-s5" x1="0" y1="0" x2="1" y2=".6">
+<stop offset="0" stop-color="#e4ffff" stop-opacity=".75"/>
+<stop offset=".24" stop-color="#93f2ff" stop-opacity=".88"/>
+<stop offset=".59" stop-color="#1ba7dc" stop-opacity=".58"/>
+<stop offset="1" stop-color="#4ac9ef" stop-opacity=".18"/></linearGradient></defs>
+<path class="spill-body" fill="url(#spill-crest-tone-s5)" d="M0 12 Q5 7 10 10 T20 10 Q27 14 31 12 C25 17 34 22 29 29 Q34 35 28 42 L4 42 Q1 36 7 31 C0 26 10 22 4 18 Q1 15 0 12 Z"/>
+<path class="spill-foam" d="M0 12 Q6 7 11 10 T23 10 Q27 13 31 12 M8 22 Q14 18 18 22 T29 22"/>
+<path class="spill-curl" d="M6 16 Q1 22 9 27 T6 41 M17 17 Q25 21 18 27 T24 41 M28 17 Q32 23 25 29 T30 41"/>
+</svg>
 <div class="water-fig"><span class="name">S.5 สะพานปรีดี</span><span class="num"><span class="level">—</span><span class="unit"> ม.</span></span><span class="observed">รอข้อมูล</span></div>
 <div class="trend"><svg viewBox="0 0 44 16" role="img" aria-label="กราฟแนวโน้มยังไม่มีข้อมูล"><path class="axis" d="M0 13H44M0 7H44"/><path class="line" d=""/></svg><span class="caption">แนวโน้ม —</span></div></div>
 <div class="seg water-status"><b>เกณฑ์ระดับตลิ่ง</b><span id="water-tag">รอข้อมูล</span></div>
@@ -479,7 +550,7 @@ function set(id,value,observed,points,bank,ground,risk){
  box.dataset.risk=colorRisk;box.dataset.water=validReading?'ok':'missing';
  const riskDesc={below_watch:'ต่ำกว่าเกณฑ์เฝ้าระวังตลิ่ง',watch:'เฝ้าระวังน้ำล้นตลิ่ง',critical:'เสมอ/เกินระดับตลิ่ง',unassessed:'ยังประเมินไม่ได้'};
  box.setAttribute('aria-label',id+' ระดับน้ำ '+(validReading?value.toFixed(2)+' เมตร รทก.':'ไม่มีข้อมูล')+' '+riskDesc[colorRisk]);
- box.title=riskDesc[colorRisk]+(validBank?' | เฝ้าระวัง ≥'+(bank-.5).toFixed(2)+' ม.รทก. | ถึงตลิ่ง ≥'+bank.toFixed(2)+' ม.รทก.':' | ไม่พบระดับตลิ่งยืนยัน');
+ box.title='ภาพน้ำล้นเป็นเอฟเฟกต์ตามระดับตลิ่งสถานีอ้างอิง ไม่ใช่ภาพน้ำจริง | '+riskDesc[colorRisk]+(validBank?' | เฝ้าระวัง ≥'+(bank-.5).toFixed(2)+' ม.รทก. | ถึงตลิ่ง ≥'+bank.toFixed(2)+' ม.รทก.':' | ไม่พบระดับตลิ่งยืนยัน');
  const fill=typeof value==='number'&&Number.isFinite(value)&&typeof bank==='number'&&Number.isFinite(bank)&&typeof ground==='number'&&Number.isFinite(ground)&&bank>ground?Math.min(1,Math.max(0,(value-ground)/(bank-ground))):0;
  box.querySelector('.gate').style.setProperty('--fill',fill.toFixed(3));
  box.querySelector('.gate').style.setProperty('--surface-top',(30.7*(1-fill)+.2).toFixed(2)+'px');

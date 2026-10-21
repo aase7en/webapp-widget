@@ -70,10 +70,17 @@ function noData(){
  const pct=document.createElement('span');pct.className='rain-pct';pct.textContent='—%';
  item.append(lbl,createSVG('unknown'),pct);$('#hours').append(item);
  }
- $('.warning .forecast-label').textContent='ข้อมูลไม่พร้อม';
- $('.warning .under').textContent='พยากรณ์ไม่พร้อม';
- $('.warning .under:last-child').textContent='Open-Meteo';
+ applyAdvice(window.UthWeatherAdvisories.evaluate(null,null,null));
  showSource('UNAVAILABLE · ไม่ใช้ข้อมูลจำลองแทน');
+}
+function applyAdvice(x){
+ const target=$('.warning');
+ target.dataset.advisory=x.kind;
+ target.title=x.description+' · '+x.source;
+ target.setAttribute('aria-label',x.description+' · '+x.source);
+ $('.warning .forecast-label').textContent=x.label;
+ $('.warning .under').textContent=x.line1;
+ $('.warning .under:last-child').textContent=x.line2;
 }
 function paint(d){
  const weather=d.weather||{},f=d.forecast||{};
@@ -101,12 +108,10 @@ function paint(d){
  const pct=document.createElement('span');pct.className='rain-pct';pct.textContent=valid(forecast.rainProbabilityPct)?forecast.rainProbabilityPct+'%':'—%';
  item.append(t,createSVG(hourData[i]?wx:'unknown'),pct);$('#hours').append(item);
  }
- $('.warning .forecast-label').textContent=f.status==='model_forecast'?'พยากรณ์ฝน':'ข้อมูลอากาศ';
- $('.warning .under').textContent=f.status==='model_forecast'?'โอกาสฝนรายชั่วโมง':'พยากรณ์ไม่พร้อม';
- $('.warning .under:last-child').textContent='Open-Meteo';
+ applyAdvice(window.UthWeatherAdvisories.evaluate(weather,f,hi));
  const observed=Date.parse(weather.observedAt);
  const clock=Number.isFinite(observed)?new Date(observed).toLocaleTimeString('th-TH',{timeZone:'Asia/Bangkok',hour:'2-digit',minute:'2-digit'}):'ไม่ระบุเวลา';
- showSource('Open-Meteo · ต.อุทัย · ข้อมูลจากแบบจำลองสภาพอากาศ ไม่ใช่เครื่องวัดที่ รพ. · เวลาอ้างอิง '+clock);
+ showSource('Open-Meteo · ต.อุทัย · ข้อมูลจากแบบจำลองสภาพอากาศ ไม่ใช่ประกาศเตือนภัยทางการ · เวลาอ้างอิง '+clock);
 }
 async function refresh(){
  try{paint(await window.UthApiClient.getLive())}

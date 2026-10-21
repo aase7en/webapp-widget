@@ -281,12 +281,14 @@ test('weather 432x40 copy distinguishes source/model from alarm and hides unpopu
  const js=fs.readFileSync(path.join(ROOT,'v2/weather-live.js'),'utf8');
  assert.doesNotMatch(html,/FE\s*—|UV\s*—|class="bang"/);
  assert.match(html,/forecast-label/);
- assert.match(html,/aria-label="ข้อมูลพยากรณ์ฝนรายชั่วโมงจากแบบจำลอง Open-Meteo"/);
+ assert.match(html,/aria-label="คำแนะนำการเฝ้าระวังเบื้องต้นจากแบบจำลอง Open-Meteo ไม่ใช่ประกาศเตือนภัยอย่างเป็นทางการ"/);
  assert.match(html,/Heat Index: คำนวณ/);
  assert.match(js,/forecast\.status|f\.status==='model_forecast'/);
- assert.match(js,/พยากรณ์ฝน/);
- assert.match(js,/พยากรณ์ไม่พร้อม/);
- assert.match(js,/ข้อมูลจากแบบจำลองสภาพอากาศ ไม่ใช่เครื่องวัดที่ รพ/);
+ const advisory=fs.readFileSync(path.join(ROOT,'v2/weather-advisories.js'),'utf8');
+ assert.match(js,/UthWeatherAdvisories\.evaluate\(weather,f,hi\)/);
+ assert.match(advisory,/พยากรณ์ไม่พร้อม/);
+ assert.match(advisory,/แบบจำลอง/);
+ assert.match(js,/ข้อมูลจากแบบจำลองสภาพอากาศ ไม่ใช่ประกาศเตือนภัยทางการ/);
  assert.doesNotMatch(js,/พยากรณ์แบบจำลอง/);
 });
 
