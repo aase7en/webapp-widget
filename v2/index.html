@@ -1,0 +1,522 @@
+<!doctype html>
+<html lang="th"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>UTH LED • PM2.5 / Weather 3D / Water – candidate review</title>
+<script>if(new URLSearchParams(location.search).get("display")==="led")document.documentElement.classList.add("led-screen");</script>
+<style>
+:root{color-scheme:dark;font-family:Tahoma,"Noto Sans Thai",system-ui,sans-serif}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at 50% 0%,#17445a,#05101c 72%);color:#dff4ff;padding:24px 12px}
+main{max-width:1030px;margin:auto}h1{font-size:22px;margin:0 0 5px}p{font-size:13px;line-height:1.6;color:#aed1e6}
+article{border:1px solid #32617f;border-radius:12px;padding:13px;margin:15px 0;background:linear-gradient(120deg,#102738,#081825)}
+article h2{font-size:15px;margin:0 0 10px;color:#eaf7ff}article small{color:#aecbdc;font-size:11px}
+.stage-wrap{min-height:108px;display:grid;place-items:center;background:#000;border:1px solid #1d4c65;border-radius:10px;overflow:hidden}
+.scale{width:864px;height:80px;position:relative}.scale>div,.scale>iframe{position:absolute;top:0;left:0;transform:scale(2);transform-origin:0 0}
+.stage{display:flex;width:432px;height:40px;flex-wrap:nowrap;overflow:hidden;background:linear-gradient(180deg,#112a3e 0%,#040b13 38%,#092033 100%);border:1px solid #52cfff;border-radius:7px;box-shadow:inset 0 1px 0 #d0f2ff66,inset 0 -1px 0 #2d8dc1,0 0 6px #067fc774;color:#fff;position:relative;font-variant-numeric:tabular-nums}
+.stage::before{position:absolute;content:"";inset:1px 0 auto;height:1px;background:linear-gradient(90deg,transparent,#d3faffb0,transparent);pointer-events:none}
+.seg{border-left:1px solid #56ace476;min-width:0;position:relative}
+.clock{width:62px;flex:none;display:grid;align-content:center;justify-items:center}.clock .d{color:#baddf0;font-size:7px;line-height:11px;font-weight:800;white-space:nowrap}.clock .t{font-size:19px;line-height:22px;font-weight:950;letter-spacing:-1px;text-shadow:0 0 4px #b6e7ff9e}
+.pm-core{width:126px;flex:none;display:flex;align-items:center;padding:1px 0 1px 1px;overflow:hidden}.mascot{width:36px;height:36px;flex:none;position:relative;filter:drop-shadow(0 0 3px #ff972d);animation:mascotFloat 4.8s ease-in-out infinite}
+.mascot::before{content:"";position:absolute;inset:-1px;border-radius:50%;background:radial-gradient(circle,#fdd680a0,#fd81281f 65%,transparent 82%);animation:halo 4.6s ease-in-out infinite}
+.mascot img{position:absolute;inset:0;width:36px;height:36px}
+.sparks{position:absolute;inset:0;z-index:8;pointer-events:none;background:radial-gradient(circle at 2px 7px,#fff49f 0 .4px,transparent 1px),radial-gradient(circle at 32px 9px,#ffc94c 0 .5px,transparent 1px),radial-gradient(circle at 5px 29px,#f8b14f 0 .5px,transparent 1px),radial-gradient(circle at 34px 31px,#ffe7a3 0 .45px,transparent 1px);animation:sparkle 3.5s ease-in-out infinite}
+.pm-text{flex:1;min-width:0;display:flex;flex-direction:column;justify-content:center}.pm-text label{font-size:8px;font-weight:900;line-height:10px;color:#b5e3fa}.pm-num{font-size:22px;line-height:23px;letter-spacing:-1px;font-weight:950;color:#ffac55;text-shadow:0 0 4px #f9a03db2}.pm-unit{font-size:7px;line-height:8px;color:#bfe9fa;font-weight:800;position:absolute;left:95px;top:30px}
+.pm-status{width:89px;flex:none;display:grid;align-content:center;justify-items:center;overflow:hidden;gap:1px;padding:0 2px}.pill{height:18px;width:83px;border-radius:14px;display:flex;gap:2px;align-items:center;justify-content:center;background:linear-gradient(180deg,#f2a93f,#aa5210 50%,#53220a);border:1px solid #ffda87;box-shadow:0 0 4px #e17c2988,inset 0 1px 2px #fff1a9;font-size:8px;font-weight:900;white-space:nowrap}
+.pill i{font-style:normal;border:1px solid #fff1d0;display:grid;place-items:center;width:12px;height:12px;border-radius:50%;background:linear-gradient(#fffcd8,#e58d27);color:#633c10;font-size:9px}
+.sub{font-size:5.8px;line-height:9px;white-space:nowrap;font-weight:750;color:#bed6e7}
+.scalePM{width:55px;flex:none;display:grid;align-content:center;gap:3px;padding:0 3px}.scalePM .scaleLegend{font-size:6px;color:#b2eaff;letter-spacing:.1px;white-space:nowrap}.levels{width:47px;height:9px;border-radius:1px;position:relative;background:linear-gradient(90deg,#4cec83 0 15%,#e6ed2f 28%,#ffb32a 47%,#f96823 58%,#ee3f57 76%,#a951da 100%);box-shadow:inset 0 0 2px #fff5,0 0 3px #5bcbf455}.levels:after{content:"▼";font-size:7px;color:#ffdd76;position:absolute;top:-8px;left:52%;text-shadow:0 0 3px #f5c952}
+.climate{width:45px;flex:none;display:grid;grid-template-columns:1fr;justify-items:center;align-content:center;gap:1px 0;padding-left:0;overflow:hidden;color:#dcf4ff}.climate strong{font-size:8px;white-space:nowrap}.climate small{font-size:6px;white-space:nowrap;color:#91c5e6}
+.location{min-width:0;flex:1;display:grid;align-content:center;padding-left:3px;gap:1px}.location b{font-size:8px;white-space:nowrap;overflow:hidden}.location small{font-size:5.5px;line-height:8px;color:#9cc8df;white-space:nowrap}
+.btns{display:flex;gap:8px;flex-wrap:wrap;margin-top:11px}button{color:#e2f7ff;background:#193d57;border:1px solid #5baccd;border-radius:7px;padding:7px 10px;cursor:pointer;font-weight:700;font-size:12px}button:focus-visible{outline:2px solid #ffed92}
+.ledframe{width:432px;height:40px;display:block;border:0;background:#02080f}
+.water-station{display:flex;align-items:center;padding:0 1px 0 3px;gap:2px;width:155px;flex:none;overflow:hidden}
+.gate{width:32px;height:34px;position:relative;flex:none;filter:drop-shadow(0 0 2px #55d4ff91);animation:gateHover 5s ease-in-out infinite}
+.gate img{width:100%;height:100%;position:absolute;inset:0;object-fit:contain}
+.gate .liquid{transform-origin:50% 90.28%;transform:scaleY(var(--fill,0));transition:transform .65s ease}
+.gate .ripple{position:absolute;bottom:2px;left:3px;width:28px;height:6px;background:radial-gradient(ellipse at 50% 60%,#f2fbffc8,#22a8eb7a 50%,transparent 75%);filter:blur(.7px);animation:ripple 2.6s ease-in-out infinite}
+.water-fig{width:63px;min-width:0;display:grid;align-content:center;gap:0}.water-fig .name{font-size:6.6px;line-height:10px;color:#b7ddec;white-space:nowrap;font-weight:800}.water-fig .num{font-size:17px;line-height:20px;color:#43e2ff;font-weight:950;letter-spacing:-.5px;white-space:nowrap;text-shadow:0 0 3px #1cbfea88}.water-fig .num .unit{font-size:7px;color:#a6e8ff}.water-fig .observed{font-size:5.7px;line-height:7px;color:#8ebad1;white-space:nowrap}
+.trend{width:48px;min-width:0;height:30px;display:grid;align-content:center;justify-items:center;gap:0}
+.trend svg{width:44px;height:16px;background:linear-gradient(180deg,#062639,#030912);border-bottom:1px solid #447ca0}
+.trend .line{stroke:#42d6ff;fill:none;stroke-width:1.5;filter:drop-shadow(0 0 1px #25bff8)}.trend .axis{stroke:#385a73;stroke-dasharray:2 2;stroke-width:.4}
+.trend .caption{font-size:5.4px;white-space:nowrap;color:#9ac5d7}
+.water-status{min-width:0;flex:1;display:grid;align-content:center;justify-items:center;text-align:center;gap:2px}
+.water-status b{font-size:8px;color:#b9dfff;white-space:nowrap}.water-status span{font-size:7px;color:#73d9ff;white-space:nowrap;font-weight:900}
+.water-status .mock{color:#ffe8a3}
+.controls{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}
+.notice{background:#122e43;border:1px solid #3e6982;padding:10px;border-radius:8px;color:#bcdbed;font-size:12px;line-height:1.6}
+@keyframes mascotFloat{50%{transform:translateY(-.8px)}}@keyframes halo{50%{transform:scale(1.13);opacity:.9}}
+@keyframes sparkle{50%{opacity:.35;transform:rotate(3deg)}}@keyframes gateHover{50%{transform:translateY(-.4px)}}
+@keyframes waterBreath{50%{transform:scaleY(.87)}}@keyframes ripple{50%{opacity:.3;transform:translateY(-.6px) scaleX(1.2)}}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+@media(max-width:930px){body{padding:13px 3px}.scale{width:432px;height:40px}.scale>div,.scale>iframe{transform:scale(1)}.stage-wrap{min-height:58px}}
+/* Integrated 3D LED adjustments — bounded to isolated 432x40 preview. */
+.mascot{width:39px;height:39px;margin-left:-2px;margin-right:-1px;filter:drop-shadow(0 0 1.2px #e68c3f65);overflow:visible}
+.mascot img{width:39px;height:39px;top:-.5px;left:0}
+.mascot::before{inset:3px;opacity:.28;filter:blur(.5px)}
+.mascot::after{display:none}
+.sparks{opacity:.4;animation-duration:5.5s}
+.blink{position:absolute;z-index:5;display:block;top:14.7px;width:6.3px;height:5.2px;
+ border-radius:55% 55% 46% 46%;background:#ed7c28;border-bottom:1px solid #713b18;
+ transform:scaleY(0);transform-origin:top center;animation:blinkNatural 6.3s ease-in-out infinite}
+.blink-left{left:11px}.blink-right{left:22px;animation-delay:.025s}
+.mascot img[data-mask]{z-index:6}
+@keyframes blinkNatural{0%,42%,42.4%,43.5%,44%,45%,100%{transform:scaleY(0);opacity:0}
+ 42.8%,43.05%,44.35%,44.55%{transform:scaleY(1);opacity:1}}
+.levels:after{left:var(--marker-pos,0%);opacity:var(--marker-show,0)}
+.gate .ripple{z-index:3;bottom:var(--surface-bottom,4px);left:1px;width:30px;height:4px;
+ background:linear-gradient(180deg,#dcfaffc9,#36c9ee70 55%,transparent);
+ border-top:1px solid #e4ffffd9;border-radius:65% 45% 60% 50%;
+ box-shadow:0 0 2px #9becff90;filter:none;animation:surfaceSway 2.15s ease-in-out infinite}
+.gate .ripple::before,.gate .ripple::after{content:"";position:absolute;left:1px;width:28px;height:3px;
+ border-top:1px solid #a0f4ffb5;border-radius:50%;top:-1px;animation:surfaceShift 2.7s ease-in-out infinite}
+.gate .ripple::after{left:3px;width:23px;top:1px;opacity:.68;animation-delay:-1.3s}
+@keyframes surfaceSway{0%,100%{transform:translate(0,0) scaleX(.92)}50%{transform:translate(1px,-.45px) scaleX(1.08)}}
+@keyframes surfaceShift{0%,100%{transform:translateX(-1px) scaleY(.8)}50%{transform:translateX(2px) scaleY(1.2)}}
+@media(prefers-reduced-motion:reduce){.blink,.gate .ripple,.gate .ripple::before,.gate .ripple::after{animation:none!important}.blink{opacity:0;transform:scaleY(0)}}
+
+/* 21 Oct review: nearly full height sphere, precise blink, glossy low-bloom finish */
+#pm .pm-core{overflow:hidden}
+#pm .mascot{width:43px;height:39px;flex:0 0 43px;margin-left:-1px;margin-right:0;isolation:isolate;
+ filter:drop-shadow(0 0 1.2px #e9a85b7d) drop-shadow(0 1.2px 1px #030d20)}
+#pm .mascot img{width:52px;height:52px;left:-4px;top:-7px}
+#pm .mascot::before{inset:3px;background:radial-gradient(circle at 35% 24%,#fffbcf9e,transparent 28%),radial-gradient(circle,#ffc86b22,transparent 72%);filter:blur(.6px);opacity:.7}
+#pm .mascot .sparks{inset:0;z-index:8;opacity:.5;filter:drop-shadow(0 0 .8px #ffd58f)}
+#pm .mascot .blink{position:absolute;z-index:5;top:12.7px;width:8px;height:7.1px;
+ background:linear-gradient(180deg,var(--lid-hi,#ffaa59),var(--lid-color,#e97e2d) 70%,var(--lid-dark,#ad5127));
+ border-radius:52% 52% 46% 46%;border:none;border-bottom:1px solid #49311a9a;
+ transform-origin:50% 0;transform:scaleY(0);opacity:0;animation:uthBlinkVisible 5s linear infinite;
+ box-shadow:inset 0 1px 1px #fff9ca65}
+#pm .mascot .blink-left{left:11px}
+#pm .mascot .blink-right{left:20.8px;animation-delay:.01s}
+@keyframes uthBlinkVisible{
+  0%,27%,34%,68%,75%,100%{transform:scaleY(0);opacity:0}
+  29.5%,31.6%,70.2%,72.5%{transform:scaleY(1);opacity:1}
+}
+#pm .pm-text{min-width:0}
+#pm .pm-num{filter:drop-shadow(0 1px 1px #0008);text-shadow:0 0 3px currentColor}
+#pm .seg{box-shadow:inset 1px 0 0 #b9e9ff1f}
+.stage::after{content:"";position:absolute;inset:0;z-index:11;pointer-events:none;border-radius:6px;
+ background:linear-gradient(168deg,#b7f2ff1b 1%,transparent 21%,transparent 62%,#2785c309 100%);
+ box-shadow:inset 0 1px 1px #b8f4ff78,inset 0 -1px 1px #178dcb60}
+#pm .pill{box-shadow:0 0 3px #f6ad4d7a,inset 0 1px 1px #fff8c5b5,inset 0 -1px 1px #622d16}
+#pm .location{background:radial-gradient(ellipse at 65% 17%,#88d5ff0e,transparent 75%)}
+#water .gate{overflow:hidden;contain:paint;border-radius:2px}
+#water .gate img.liquid{z-index:1}
+#water .gate img:not(.liquid){z-index:4}
+#water .gate .ripple{z-index:2;top:var(--surface-top,30.7px);bottom:auto;left:3px;width:18.8px;height:2.5px;
+ border-radius:50%;background:linear-gradient(#eaffffc4,#77ddf885 62%,transparent);border-top:1px solid #ccffffb8;
+ box-shadow:0 0 1.2px #a4f4ff7a;opacity:var(--surface-visible,0);clip-path:inset(0);
+ overflow:hidden;animation:waterSurfaceBounded 2.1s ease-in-out infinite}
+#water .gate .ripple::before,#water .gate .ripple::after{position:absolute;top:0;left:0;width:17px;height:1.5px;
+ border-top:1px solid #f1ffffaa;opacity:.7;animation:waterSurfaceInner 2.5s ease-in-out infinite}
+#water .gate .ripple::after{width:14px;left:1px;top:1px;animation-delay:-1.3s}
+@keyframes waterSurfaceBounded{0%,100%{transform:translateX(0) scaleX(.94)}50%{transform:translateX(.35px) scaleX(1.04)}}
+@keyframes waterSurfaceInner{0%,100%{transform:translateX(-.6px)}50%{transform:translateX(.6px)}}
+#water .water-fig .num{color:#40dfff}
+#water .water-station[data-trend="rising"] .num{color:#f5ca79;text-shadow:0 0 2px #f4ba5570}
+#water .water-station[data-trend="falling"] .num{color:#61e2ff}
+#water .water-status b{color:#e3d6b8;font-size:7px}
+#water .trend .caption{color:#a8d5e7}
+#water .water-station[data-trend="rising"] .trend .caption{color:#eec785}
+#water .water-station[data-trend="falling"] .trend .caption{color:#5ee8ff}
+/* Color is tied only to documented PM2.5 classification, not decorative static amber. */
+
+/* Color is tied only to documented PM2.5 classification, not decorative static amber. */
+#pm[data-pm-band="good"] .pill{background:linear-gradient(#2994b8,#125270);border-color:#8cdefd;box-shadow:0 0 3px #65d0ff6b,inset 0 1px 2px #e4f9ff8a}
+#pm[data-pm-band="moderate"] .pill{background:linear-gradient(#54b66b,#236c36);border-color:#a2ebba;box-shadow:0 0 3px #8cd7a66b,inset 0 1px 2px #f1ffca8a}
+#pm[data-pm-band="unhealthy"] .pill{background:linear-gradient(#e4b846,#9a721b);border-color:#fff0a1;box-shadow:0 0 3px #ffdb7a75,inset 0 1px 2px #fff2c78a}
+#pm[data-pm-band="protective"] .pill{background:linear-gradient(#efad52,#a95112);border-color:#ffe0a1;box-shadow:0 0 3px #f5a35775,inset 0 1px 2px #fff2c58a}
+#pm[data-pm-band="severe"] .pill{background:linear-gradient(#f36e77,#9c223b);border-color:#ffa9b2;box-shadow:0 0 3px #ed566c75,inset 0 1px 2px #ffced88a}
+#pm[data-pm-band="unavailable"] .pill{background:linear-gradient(#607384,#283f50);border-color:#b6c8d1;box-shadow:0 0 2px #b2bfcb48,inset 0 1px 2px #e7f6fc6b}
+
+/* Blue/green only: wide-open black pupils alternate with smiling shut eyes.
+   Existing happy-eyes PNG supplies the smiling arches; an eyelash overlay makes them explicit. */
+#pm .mascot img[data-happy-open],#pm .mascot img[data-happy-lashes]{
+ position:absolute;pointer-events:none;opacity:0}
+#pm .mascot.happy-eye-mode .blink{display:none}
+#pm .mascot.happy-eye-mode [data-eyes]{animation:uthJoyClosed 5.6s linear infinite}
+#pm .mascot.happy-eye-mode [data-happy-open]{animation:uthJoyOpen 5.6s linear infinite}
+#pm .mascot.happy-eye-mode [data-happy-lashes]{animation:uthJoyClosed 5.6s linear infinite}
+#pm .mascot.happy-eye-mode img[data-happy-open],
+#pm .mascot.happy-eye-mode img[data-happy-lashes]{z-index:3}
+@keyframes uthJoyOpen{
+ 0%,30%{opacity:1}34%,47%{opacity:0}51%,69%{opacity:1}
+ 73%,86%{opacity:0}90%,100%{opacity:1}
+}
+@keyframes uthJoyClosed{
+ 0%,30%{opacity:0}34%,47%{opacity:1}51%,69%{opacity:0}
+ 73%,86%{opacity:1}90%,100%{opacity:0}
+}
+@media(prefers-reduced-motion:reduce){
+ #pm .mascot.happy-eye-mode [data-eyes],
+ #pm .mascot.happy-eye-mode [data-happy-lashes]{animation:none!important;opacity:0!important}
+ #pm .mascot.happy-eye-mode [data-happy-open]{animation:none!important;opacity:1!important}
+}
+/* Reduced-motion master kill for strip animations (kept after QA-panel removal). */
+@media(prefers-reduced-motion:reduce){
+ #pm .mascot .blink{animation:none!important;opacity:0}
+ #pm .mascot::before{animation:none!important}
+ #water .gate .ripple,#water .gate .ripple::before,#water .gate .ripple::after{animation:none!important}
+}
+
+/* Glassy / convex glass separation — still exact 432x40 LED viewport.
+   Narrow gap and lens reflections replace hard vertical separator walls. */
+.stage{background:linear-gradient(175deg,#24445d 0%,#0e283d 10%,#03101c 38%,#071e30 87%,#17405b 100%);
+box-shadow:inset 0 1px 1px #ceffffa8,inset 0 -1px 2px #30e7ff80,0 0 6px #19bbff63}
+.stage .seg{
+ border-left:1px solid #4b9aba3c!important;
+ border-radius:0!important;
+ background:transparent!important;
+ box-shadow:none!important;
+}
+/* No glass/lens highlight on internal subdivisions. */
+.stage .seg::before,.stage .seg::after{content:none!important;display:none!important}
+#water .water-station{border-radius:0;overflow:visible}
+#water .gate{isolation:isolate;overflow:hidden;contain:paint}
+#water .gate .liquid{will-change:transform}
+#water .water-fig{width:63px}
+#water .water-fig .num{font-size:21px;line-height:22px;letter-spacing:-.65px;
+ font-variant-numeric:tabular-nums;font-weight:950;
+ filter:drop-shadow(0 0 1.4px #55e7ff70);white-space:nowrap}
+#water .water-fig .num .unit{font-size:6.9px;letter-spacing:0;color:#b7ebfa}
+#water .water-fig .name{font-size:6.7px;letter-spacing:-.15px}
+#water .gate .ripple{height:3.1px;left:3px;width:20px;top:var(--surface-top,32px);
+ border-top:1px solid #d5ffffa1;box-shadow:0 0 1.2px #94edffbe;
+ background:linear-gradient(180deg,#c4ffffc2,#24b6f966 63%,transparent);
+ border-radius:47% 63% 42% 54%;opacity:var(--surface-visible,0);
+ animation:uthWaterRoll 2.55s ease-in-out infinite}
+#water .gate .mini-crest{position:absolute;left:6px;top:var(--surface-top,32px);width:15px;height:3px;
+ z-index:3;pointer-events:none;border-top:1px solid #ddffffc4;border-radius:52% 60% 12% 72%;
+ opacity:var(--surface-visible,0);filter:drop-shadow(0 0 1px #7aefff96);
+ animation:uthWaterCrest 1.6s ease-in-out infinite}
+#water .gate .mini-crest::after{content:"";position:absolute;left:1px;top:0;width:10px;height:1.8px;
+ border-top:1px solid #eaffffe6;border-radius:60%;
+ transform-origin:left center;animation:uthWaveFold 1.6s ease-in-out infinite}
+#water .gate .wall-seep{position:absolute;z-index:6;top:8px;left:20px;width:2px;height:26px;
+ pointer-events:none;overflow:hidden;opacity:var(--surface-visible,0);
+ background:linear-gradient(90deg,#00243980,#95f5ffb0,#17628d);
+ box-shadow:0 0 1.1px #40eaffaa;
+ border-radius:2px}
+#water .gate .wall-seep::before{content:"";position:absolute;inset:-18px 0 0;
+ background:repeating-linear-gradient(180deg,transparent 0 4px,#edffffe0 5px,#50cbeeab 6px,transparent 8px);
+ animation:uthWaterSeep 1.15s linear infinite}
+#water .gate .water-tail{position:absolute;left:18.7px;bottom:-2px;width:6px;height:12px;z-index:8;
+ pointer-events:none;border-radius:0 0 60% 55%;
+ background:linear-gradient(180deg,transparent,#82f3ff96 32%,#3ad3ff86 72%,transparent);
+ opacity:var(--surface-visible,0);filter:drop-shadow(0 0 .9px #64ddf8);
+ animation:uthWaterSeepTail 1.36s ease-in-out infinite}
+#water .water-station .gate{box-shadow:none}
+@keyframes uthWaterRoll{0%,100%{transform:translateX(-.4px) skewX(-5deg) scaleX(.93)}
+ 40%{transform:translateX(.6px) skewX(6deg) scaleX(1.08)}
+ 72%{transform:translateX(0) skewX(-7deg) scaleX(1.03)}}
+@keyframes uthWaterCrest{0%,100%{transform:translateX(-1px) translateY(.1px) scaleX(.85) rotate(-4deg)}
+ 50%{transform:translateX(.9px) translateY(-.9px) scaleX(1.07) rotate(5deg)}}
+@keyframes uthWaveFold{0%,100%{transform:scaleY(.28) rotate(1deg);opacity:.3}
+ 45%{transform:scaleY(1.3) rotate(-8deg);opacity:1}
+ 72%{transform:scaleY(.45) rotate(3deg);opacity:.55}}
+@keyframes uthWaterSeep{to{transform:translateY(16px)}}
+@keyframes uthWaterSeepTail{0%,100%{transform:translateY(-1px) scaleX(.6);opacity:.3}
+ 52%{transform:translateY(2px) scaleX(1);opacity:.86}}
+@media(prefers-reduced-motion:reduce){
+ #water .gate .ripple,#water .gate .mini-crest,#water .gate .mini-crest::after,
+ #water .gate .wall-seep::before,#water .gate .water-tail{animation:none!important}
+ #water .gate .wall-seep{opacity:.5}
+}
+/* soften pre-existing sharp separators without masking content */
+#pm .pm-status,#pm .pm-core,#water .water-station{border-radius:0}
+
+/* Final fit: preserve text at the top/bottom of a 40px physical footer. */
+#water .water-fig .name{font-size:6.5px;line-height:9px}
+#water .water-fig .num{font-size:20px;line-height:20px;letter-spacing:-.75px}
+#water .water-fig .observed{font-size:5.4px;line-height:6px}
+#water .water-fig{gap:0;align-self:center}
+#water .water-station .water-outflow{position:absolute;pointer-events:none;z-index:10;
+ left:23px;bottom:-4px;width:6px;height:13px;
+ border-radius:0 0 62% 65%;opacity:0;
+ background:linear-gradient(180deg,#bffbff09,#89f5ffc0 26%,#1e9dd6af 54%,#d4fdffcf 73%,transparent);
+ box-shadow:0 0 2px #5fd7ff8a;filter:blur(.15px);
+ animation:uthOutsideSpill 1.25s ease-in-out infinite}
+#water .water-station[data-water="ok"] .water-outflow{opacity:.82}
+@keyframes uthOutsideSpill{
+ 0%,100%{transform:translateY(-3px) scaleX(.63);opacity:.25}
+ 48%{transform:translateY(1.3px) scaleX(1.1);opacity:.85}
+ 72%{transform:translateY(3px) scaleX(.73);opacity:.55}
+}
+/* A digital LED has no off-screen pixels. The trail exits through the clipped
+   lower edge and visually continues beyond, without modifying footer size. */
+@media(prefers-reduced-motion:reduce){
+ #water .water-station .water-outflow{animation:none!important;opacity:.45}
+}
+/* Station-specific OVERBANK warning only: derives from ThaiWater bank reference,
+   not trend direction, and does not claim the hospital is flood-safe. */
+#water .water-station[data-risk="below_watch"] .water-fig .num{color:#48dfff;text-shadow:0 0 4px #28cbf36b}
+#water .water-station[data-risk="watch"] .water-fig .num{color:#ffad49;text-shadow:0 0 5px #f29f4b9c}
+#water .water-station[data-risk="critical"] .water-fig .num{color:#ff526b;text-shadow:0 0 5px #ef475caa}
+#water .water-station[data-risk="unassessed"] .water-fig .num{color:#a9bbca;text-shadow:none}
+#water[data-overbank-alert="watch"] #water-tag{color:#ffb055}
+#water[data-overbank-alert="critical"] #water-tag{color:#ff576e}
+#water[data-overbank-alert="below_watch"] #water-tag{color:#55dafa}
+#water[data-overbank-alert="unassessed"] #water-tag{color:#b9c6d0}
+
+/* SUNLIGHT LED: crisp operational values, vivid source-driven color.
+   Do not alter color/risk states or the original font-size/weight. */
+#pm .pm-num,
+#water .water-fig .num,
+#water .water-fig .num .level,
+#water .water-fig .num .unit{
+ text-shadow:none!important;
+ filter:none!important;
+ -webkit-text-stroke:0!important;
+ paint-order:normal;
+}
+/* Bounded material/specular response on existing PM face (not a glass panel).
+   Wrapped in @supports: blend/clip-path are progressive decoration only —
+   engines without them simply render the un-tinted artwork (graceful fallback). */
+@supports (mix-blend-mode:screen) and (clip-path:circle(48% at 51% 51%)){
+#pm .mascot .uth-mascot-specular{
+ position:absolute;left:2px;top:1px;width:39px;height:37px;z-index:2;
+ overflow:hidden;border-radius:50%;pointer-events:none;
+ clip-path:circle(48% at 51% 51%);
+ background:radial-gradient(ellipse 39% 24% at 26% 15%,#ffffff6d,transparent 83%),
+            linear-gradient(120deg,#fff9cf18 2%,transparent 38%,#00061714 97%);
+ mix-blend-mode:screen;
+}
+#pm .mascot .uth-mascot-specular::after{
+ content:"";position:absolute;left:-48%;top:-19%;width:24%;height:137%;
+ background:linear-gradient(90deg,transparent,#fff7da0a 23%,#fffbeb91 53%,#fff7d908 82%,transparent);
+ transform:translateX(-50%) rotate(19deg);
+ opacity:.65;animation:uth-mascot-specular-sweep 8s ease-in-out infinite;
+}
+}
+#pm .mascot img[data-base]{z-index:1}
+#pm .mascot img[data-eyes],
+#pm .mascot img[data-happy-open],
+#pm .mascot img[data-happy-lashes],
+#pm .mascot img[data-brows]{z-index:3}
+#pm .mascot img[data-mouth]{z-index:4}
+#pm .mascot img[data-mask]{z-index:6}
+/* Existing gate art receives crisp white/cyan light reflections, no broad glow.
+   @supports-guarded decorative layer (see mascot note above). */
+@supports (mix-blend-mode:screen){
+#water .gate .uth-gate-specular{
+ position:absolute;inset:2px 3px 3px 3px;z-index:5;
+ pointer-events:none;overflow:hidden;border-radius:2px;
+ background:linear-gradient(130deg,#fffefe2b 0%,transparent 16%,transparent 61%,#9eefff21 100%);
+ mix-blend-mode:screen;
+}
+#water .gate .uth-gate-specular::after{
+ content:"";position:absolute;left:-64%;top:-25%;height:156%;width:21%;
+ background:linear-gradient(90deg,transparent,#fffef000,#ddfcff91,#ffffff00);
+ transform:translateX(-40%) rotate(14deg);
+ opacity:.4;animation:uth-gate-specular-sweep 9.5s ease-in-out infinite;
+}
+}
+@keyframes uth-mascot-specular-sweep{
+ 0%,12%{transform:translateX(-50%) rotate(19deg);opacity:0}
+ 19%{opacity:.56}
+ 39%{transform:translateX(475%) rotate(19deg);opacity:.28}
+ 45%,100%{transform:translateX(475%) rotate(19deg);opacity:0}
+}
+@keyframes uth-gate-specular-sweep{
+ 0%,18%{transform:translateX(-40%) rotate(14deg);opacity:0}
+ 23%{opacity:.45}
+ 39%{transform:translateX(575%) rotate(14deg);opacity:.3}
+ 47%,100%{transform:translateX(575%) rotate(14deg);opacity:0}
+}
+@media(prefers-reduced-motion:reduce){
+ #pm .mascot .uth-mascot-specular::after,
+ #water .gate .uth-gate-specular::after{animation:none!important;opacity:.1!important}
+}
+/* UTH clear convex outer rim — ONLY the outermost LED frame.
+   Keep the 432x40 center dark enough to read status/numerals in daylight.
+   No blur or lens applied to internal segments. */
+.stage{
+  border:1px solid rgba(180,246,255,.97)!important;
+  border-radius:10px!important;
+  overflow:hidden;
+  background:
+    radial-gradient(ellipse 120% 85% at 50% -23%,rgba(159,235,255,.20),transparent 58%),
+    linear-gradient(180deg,
+      rgba(95,202,247,.27) 0%,
+      rgba(27,90,129,.23) 12%,
+      rgba(4,17,30,.94) 31%,
+      rgba(3,13,23,.97) 69%,
+      rgba(63,158,209,.18) 100%)!important;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.69),
+    inset 0 -1px 0 rgba(130,238,255,.52),
+    inset 1px 0 0 rgba(212,254,255,.24),
+    inset -1px 0 0 rgba(212,254,255,.24),
+    0 0 2px rgba(24,184,228,.31),
+    0 0 6px rgba(42,185,226,.14)!important;
+}
+.stage::before{
+  content:""!important;
+  position:absolute!important;
+  pointer-events:none!important;
+  inset:1px 2px auto 2px!important;
+  height:6px!important;
+  border-radius:9px 9px 13px 13px!important;
+  z-index:10!important;
+  opacity:.92;
+  background:
+    linear-gradient(112deg,transparent 0%,rgba(245,255,255,.02) 26%,rgba(255,255,255,.62) 52%,rgba(216,251,255,.03) 75%,transparent 100%),
+    linear-gradient(180deg,rgba(240,255,255,.46) 0%,rgba(209,245,255,.13) 48%,transparent 100%)!important;
+  background-size:28% 100%,100% 100%;
+  background-repeat:no-repeat;
+  background-position:-42% 0,0 0;
+  box-shadow:none!important;
+  animation:uth-clear-rim-glide 12s ease-in-out infinite;
+}
+.stage::after{
+  content:""!important;
+  position:absolute!important;
+  inset:0!important;
+  z-index:11!important;
+  pointer-events:none!important;
+  border-radius:10px!important;
+  background:
+    radial-gradient(ellipse 45px 20px at 3% 1%,rgba(251,255,255,.27),transparent 80%),
+    radial-gradient(ellipse 50px 17px at 97% 99%,rgba(169,246,255,.14),transparent 83%),
+    linear-gradient(110deg,rgba(228,250,255,.07),transparent 16%,transparent 84%,rgba(160,231,255,.06))!important;
+  box-shadow:inset 0 1px 1px rgba(243,255,255,.30),
+             inset 0 -1px 1px rgba(131,234,255,.22)!important;
+}
+@keyframes uth-clear-rim-glide{
+  0%,20%{background-position:-42% 0,0 0}
+  53%{background-position:130% 0,0 0}
+  69%,100%{background-position:130% 0,0 0}
+}
+@media(prefers-reduced-motion:reduce){
+  .stage::before{animation:none!important;
+    background-position:43% 0,0 0!important}
+}
+
+
+/* Physical 432x40 LED mode: rotate exactly three approved UI strips. */
+html.led-screen,html.led-screen body{margin:0;padding:0;overflow:hidden;width:432px;height:40px;max-width:432px;max-height:40px;background:#000}
+html.led-screen main{width:432px;height:40px;max-width:432px;margin:0;overflow:hidden}
+html.led-screen h1,html.led-screen main>p,html.led-screen .controls,html.led-screen .notice,html.led-screen article h2,html.led-screen article>small{display:none!important}
+html.led-screen article{display:none;margin:0;padding:0;border:0;border-radius:0;height:40px;width:432px;background:transparent}
+html.led-screen article.led-current{display:block}
+html.led-screen .stage-wrap{width:432px;height:40px;min-height:40px;margin:0;padding:0;border:0;border-radius:0;display:block;overflow:hidden;background:#000}
+html.led-screen .scale{position:relative;width:432px;height:40px}
+html.led-screen .scale>div,html.led-screen .scale>iframe{transform:none!important;transform-origin:0 0!important}
+@media(prefers-reduced-motion:reduce){html.led-screen article{transition:none!important}}
+</style>
+<!-- clear-gloss-outer-rim v1 -->
+</head>
+<body><main><h1>UTH LED · 3D Luxury — Prototype Preview</h1>
+<p>ต้นแบบแยกจาก Repository • ทุกแถบเป็น 432 × 40 CSS px จริง • PM2.5 และ Weather เป็นค่าจำลองเพื่อรีวิวดีไซน์ • น้ำมีโหมดอ่านค่าจาก ThaiWater/HII จริง</p>
+<article><h2>1. PM2.5 — ปรับให้ใกล้ภาพอ้างอิง พร้อมมาสคอต 3D</h2><div class="stage-wrap"><div class="scale"><div class="stage" id="pm">
+<div class="clock"><div class="d">พ. 21 ต.ค. 69</div><div class="t">07:45</div></div>
+<div class="seg pm-core"><div class="mascot" data-masked="0">
+<img data-base src="../assets/icons3d/rig/pm-base-unavailable.png" alt="">
+<span class="uth-mascot-specular" aria-hidden="true"></span>
+<img data-brows style="display:none" src="../assets/icons3d/rig/pm-brows.png" alt="">
+<img data-eyes src="../assets/icons3d/rig/pm-eyes.png" alt="">
+<img data-happy-open src="./pm-open-joy.svg" alt="" aria-hidden="true">
+<img data-happy-lashes src="./pm-closed-lashes.svg" alt="" aria-hidden="true">
+<img data-mouth src="../assets/icons3d/rig/pm-mouth.png" alt="">
+<span class="blink blink-left"></span><span class="blink blink-right"></span>
+<img data-mask style="display:none" src="../assets/icons3d/rig/pm-mask.png" alt="">
+<span class="sparks"></span></div><div class="pm-text"><label>PM2.5</label><strong class="pm-num">—</strong></div><small class="pm-unit">µg/m³</small></div>
+<div class="seg pm-status"><div class="pill"><i>!</i> รอข้อมูล</div><span class="sub">ยังไม่พบค่าล่าสุด</span></div>
+<div class="seg scalePM"><span class="scaleLegend" title="ช่วง PM2.5 (µg/m³): 0–25 / 26–37 / 38–50 / 51–90 / ≥91">0 26 38 51 91</span><div class="levels"></div></div>
+<div class="seg climate"><strong>—</strong><strong>—</strong><small>ลม —</small></div>
+<div class="seg location"><b>รพ.อุทัย</b><small>อ.อุทัย จ.อยุธยา</small></div>
+</div></div></div><small id="pm-provenance">PM2.5: รอดึงข้อมูล GISTDA · ค่าเฉลี่ยระดับตำบล ไม่ใช่สถานีวัดในโรงพยาบาล</small>
+</article>
+
+<article><h2>2. Weather — ใช้ดีไซน์ 8124 พร้อม 3D cloud / rain / lightning เดิม</h2>
+<div class="stage-wrap"><div class="scale"><iframe class="ledframe" title="Weather Luxury Design 432 by 40" src="./weather.html"></iframe></div></div>
+<small id="weather-source">รอดึงพยากรณ์ Open-Meteo · MODEL FORECAST</small></article>
+<article><h2>3. Water — ใช้ฉากกั้นน้ำ Animation เดิม 2 สถานี และเพิ่มกราฟแนวโน้ม</h2>
+<div class="stage-wrap"><div class="scale"><div class="stage" id="water">
+<div class="clock"><div class="d">พ. 21 ต.ค. 69</div><div class="t">07:45</div></div>
+<div class="seg water-station" id="s1"><div class="gate">
+<img class="liquid" src="../assets/icons3d/rig/water/liquid-normal.png" alt="">
+<img src="../assets/icons3d/rig/water/wall.png" alt=""><span class="uth-gate-specular" aria-hidden="true"></span><span class="ripple"></span><span class="mini-crest"></span><span class="wall-seep" aria-hidden="true"></span><span class="water-tail" aria-hidden="true"></span></div><span class="water-outflow" aria-hidden="true"></span>
+<div class="water-fig"><span class="name">HDA004 ช่องสะเดา</span><span class="num"><span class="level">—</span><span class="unit"> ม.</span></span><span class="observed">รอข้อมูล</span></div>
+<div class="trend"><svg viewBox="0 0 44 16" role="img" aria-label="กราฟแนวโน้มยังไม่มีข้อมูล"><path class="axis" d="M0 13H44M0 7H44"/><path class="line" d=""/></svg><span class="caption">แนวโน้ม —</span></div></div>
+<div class="seg water-station" id="s2"><div class="gate">
+<img class="liquid" src="../assets/icons3d/rig/water/liquid-normal.png" alt="">
+<img src="../assets/icons3d/rig/water/wall.png" alt=""><span class="uth-gate-specular" aria-hidden="true"></span><span class="ripple"></span><span class="mini-crest"></span><span class="wall-seep" aria-hidden="true"></span><span class="water-tail" aria-hidden="true"></span></div><span class="water-outflow" aria-hidden="true"></span>
+<div class="water-fig"><span class="name">S.5 สะพานปรีดี</span><span class="num"><span class="level">—</span><span class="unit"> ม.</span></span><span class="observed">รอข้อมูล</span></div>
+<div class="trend"><svg viewBox="0 0 44 16" role="img" aria-label="กราฟแนวโน้มยังไม่มีข้อมูล"><path class="axis" d="M0 13H44M0 7H44"/><path class="line" d=""/></svg><span class="caption">แนวโน้ม —</span></div></div>
+<div class="seg water-status"><b>เกณฑ์ระดับตลิ่ง</b><span id="water-tag">รอข้อมูล</span></div>
+</div></div></div>
+<div class="controls">
+<button id="refresh-all">อัปเดตข้อมูลจริงทุกส่วน</button><button id="real">อัปเดตระดับน้ำ HII</button>
+</div>
+<div class="notice" id="explain">
+HDA004 และ S.5 เป็นสถานีอ้างอิง ไม่ใช่จุดวัดคลองข้าวเม่าหลังโรงพยาบาล · ม.รทก. · REAL/LATEST จาก ThaiWater/HII; ยังไม่มีเกณฑ์เตือนน้ำท่วมของ รพ.ที่อนุมัติ: จะไม่ติดป้ายปกติ/ปลอดภัยและไม่ใส่สีเตือนภัยโดยคาดเดา · ภาพน้ำและการไหลเป็นเอฟเฟกต์กราฟิก ไม่ได้ยืนยันว่าประตูระบายน้ำกำลังเปิด
+</div></article>
+</main>
+<script>
+(()=>{
+const clocks=[...document.querySelectorAll('#pm .clock, #water .clock')];
+function updateClocks(){
+  const dt=new Date();
+  const hh=new Intl.DateTimeFormat('en-GB',{timeZone:'Asia/Bangkok',hour:'2-digit',minute:'2-digit',hour12:false}).format(dt);
+  const date=new Intl.DateTimeFormat('th-TH',{timeZone:'Asia/Bangkok',weekday:'short',day:'numeric',month:'short',year:'2-digit'}).format(dt);
+  for(const el of clocks){el.querySelector('.t').textContent=hh;el.querySelector('.d').textContent=date}
+}
+updateClocks();setInterval(updateClocks,60000);
+const tag=document.getElementById('water-tag');
+const explain=document.getElementById('explain');
+function set(id,value,observed,points,bank,ground,risk){
+ const box=document.getElementById(id),v=box.querySelector('.level'),t=box.querySelector('.observed'),chart=box.querySelector('.line'),cap=box.querySelector('.caption');
+ box.dataset.trend='unknown';
+ const validReading=typeof value==='number'&&Number.isFinite(value);
+ const validBank=typeof bank==='number'&&Number.isFinite(bank);
+ const colorRisk=(validReading&&validBank&&['below_watch','watch','critical'].includes(risk))?risk:'unassessed';
+ box.dataset.risk=colorRisk;box.dataset.water=validReading?'ok':'missing';
+ const riskDesc={below_watch:'ต่ำกว่าเกณฑ์เฝ้าระวังตลิ่ง',watch:'เฝ้าระวังน้ำล้นตลิ่ง',critical:'เสมอ/เกินระดับตลิ่ง',unassessed:'ยังประเมินไม่ได้'};
+ box.setAttribute('aria-label',id+' ระดับน้ำ '+(validReading?value.toFixed(2)+' เมตร รทก.':'ไม่มีข้อมูล')+' '+riskDesc[colorRisk]);
+ box.title=riskDesc[colorRisk]+(validBank?' | เฝ้าระวัง ≥'+(bank-.5).toFixed(2)+' ม.รทก. | ถึงตลิ่ง ≥'+bank.toFixed(2)+' ม.รทก.':' | ไม่พบระดับตลิ่งยืนยัน');
+ const fill=typeof value==='number'&&Number.isFinite(value)&&typeof bank==='number'&&Number.isFinite(bank)&&typeof ground==='number'&&Number.isFinite(ground)&&bank>ground?Math.min(1,Math.max(0,(value-ground)/(bank-ground))):0;
+ box.querySelector('.gate').style.setProperty('--fill',fill.toFixed(3));
+ box.querySelector('.gate').style.setProperty('--surface-top',(30.7*(1-fill)+.2).toFixed(2)+'px');
+ box.querySelector('.gate').style.setProperty('--surface-visible',fill>0?'1':'0');
+ v.textContent=typeof value==='number'&&Number.isFinite(value)?value.toFixed(2):'—';
+ t.textContent=observed||'รอข้อมูล';
+ if(Array.isArray(points)&&points.length>=2){
+  const mn=Math.min(...points),mx=Math.max(...points),span=Math.max(.1,mx-mn);
+  chart.setAttribute('d',points.map((n,i)=>(i?'L':'M')+(2+i*40/(points.length-1)).toFixed(1)+' '+(13-(n-mn)/span*11).toFixed(1)).join(' '));
+  const last=points[points.length-1],prev=points[points.length-2],delta=last-prev;
+  cap.textContent='Δ '+(delta>=0?'+':'')+delta.toFixed(2)+' ม.';
+  box.dataset.trend=delta>0?'rising':delta<0?'falling':'stable';
+ }else{chart.setAttribute('d','');cap.textContent='Δ —'}
+}
+document.getElementById('real').onclick=async()=>{
+ tag.textContent='กำลังอ่าน API';explain.textContent='กำลังอ่านข้อมูลจริงจาก ThaiWater/HII ...';
+ try{
+  const data=await window.UthApiClient.getWater();
+  for(const [id,key] of [['s1','HDA004'],['s2','S5']]){
+   let x=data.stations[key];
+   set(id,x.status==='ok'?x.levelMsl:null,x.status==='ok'?'วัด '+x.observedTimeTH:'ข้อมูลเก่า/ขาด',x.status==='ok'&&Array.isArray(x.trendPoints)?x.trendPoints:null,x.bankM,x.groundMsl,x.risk);
+  }
+  const risks=[document.getElementById('s1').dataset.risk,document.getElementById('s2').dataset.risk];
+  tag.textContent=risks.includes('critical')?'ถึงระดับตลิ่ง':
+                  risks.includes('watch')?'เฝ้าระวัง':
+                  risks.every(r=>r==='below_watch')?'ต่ำกว่าเกณฑ์':'ข้อมูลไม่ครบ';
+  document.getElementById('water').dataset.overbankAlert=
+    risks.includes('critical')?'critical':risks.includes('watch')?'watch':
+    risks.every(r=>r==='below_watch')?'below_watch':'unassessed';
+  explain.textContent='REAL SNAPSHOT • เกณฑ์สีประกอบการติดตาม (ยังไม่ใช่คำเตือนอย่างเป็นทางการ): สีฟ้า ต่ำกว่าตลิ่ง >0.50 ม., สีส้ม ใกล้ตลิ่งไม่เกิน 0.50 ม., สีแดง เสมอ/เกินตลิ่ง • ระดับตลิ่ง HDA004 '+(data.stations.HDA004?.bankM??'—')+' / S.5 '+(data.stations.S5?.bankM??'—')+' ม.รทก. • สถานีอ้างอิง ไม่ใช่การรับรองความปลอดภัยของ รพ.อุทัย';
+ }catch(e){set('s1',null,null,null);set('s2',null,null,null);tag.textContent='API ไม่พร้อม';explain.textContent='UNAVAILABLE • ไม่สามารถอ่านระดับน้ำจาก API ได้ ('+e.message+'). ไม่ใช้ค่าจำลองแทนค่าจริง';}
+};
+})();
+</script>
+
+<script>
+if(document.documentElement.classList.contains('led-screen')){
+ const sections=[...document.querySelectorAll('main>article')];
+ if(sections.length===3){let current=0;sections[0].classList.add('led-current');
+  setInterval(()=>{sections[current].classList.remove('led-current');current=(current+1)%sections.length;sections[current].classList.add('led-current')},22000);
+ }
+}
+</script>
+<script src="../led-rotation.js" defer></script>
+<script src="./api-client.js" defer></script>
+<script src="./live-widgets.js" defer></script>
+</body></html>

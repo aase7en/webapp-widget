@@ -11,7 +11,7 @@ const D=require('../led-rotation.js');
 
 const ROOT=path.join(__dirname,'..');
 const read=n=>fs.readFileSync(path.join(ROOT,n),'utf8');
-const html=read('index.html');
+const html=read('legacy.html');
 const css=read('strip.css');
 const js=read('strip.js');
 

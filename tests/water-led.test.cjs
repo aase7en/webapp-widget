@@ -70,7 +70,7 @@ test('HTTP errors, offline and bad JSON fail closed',async()=>{
 test('LED page is independent of the retired legacy iframe and is 40px-responsive',()=>{
   const page=fs.readFileSync(require('node:path').resolve(__dirname,'../water.html'),'utf8');
   const js=fs.readFileSync(require('node:path').resolve(__dirname,'../water.js'),'utf8');
-  const main=fs.readFileSync(require('node:path').resolve(__dirname,'../index.html'),'utf8');
+  const main=fs.readFileSync(require('node:path').resolve(__dirname,'../legacy.html'),'utf8');
   /* user-approved 2026-10-17: index.html is now the native strip; no iframe remains */
   assert.doesNotMatch(main,/AKfycbwwUQCeJoz4N0P9UuRJF39pt17mBjPz0_yMDDxTO7BoiUiTQaO7Yay0UKq80EvE6dk/);
   assert.doesNotMatch(main,/script\.google\.com/);

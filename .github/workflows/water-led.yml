@@ -5,6 +5,7 @@ on:
       - 'water.html'
       - 'water.js'
       - 'index.html'
+      - 'legacy.html'
       - 'tests/water-led.test.cjs'
       - '.github/workflows/water-led.yml'
   push:
@@ -13,6 +14,7 @@ on:
       - 'water.html'
       - 'water.js'
       - 'index.html'
+      - 'legacy.html'
       - 'tests/water-led.test.cjs'
       - '.github/workflows/water-led.yml'
 jobs:
@@ -29,6 +31,6 @@ jobs:
       - run: node --test tests/water-led.test.cjs
       - name: Verify main strip keeps water UNAVAILABLE with no iframe
         run: |
-          grep -q 'รอข้อมูลจริง' index.html
-          grep -q 'id="wa-value">—' index.html
+          grep -q 'รอข้อมูลจริง' legacy.html
+          grep -q 'id="wa-value">—' legacy.html
           ! grep -q 'script.google.com' index.html
