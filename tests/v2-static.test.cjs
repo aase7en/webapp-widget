@@ -99,8 +99,11 @@ function bootCtl(){
    const d=new Date(Math.floor((t+7*3600000)/3600000)*3600000+h*3600000-7*3600000);
    hourly.push(bangkokStamp(d).replace(' ','T'));
   }
+  const days=[...new Set(hourly.map(x=>x.slice(0,10)))];
   return {timezone:'Asia/Bangkok',hourly:{time:hourly,weather_code:hourly.map(()=>61),
-   precipitation_probability:hourly.map(()=>35)},current:{wind_speed_10m:12}};
+   precipitation_probability:hourly.map(()=>35)},
+   daily:{time:days,sunrise:days.map(d=>d+'T06:00'),sunset:days.map(d=>d+'T18:00')},
+   current:{wind_speed_10m:12,is_day:0}};
  };
  const dataFor=()=>({location:{id:'uthai',lat:14.36147,lon:100.64424},
   pm25:{status:'ok',unit:'µg/m³',value:state.pm,observedAt:iso(state.observationAgeMin),source:'GISTDA Uthai'},
@@ -293,4 +296,64 @@ test('weather/PM preview provenance must never claim live readings are mock samp
  assert.match(page,/GISTDA ระดับตำบล/);
  assert.match(page,/อุณหภูมิและพยากรณ์ฝนมาจากแบบจำลอง Open-Meteo/);
  assert.match(page,/สถานีอ้างอิง ThaiWater\/HII/);
+});
+
+test('day/night weather icons classify WMO thunder rain fog and reject fake sunshine',()=>{
+ const source=fs.readFileSync(path.join(ROOT,'v2/weather-conditions.js'),'utf8');
+ const ctx=vm.createContext({window:{},Number});
+ vm.runInContext(source,ctx);
+ const fn=ctx.window.UthWeatherConditions.classify;
+ assert.equal(fn(0,true),'sun'); assert.equal(fn(0,false),'moon');
+ assert.equal(fn(1,true),'partly');assert.equal(fn(2,false),'moon-partly');
+ assert.equal(fn(2,null),'cloud');assert.equal(fn(0,undefined),'cloud');
+ assert.equal(fn(3,false),'cloud');assert.equal(fn(45,false),'fog');assert.equal(fn(48,true),'fog');
+ assert.equal(fn(51,false),'rain');assert.equal(fn(61,true),'rain');
+ assert.equal(fn(80,false),'rain');assert.equal(fn(95,false),'storm');
+ assert.equal(fn(99,true),'storm');assert.equal(fn(71,false),'snow');
+ assert.equal(fn(null,false),'unknown');assert.equal(fn(999,true),'unknown');
+});
+test('weather scene supports night/moon, fog layers, rain, thunder bolts and reduced motion',()=>{
+ const markup=fs.readFileSync(path.join(ROOT,'v2/weather.html'),'utf8');
+ const logic=fs.readFileSync(path.join(ROOT,'v2/weather-live.js'),'utf8');
+ assert.match(markup,/symbol id="moon"/);
+ assert.match(markup,/symbol id="moon-partly"/);
+ assert.match(markup,/symbol id="fog"/);
+ assert.match(markup,/class="fog-band"/);
+ assert.match(markup,/uth-fog-drift/);
+ assert.match(markup,/lightningFlicker/);
+ assert.match(markup,/rainTravel/);
+ assert.match(markup,/prefers-reduced-motion:reduce/);
+ assert.match(markup,/weather-conditions.js/);
+ assert.match(logic,/weatherIcon\(forecast.weatherCode,forecast.isDay\)/);
+ assert.match(logic,/weatherIcon\(weather.weatherCode,weather.isDay\)/);
+ assert.match(logic,/createSVG\('unknown'\)/);
+});
+test('Open-Meteo forecast contract requests sunrise/sunset and current is_day',()=>{
+ assert.match(SOURCE,/current:'wind_speed_10m,is_day'/);
+ assert.match(SOURCE,/daily:'sunrise,sunset'/);
+ assert.match(SOURCE,/const isDay=validSolar\?raw>=rise&&raw<set:null/);
+ assert.match(SOURCE,/cur.is_day===1\|\|cur.is_day===0/);
+});
+test('water station stack fits inside the 40px LED with breathing room',()=>{
+ const html=fs.readFileSync(path.join(ROOT,'v2/index.html'),'utf8');
+ assert.match(html,/#water \.water-fig \.name\{line-height:7px;transform:translateY\(2px\)\}/);
+ assert.match(html,/#water \.water-fig \.num\{line-height:18px\}/);
+ assert.match(html,/#water \.water-fig \.observed\{line-height:7px;transform:translateY\(-2px\)/);
+});
+
+test('Open-Meteo source is_day and future hourly sunrise/sunset per date are applied',async()=>{
+ const ctl=bootCtl();const d=await ctl.api.getLive({now:ctl.now});
+ assert.equal(d.weather.isDay,false);
+ assert.equal(d.forecast.status,'model_forecast');
+ assert.equal(d.forecast.hours.length,5);
+ for(const hour of d.forecast.hours){
+  const shouldBeDay=hour.time>='06:00'&&hour.time<'18:00';
+  assert.equal(hour.isDay,shouldBeDay, 'hour '+hour.time+' uses per-date sunrise/sunset');
+ }
+});
+
+test('every classified weather scene has an actual SVG symbol for day and night',()=>{
+ const html=fs.readFileSync(path.join(ROOT,'v2/weather.html'),'utf8');
+ const symbols=['sun','moon','partly','moon-partly','cloud','fog','rain','storm','snow','unknown'];
+ for(const x of symbols){assert.match(html,new RegExp('<symbol id="'+x+'"'),x+' icon must not be blank');}
 });

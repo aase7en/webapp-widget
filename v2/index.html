@@ -391,6 +391,13 @@ box-shadow:inset 0 1px 1px #ceffffa8,inset 0 -1px 2px #30e7ff80,0 0 6px #19bbff6
 }
 
 
+/* Water: reduce the name / number / observation stack from 35px to 32px,
+   centering text farther from the physical frame rim at both ends. */
+#water .water-fig{align-self:center;gap:0}
+#water .water-fig .name{line-height:7px;transform:translateY(2px)}
+#water .water-fig .num{line-height:18px}
+#water .water-fig .observed{line-height:7px;transform:translateY(-2px);font-size:5.7px}
+
 /* Physical 432x40 LED mode: rotate exactly three approved UI strips. */
 html.led-screen,html.led-screen body{margin:0;padding:0;overflow:hidden;width:432px;height:40px;max-width:432px;max-height:40px;background:#000}
 html.led-screen main{width:432px;height:40px;max-width:432px;margin:0;overflow:hidden}

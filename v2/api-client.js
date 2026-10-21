@@ -94,8 +94,8 @@ async function live(opts){
    // Hourly forecast is a separate MODEL source; its failure cannot invalidate PM.
    try{
     const q=new URLSearchParams({latitude:String(loc.lat),longitude:String(loc.lon),
-     current:'wind_speed_10m',hourly:'temperature_2m,precipitation_probability,weather_code',
-     forecast_days:'2',timezone:'Asia/Bangkok'});
+     current:'wind_speed_10m,is_day',hourly:'temperature_2m,precipitation_probability,weather_code',
+     daily:'sunrise,sunset',forecast_days:'2',timezone:'Asia/Bangkok'});
     const f=await fetchJson(FORECAST+'?'+q.toString(),12000,tnow);
     const hourly=f&&f.hourly?f.hourly:null;
     if(f&&f.timezone==='Asia/Bangkok'&&hourly&&Array.isArray(hourly.time)){
@@ -105,15 +105,27 @@ async function live(opts){
       const raw=hourly.time[i];if(typeof raw!=='string'||!/^\d{4}-\d\d-\d\dT\d\d:\d\d$/.test(raw))continue;
       const when=Date.parse(raw+'+07:00');if(!Number.isFinite(when)||when<next.getTime())continue;
       const codeArray=hourly.weather_code||[],rainArray=hourly.precipitation_probability||[];
-      const code=codeArray[i],rain=rainArray[i];
+      const code=codeArray[i],rain=rainArray[i],daily=f.daily||{};
+      const days=Array.isArray(daily.time)?daily.time:[];
+      const dayIndex=days.indexOf(raw.slice(0,10));
+      const rise=dayIndex>=0&&Array.isArray(daily.sunrise)?daily.sunrise[dayIndex]:null;
+      const set=dayIndex>=0&&Array.isArray(daily.sunset)?daily.sunset[dayIndex]:null;
+      // Do not infer sunlight from wall-clock hour. The location-specific
+      // sunrise/sunset is model data; unknown remains null (no sun icon).
+      const validSolar=typeof rise==='string'&&typeof set==='string'&&
+       /^\d{4}-\d\d-\d\dT\d\d:\d\d$/.test(rise)&&
+       /^\d{4}-\d\d-\d\dT\d\d:\d\d$/.test(set)&&rise<set;
+      const isDay=validSolar?raw>=rise&&raw<set:null;
       hours.push({time:raw.slice(-5),weatherCode:Number.isInteger(code)?code:null,
-       rainProbabilityPct:finite(rain,0,100)?rain:null});
+       rainProbabilityPct:finite(rain,0,100)?rain:null,isDay:isDay});
       if(!firstSlot)firstSlot=when;
       if(hours.length===5)break;
      }
      if(hours.length===5){out.forecast={status:'model_forecast',hours,source:'Open-Meteo forecast model'};fcFrom=firstSlot;}
      const cur=f.current?f.current:null;
      const wSpeed=cur?cur.wind_speed_10m:undefined;
+     if(out.weather.status==='model_latest')
+      out.weather.isDay=cur&&(cur.is_day===1||cur.is_day===0)?cur.is_day===1:null;
      if(out.weather.status==='model_latest'&&finite(wSpeed,0,300))
       out.weather.windKmh=wSpeed;
     }

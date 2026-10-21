@@ -8,14 +8,7 @@ function showSource(text){
  const label=(parent!==window?parent.document:document).getElementById('weather-source');
  if(label)label.textContent=text;
 }
-const weatherIcon=code=>{
- if(!Number.isInteger(code))return 'cloud';
- if(code<=1)return 'partly';
- if(code<=3||code===45||code===48)return 'cloud';
- if(code>=95)return 'storm';
- if((code>=51&&code<=82)||(code>=85&&code<=86))return 'rain';
- return 'cloud';
-};
+const weatherIcon=(code,isDay)=>window.UthWeatherConditions.classify(code,isDay);
 function heat(temp,humidity){
  if(!valid(temp)||!valid(humidity))return null;
  const t=temp*9/5+32,rh=humidity;
@@ -32,11 +25,13 @@ const ns='http://www.w3.org/2000/svg';
 function createSVG(kind){
  const svg=document.createElementNS(ns,'svg');svg.setAttribute('viewBox','0 0 32 32');
  const use=document.createElementNS(ns,'use');use.setAttribute('href','#'+kind);svg.appendChild(use);
- if(kind==='rain'||kind==='storm'){
+ if(kind==='rain'||kind==='storm'||kind==='snow'){
  const group=document.createElementNS(ns,'g');group.setAttribute('class','rain-particles');
  [7,17.7,26].forEach((x,i)=>{
- const d=document.createElementNS(ns,'path');d.setAttribute('class','rain-drop');
- d.setAttribute('d','M'+x+' 23l-1 4 2-.2Z');d.setAttribute('fill','url(#neonRain)');
+ const d=document.createElementNS(ns,'path');d.setAttribute('class',kind==='snow'?'snow-flake':'rain-drop');
+ if(kind==='snow')d.setAttribute('d','M'+x+' 24l2 2m0-2l-2 2');
+ else d.setAttribute('d','M'+x+' 23l-1 4 2-.2Z');d.setAttribute('fill','url(#neonRain)');
+ if(kind==='snow'){d.setAttribute('stroke','#effbff');d.setAttribute('stroke-width','1.3');d.setAttribute('fill','none');}
  d.style.animationDelay=['-.06s','-.49s','-.92s'][i];group.appendChild(d);
  });
  svg.appendChild(group);
@@ -65,13 +60,15 @@ function setClock(){
  $('#mock-time').textContent=t;$('#mock-day').textContent=day;
 }
 function noData(){
+ const current=document.querySelector('.current');
+ if(current){current.dataset.weather='none';current.dataset.night='false';const icon=$('#current-weather-icon');if(icon){clearNode(icon);icon.appendChild(createSVG('unknown'));}}
  $('.temp strong').textContent='—';$('.hi strong').textContent='—';$('.place').textContent='ต.อุทัย · รอข้อมูล';
  clearNode($('#hours'));
  for(let i=0;i<5;i++){
  const item=document.createElement('div');item.className='hour';item.dataset.weather='none';
  const lbl=document.createElement('span');lbl.className='t';lbl.textContent='--:--';
  const pct=document.createElement('span');pct.className='rain-pct';pct.textContent='—%';
- item.append(lbl,createSVG('cloud'),pct);$('#hours').append(item);
+ item.append(lbl,createSVG('unknown'),pct);$('#hours').append(item);
  }
  $('.warning .forecast-label').textContent='ข้อมูลไม่พร้อม';
  $('.warning .under').textContent='พยากรณ์ไม่พร้อม';
@@ -84,11 +81,12 @@ function paint(d){
  $('.temp strong').textContent=Math.round(weather.temperatureC)+'°';
  const hi=heat(weather.temperatureC,weather.humidityPct);
  $('.hi strong').textContent=valid(hi)?Math.round(hi)+'°':'—';
- const kind=weatherIcon(weather.weatherCode);
+ const kind=weatherIcon(weather.weatherCode,weather.isDay);
  const icon=$('#current-weather-icon');
  const box=icon?icon.closest('.current'):null;
  if(icon&&box){
- box.dataset.weather=kind==='partly'?'partly':kind;
+ box.dataset.weather=kind;
+ box.dataset.night=weather.isDay===false?'true':'false';
  icon.setAttribute('viewBox','0 0 32 32');clearNode(icon);
  const scene=createSVG(kind);while(scene.firstChild)icon.append(scene.firstChild);
  }
@@ -96,11 +94,12 @@ function paint(d){
  clearNode($('#hours'));
  const hourData=f.status==='model_forecast'?f.hours:[];
  for(let i=0;i<5;i++){
- const forecast=hourData[i]||{},wx=weatherIcon(forecast.weatherCode);
+ const forecast=hourData[i]||{},wx=weatherIcon(forecast.weatherCode,forecast.isDay);
  const item=document.createElement('div');item.className='hour';item.dataset.weather=hourData[i]?wx:'none';
+ item.dataset.night=forecast.isDay===false?'true':'false';
  const t=document.createElement('span');t.className='t';t.textContent=forecast.time||'--:--';
  const pct=document.createElement('span');pct.className='rain-pct';pct.textContent=valid(forecast.rainProbabilityPct)?forecast.rainProbabilityPct+'%':'—%';
- item.append(t,createSVG(hourData[i]?wx:'cloud'),pct);$('#hours').append(item);
+ item.append(t,createSVG(hourData[i]?wx:'unknown'),pct);$('#hours').append(item);
  }
  $('.warning .forecast-label').textContent=f.status==='model_forecast'?'พยากรณ์ฝน':'ข้อมูลอากาศ';
  $('.warning .under').textContent=f.status==='model_forecast'?'โอกาสฝนรายชั่วโมง':'พยากรณ์ไม่พร้อม';
