@@ -272,3 +272,25 @@ test('P1 hot cache never serves a value that aged past observation freshness wit
  assert.equal(w2.stations.HDA004.risk,'unassessed');
  assert.equal(w2.stations.S5.status,'missing');
 });
+
+test('weather 432x40 copy distinguishes source/model from alarm and hides unpopulated FE/UV',()=>{
+ const html=fs.readFileSync(path.join(ROOT,'v2/weather.html'),'utf8');
+ const js=fs.readFileSync(path.join(ROOT,'v2/weather-live.js'),'utf8');
+ assert.doesNotMatch(html,/FE\s*—|UV\s*—|class="bang"/);
+ assert.match(html,/forecast-label/);
+ assert.match(html,/aria-label="ข้อมูลพยากรณ์ฝนรายชั่วโมงจากแบบจำลอง Open-Meteo"/);
+ assert.match(html,/Heat Index: คำนวณ/);
+ assert.match(js,/forecast\.status|f\.status==='model_forecast'/);
+ assert.match(js,/พยากรณ์ฝน/);
+ assert.match(js,/พยากรณ์ไม่พร้อม/);
+ assert.match(js,/ข้อมูลจากแบบจำลองสภาพอากาศ ไม่ใช่เครื่องวัดที่ รพ/);
+ assert.doesNotMatch(js,/พยากรณ์แบบจำลอง/);
+});
+
+test('weather/PM preview provenance must never claim live readings are mock samples',()=>{
+ const page=fs.readFileSync(path.join(ROOT,'v2/index.html'),'utf8');
+ assert.doesNotMatch(page,/PM2\.5 และ Weather เป็นค่าจำลองเพื่อรีวิวดีไซน์/);
+ assert.match(page,/GISTDA ระดับตำบล/);
+ assert.match(page,/อุณหภูมิและพยากรณ์ฝนมาจากแบบจำลอง Open-Meteo/);
+ assert.match(page,/สถานีอ้างอิง ThaiWater\/HII/);
+});

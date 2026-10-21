@@ -1,4 +1,4 @@
-/* Five-hour forecast from local read-only bridge (Open-Meteo model). */
+/* Five-hour forecast from static GitHub Pages read-only client (Open-Meteo model). */
 (()=>{
 'use strict';
 const $=s=>document.querySelector(s),valid=n=>typeof n==='number'&&Number.isFinite(n);
@@ -73,8 +73,9 @@ function noData(){
  const pct=document.createElement('span');pct.className='rain-pct';pct.textContent='—%';
  item.append(lbl,createSVG('cloud'),pct);$('#hours').append(item);
  }
- $('.warning .pill').lastChild.textContent='รอข้อมูล';
+ $('.warning .forecast-label').textContent='ข้อมูลไม่พร้อม';
  $('.warning .under').textContent='พยากรณ์ไม่พร้อม';
+ $('.warning .under:last-child').textContent='Open-Meteo';
  showSource('UNAVAILABLE · ไม่ใช้ข้อมูลจำลองแทน');
 }
 function paint(d){
@@ -91,7 +92,7 @@ function paint(d){
  icon.setAttribute('viewBox','0 0 32 32');clearNode(icon);
  const scene=createSVG(kind);while(scene.firstChild)icon.append(scene.firstChild);
  }
- $('.place').textContent='ต.อุทัย · แบบจำลอง';
+ $('.place').textContent='ต.อุทัย · Open-Meteo';
  clearNode($('#hours'));
  const hourData=f.status==='model_forecast'?f.hours:[];
  for(let i=0;i<5;i++){
@@ -101,9 +102,12 @@ function paint(d){
  const pct=document.createElement('span');pct.className='rain-pct';pct.textContent=valid(forecast.rainProbabilityPct)?forecast.rainProbabilityPct+'%':'—%';
  item.append(t,createSVG(hourData[i]?wx:'cloud'),pct);$('#hours').append(item);
  }
- $('.warning .pill').lastChild.textContent='ข้อมูลอากาศ';
- $('.warning .under').textContent='พยากรณ์แบบจำลอง';
- showSource('Open-Meteo · พิกัดต.อุทัย · แบบจำลอง ณ '+new Date(weather.observedAt).toLocaleTimeString('th-TH',{timeZone:'Asia/Bangkok',hour:'2-digit',minute:'2-digit'}));
+ $('.warning .forecast-label').textContent=f.status==='model_forecast'?'พยากรณ์ฝน':'ข้อมูลอากาศ';
+ $('.warning .under').textContent=f.status==='model_forecast'?'โอกาสฝนรายชั่วโมง':'พยากรณ์ไม่พร้อม';
+ $('.warning .under:last-child').textContent='Open-Meteo';
+ const observed=Date.parse(weather.observedAt);
+ const clock=Number.isFinite(observed)?new Date(observed).toLocaleTimeString('th-TH',{timeZone:'Asia/Bangkok',hour:'2-digit',minute:'2-digit'}):'ไม่ระบุเวลา';
+ showSource('Open-Meteo · ต.อุทัย · ข้อมูลจากแบบจำลองสภาพอากาศ ไม่ใช่เครื่องวัดที่ รพ. · เวลาอ้างอิง '+clock);
 }
 async function refresh(){
  try{paint(await window.UthApiClient.getLive())}
