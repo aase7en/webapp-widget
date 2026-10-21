@@ -461,6 +461,15 @@ html.led-screen .stage-wrap{width:432px;height:40px;min-height:40px;margin:0;pad
 html.led-screen .scale{position:relative;width:432px;height:40px}
 html.led-screen .scale>div,html.led-screen .scale>iframe{transform:none!important;transform-origin:0 0!important}
 @media(prefers-reduced-motion:reduce){html.led-screen article{transition:none!important}}
+/* Explicit humidity caption within existing 45px PM weather cell. */
+#pm .climate{gap:0!important;justify-items:center;align-content:center}
+#pm .climate .climate-temp{font-size:8px;line-height:9px;color:#dcf4ff;font-weight:900}
+#pm .climate .climate-humidity-label{font-size:6.5px;line-height:8px;
+ color:#a7daef;font-weight:800;white-space:nowrap}
+#pm .climate .climate-humidity-value{font-size:9px;line-height:10px;
+ color:#39d6ff;font-weight:950;white-space:nowrap}
+#pm .climate .climate-wind{font-size:5.5px;line-height:8px;
+ color:#91c5e6;font-weight:700;white-space:nowrap}
 </style>
 <!-- clear-gloss-outer-rim v1 -->
 </head>
@@ -481,7 +490,8 @@ html.led-screen .scale>div,html.led-screen .scale>iframe{transform:none!importan
 <span class="sparks"></span></div><div class="pm-text"><label>PM2.5</label><strong class="pm-num">—</strong></div><small class="pm-unit">µg/m³</small></div>
 <div class="seg pm-status"><div class="pill"><i>!</i> รอข้อมูล</div><span class="sub">ยังไม่พบค่าล่าสุด</span></div>
 <div class="seg scalePM"><span class="scaleLegend" title="ช่วง PM2.5 (µg/m³): 0–25 / 26–37 / 38–50 / 51–90 / ≥91">0 26 38 51 91</span><div class="levels"></div></div>
-<div class="seg climate"><strong>—</strong><strong>—</strong><small>ลม —</small></div>
+<div class="seg climate" role="group" aria-label="ข้อมูลอากาศจากแบบจำลอง Open-Meteo แยกจากค่าฝุ่น PM2.5" title="อุณหภูมิ ความชื้นสัมพัทธ์ และความเร็วลมจากแบบจำลอง Open-Meteo ไม่ใช่ตัวเลขค่าฝุ่น">
+<strong class="climate-temp">—</strong><span class="climate-humidity-label">ความชื้น</span><strong class="climate-humidity-value" title="ความชื้นสัมพัทธ์ (Relative Humidity) หน่วยเปอร์เซ็นต์">—</strong><small class="climate-wind">ลม —</small></div>
 <div class="seg location"><b>รพ.อุทัย</b><small>อ.อุทัย จ.อยุธยา</small></div>
 </div></div></div><small id="pm-provenance">PM2.5: รอดึงข้อมูล GISTDA · ค่าเฉลี่ยระดับตำบล ไม่ใช่สถานีวัดในโรงพยาบาล</small>
 </article>
