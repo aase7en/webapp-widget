@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="th"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>UTH LED Weather · Isolated Visual Prototype</title>
+<html lang="th"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>UTH LED Weather · Open-Meteo</title>
 <style>
 :root{color-scheme:dark;font-family:Tahoma,"Noto Sans Thai",system-ui,sans-serif}*{box-sizing:border-box}body{margin:0;background:#07131f;color:#e4f4ff;padding:30px 22px}
 main{max-width:1150px;margin:auto}h1{font-size:21px;margin:0 0 5px}.muted{color:#a7bbc9;font-size:13px}.explain{margin:14px 0;font-size:12px;color:#c6d7e4}.stage-bg{margin:20px 0;background:#000;border:1px solid #29465e;border-radius:12px;min-height:126px;display:flex;align-items:center;justify-content:center;overflow:hidden}
@@ -133,6 +133,29 @@ box-shadow:inset 0 1px 1px #d3f9ff8a,inset 0 -1px 1px #279cd365}
  }
 }
 </style>
+<style id="uth-weather-information-status">
+/* A forecast is information, not a hospital hazard alert. Refine only the
+   rightmost status block; do not blur glass over the numeric panels. */
+.led .warning{gap:0!important;padding:1px 2px!important;overflow:hidden}
+.led .warning .pill{
+ height:17px!important;width:96px!important;max-width:100%!important;
+ border-radius:11px!important;
+ background:linear-gradient(180deg,#4a90a8 0%,#175a75 40%,#0b3048 100%)!important;
+ border:1px solid #9fdbed!important;
+ box-shadow:inset 0 1px 1px #edffff83,0 0 3px #60dbff42!important;
+ color:#e6faff!important;text-shadow:none!important;
+ font-size:9px!important;line-height:15px!important;gap:4px!important;
+}
+.led .warning .forecast-dot{
+ width:7px;height:7px;flex:none;display:block;border-radius:50%;
+ background:#7ce0f9;box-shadow:0 0 1px #dcffffa6;
+ border:1px solid #c7f2ff
+}
+.led .warning .forecast-label{white-space:nowrap;overflow:hidden;text-overflow:clip}
+.led .warning .under{font-size:7.2px!important;line-height:9px!important;
+ font-weight:750!important;max-width:100%;white-space:nowrap;color:#badbea!important}
+.led .warning .under:last-child{color:#83c7e6!important}
+</style>
 <!-- clear-gloss-outer-rim-weather v1 -->
 <style id="uth-clear-outer-rim-weather">
 /* UTH clear convex outer rim — ONLY the outermost LED frame.
@@ -256,9 +279,9 @@ box-shadow:inset 0 1px 1px #d3f9ff8a,inset 0 -1px 1px #279cd365}
 <path d="M17.4 12.9Q20.5 10.5 23.2 13M11 17.7Q12.4 15.9 14.2 16" fill="none" stroke="#fff" stroke-width="1.05" stroke-linecap="round" opacity=".8"/>
 </symbol></svg>
 <div class="clock"><div class="day" id="mock-day">รอเวลา</div><div class="time" id="mock-time">--:--</div></div>
-<div class="current" data-weather="sunny"><svg class="sun-big current-weather-icon" id="current-weather-icon" viewBox="0 0 40 40" aria-hidden="true"><circle class="current-sun-aura" cx="20" cy="20" r="16"/><g class="current-sun-rotor"><use href="#sun"/></g><ellipse class="current-sun-glint" cx="16" cy="13" rx="4.6" ry="2.5" transform="rotate(-35 16 13)"/></svg><div class="current-info"><div class="temp"><strong>—</strong><small>C</small></div><div class="hi">HI <strong>—</strong></div><div class="place" id="current-weather-label">ต.อุทัย · แดดจัด</div></div></div>
+<div class="current" data-weather="sunny"><svg class="sun-big current-weather-icon" id="current-weather-icon" viewBox="0 0 40 40" aria-hidden="true"><circle class="current-sun-aura" cx="20" cy="20" r="16"/><g class="current-sun-rotor"><use href="#sun"/></g><ellipse class="current-sun-glint" cx="16" cy="13" rx="4.6" ry="2.5" transform="rotate(-35 16 13)"/></svg><div class="current-info"><div class="temp"><strong>—</strong><small>C</small></div><div class="hi" title="Heat Index: คำนวณจากอุณหภูมิและความชื้นที่ได้จากแบบจำลอง Open-Meteo ไม่ใช่เครื่องวัดที่โรงพยาบาล">HI <strong>—</strong></div><div class="place" id="current-weather-label">ต.อุทัย · รอข้อมูล</div></div></div>
 <div class="hour-group" id="hours"></div>
-<div class="warning"><div class="pill"><span class="bang">!</span>รอข้อมูล</div><div class="under">พยากรณ์รายชั่วโมง</div><div class="under">FE — · UV —</div></div>
+<div class="warning" role="group" aria-label="ข้อมูลพยากรณ์ฝนรายชั่วโมงจากแบบจำลอง Open-Meteo"><div class="pill"><span class="forecast-dot" aria-hidden="true"></span><span class="forecast-label">รอข้อมูล</span></div><div class="under">พยากรณ์ไม่พร้อม</div><div class="under">Open-Meteo</div></div>
 </div></div></div></div>
 </main><script src="../led-rotation.js" defer></script>
 <script src="./api-client.js" defer></script>
