@@ -239,7 +239,7 @@ test('no credit node exists at runtime; provenance stays text-only on slides',()
 
 /* ---------- 2026-10-18-prod3: visible credit removed, attribution off-display ---------- */
 test('index.html has zero anchors and zero visible Open-Meteo text in the stage',()=>{
-  const html=fs.readFileSync(path.join(__dirname,'../index.html'),'utf8');
+  const html=fs.readFileSync(path.join(__dirname,'../legacy.html'),'utf8');
   assert.equal([...html.matchAll(/<a\b[^>]*>/g)].length,0,'zero anchors in document');
   assert.ok(!html.includes('wx-credit'),'credit element gone');
   assert.ok(!html.includes('open-meteo.com/'),'no credit href anywhere');

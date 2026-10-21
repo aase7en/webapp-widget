@@ -6,6 +6,7 @@ on:
   pull_request:
     paths:
       - index.html
+      - legacy.html
       - led-rotation.js
       - strip.js
       - strip.css
@@ -22,6 +23,7 @@ on:
     branches: [main]
     paths:
       - index.html
+      - legacy.html
       - led-rotation.js
       - strip.js
       - strip.css
@@ -58,15 +60,21 @@ jobs:
         run: node --check tests/browser-led.test.mjs
       - name: Native strip replaced the legacy PM2.5 iframe (user-approved 2026-10-17)
         run: |
-          grep -q 'id="slide-pm"' index.html
-          grep -q 'strip.js?v=20261018-prod3' index.html
-          ! grep -q 'script.google.com' index.html
-          ! grep -q 'AKfycb' index.html
+          grep -q 'id="slide-pm"' legacy.html
+          grep -q 'strip.js?v=20261018-prod3' legacy.html
+          ! grep -q 'script.google.com' index.html legacy.html
+          ! grep -q 'AKfycb' index.html legacy.html
+      - name: Approved live entry points to the fixed 432x40 visual build
+        run: |
+          grep -q 'src="./v2/index.html?display=led"' index.html
+          grep -q 'led-screen' v2/index.html
+          ! grep -q 'MOCK /' v2/index.html v2/weather.html
+          ! grep -q '127.0.0.1' v2/index.html v2/api-client.js
       - name: No visible credit in the strip; Open-Meteo attribution off-display only
         run: |
           [ "$(grep -c '<a ' index.html)" = "0" ]
           ! grep -q 'wx-credit' index.html strip.css strip.js
-          grep -q 'title="ปริมาณฝนวันนี้ (พยากรณ์ Open-Meteo)"' index.html
+          grep -q 'title="ปริมาณฝนวันนี้ (พยากรณ์ Open-Meteo)"' legacy.html
           grep -q 'name="description"' index.html
-          grep -q 'Open-Meteo' index.html   # meta description + slide title only
+          grep -q 'Open-Meteo' index.html
           grep -q 'creativecommons.org/licenses/by/4.0' WATER-LED.md

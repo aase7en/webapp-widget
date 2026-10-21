@@ -235,7 +235,7 @@ test('single fixed backend endpoint replaces all direct upstream API calls',()=>
   assert.equal(w.FETCH_TIMEOUT_MS,12000);
   assert.equal(w.FUTURE_MS,5*60000);
   assert.equal(w.FRESH_MS,3*3600000);
-  for(const f of ['led-rotation.js','strip.js','index.html','strip.css'])
+  for(const f of ['led-rotation.js','strip.js','legacy.html','strip.css'])
     assert.doesNotMatch(fs.readFileSync(path.join(__dirname,'..',f),'utf8'),/api\.open-meteo\.com/);
 });
 test('backend GET uses the fixed URL, no-store and follow redirects',async()=>{

@@ -2,8 +2,9 @@
 
 Visual baseline: user-approved local preview at `http://127.0.0.1:8128/`.
 This `v2/` tree is **static** and does not require or reference the Mac
-read-only Python proxy. Production home `index.html` remains unchanged
-until the separate release/cutover gate is satisfied.
+read-only Python proxy. The candidate root `index.html` now embeds the 432×40 rotating v2 mode.
+The previous native strip is preserved at `legacy.html` for rollback.
+Nothing is deployed until exact-SHA review/CI and release gates pass.
 
 ## Data contracts
 
@@ -33,9 +34,8 @@ until the separate release/cutover gate is satisfied.
 UI at `/v2/` presents three separate 432 × 40 CSS-pixel strips
 for visual inspection. `/v2/index.html?display=led` presents a single
 432 × 40 strip rotating PM2.5 → Weather → Water every 22 seconds.
-Only presentation changes with this URL parameter; the data source is fixed. Do not redirect the public
-root to it until a suitable single-slide/rotation cutover is agreed and
-accepted.
+Only presentation changes with this URL parameter; the data source is fixed. The root displays the same single-strip rotation via an iframe.
+This candidate is not live on `main` until accepted and merged.
 
 Changes to the root/production require current repo ownership and safe
 release gate, exact-SHA PR review, GitHub Actions checks, and live website

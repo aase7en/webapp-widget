@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>UTH Uthai Hospital LED</title>
+<meta name="description" content="บอร์ดข้อมูลสิ่งแวดล้อมโรงพยาบาลอุทัยธานี — PM2.5 จาก GISTDA, อากาศ/พยากรณ์ฝนจาก Open-Meteo (ข้อมูล CC BY 4.0), ดัชนีความร้อนคำนวณจากโมเดลอากาศ ไม่ใช่การวัดที่โรงพยาบาล">
+<!-- Production LED frontend: fixed 432x40 strip (clock + PM2.5 / water / weather+HI),
+     single backend read API, no synthetic fixtures, no state parameters. -->
+<!-- Open-Meteo licence (CC BY 4.0): the on-LED visible credit was removed by the
+     data owner (2026-10-18-prod3). Attribution is kept off-display only —
+     provenance title/aria on each slide, this meta description, and the
+     README / WATER-LED.md credit notes. No anchor or credit text in the strip. -->
+<link rel="stylesheet" href="./strip.css?v=20261018-prod3">
+<style>
+html,body{margin:0;padding:0;background:#000}
+.led{position:relative;width:100%;height:40px;overflow:hidden;background:#000}
+</style>
+</head>
+<body class="led-page">
+<main class="led" aria-label="บอร์ดข้อมูลสิ่งแวดล้อมโรงพยาบาลอุทัยธานี">
+<div class="stage" id="stage" data-sev="unavailable" role="region" aria-label="สถานะสิ่งแวดล้อมโรงพยาบาลอุทัยธานี">
+  <div class="clock-panel" aria-label="วันและเวลาปัจจุบันในประเทศไทย"><span class="day" id="day-a"></span><span class="time" id="clock-a">--:--</span></div>
+  <section class="slide active" id="slide-pm" data-slide="pm" data-pm-mood="unavailable" data-sev="unavailable" aria-label="คุณภาพอากาศ PM2.5">
+    <div class="panel primary">
+       <div class="col icon icon-scene pm-scene"><span class="pm-rig" aria-hidden="true"><img class="pm-layer pm-base" data-pm-base="good" src="./assets/icons3d/rig/pm-base-good.png?v=20261018-prod3" alt="" decoding="async"><img class="pm-layer pm-base" data-pm-base="moderate" src="./assets/icons3d/rig/pm-base-moderate.png?v=20261018-prod3" alt="" decoding="async"><img class="pm-layer pm-base" data-pm-base="unhealthy" src="./assets/icons3d/rig/pm-base-unhealthy.png?v=20261018-prod3" alt="" decoding="async"><img class="pm-layer pm-base" data-pm-base="protective" src="./assets/icons3d/rig/pm-base-protective.png?v=20261018-prod3" alt="" decoding="async"><img class="pm-layer pm-base" data-pm-base="severe" src="./assets/icons3d/rig/pm-base-severe.png?v=20261018-prod3" alt="" decoding="async"><img class="pm-layer pm-base" data-pm-base="unavailable" src="./assets/icons3d/rig/pm-base-unavailable.png?v=20261018-prod3" alt="" decoding="async"><img class="pm-layer pm-brows-img" src="./assets/icons3d/rig/pm-brows.png?v=20261018-prod3" alt="" decoding="async"><img class="pm-layer pm-mask-img" src="./assets/icons3d/rig/pm-mask.png?v=20261018-prod3" alt="" decoding="async"><img class="pm-layer pm-mouth-img" data-mouth="smile" src="./assets/icons3d/rig/pm-mouth.png?v=20261018-prod3" alt="" decoding="async"><img class="pm-layer pm-mouth-img" data-mouth="grin" src="./assets/icons3d/rig/pm-mouth-grin.png?v=20261018-prod3" alt="" decoding="async"><img class="pm-layer pm-mouth-img" data-mouth="flat" src="./assets/icons3d/rig/pm-mouth-flat.png?v=20261018-prod3" alt="" decoding="async"><img class="pm-layer pm-mouth-img" data-mouth="worry" src="./assets/icons3d/rig/pm-mouth-worry.png?v=20261018-prod3" alt="" decoding="async"><img class="pm-layer pm-mouth-img" data-mouth="frown" src="./assets/icons3d/rig/pm-mouth-frown.png?v=20261018-prod3" alt="" decoding="async"><img class="pm-layer pm-mouth-img" data-mouth="wavy" src="./assets/icons3d/rig/pm-mouth-wavy.png?v=20261018-prod3" alt="" decoding="async"><span class="pm-tear" aria-hidden="true"></span><img class="pm-layer pm-eyes-img" data-eyes="normal" src="./assets/icons3d/rig/pm-eyes.png?v=20261018-prod3" alt="" decoding="async"><img class="pm-layer pm-eyes-img" data-eyes="happy" src="./assets/icons3d/rig/pm-eyes-happy.png?v=20261018-prod3" alt="" decoding="async"><img class="pm-layer pm-eyes-img" data-eyes="x" src="./assets/icons3d/rig/pm-eyes-x.png?v=20261018-prod3" alt="" decoding="async"></span><span class="icon-fallback">PM</span></div>
+      <div class="reading"><span class="reading-main"><strong id="pm-value">—</strong><small id="pm-unit">µg/m³</small></span><span class="reading-label">PM2.5</span></div>
+    </div>
+    <div class="panel status"><span class="pill"><span class="status-symbol" aria-hidden="true">?</span><span class="pm-context" id="pm-loc">รอข้อมูลพื้นที่</span><span id="pm-badge">รอข้อมูล</span></span><span class="status-note" id="pm-note">รอข้อมูล PM2.5</span></div>
+  </section>
+  <section class="slide" id="slide-weather" data-slide="weather" data-wx-motion="unavailable" data-heat="no-data" data-sev="unavailable" aria-label="อากาศและดัชนีความร้อน">
+    <div class="panel primary">
+       <div class="temp-zone"><span class="heat-thermo" id="heat-thermo" role="img" aria-label="ดัชนีความร้อน (คำนวณ) ระดับของเหลวและสีบอกระดับความร้อน"><img class="heat-liquid-img" data-heat-liquid="below" src="./assets/icons3d/rig/heat/liquid-below.png?v=20261018-prod3" alt="" decoding="async"><img class="heat-liquid-img" data-heat-liquid="watch" src="./assets/icons3d/rig/heat/liquid-watch.png?v=20261018-prod3" alt="" decoding="async"><img class="heat-liquid-img" data-heat-liquid="caution" src="./assets/icons3d/rig/heat/liquid-caution.png?v=20261018-prod3" alt="" decoding="async"><img class="heat-liquid-img" data-heat-liquid="danger" src="./assets/icons3d/rig/heat/liquid-danger.png?v=20261018-prod3" alt="" decoding="async"><img class="heat-liquid-img" data-heat-liquid="extreme" src="./assets/icons3d/rig/heat/liquid-extreme.png?v=20261018-prod3" alt="" decoding="async"><img class="heat-liquid-img" data-heat-liquid="no-data" src="./assets/icons3d/rig/heat/liquid-no-data.png?v=20261018-prod3" alt="" decoding="async"><img class="heat-glass-img" src="./assets/icons3d/rig/heat/glass.png?v=20261018-prod3" alt="" decoding="async"><span class="heat-glow" aria-hidden="true"></span></span>
+         <span class="weather-metric weather-temp">
+          <span class="weather-value reading-main"><strong id="wx-temp">—</strong><small>C</small></span>
+          <span class="reading-label" id="wx-loc">รอข้อมูลพื้นที่</span>
+        </span>
+         <span class="weather-metric weather-heat">
+          <span class="weather-value"><span class="metric-prefix">HI</span><strong id="wx-hi">—</strong></span>
+          <small class="weather-caption">คำนวณ</small>
+         </span>
+       </div>
+       <div class="forecast-zone"><div class="col icon icon-scene wx-scene"><img class="wx-sun-img" src="./assets/icons3d/rig/wx-sun.png?v=20261018-prod3" alt="" decoding="async" aria-hidden="true"><img class="wx-cloud-back" src="./assets/icons3d/rig/wx-cloud-back.png?v=20261018-prod3" alt="" decoding="async" aria-hidden="true"><img id="wx-icon" src="./assets/icons3d/rig/wx-clean-base.png?v=20261018-prod3" alt="" decoding="async"><img class="wx-cloud-shade" src="./assets/icons3d/rig/wx-cloud-shade.png?v=20261018-prod3" alt="" decoding="async" aria-hidden="true"><img class="wx-cloud-front" src="./assets/icons3d/rig/wx-cloud-front.png?v=20261018-prod3" alt="" decoding="async" aria-hidden="true"><img class="wx-bolt-img" src="./assets/icons3d/rig/wx-bolt.png?v=20261018-prod3" alt="" decoding="async" aria-hidden="true"><span class="icon-fallback">W</span><span class="wx-rain" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span><span class="wx-fog" aria-hidden="true"><i></i><i></i><i></i></span><span class="wx-wind" aria-hidden="true"><i></i><i></i><i></i></span><span class="wx-unknown" aria-hidden="true">?</span><span class="wx-flash" aria-hidden="true"></span></div>
+         <span class="weather-metric weather-rain">
+          <span class="weather-value"><strong id="wx-rain" title="ปริมาณฝนวันนี้ (พยากรณ์ Open-Meteo)">—%</strong></span>
+         </span>
+       </div>
+    </div>
+    <div class="panel status weather-status"><span class="pill"><span class="status-symbol" id="wx-dot" aria-hidden="true">!</span><span id="wx-badge">รอข้อมูล</span></span><span class="status-note" id="wx-note">รอข้อมูลสภาพอากาศ</span></div>
+  </section>
+  <section class="slide no-value" id="slide-water" data-slide="water" data-water-motion="unavailable" data-sev="unavailable" aria-label="ระดับน้ำ ยังไม่มีข้อมูลจริง">
+    <div class="panel primary">
+      <div class="col icon icon-scene water-scene"><span class="water-rig" id="water-rig" aria-hidden="true"><span class="water-glow" aria-hidden="true"></span><img class="water-liquid-img" data-water-liquid="normal" src="./assets/icons3d/rig/water/liquid-normal.png?v=20261018-prod3" alt="" decoding="async"><img class="water-liquid-img" data-water-liquid="watch" src="./assets/icons3d/rig/water/liquid-watch.png?v=20261018-prod3" alt="" decoding="async"><img class="water-liquid-img" data-water-liquid="warning" src="./assets/icons3d/rig/water/liquid-warning.png?v=20261018-prod3" alt="" decoding="async"><img class="water-liquid-img" data-water-liquid="danger" src="./assets/icons3d/rig/water/liquid-danger.png?v=20261018-prod3" alt="" decoding="async"><img class="water-liquid-img" data-water-liquid="critical" src="./assets/icons3d/rig/water/liquid-critical.png?v=20261018-prod3" alt="" decoding="async"><img class="water-liquid-img" data-water-liquid="unavailable" src="./assets/icons3d/rig/water/liquid-unavailable.png?v=20261018-prod3" alt="" decoding="async"><img class="water-wall-img" src="./assets/icons3d/rig/water/wall.png?v=20261018-prod3" alt="" decoding="async"><img class="water-band-img" data-water-band="normal" src="./assets/icons3d/rig/water/band-normal.png?v=20261018-prod3" alt="" decoding="async"><img class="water-band-img" data-water-band="watch" src="./assets/icons3d/rig/water/band-watch.png?v=20261018-prod3" alt="" decoding="async"><img class="water-band-img" data-water-band="warning" src="./assets/icons3d/rig/water/band-warning.png?v=20261018-prod3" alt="" decoding="async"><img class="water-band-img" data-water-band="danger" src="./assets/icons3d/rig/water/band-danger.png?v=20261018-prod3" alt="" decoding="async"><img class="water-band-img" data-water-band="critical" src="./assets/icons3d/rig/water/band-critical.png?v=20261018-prod3" alt="" decoding="async"><img class="water-spill-img" data-water-spill="danger" src="./assets/icons3d/rig/water/spill-danger.png?v=20261018-prod3" alt="" decoding="async"><img class="water-spill-img" data-water-spill="critical" src="./assets/icons3d/rig/water/spill-critical.png?v=20261018-prod3" alt="" decoding="async"><span class="water-wave" aria-hidden="true"></span><span class="water-marker" aria-hidden="true"></span></span><span class="icon-fallback">น้ำ</span></div>
+      <div class="reading water-reading"><span class="reading-main"><strong id="wa-value">—</strong><small>ม. รอข้อมูลจริง</small></span><span class="reading-label">ระดับน้ำ</span></div>
+    </div>
+    <div class="panel status"><span class="pill"><span class="status-symbol" aria-hidden="true">?</span><span id="wa-badge">รอข้อมูลจริง</span></span><span class="status-note" id="wa-loc">รอข้อมูลพื้นที่</span></div>
+  </section>
+
+</div>
+</main>
+<script src="./led-rotation.js?v=20261018-prod3" defer></script>
+<script src="./strip.js?v=20261018-prod3" defer></script>
+</body>
+</html>

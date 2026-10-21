@@ -71,3 +71,17 @@ test('No historical trend invented with a single station timestamp',async()=>{
  assert.deepEqual(Array.from(water.stations.HDA004.trendPoints),[]);
  assert.equal(water.stations.HDA004.deltaM,null);
 });
+
+test('production root embeds exact physical 432x40 rotation, preserving a legacy fallback',()=>{
+ const html=fs.readFileSync(path.join(ROOT,'index.html'),'utf8');
+ const legacy=fs.readFileSync(path.join(ROOT,'legacy.html'),'utf8');
+ const screen=fs.readFileSync(path.join(ROOT,'v2/index.html'),'utf8');
+ assert.match(html,/src="\.\/v2\/index\.html\?display=led"/);
+ assert.match(html,/width:432px;height:40px/);
+ assert.match(html,/Open-Meteo/);
+ assert.doesNotMatch(html,/script\.google\.com|localhost|AKfycb/);
+ assert.match(legacy,/id="slide-pm"/);
+ assert.match(screen,/main>article/);
+ assert.match(screen,/22000/);
+ assert.match(screen,/\.led-current/);
+});

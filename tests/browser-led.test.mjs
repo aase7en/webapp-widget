@@ -17,7 +17,7 @@ const require = createRequire(import.meta.url);
 const chrome = process.env.PREVIEW_CHROME_PATH || '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
 let chromium;
 try { ({chromium} = require('playwright')); } catch { /* optional local browser dependency */ }
-const base = pathToFileURL(new URL('../index.html', import.meta.url).pathname).href;
+const base = pathToFileURL(new URL('../legacy.html', import.meta.url).pathname).href;
 const browserReady = process.env.PREVIEW_BROWSER_E2E === '1' && !!chromium && existsSync(chrome);
 const browserSkip = browserReady ? false : 'Set PREVIEW_BROWSER_E2E=1 with Playwright and Chrome available';
 const ENDPOINT = 'https://script.google.com/macros/s/AKfycbwwUQCeJoz4N0P9UuRJF39pt17mBjPz0_yMDDxTO7BoiUiTQaO7Yay0UKq80EvE6dk/exec';
