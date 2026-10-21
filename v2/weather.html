@@ -273,12 +273,55 @@ box-shadow:inset 0 1px 1px #d3f9ff8a,inset 0 -1px 1px #279cd365}
 .led .warning .pill{font-size:8.5px!important}
 .led .warning .under{font-size:7px!important}
 </style>
+<style id="uth-foreground-layer-pop-v1">
+/* Depth only inside physical 432×40 canvas: allow SVGs to cross INNER
+   panel separators, never promise pixels outside the actual display. */
+.led .clock,.led .warning{position:relative;z-index:6}
+.led .current{overflow:visible!important;z-index:28!important;isolation:auto!important}
+.led .current .sun-big{width:35px!important;height:35px!important;flex:0 0 35px!important;
+ margin-left:-4px!important;margin-right:-2px!important;
+ position:relative;z-index:45!important;overflow:visible!important;
+ filter:drop-shadow(0 1px 1px #071224) drop-shadow(0 0 2px #ffcb5a78)!important}
+.led .hour-group{overflow:visible!important;isolation:auto!important}
+.led .hour{overflow:visible!important;isolation:auto!important}
+.led .hour svg{width:29px!important;height:18px!important;scale:1.12;
+ position:relative;z-index:42!important;overflow:visible!important;
+ margin:0 -1px!important;
+ filter:drop-shadow(0 1px 1px #06101c) drop-shadow(0 0 1.5px #a4dfff82)!important}
+.led .hour .t,.led .hour .rain-pct{position:relative;z-index:47}
+/* The gold crescent keeps a convex gradient + a subtle moving highlight.
+   Unknown/missing daylight retains the neutral no-sun fallback. */
+.led .current[data-weather="moon"] .sun-big,
+.led .current[data-weather="moon-partly"] .sun-big{
+ filter:drop-shadow(0 1px 1px #311705) drop-shadow(0 0 3px #ffc3328e)!important;
+ animation:uth-luxury-moon-float 6s ease-in-out infinite!important}
+.led .hour[data-weather="moon"] svg,
+.led .hour[data-weather="moon-partly"] svg{
+ filter:drop-shadow(0 1px 1px #321c02) drop-shadow(0 0 2.5px #ffce5085)!important;
+ animation:uth-luxury-moon-float 6.2s ease-in-out infinite!important}
+.led .moon-gold-glint{animation:uth-luxury-moon-glint 4.8s ease-in-out infinite}
+.led .warning .forecast-dot{position:relative;z-index:40;box-shadow:0 0 3px currentColor}
+@keyframes uth-luxury-moon-float{
+ 0%,100%{transform:translate3d(0,.5px,0) rotate(-1deg)}
+ 47%{transform:translate3d(0,-1.3px,0) rotate(1deg)}
+}
+@keyframes uth-luxury-moon-glint{
+ 0%,100%{opacity:.5}49%{opacity:.98}
+}
+@media(prefers-reduced-motion:reduce){
+ .led .current[data-weather="moon"] .sun-big,
+ .led .current[data-weather="moon-partly"] .sun-big,
+ .led .hour[data-weather="moon"] svg,
+ .led .hour[data-weather="moon-partly"] svg,
+ .led .moon-gold-glint{animation:none!important;transform:none!important}
+}
+</style>
 </head>
 <body><main><h1>Weather Forecast · LED Luxury Prototype</h1><div class="muted">Separate visual preview — Original LED canvas 432 × 40 CSS px · ไม่แตะ Repository หรือ Production</div>
 <div class="stage-bg"><div class="zoom"><div class="frame"><div class="led" role="img" aria-label="แถบข้อมูลอากาศ Open-Meteo และพยากรณ์ล่วงหน้า 5 ชั่วโมง">
 <svg xmlns="http://www.w3.org/2000/svg" width="0" height="0" style="position:absolute;overflow:hidden" aria-hidden="true"><defs>
 <radialGradient id="sunGrad" cx="29%" cy="23%" r="75%"><stop offset="0" stop-color="#fffdf3"/><stop offset=".25" stop-color="#fff6a5"/><stop offset=".6" stop-color="#ffc72e"/><stop offset=".85" stop-color="#ff920b"/><stop offset="1" stop-color="#cf5400"/></radialGradient>
-<radialGradient id="moonBody" cx="24%" cy="15%" r="94%"><stop offset="0" stop-color="#fffdf1"/><stop offset=".38" stop-color="#d9f0ff"/><stop offset=".75" stop-color="#87add8"/><stop offset="1" stop-color="#3c5689"/></radialGradient>
+<radialGradient id="moonBody" cx="26%" cy="14%" r="98%"><stop offset="0" stop-color="#fff9d8"/><stop offset=".26" stop-color="#fff09a"/><stop offset=".56" stop-color="#ffc638"/><stop offset=".81" stop-color="#e18a12"/><stop offset="1" stop-color="#8c4103"/></radialGradient>
 <radialGradient id="pearlPuff" cx="30%" cy="20%" r="88%"><stop offset="0" stop-color="#ffffff"/><stop offset=".23" stop-color="#f8fdff"/><stop offset=".49" stop-color="#d0e4f8"/><stop offset=".72" stop-color="#92accd"/><stop offset=".91" stop-color="#4b6e99"/><stop offset="1" stop-color="#254767"/></radialGradient>
 <radialGradient id="frontPuff" cx="38%" cy="8%" r="95%"><stop offset="0" stop-color="#ffffff"/><stop offset=".22" stop-color="#f4fbff"/><stop offset=".52" stop-color="#b1d0ec"/><stop offset=".8" stop-color="#628ab5"/><stop offset="1" stop-color="#284b78"/></radialGradient>
 <linearGradient id="cloudBody" x1="0" y1="0" x2=".2" y2="1"><stop offset="0" stop-color="#f7ffff"/><stop offset=".48" stop-color="#adcdea"/><stop offset=".8" stop-color="#7194bb"/><stop offset="1" stop-color="#2e567c"/></linearGradient>
@@ -290,8 +333,8 @@ box-shadow:inset 0 1px 1px #d3f9ff8a,inset 0 -1px 1px #279cd365}
 </defs>
 <!-- Night artwork: shaded crescent / 3D cloud volumes. No sun ray at night. -->
 <symbol id="moon" viewBox="0 0 32 32">
-<path d="M18 3C10.2 4.7 6.6 12.7 8.8 19.7C11.4 28 21.7 30.4 28.2 23C17.9 25.1 12.8 11.2 18 3Z" fill="url(#moonBody)" stroke="#ecf7ff" stroke-width=".7"/>
-<path d="M11.4 13Q12 7.5 16.1 5.6" stroke="#fff" stroke-opacity=".65" stroke-width="1.1" fill="none" stroke-linecap="round"/>
+<path class="moon-gold-body" d="M18 3C10.2 4.7 6.6 12.7 8.8 19.7C11.4 28 21.7 30.4 28.2 23C17.9 25.1 12.8 11.2 18 3Z" fill="url(#moonBody)" stroke="#ffe8a4" stroke-width=".85"/><path class="moon-gold-glint" d="M11.2 10.8Q13 5.5 16.6 4.7M9.9 15.5Q10.6 20.7 15.2 23.7" stroke="#fff6d4" stroke-width="1.5" fill="none" stroke-linecap="round" opacity=".78"/>
+<path d="M11.4 13Q12 7.5 16.1 5.6" stroke="#fffcdf" stroke-opacity=".7" stroke-width="1.1" fill="none" stroke-linecap="round"/>
 <circle cx="26.5" cy="5.5" r=".8" fill="#c6eaff"/><circle cx="29" cy="12" r=".65" fill="#e5fbff"/>
 </symbol>
 <symbol id="moon-partly" viewBox="0 0 32 32">

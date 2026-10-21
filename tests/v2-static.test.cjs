@@ -385,3 +385,34 @@ test('PM 84% weather cell explicitly labels relative humidity and keeps unknown 
  assert.match(js,/NUM\(w\.humidityPct\)\?Math\.round\(w\.humidityPct\)\+'%'/);
  assert.match(js,/temperature\.textContent='—';humidity\.textContent='—';wind\.textContent='ลม —'/);
 });
+
+test('golden 3D-gloss night crescent, including partly cloudy, replaces silver gradient',()=>{
+ const html=fs.readFileSync(path.join(ROOT,'v2/weather.html'),'utf8');
+ assert.match(html,/<radialGradient id="moonBody"[^>]*>[\s\S]*?stop-color="#ffc638"/);
+ assert.match(html,/class="moon-gold-body"/);
+ assert.match(html,/class="moon-gold-glint"/);
+ assert.match(html,/<symbol id="moon-partly"[^>]*>[\s\S]*?<use href="#moon"/);
+ assert.match(html,/@keyframes uth-luxury-moon-float/);
+ assert.match(html,/@keyframes uth-luxury-moon-glint/);
+ assert.match(html,/prefers-reduced-motion:reduce/);
+});
+test('premium icon foreground crosses INTERNAL dividers without losing critical text',()=>{
+ const pm=fs.readFileSync(path.join(ROOT,'v2/index.html'),'utf8');
+ const wx=fs.readFileSync(path.join(ROOT,'v2/weather.html'),'utf8');
+ assert.match(pm,/#pm \.pm-core\{padding-left:11px!important;overflow:visible!important/);
+ assert.match(pm,/#pm \.mascot\{z-index:55!important;overflow:visible!important/);
+ assert.match(pm,/#water \.water-station \.gate\{z-index:48!important;overflow:visible!important/);
+ assert.match(pm,/#water \.water-fig,#water \.trend\{position:relative;z-index:52\}/);
+ assert.match(wx,/\.led \.current\{overflow:visible!important;z-index:28!important/);
+ assert.match(wx,/\.led \.hour\{overflow:visible!important;isolation:auto!important/);
+ assert.match(wx,/width:29px!important;height:18px!important;scale:1\.12/);
+ assert.match(wx,/\.led \.hour \.t,\.led \.hour \.rain-pct\{position:relative;z-index:47\}/);
+ assert.match(pm,/width:432px;height:40px/);
+ assert.match(wx,/width:432px;height:40px/);
+});
+
+test('PM units avoid optical overlap with long numeric values after centering',()=>{
+ const pm=fs.readFileSync(path.join(ROOT,'v2/index.html'),'utf8');
+ assert.match(pm,/#pm \.pm-unit\{left:auto!important;right:2px!important;top:2px!important/);
+ assert.match(pm,/#pm \.pm-core\{padding-left:11px!important/);
+});
