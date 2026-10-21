@@ -359,3 +359,17 @@ test('every classified weather scene has an actual SVG symbol for day and night'
  const symbols=['sun','moon','partly','moon-partly','cloud','fog','rain','storm','snow','unknown'];
  for(const x of symbols){assert.match(html,new RegExp('<symbol id="'+x+'"'),x+' icon must not be blank');}
 });
+
+test('Rain percentages are labeled as hourly precipitation probability with color-matched Thai copy',()=>{
+ const html=fs.readFileSync(path.join(ROOT,'v2/weather.html'),'utf8');
+ const js=fs.readFileSync(path.join(ROOT,'v2/weather-live.js'),'utf8');
+ assert.match(html,/id="current-weather-label"[^>]*>โอกาสฝน<\/div>/);
+ assert.match(html,/role="group" aria-label="โอกาสฝนตกรายชั่วโมง หน่วยเปอร์เซ็นต์ จากพยากรณ์ Open-Meteo"/);
+ assert.match(html,/ตัวเลข % ใต้แต่ละชั่วโมง คือโอกาสที่ฝนจะตกในช่วงเวลานั้น ไม่ใช่ปริมาณฝน/);
+ assert.match(html,/\.led \.current-info \.place\{color:#28d2ff!important/);
+ assert.match(html,/\.hour \.rain-pct\{color:#28d2ff/);
+ assert.match(js,/\$\('\.place'\)\.textContent='โอกาสฝน'/);
+ assert.match(js,/โอกาสฝนตก.*พยากรณ์ Open-Meteo/);
+ assert.match(js,/ไม่มีข้อมูลโอกาสฝนตกสำหรับช่วงเวลานี้/);
+ assert.match(js,/showSource\('Open-Meteo/);
+});

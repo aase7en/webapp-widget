@@ -62,10 +62,11 @@ function setClock(){
 function noData(){
  const current=document.querySelector('.current');
  if(current){current.dataset.weather='none';current.dataset.night='false';const icon=$('#current-weather-icon');if(icon){clearNode(icon);icon.appendChild(createSVG('unknown'));}}
- $('.temp strong').textContent='—';$('.hi strong').textContent='—';$('.place').textContent='ต.อุทัย · รอข้อมูล';
+ $('.temp strong').textContent='—';$('.hi strong').textContent='—';$('.place').textContent='โอกาสฝน';
  clearNode($('#hours'));
  for(let i=0;i<5;i++){
  const item=document.createElement('div');item.className='hour';item.dataset.weather='none';
+ item.setAttribute('role','group');item.setAttribute('aria-label','ไม่มีข้อมูลพยากรณ์โอกาสฝนตก');item.title='ไม่มีข้อมูลพยากรณ์โอกาสฝนตก';
  const lbl=document.createElement('span');lbl.className='t';lbl.textContent='--:--';
  const pct=document.createElement('span');pct.className='rain-pct';pct.textContent='—%';
  item.append(lbl,createSVG('unknown'),pct);$('#hours').append(item);
@@ -97,7 +98,7 @@ function paint(d){
  icon.setAttribute('viewBox','0 0 32 32');clearNode(icon);
  const scene=createSVG(kind);while(scene.firstChild)icon.append(scene.firstChild);
  }
- $('.place').textContent='ต.อุทัย · Open-Meteo';
+ $('.place').textContent='โอกาสฝน';
  clearNode($('#hours'));
  const hourData=f.status==='model_forecast'?f.hours:[];
  for(let i=0;i<5;i++){
@@ -106,6 +107,9 @@ function paint(d){
  item.dataset.night=forecast.isDay===false?'true':'false';
  const t=document.createElement('span');t.className='t';t.textContent=forecast.time||'--:--';
  const pct=document.createElement('span');pct.className='rain-pct';pct.textContent=valid(forecast.rainProbabilityPct)?forecast.rainProbabilityPct+'%':'—%';
+ const rainKnown=valid(forecast.rainProbabilityPct);
+ const explanation=rainKnown?'เวลา '+(forecast.time||'ไม่ระบุ')+' โอกาสฝนตก '+forecast.rainProbabilityPct+'% (พยากรณ์ Open-Meteo)':'ไม่มีข้อมูลโอกาสฝนตกสำหรับช่วงเวลานี้';
+ item.setAttribute('role','group');item.setAttribute('aria-label',explanation);item.title=explanation;
  item.append(t,createSVG(hourData[i]?wx:'unknown'),pct);$('#hours').append(item);
  }
  applyAdvice(window.UthWeatherAdvisories.evaluate(weather,f,hi));
