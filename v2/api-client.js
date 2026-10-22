@@ -13,11 +13,12 @@
 (function(root){
 'use strict';
 const API='https://raw.githubusercontent.com/aase7en/webapp-widget/water-data/water.json';
+const SHEET_WATER='https://script.google.com/macros/s/AKfycbwwUQCeJoz4N0P9UuRJF39pt17mBjPz0_yMDDxTO7BoiUiTQaO7Yay0UKq80EvE6dk/exec?action=water_history';
 const FORECAST='https://api.open-meteo.com/v1/forecast';
 const BKK_MS=7*60*60*1000;
 const stations={HDA004:471583,S5:2607};
 const localHistory={HDA004:[],S5:[]};
-const LIVE_TTL_MS=180000,WATER_TTL_MS=240000,RETRY_AFTER_FAIL_MS=45000,STALE_KEEP_MS=3*3600000;
+const LIVE_TTL_MS=180000,WATER_TTL_MS=15*60000,RETRY_AFTER_FAIL_MS=45000,STALE_KEEP_MS=3*3600000;
 const cache={live:null,water:null,liveAt:0,waterAt:0,
  liveFail:null,waterFail:null,liveFailAt:0,waterFailAt:0,
  liveFcFrom:0,waterStamps:null,
@@ -56,7 +57,7 @@ function revalidateWater(src,tnow){
  const out={source:src.source,stations:{}};
  for(const code of Object.keys(stations)){
   const s=src.stations[code];
-  if(s&&s.status==='ok'&&(!cache.waterStamps||tnow-cache.waterStamps[code]>STALE_KEEP_MS)){
+  if(s&&(s.status==='ok'||s.status==='historical')&&(!cache.waterStamps||tnow-cache.waterStamps[code]>(s.status==='historical'?48*3600000:STALE_KEEP_MS))){
    const aged=missing(code);aged.bankM=s.bankM;aged.groundMsl=s.groundMsl;
    out.stations[code]=aged;
   }else out.stations[code]=s;
@@ -179,6 +180,70 @@ function parsedStation(r,code,tnow){
  }
  return s;
 }
+/* Read-only bound Apps Script route. This NEVER contacts HII: the upstream
+   provider is fetched only by Google Apps Script's twice-daily trigger.
+   JSONP handles ContentService redirects/CORS; callback id is generated here,
+   and the response is strictly validated before any display. */
+let sheetSeq=0;
+function sheetsJsonp(timeoutMs){
+ return new Promise((resolve,reject)=>{
+  if(!root.document)return reject(Error('no DOM'));
+  const cb='__uthWaterHistoryCb'+Date.now().toString(36)+(sheetSeq++).toString(36);
+  const script=root.document.createElement('script');let finished=false;
+  const done=(error,value)=>{
+   if(finished)return;finished=true;clearTimeout(timer);
+   delete root[cb];script.remove();error?reject(error):resolve(value);
+  };
+  root[cb]=payload=>done(null,payload);
+  const timer=setTimeout(()=>done(Error('sheet timeout')),timeoutMs);
+  script.onerror=()=>done(Error('sheet unavailable'));
+  script.src=SHEET_WATER+'&callback='+cb;
+  root.document.head.appendChild(script);
+ });
+}
+function sheetWaterPayload(raw,tnow){
+ if(!raw||raw.schema!==1||raw.kind!=='LAST_OBSERVATION_NOT_LIVE'||!raw.stations)
+  throw Error('invalid Sheet water contract');
+ const out={source:'ThaiWater/HII · Google Sheet historical snapshots; not local hospital telemetry',stations:{}};
+ const stamps={};
+ for(const code of Object.keys(stations)){
+  const s=raw.stations[code];
+  if(!s||s.stationId!==stations[code]||!['ok','historical','missing'].includes(s.status))
+   throw Error('invalid water station');
+  const stamp=typeof s.observedAt==='string'?Date.parse(s.observedAt):NaN;
+  const validStamp=Number.isFinite(stamp)&&stamp<=tnow+120000&&tnow-stamp<=48*3600000;
+  const level=numeric(s.levelMsl,-50,200);
+  const bank=numeric(s.bankM,-50,200),ground=numeric(s.groundMsl,-100,200);
+  const good=validStamp&&level!==null&&bank!==null&&ground!==null&&bank>ground;
+  const age=tnow-stamp;
+  const status=good?(age<=STALE_KEEP_MS?'ok':'historical'):'missing';
+  const base=missing(code);base.status=status;
+  if(bank!==null&&ground!==null&&bank>ground){base.bankM=bank;base.groundMsl=ground;}
+  if(good){
+   base.levelMsl=level;
+   base.observedTimeTH=typeof s.observedTimeTH==='string'?s.observedTimeTH.slice(0,24):null;
+   base.observedAt=s.observedAt;
+   base.risk=status==='ok'?level>=bank?'critical':level>=bank-.5?'watch':'below_watch':'unassessed';
+   stamps[code]=stamp;
+  }
+  const ts=Array.isArray(s.trendObservedAt)?s.trendObservedAt:[];
+  const vals=Array.isArray(s.trendPoints)?s.trendPoints:[];
+  if(vals.length===ts.length&&vals.length<=30){
+   const seen=new Set(),accepted=[];
+   vals.forEach((v,i)=>{
+    const m=Date.parse(ts[i]),n=numeric(v,-50,200);
+    if(Number.isFinite(m)&&m<=tnow+120000&&tnow-m<=14*86400000&&n!==null&&!seen.has(m)){
+     seen.add(m);accepted.push({t:m,n});
+    }
+   });
+   accepted.sort((a,b)=>a.t-b.t);
+   base.trendPoints=accepted.map(v=>v.n);
+   base.trendObservedAt=accepted.map(v=>new Date(v.t).toISOString());
+  }
+  out.stations[code]=base;
+ }
+ return {out,stamps};
+}
 async function water(opts){
  const tnow=opts&&typeof opts.now==='function'?opts.now():realNow();
  if(cache.water&&tnow-cache.waterAt<WATER_TTL_MS)return revalidateWater(cache.water,tnow);
@@ -189,6 +254,13 @@ async function water(opts){
   const result={source:'ThaiWater/HII waterlevel_load · station references, not Uthai Hospital gauge',
    stations:{HDA004:missing('HDA004'),S5:missing('S5')}};
   const stamps={HDA004:0,S5:0};
+  try{
+   // Primary: owner-bound Google Sheet, never a provider network fetch.
+   const sheet=sheetWaterPayload(await sheetsJsonp(9000),tnow);
+   cache.water=sheet.out;cache.waterAt=tnow;cache.waterStamps=sheet.stamps;
+   cache.waterFailAt=0;cache.waterFail=null;
+   return sheet.out;
+  }catch(_sheetError){ /* Existing low-rate static GitHub snapshot remains fallback during cutover. */ }
   try{
    // One central, time-validated low-rate ThaiWater snapshot. GitHub raw CORS *;
    // source waterlevel_datetime (not commit time) controls freshness.
@@ -219,5 +291,6 @@ async function water(opts){
  return cache.waterPending;
 }
 root.UthApiClient={getLive:live,getWater:water,
- CACHE_POLICY:{liveTtlMs:LIVE_TTL_MS,waterTtlMs:WATER_TTL_MS,retryAfterFailMs:RETRY_AFTER_FAIL_MS,staleKeepMs:STALE_KEEP_MS}};
+ CACHE_POLICY:{liveTtlMs:LIVE_TTL_MS,waterTtlMs:WATER_TTL_MS,retryAfterFailMs:RETRY_AFTER_FAIL_MS,staleKeepMs:STALE_KEEP_MS},
+ validateWaterHistory:sheetWaterPayload};
 })(window);
