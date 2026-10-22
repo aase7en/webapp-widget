@@ -145,18 +145,19 @@ function buildConcrete(){
  face.rotateY(-Math.PI/2);face.translate(4.35,0,0);parts.push(face);
  // crest deck caps + breast-wall stubs on pier/abutment lines only — bays stay OPEN so the
  // gate leaf and its lifting gap are visible from both preset angles (gates retain the reservoir)
- for(const px of[-4.0,-1.35,1.35,4.0]){
-  parts.push(new THREE.BoxGeometry(0.9,0.55,0.62).translate(px,2.95,-0.62));
-  parts.push(new THREE.BoxGeometry(0.9,1.6,0.28).translate(px,4.1,-0.66));
+ for(const px of[-4.05,-1.35,1.35,4.05]){
+  const capW=(Math.abs(px)>3?0.7:0.9);
+  parts.push(new THREE.BoxGeometry(capW,0.55,0.62).translate(px,2.95,-0.62));
+  parts.push(new THREE.BoxGeometry(capW,1.6,0.28).translate(px,4.1,-0.66));
  }
  // piers (chamfered) + abutments
  for(const px of[-1.35,1.35]){const p=chamferedBox(0.8,5.75,2.5,0.07);p.rotateY(0);p.translate(px,2.125,0.15);parts.push(p);
   const nose=chamferedBox(0.8,0.5,0.55,0.09);nose.translate(px,-0.5,-1.05);parts.push(nose)}
- for(const ax of[-4.0,4.0]){const a=chamferedBox(0.7,5.95,3.3,0.07);a.translate(ax,2.2,0.35);parts.push(a)}
+ for(const ax of[-4.05,4.05]){const a=chamferedBox(0.7,5.95,2.4,0.07);a.translate(ax,2.2,-0.1);parts.push(a)}
  // basin training walls + end sill + toe apron
- for(const wx of[-4.7,4.7]){const w=new THREE.BoxGeometry(0.7,1.75,5.5);w.translate(wx,0.12,4.65);parts.push(w)}
+ for(const wx of[-4.7,4.7]){const w=new THREE.BoxGeometry(0.7,0.875,5.5);w.translate(wx,-0.3175,4.65);parts.push(w)}
  const sill=new THREE.BoxGeometry(9.4,0.6,0.5);sill.translate(0,-0.45,7.15);parts.push(sill);
- const apron=new THREE.BoxGeometry(8.7,0.35,0.6);apron.translate(0,0.32,1.72);parts.push(apron);
+ const apron=new THREE.BoxGeometry(8.7,0.35,0.6);apron.translate(0,-0.075,1.72);parts.push(apron);
  // pier caps / corbels under walkway
  for(const px of[-1.35,1.35,4.0,-4.0]){const c=new THREE.BoxGeometry(0.9,0.18,1.3);c.translate(px,5.02,-0.75);parts.push(c)}
  const geo=mergeGeometries(parts.map(prepForMerge));track(geo);
@@ -250,7 +251,7 @@ function buildReservoir(){
 // path: gate lip -> ogee face -> ballistic jet to waterline (3.05,0.02) -> submerged tail fading out
 function buildSheets(){
  const parts=[];BAY_X.forEach((bx,bi)=>{
-  const g=translateGeo(ribbonGeo(0.0,1.0,96),bx,0,0);
+  const g=translateGeo(ribbonGeo(0.0,1.0,96).scale(1,1,1),bx,0,0);
   const n=g.attributes.position.count;const bay=new Float32Array(n).fill(bi);
   g.setAttribute('aBay',new THREE.BufferAttribute(bay,1));parts.push(g);
  });
@@ -295,7 +296,6 @@ function buildSheets(){
   uniform float uTime;uniform float uQ;uniform float uOpen;uniform float uDbg;
   varying vec2 vUv;varying float vThick;varying float vS;varying float vBay;varying float vTaper;${NOISE}
   void main(){
-  if(uDbg>0.5){gl_FragColor=vec4(vec3(0.5+0.5*sin(18.0*(vS-uTime*0.3*(0.5+0.9*uQ)))),1.0);return;}
   if(uDbg>2.5){gl_FragColor=vec4(1.0,0.1,0.1,1.0);return;} // uDbg=3: opaque geometry silhouette (verification)
  if(uDbg>1.5){ // band-only isolation: aer + band on plain water (measurement mode)
   float kD=0.5+0.9*uQ;float sBD=vS-uTime*0.30*kD;
@@ -303,6 +303,7 @@ function buildSheets(){
   float foamD=smoothstep(0.60,0.95,vS*0.5+0.3)*(0.62+0.38*bandD);
   vec3 col=mix(vec3(0.02,0.12,0.22),vec3(0.93,0.975,1.0),foamD);
   gl_FragColor=vec4(col,0.95);return;}
+  if(uDbg>0.5){gl_FragColor=vec4(vec3(0.5+0.5*sin(18.0*(vS-uTime*0.3*(0.5+0.9*uQ)))),1.0);return;} // uDbg=1: stripe mode
   float s=vS;
   float seed=vBay*7.31;
   float k=0.5+0.9*uQ;
@@ -321,13 +322,13 @@ function buildSheets(){
   float band=0.5+0.5*sin(sAdvB*18.0+seed*2.0);
   float foamVal=n*0.75+streak*0.45+aer*0.25;
   float foam=smoothstep(0.60,0.95,foamVal)*(0.55+0.45*streak);
-  foam*=0.62+0.38*band;
+  foam*=0.72+0.28*band;
   vec3 water=mix(vec3(0.02,0.12,0.22),vec3(0.06,0.30,0.42),n*0.85+0.1);
   vec3 white=vec3(0.93,0.975,1.0);
   vec3 col=mix(water,white,foam);
   col=mix(col,white,smoothstep(0.30,0.03,vThick/max(vTaper,0.2))*0.30*(0.3+0.7*aer));
   float eN=fbm(vec2(vUv.x*4.5+seed,sAdv*2.5));
-  float core=smoothstep(0.008,0.05+0.10*eN,vUv.x)*smoothstep(0.008,0.05+0.10*eN,1.0-vUv.x);
+  float core=smoothstep(0.005,0.025+0.03*eN,vUv.x)*smoothstep(0.005,0.025+0.03*eN,1.0-vUv.x);
  float pierFoam=smoothstep(0.09,0.0,min(vUv.x,1.0-vUv.x))*smoothstep(0.25,0.55,s)*0.22;
   float fringe=smoothstep(0.62,0.85,streak)*(1.0-core)*smoothstep(0.15,0.55,s);
   col=mix(col,white,fringe*0.7);
@@ -335,7 +336,7 @@ function buildSheets(){
   float spec=pow(max(streak-0.42,0.0)*1.75,3.0);
   col+=vec3(1.0,0.98,0.92)*spec*0.3;
   float holes=fbm(vec2(vUv.x*7.0+seed*1.7,sAdvB*3.0));
-  float alpha=(0.5+0.5*core)*(0.72+0.40*foam);
+  float alpha=(0.62+0.38*core)*(0.80+0.40*foam);
   alpha*=0.85+0.15*band;
   alpha*=1.0-(1.0-core)*smoothstep(0.30,0.58,holes)*0.9;
   alpha*=(0.75+0.5*fbm(vec2(seed*0.7,sAdvB*1.2)));
