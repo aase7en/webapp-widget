@@ -99,6 +99,8 @@ test('discharge model couples slider to gate opening, sheet thickness and impact
  assert.match(js,/Math\.exp\(-dt\/0\.13\)/);              // ~0.4s eased leaf lift animation
  assert.match(js,/lip=vec2\(-0\.36,2\.75\+open\)/);        // sheet lip anchored to the leaf bottom line
  assert.match(js,/seal bar/);                               // bright moving bottom edge on the leaf
+ assert.match(js,/0\.7,0\.875,5\.5/);                        // basin training walls: tops at/below waterline
+ assert.match(js,/smoothstep\(0\.005,0\.025\+0\.03\*eN/);   // jet spans to pier lines (full-trough core)
  assert.match(js,/Q ~ \$\{FS\.m3s\} m³\/s \(จำลอง\)/);      // live readout derives from the model
  assert.match(html,/ช่องเปิดประตู \(จำลอง\)/);               // honest slider meaning
  assert.match(html,/id="q-readout"/);
