@@ -72,3 +72,17 @@
 - GLM independent review found and corrected mismatch of evening expected schedule. Other prior review note about chart aria endpoint order was fixed. Re-review exact SHA after freeze.
 - Rollback requires Web App redeploy old V32 AND restoration of bound script HEAD trigger source, GitHub Pages revert; do not modify PM historical data.
 - Next action: review/stage/PR full candidate and verify source/CI, then safe owner GAS release and public Pages deployment, finally test real Sheet trends.
+
+## 2026-10-22 production release: water backend V33, PR #25
+
+- Canonical EXISTING Sheet API Report_PM2.5, ID 1kBUKdezfAxIziq167e-RJV1nNZkeiaz6YQcpVAMja9w; one EXISTING bound Script ID 1H7_0yH9yFDSDKhe66IhhRvyeVgV4rdI8R96stDY0cIbnOfemiCHvlejj. No alternative Sheet or Script.
+- Existing Web App deployment unchanged ID: AKfycbwwUQCeJoz4N0P9UuRJF39pt17mBjPz0_yMDDxTO7BoiUiTQaO7Yay0UKq80EvE6dk; deployed IMMUTABLE version 33, preserving old URL. Prior version 32 remains a rollback option.
+- Private pre-mutation full Script backup on Mac at ~/Library/Application Support/UTH[AI]-Widget/secure-backups/20261022-pre-waterhistory, access mode 700/600; NEVER publish live source credentials.
+- Public PM endpoint action=data&v=1 returned HTTP 200 and valid JSON after deployment. Public water endpoint action=water_history&callback=... returned HTTP 200, JSONP and real data for HDA004 and S5, two source-time points per station.
+- Four original provider verified historical rows persisted in canonical Water_Level_History A2:R5. Marked VERIFIED_BACKFILL, not simulated/current flood safety.
+- Existing two daily scheduler settings 06:00 and 16:00 Bangkok; WaterHistory hooks existing BackendApiHistoryBatch_ handler without creating separate trigger. Old GitHub water-cache 15-minute scheduled cron removed in PR #25, manual dispatch retained. No direct HII browser requests.
+- PR #25 accepted at candidate SHA cbe9437690ecbc7aae57f753a39df404bdd92efa, merged to main SHA 5956d2d6a7e938c1f082c74fd398174d79e2177f. New PM colored wider scale, full measured history graphs and tiny sparklines; tests 275/275 pass; 432x40 Chrome fixture render passed; independent frozen-diff GLM-5.3 MAX review ACCEPT with zero blockers.
+- IMPORTANT LAST GATE: GitHub Pages build run 39824904988 still QUEUED/BUILDING at checkpoint while old public v2/index.html/api-client.js were served. Do NOT claim new frontend is live until public URLs expose the new five-span legend, Sheet action route and charts, and browser confirms.
+- Next action: verify Pages build and public frontend from actual URL, no fixture; test latest and historical data, color tick spacing, 432x40 crop, and the full-report charts. Then inspect next real owner morning/evening trigger rows and freshness. No new triggers/Sheet/Script.
+- Code review follow-up warnings: CacheService for public Sheet JSONP read throughput, unused owner_() helper, stale history cards after failure, sequential shared trigger wait. These were not release blockers; keep an issue/repair lane.
+- Rollback: revert frontend release with approved Git process, restore bound Script HEAD from secure prechange clone, redeploy the SAME deployment ID to VERSION 32, never delete Sheet history. Root Mac checkout has dirty files owned by other agent; DO NOT overwrite.
