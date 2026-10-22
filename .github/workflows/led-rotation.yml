@@ -12,6 +12,7 @@ on:
       - strip.css
       - assets/**
       - apps-script/**
+      - demo/spillway-3d/**
       - tests/**
       - v2/**
       - water.html
@@ -29,6 +30,7 @@ on:
       - strip.css
       - assets/**
       - apps-script/**
+      - demo/spillway-3d/**
       - tests/**
       - v2/**
       - water.html
