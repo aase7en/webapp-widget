@@ -236,7 +236,7 @@ function buildReservoir(){
  vec3 n=normalize(vec3((n1-0.5)*0.14,1.0,(n2-0.5)*0.12));
  float fres=pow(1.0-max(dot(n,vd),0.0),3.2);
  float depth=smoothstep(-0.6,-6.8,vPos.z);
- vec3 col=mix(vec3(0.10,0.30,0.34),vec3(0.012,0.10,0.16),depth*0.85+0.1);
+ vec3 col=mix(vec3(0.07,0.44,0.56),vec3(0.02,0.16,0.26),depth*0.85+0.1);
  col=mix(col,vec3(0.60,0.72,0.78),fres*0.6);
  vec3 L=normalize(vec3(-0.5,0.72,0.45));
  col+=vec3(1.0,0.94,0.82)*pow(max(dot(reflect(-L,n),vd),0.0),90.0)*0.5;
@@ -290,7 +290,12 @@ function buildSheets(){
   float thick=t0*taper*(0.6+0.4*fbm(vec2(uv.x*4.0+7.7+aBay*3.1,sAdvBv*8.0)));
   vThick=thick;vTaper=taper;
   vec3 pos=vec3(position.x,p.y,p.x);
-  pos.yz+=nrm*((uv.x*2.0-1.0)*thick*0.75+wob*0.05*(0.25+uv.y)+0.03+0.14*t0);
+  // ski-jump detachment: rise above the chute floor as the jet accelerates (visible full prism,
+  // no face self-occlusion at shallow angles); landing point stays on the pool impact line
+  float ski=(0.12+0.30*smoothstep(0.08,0.55,uv.y));
+  float lift=mix(0.02, max(ski, t0*0.5+0.05)*(0.5+0.7*uQ), smoothstep(0.0,0.12,uv.y));
+  pos.yz+=nrm*((uv.x*2.0-1.0)*thick*0.75+wob*0.05*(0.25+uv.y)+0.03);
+  pos.y+=lift;
   gl_Position=projectionMatrix*modelViewMatrix*vec4(pos,1.0);}`,
   fragmentShader:`
   uniform float uTime;uniform float uQ;uniform float uOpen;uniform float uDbg;
@@ -323,7 +328,7 @@ function buildSheets(){
   float foamVal=n*0.75+streak*0.45+aer*0.25;
   float foam=smoothstep(0.60,0.95,foamVal)*(0.55+0.45*streak);
   foam*=0.72+0.28*band;
-  vec3 water=mix(vec3(0.02,0.12,0.22),vec3(0.06,0.30,0.42),n*0.85+0.1);
+  vec3 water=mix(vec3(0.04,0.24,0.42),vec3(0.13,0.56,0.72),n*0.85+0.1);
   vec3 white=vec3(0.93,0.975,1.0);
   vec3 col=mix(water,white,foam);
   col=mix(col,white,smoothstep(0.30,0.03,vThick/max(vTaper,0.2))*0.30*(0.3+0.7*aer));
@@ -334,7 +339,7 @@ function buildSheets(){
   col=mix(col,white,fringe*0.7);
  col=mix(col,white,pierFoam);
   float spec=pow(max(streak-0.42,0.0)*1.75,3.0);
-  col+=vec3(1.0,0.98,0.92)*spec*0.3;
+  col+=vec3(1.0,0.98,0.92)*spec*0.42;
   float holes=fbm(vec2(vUv.x*7.0+seed*1.7,sAdvB*3.0));
   float alpha=(0.62+0.38*core)*(0.80+0.40*foam);
   alpha*=0.85+0.15*band;
@@ -376,7 +381,7 @@ function buildPool(){
  vec3 n=normalize(vec3((nz1-0.5)*nAmp,1.0,(nz2-0.5)*nAmp));
  float fres=pow(1.0-max(dot(n,vd),0.0),3.0);
  float depth=smoothstep(7.3,2.2,vPos.z);
- vec3 col=mix(vec3(0.04,0.19,0.27),vec3(0.008,0.06,0.12),depth*0.75+0.15);
+ vec3 col=mix(vec3(0.06,0.40,0.55),vec3(0.02,0.15,0.25),depth*0.75+0.15);
  col=mix(col,vec3(0.62,0.74,0.80),fres*0.32);
  vec3 L=normalize(vec3(-0.5,0.72,0.45));
  col+=vec3(1.0,0.95,0.85)*pow(max(dot(reflect(-L,n),vd),0.0),60.0)*0.5;
@@ -396,7 +401,7 @@ function buildPool(){
  }
  rings*=xEnv*uFlow*smoothstep(0.02,0.1,uFlow);
  float foamAll=clamp(impactFoam+drift+rings*0.7,0.0,1.0);
- col=mix(col,vec3(0.88,0.94,0.98),foamAll);
+ col=mix(col,vec3(0.95,0.99,1.0),foamAll);
  gl_FragColor=vec4(col,1.0);}`});
  track(mat);waterUniforms.push({u:mat.uniforms,key:'E'});
  const mesh=new THREE.Mesh(g,mat);mesh.renderOrder=2;scene.add(mesh);return mesh;
