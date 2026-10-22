@@ -95,6 +95,10 @@ test('discharge model couples slider to gate opening, sheet thickness and impact
  assert.match(js,/t0=\(0\.045\+0\.92\*uOpen\)/);            // sheet lip thickness anchored to opening
  assert.match(js,/taper=1\.0-0\.18/);                       // continuity taper downstream
  assert.match(js,/key:'E'/);                                // impact materials keyed to energy scaler
+ assert.match(js,/const GZ=-0\.40/);                        // leaf in front of breast stubs (visible lift)
+ assert.match(js,/Math\.exp\(-dt\/0\.13\)/);              // ~0.4s eased leaf lift animation
+ assert.match(js,/lip=vec2\(-0\.36,2\.75\+open\)/);        // sheet lip anchored to the leaf bottom line
+ assert.match(js,/seal bar/);                               // bright moving bottom edge on the leaf
  assert.match(js,/Q ~ \$\{FS\.m3s\} m³\/s \(จำลอง\)/);      // live readout derives from the model
  assert.match(html,/ช่องเปิดประตู \(จำลอง\)/);               // honest slider meaning
  assert.match(html,/id="q-readout"/);

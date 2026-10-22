@@ -35,6 +35,7 @@ const gateOpening=s=>flowState(s).a;
 // ogee face v in [0,0.72]: z=-0.55+2.0*u^1.7 , y=2.75-1.4*u^1.35
 // ballistic jet v in (0.72,1]: z=1.45+1.6*w , y=1.35-0.89*w-0.44*w^2   (pool entry ~ (3.05,0.02))
 const BAY_X=[-2.7,0,2.7],BAY_W=1.9,IMPACT_Z=3.05,POOL_Y=0,RES_Y=3.55,CREST_Y=2.75,PIER_TOP=5.0;
+let gateLift=CREST_Y+FS.a+1.4,gateLiftTarget=gateLift; // smoothed leaf lift (~0.4s ease)
 function sheetPoint(v){ if(v<0.72){const u=v/0.72;return[-0.55+2.0*Math.pow(u,1.7),CREST_Y-1.4*Math.pow(u,1.35)];}
  const w=(v-0.72)/0.28;return[1.45+1.6*w,1.35-0.89*w-0.44*w*w];
 }
@@ -142,9 +143,12 @@ function buildConcrete(){
  sh.lineTo(1.45,0.6);sh.lineTo(2.0,-0.8);sh.closePath();
  const face=new THREE.ExtrudeGeometry(sh,{depth:8.7,bevelEnabled:false,steps:1,curveSegments:4});
  face.rotateY(-Math.PI/2);face.translate(4.35,0,0);parts.push(face);
- // crest deck + upstream breast wall
- parts.push(new THREE.BoxGeometry(8.7,0.55,0.62).translate(0,2.95,-0.62));
- parts.push(new THREE.BoxGeometry(8.7,1.6,0.28).translate(0,4.1,-0.66));
+ // crest deck caps + breast-wall stubs on pier/abutment lines only — bays stay OPEN so the
+ // gate leaf and its lifting gap are visible from both preset angles (gates retain the reservoir)
+ for(const px of[-4.0,-1.35,1.35,4.0]){
+  parts.push(new THREE.BoxGeometry(0.9,0.55,0.62).translate(px,2.95,-0.62));
+  parts.push(new THREE.BoxGeometry(0.9,1.6,0.28).translate(px,4.1,-0.66));
+ }
  // piers (chamfered) + abutments
  for(const px of[-1.35,1.35]){const p=chamferedBox(0.8,5.75,2.5,0.07);p.rotateY(0);p.translate(px,2.125,0.15);parts.push(p);
   const nose=chamferedBox(0.8,0.5,0.55,0.09);nose.translate(px,-0.5,-1.05);parts.push(nose)}
@@ -200,12 +204,13 @@ function buildBolts(){
 }
 function buildGates(){
  const parts=[];
- const GZ=-0.6; // gate plane sits on the crest, matching breast wall + sheet lip z
+ const GZ=-0.40; // gate plane just downstream of the breast-wall stubs: leaf + lifting gap fully visible
  for(const bx of BAY_X){
   parts.push(new THREE.BoxGeometry(BAY_W,1.4,0.11).translate(bx,-0.7,GZ));
   for(const yy of[-0.2,-0.7,-1.2])parts.push(new THREE.BoxGeometry(BAY_W-0.06,0.13,0.16).translate(bx,yy,GZ));
   for(const xx of[-0.7,0,0.7])parts.push(new THREE.BoxGeometry(0.12,1.3,0.15).translate(bx+xx,-0.7,GZ+0.01));
   for(const s of[-1,1])parts.push(new THREE.BoxGeometry(0.09,1.46,0.09).translate(bx+s*(BAY_W/2-0.05),-0.7,GZ+0.03));
+  parts.push(new THREE.BoxGeometry(BAY_W,0.07,0.17).translate(bx,-1.37,GZ+0.02)); // bright bottom seal bar = trackable moving edge
  }
  const geo=mergeGeometries(parts.map(prepForMerge));track(geo);
  const mat=new THREE.MeshStandardMaterial({color:0x77828b,metalness:0.9,roughness:0.35,roughnessMap:track(makeSteelRoughness()),envMapIntensity:1.0});
@@ -216,7 +221,7 @@ function buildGates(){
 
 // ---------- water: reservoir ----------
 function buildReservoir(){
- const g=new THREE.PlaneGeometry(11.4,7.0,42,26);g.rotateX(-Math.PI/2);g.translate(0,RES_Y,-4.1);track(g);
+ const g=new THREE.PlaneGeometry(11.4,7.18,42,26);g.rotateX(-Math.PI/2);g.translate(0,RES_Y,-4.01);track(g);
  const mat=new THREE.ShaderMaterial({uniforms:{uTime:{value:0},uFlow:{value:FS.Q}},vertexShader:`
  uniform float uTime;varying vec2 vUv;varying vec3 vPos;${NOISE}
  void main(){vUv=uv;vec3 p=position;p.y+=(fbm(vec2(p.x*0.8,p.z*0.8+uTime*0.14))-0.5)*0.035;
@@ -259,8 +264,8 @@ function buildSheets(){
   vec2 sheetPath2(float v,float open){
   float gateV=0.055;
   if(v<gateV){float k=v/gateV;
-  vec2 lip=vec2(-0.66,2.75+open);
-  return mix(lip,vec2(-0.55,2.75),k);}
+  vec2 lip=vec2(-0.36,2.75+open);
+  return mix(lip,vec2(-0.50,2.75),k);}
   float w=(v-gateV)/(1.0-gateV);
   if(w<0.62){float u=w/0.62;return vec2(-0.55+2.0*pow(u,1.7),2.75-1.4*pow(u,1.35));}
   float j=(w-0.62)/0.38;
@@ -291,7 +296,8 @@ function buildSheets(){
   varying vec2 vUv;varying float vThick;varying float vS;varying float vBay;varying float vTaper;${NOISE}
   void main(){
   if(uDbg>0.5){gl_FragColor=vec4(vec3(0.5+0.5*sin(18.0*(vS-uTime*0.3*(0.5+0.9*uQ)))),1.0);return;}
-  if(uDbg>1.5){ // band-only isolation: aer + band on plain water (measurement mode)
+  if(uDbg>2.5){gl_FragColor=vec4(1.0,0.1,0.1,1.0);return;} // uDbg=3: opaque geometry silhouette (verification)
+ if(uDbg>1.5){ // band-only isolation: aer + band on plain water (measurement mode)
   float kD=0.5+0.9*uQ;float sBD=vS-uTime*0.30*kD;
   float bandD=0.5+0.5*sin(sBD*18.0);
   float foamD=smoothstep(0.60,0.95,vS*0.5+0.3)*(0.62+0.38*bandD);
@@ -321,9 +327,11 @@ function buildSheets(){
   vec3 col=mix(water,white,foam);
   col=mix(col,white,smoothstep(0.30,0.03,vThick/max(vTaper,0.2))*0.30*(0.3+0.7*aer));
   float eN=fbm(vec2(vUv.x*4.5+seed,sAdv*2.5));
-  float core=smoothstep(0.015,0.10+0.30*eN,vUv.x)*smoothstep(0.015,0.10+0.30*eN,1.0-vUv.x);
+  float core=smoothstep(0.008,0.05+0.10*eN,vUv.x)*smoothstep(0.008,0.05+0.10*eN,1.0-vUv.x);
+ float pierFoam=smoothstep(0.09,0.0,min(vUv.x,1.0-vUv.x))*smoothstep(0.25,0.55,s)*0.22;
   float fringe=smoothstep(0.62,0.85,streak)*(1.0-core)*smoothstep(0.15,0.55,s);
   col=mix(col,white,fringe*0.7);
+ col=mix(col,white,pierFoam);
   float spec=pow(max(streak-0.42,0.0)*1.75,3.0);
   col+=vec3(1.0,0.98,0.92)*spec*0.3;
   float holes=fbm(vec2(vUv.x*7.0+seed*1.7,sAdvB*3.0));
@@ -653,8 +661,9 @@ function resize(){
 function renderOnce(){
  if(!renderer||!scene)return;
  for(const w of waterUniforms){w.u.uTime.value=simT%600;const sv=(w.key==='E')?FS.E:FS.Q;if(w.u.uFlow)w.u.uFlow.value=sv;if(w.u.uQ)w.u.uQ.value=sv}
- const sheetU=waterUniforms.find(w=>w.key==='sheets');sheetU&&(sheetU.u.uOpen.value=FS.a);
- if(gateMesh)gateMesh.position.y=CREST_Y+FS.a+1.4;
+ gateLift=gateLiftTarget=CREST_Y+FS.a+1.4;
+ const sheetU=waterUniforms.find(w=>w.key==='sheets');sheetU&&(sheetU.u.uOpen.value=gateLift-CREST_Y-1.4);
+ if(gateMesh)gateMesh.position.y=gateLift;
  renderer.render(scene,camera);
 }
 
@@ -743,8 +752,10 @@ function tick(ts){
   }
  }
  for(const w of waterUniforms){w.u.uTime.value=simT%600;const sv=(w.key==='E')?FS.E:FS.Q;if(w.u.uFlow)w.u.uFlow.value=sv;if(w.u.uQ)w.u.uQ.value=sv}
- const sheetU=waterUniforms.find(w=>w.key==='sheets');sheetU&&(sheetU.u.uOpen.value=FS.a);
- if(gateMesh)gateMesh.position.y=CREST_Y+FS.a+1.4;
+ const gateLiftTarget=CREST_Y+FS.a+1.4;
+ gateLift+=(gateLiftTarget-gateLift)*(1-Math.exp(-dt/0.13)); // ~0.4s visible leaf ease
+ if(gateMesh)gateMesh.position.y=gateLift;
+ const sheetU=waterUniforms.find(w=>w.key==='sheets');sheetU&&(sheetU.u.uOpen.value=gateLift-CREST_Y-1.4);
  renderer.info.reset();
  composer?composer.render():renderer.render(scene,camera);
  lastCalls=renderer.info.render.calls;lastTris=renderer.info.render.triangles;
