@@ -90,7 +90,7 @@ test('production root embeds exact physical 432x40 rotation, preserving a legacy
 function bootCtl(){
  let t=Date.now();
  const now=()=>t;
- const calls={backend:0,openMeteo:0,water:0};
+ const calls={backend:0,openMeteo:0,water:0,waterReferrer:null,waterUrl:null,openMeteoReferrer:null};
  const state={backendFails:false,waterFails:false,omFails:false,backendDelayMs:0,pm:23.1,observationAgeMin:20};
  const iso=(ageMin)=>new Date(t-ageMin*60000).toISOString();
  const forecastFor=()=>{
@@ -113,9 +113,9 @@ function bootCtl(){
   {station:{id:2607,min_bank:4.70,ground_level:-8.59},waterlevel_datetime:bangkokStamp(new Date(t-state.observationAgeMin*60000)),waterlevel_msl:3.15}
  ]}});
  const wait=ms=>new Promise(r=>setTimeout(r,ms));
- const window={fetch:async(url)=>{
-   if(url.includes('open-meteo')){calls.openMeteo++;if(state.omFails)throw Error('net');return{ok:true,json:async()=>forecastFor()}}
-   calls.water++;if(state.waterFails)throw Error('net');return{ok:true,json:async()=>waterFor()}
+ const window={fetch:async(url,init)=>{
+   if(url.includes('open-meteo')){calls.openMeteoReferrer=init?.referrerPolicy||null;calls.openMeteo++;if(state.omFails)throw Error('net');return{ok:true,json:async()=>forecastFor()}}
+   calls.waterReferrer=init?.referrerPolicy||null;calls.waterUrl=url;calls.water++;if(state.waterFails)throw Error('net');return{ok:true,json:async()=>waterFor()}
   },
   UthaiLEDRotation:{requestBackendData:async()=>{
    calls.backend++;if(state.backendDelayMs)await wait(state.backendDelayMs);
@@ -415,4 +415,18 @@ test('PM units avoid optical overlap with long numeric values after centering',(
  const pm=fs.readFileSync(path.join(ROOT,'v2/index.html'),'utf8');
  assert.match(pm,/#pm \.pm-unit\{left:auto!important;right:2px!important;top:2px!important/);
  assert.match(pm,/#pm \.pm-core\{padding-left:11px!important/);
+});
+
+test('HII water client consumes centrally cached public station feed, not a direct rate-limited browser request',async()=>{
+ const c=bootCtl();const w=await c.api.getWater({now:c.now});
+ assert.equal(w.stations.HDA004.status,'ok');
+ assert.equal(c.calls.waterReferrer,null);
+ assert.equal(c.calls.waterUrl,'https://raw.githubusercontent.com/aase7en/webapp-widget/water-data/water.json');
+ await c.api.getLive({now:c.now});
+ assert.equal(c.calls.openMeteoReferrer,null);
+ const bad=bootCtl();bad.state.waterFails=true;
+ const failed=await bad.api.getWater({now:bad.now});
+ assert.equal(failed.stations.HDA004.status,'missing');
+ assert.equal(failed.stations.HDA004.levelMsl,null);
+ assert.equal(failed.stations.HDA004.risk,'unassessed');
 });

@@ -92,3 +92,27 @@ node --test tests/*.test.cjs
 - No water-level animation, observation, hospital reading, forecast, threshold,
   API/backend or source semantics are changed by this visual release. The
   separate movable spillway/dam prototype is intentionally not installed.
+
+## ThaiWater/HII browser HTTP 429 recovery (2026-10-22)
+
+The public upstream returns 429 to requests with a browser Referer header;
+server GET and Origin-only GET returned valid public HDA004 and S.5 records.
+The old GitHub Pages client sent a Referer and correctly failed closed.
+
+**Approved architecture candidate:** scheduled, low-frequency GitHub Actions
+reads upstream, validates exact station IDs/codes, observation timestamps,
+MSL levels and bank/ground geometry, and publishes only the two station
+references to branch `water-data` as `water.json`. All browsers then fetch
+that ONE lightweight raw file; no direct HII requests from client browsers.
+GitHub raw sends CORS `*`. GitHub Pages root does not change.
+
+- Cron runs four times/hour; one server request per run at most, no hotlink
+  browser traffic. Failures skip publishing instead of inserting fake values.
+- The front-end existing 3h threshold is applied to actual **source
+  `waterlevel_datetime`**, never to Git commit time or cache-fetch time.
+- Missing/expired cache file or invalid rows show UNKNOWN and `—`, not zero.
+- `water-data` is an isolated branch; workflow uses `contents: write` with
+  `schedule`/`workflow_dispatch` only, never pull-request triggers.
+- If the upstream limits this authorized server-side route, stop polling and
+  contact the ThaiWater/HII provider. Never rotate identities to evade limits.
+- The existing Apps Script route is not modified, redeployed or relied on.

@@ -12,7 +12,7 @@
      de-duplicated in both directions. */
 (function(root){
 'use strict';
-const API='https://api-v3.thaiwater.net/api/v1/thaiwater30/public/waterlevel_load';
+const API='https://raw.githubusercontent.com/aase7en/webapp-widget/water-data/water.json';
 const FORECAST='https://api.open-meteo.com/v1/forecast';
 const BKK_MS=7*60*60*1000;
 const stations={HDA004:471583,S5:2607};
@@ -190,6 +190,8 @@ async function water(opts){
    stations:{HDA004:missing('HDA004'),S5:missing('S5')}};
   const stamps={HDA004:0,S5:0};
   try{
+   // One central, time-validated low-rate ThaiWater snapshot. GitHub raw CORS *;
+   // source waterlevel_datetime (not commit time) controls freshness.
    const data=await fetchJson(API,15000,tnow);
    const wd=data?data.waterlevel_data:null;
    if(!wd||wd.result!=='OK'||!Array.isArray(wd.data))throw Error('bad data');
