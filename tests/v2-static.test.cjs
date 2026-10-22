@@ -129,7 +129,7 @@ function bootCtl(){
 test('P1 cache policy constants are pinned and sane',()=>{
  const ctl=bootCtl();
  const p=ctl.api.CACHE_POLICY;
- assert.equal(p.liveTtlMs,180000);assert.equal(p.waterTtlMs,240000);
+ assert.equal(p.liveTtlMs,180000);assert.equal(p.waterTtlMs,15*60000);
  assert.ok(p.retryAfterFailMs>=30000&&p.retryAfterFailMs<=60000);
  assert.equal(p.staleKeepMs,3*3600000);
 });
@@ -196,7 +196,7 @@ test('P1 water failure keeps last-known-good, then demotes to missing (not zero)
  const seeded=await ctl.api.getWater({now:ctl.now});
  assert.equal(seeded.stations.HDA004.status,'ok');
  assert.equal(seeded.stations.HDA004.levelMsl,2.87);
- ctl.advance(300000);                            // past water success TTL
+ ctl.advance(15*60000+1000);                   // past NEW 15-minute Sheets cache TTL
  ctl.state.waterFails=true;
  const during=await ctl.api.getWater({now:ctl.now});
  assert.equal(during.stations.HDA004.status,'ok'); // last-good with real timestamp

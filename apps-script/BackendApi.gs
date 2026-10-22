@@ -1340,7 +1340,16 @@ var BackendApi = (function () {
  * public legacy UI (official Apps Script private-function rule). There is NO
  * public mutator and no public inventory reader. The only public read paths
  * remain the routed doGet (HTTP) and the legacy UI's own getWidgetData. */
-function BackendApiHistoryBatch_() { return BackendApi.historyBatch(); }
+function BackendApiHistoryBatch_() {
+  var result, pmError=null;
+  try { result=BackendApi.historyBatch(); } catch(e) { pmError=e; }
+  /* Reuse the existing two daily owner triggers; a failed PM history fetch
+     must not prevent water history. A failed water fetch never breaks PM history. */
+  try { WaterHistory.sync(); }
+  catch (e) { Logger.log('Water history sync unavailable: '+String(e.message).slice(0,120)); }
+  if(pmError)throw pmError;
+  return result;
+}
 function BackendApiOwnerInitialize_() { return BackendApi.ownerInitialize(); }
 function BackendApiOwnerVerify_() { return BackendApi.ownerVerify(); }
 /* Private test/editor helpers (read-only, still not client-callable). */

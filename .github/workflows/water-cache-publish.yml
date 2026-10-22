@@ -1,7 +1,8 @@
 name: Uthai water reference cache
 on:
-  schedule:
-    - cron: '7,22,37,52 * * * *'
+  # Deliberately no schedule: HII is now polled ONLY by the existing
+  # container-bound Apps Script PM history morning/evening trigger.
+  # Keep this GitHub workflow as manual emergency fallback (not enabled by default).
   workflow_dispatch:
 permissions:
   contents: write

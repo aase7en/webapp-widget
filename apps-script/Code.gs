@@ -463,6 +463,7 @@ function createDailyTrigger() {
 
 /** Web App functions */
 function doGet(e) {
+  if (e && e.parameter && e.parameter.action === 'water_history') return waterHistoryRead_(e);
   // SECURITY PATCH/ROUTING: ?action=data&v=1 -> BackendApi JSON (additive);
   // everything else keeps the legacy HtmlService UI byte-for-byte. Reaching
   // the BackendApi closure var keeps the route server-side only — no public

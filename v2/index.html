@@ -150,6 +150,38 @@ article h2{font-size:15px;margin:0 0 10px;color:#eaf7ff}article small{color:#aec
  #pm .mascot.happy-eye-mode [data-happy-lashes]{animation:none!important;opacity:0!important}
  #pm .mascot.happy-eye-mode [data-happy-open]{animation:none!important;opacity:1!important}
 }
+/* 432×40 PM legend: widen the five threshold ticks using verified segment
+   dimensions. Only PM slide changes; preserve 432px total and location text. */
+#pm .clock{width:61px}
+#pm .pm-core{width:122px}
+#pm .pm-status{width:86px}
+#pm .scalePM{width:72px;gap:3px;padding:0 3px}
+#pm .scalePM .scaleLegend{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));
+  align-items:center;justify-items:center;width:64px;font-size:6.5px;
+  line-height:8px;font-weight:900;letter-spacing:0;color:#c8edff}
+#pm .scalePM .scaleLegend span:first-child{justify-self:start}
+#pm .scalePM .scaleLegend span:last-child{justify-self:end}
+#pm .scalePM .scaleLegend span:nth-child(1){color:#4cec83}
+#pm .scalePM .scaleLegend span:nth-child(2){color:#e6ed2f}
+#pm .scalePM .scaleLegend span:nth-child(3){color:#ffb32a}
+#pm .scalePM .scaleLegend span:nth-child(4){color:#f96823}
+#pm .scalePM .scaleLegend span:nth-child(5){color:#d87aff}
+#pm .scalePM .levels{width:64px;max-width:64px}
+#pm .climate{width:43px}
+#pm .location{padding-left:2px;justify-items:end;text-align:right}
+#pm .location small{font-size:5.2px;letter-spacing:-.12px}
+/* Full report only: measured station history. Never rendered in 432×40 LED. */
+.water-history-panel{margin-top:13px;padding:12px 13px;border:1px solid #2c647e;
+ border-radius:10px;background:linear-gradient(140deg,#0b283d,#061523);color:#c9edff}
+.water-history-panel h3{font-size:14px;margin:0 0 4px;color:#e6f8ff}
+.water-history-panel p{font-size:11px;margin:0 0 10px;color:#8dbed4}
+.water-history-cards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.water-history-card{border:1px solid #2e6177;border-radius:9px;padding:8px;background:#061b2d;min-width:0}
+.water-history-card b{font-size:12px}.water-history-card .history-note{font-size:11px;color:#94bdd3;min-height:17px;margin:5px 0}
+.water-history-card svg{width:100%;height:125px;display:block;background:#061627;border-radius:5px}
+.water-history-card .history-foot{font-size:10px;color:#8bb8cd;margin-top:5px}
+html.led-screen .water-history-panel{display:none!important}
+@media(max-width:620px){.water-history-cards{grid-template-columns:1fr}}
 /* Reduced-motion master kill for strip animations (kept after QA-panel removal). */
 @media(prefers-reduced-motion:reduce){
  #pm .mascot .blink{animation:none!important;opacity:0}
@@ -511,7 +543,7 @@ html.led-screen .scale>div,html.led-screen .scale>iframe{transform:none!importan
 <img data-mask style="display:none" src="../assets/icons3d/rig/pm-mask.png" alt="">
 <span class="sparks"></span></div><div class="pm-text"><label>PM2.5</label><strong class="pm-num">—</strong></div><small class="pm-unit">µg/m³</small></div>
 <div class="seg pm-status"><div class="pill"><i>!</i> รอข้อมูล</div><span class="sub">ยังไม่พบค่าล่าสุด</span></div>
-<div class="seg scalePM"><span class="scaleLegend" title="ช่วง PM2.5 (µg/m³): 0–25 / 26–37 / 38–50 / 51–90 / ≥91">0 26 38 51 91</span><div class="levels"></div></div>
+<div class="seg scalePM"><span class="scaleLegend" title="ช่วง PM2.5 (µg/m³): 0–25 / 26–37 / 38–50 / 51–90 / ≥91"><span>0</span><span>26</span><span>38</span><span>51</span><span>91</span></span><div class="levels"></div></div>
 <div class="seg climate" role="group" aria-label="ข้อมูลอากาศจากแบบจำลอง Open-Meteo แยกจากค่าฝุ่น PM2.5" title="อุณหภูมิ ความชื้นสัมพัทธ์ และความเร็วลมจากแบบจำลอง Open-Meteo ไม่ใช่ตัวเลขค่าฝุ่น">
 <strong class="climate-temp">—</strong><span class="climate-humidity-label">ความชื้น</span><strong class="climate-humidity-value" title="ความชื้นสัมพัทธ์ (Relative Humidity) หน่วยเปอร์เซ็นต์">—</strong><small class="climate-wind">ลม —</small></div>
 <div class="seg location"><b>รพ.อุทัย</b><small>อ.อุทัย จ.อยุธยา</small></div>
@@ -559,7 +591,15 @@ html.led-screen .scale>div,html.led-screen .scale>iframe{transform:none!importan
 </div>
 <div class="notice" id="explain">
 HDA004 และ S.5 เป็นสถานีอ้างอิง ไม่ใช่จุดวัดคลองข้าวเม่าหลังโรงพยาบาล · ม.รทก. · REAL/LATEST จาก ThaiWater/HII; ยังไม่มีเกณฑ์เตือนน้ำท่วมของ รพ.ที่อนุมัติ: จะไม่ติดป้ายปกติ/ปลอดภัยและไม่ใส่สีเตือนภัยโดยคาดเดา · ภาพน้ำและการไหลเป็นเอฟเฟกต์กราฟิก ไม่ได้ยืนยันว่าประตูระบายน้ำกำลังเปิด
-</div></article>
+</div>
+<section class="water-history-panel" aria-label="กราฟแนวโน้มระดับน้ำย้อนหลังจาก Google Sheets">
+ <h3>แนวโน้มระดับน้ำจริงย้อนหลัง · Google Sheets</h3>
+ <p>ข้อมูลตรวจวัดจากสถานีอ้างอิง HDA004 และ S.5 ในชีต API Report_PM2.5 · วัดวันละ 2 รอบโดยประมาณ · ไม่ใช่สัญญาณเตือนน้ำท่วม Real-time</p>
+ <div class="water-history-cards">
+  <div class="water-history-card" id="history-hda"><b>HDA004 ช่องสะเดา</b><div class="history-note">รอข้อมูลประวัติที่ตรวจสอบได้</div><svg viewBox="0 0 340 125" role="img" aria-label="ยังไม่มีจุดข้อมูลอย่างน้อยสองจุด"><path stroke="#365b71" stroke-width="1" d="M30 30H330 M30 63H330 M30 96H330" fill="none"/><path class="history-line" d="" stroke="#65e8ff" stroke-width="2.5" fill="none"/></svg><div class="history-foot">ระดับน้ำ ม.รทก. · ไม่มีการสร้างค่าระหว่างจุดวัด</div></div>
+  <div class="water-history-card" id="history-s5"><b>S.5 สะพานปรีดี</b><div class="history-note">รอข้อมูลประวัติที่ตรวจสอบได้</div><svg viewBox="0 0 340 125" role="img" aria-label="ยังไม่มีจุดข้อมูลอย่างน้อยสองจุด"><path stroke="#365b71" stroke-width="1" d="M30 30H330 M30 63H330 M30 96H330" fill="none"/><path class="history-line" d="" stroke="#ffd88c" stroke-width="2.5" fill="none"/></svg><div class="history-foot">ระดับน้ำ ม.รทก. · ไม่มีการสร้างค่าระหว่างจุดวัด</div></div>
+ </div>
+</section></article>
 </main>
 <script>
 (()=>{
@@ -573,6 +613,34 @@ function updateClocks(){
 updateClocks();setInterval(updateClocks,60000);
 const tag=document.getElementById('water-tag');
 const explain=document.getElementById('explain');
+function renderMeasuredHistory(id,station){
+ const panel=document.getElementById(id==='s1'?'history-hda':'history-s5');
+ const vals=Array.isArray(station?.trendPoints)?station.trendPoints:[];
+ const dates=Array.isArray(station?.trendObservedAt)?station.trendObservedAt:[];
+ const path=panel.querySelector('.history-line'),note=panel.querySelector('.history-note'),svg=panel.querySelector('svg');
+ if(vals.length<2||vals.length!==dates.length){
+  path.setAttribute('d','');svg.setAttribute('aria-label','ยังไม่มีประวัติจริงอย่างน้อยสองช่วงเวลา');
+  note.textContent='ยังไม่มีข้อมูลย้อนหลังอย่างน้อย 2 รอบจาก Google Sheets';return;
+ }
+ const series=vals.map((v,i)=>({level:v,time:Date.parse(dates[i])}))
+  .filter(v=>typeof v.level==='number'&&Number.isFinite(v.level)&&Number.isFinite(v.time))
+  .sort((a,b)=>a.time-b.time);
+ if(series.length<2||series[0].time===series[series.length-1].time){
+  path.setAttribute('d','');note.textContent='ยังไม่พอข้อมูลสำหรับกราฟ';return;
+ }
+ const low=Math.min(...series.map(v=>v.level)),high=Math.max(...series.map(v=>v.level));
+ const gap=Math.max(.15,high-low),t0=series[0].time,t1=series[series.length-1].time;
+ path.setAttribute('d',series.map((v,i)=>(i?'L':'M')+
+  (30+(v.time-t0)/(t1-t0)*300).toFixed(2)+' '+
+  (106-(v.level-low)/gap*84).toFixed(2)).join(' '));
+ svg.setAttribute('aria-label','ค่าระดับน้ำที่วัดจริง '+series.length+' จุด ตั้งแต่ '+new Date(series[0].time).toISOString()+' ถึง '+new Date(series[series.length-1].time).toISOString());
+ const delta=series[series.length-1].level-series[series.length-2].level;
+ note.textContent=series.length+' จุด • ล่าสุด '+series[series.length-1].level.toFixed(2)+' ม.รทก. • เปลี่ยน '+(delta>=0?'+':'')+delta.toFixed(2)+' ม.';
+ const fmt=new Intl.DateTimeFormat('th-TH',{timeZone:'Asia/Bangkok',day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'});
+ panel.querySelector('.history-foot').textContent=
+  'ตั้งแต่ '+fmt.format(new Date(t0))+' ถึง '+fmt.format(new Date(t1))+
+  ' • ต่ำสุด '+low.toFixed(2)+' / สูงสุด '+high.toFixed(2)+' ม.รทก.';
+}
 function set(id,value,observed,points,bank,ground,risk){
  const box=document.getElementById(id),v=box.querySelector('.level'),t=box.querySelector('.observed'),chart=box.querySelector('.line'),cap=box.querySelector('.caption');
  box.dataset.trend='unknown';
@@ -603,16 +671,24 @@ document.getElementById('real').onclick=async()=>{
   const data=await window.UthApiClient.getWater();
   for(const [id,key] of [['s1','HDA004'],['s2','S5']]){
    let x=data.stations[key];
-   set(id,x.status==='ok'?x.levelMsl:null,x.status==='ok'?'วัด '+x.observedTimeTH:'ข้อมูลเก่า/ขาด',x.status==='ok'&&Array.isArray(x.trendPoints)?x.trendPoints:null,x.bankM,x.groundMsl,x.risk);
+   set(id,['ok','historical'].includes(x.status)?x.levelMsl:null,
+      x.status==='ok'?'วัด '+x.observedTimeTH:x.status==='historical'?'ย้อนหลัง '+x.observedTimeTH:'รอข้อมูล',
+      Array.isArray(x.trendPoints)?x.trendPoints:null,
+      x.status==='ok'?x.bankM:null,x.status==='ok'?x.groundMsl:null,
+      x.status==='ok'?x.risk:'unassessed');
+   renderMeasuredHistory(id,x);
   }
   const risks=[document.getElementById('s1').dataset.risk,document.getElementById('s2').dataset.risk];
-  tag.textContent=risks.includes('critical')?'ถึงระดับตลิ่ง':
+  tag.textContent=Object.values(data.stations).some(x=>x.status==='historical')?'ข้อมูลย้อนหลัง':risks.includes('critical')?'ถึงระดับตลิ่ง':
                   risks.includes('watch')?'เฝ้าระวัง':
                   risks.every(r=>r==='below_watch')?'ต่ำกว่าเกณฑ์':'ข้อมูลไม่ครบ';
   document.getElementById('water').dataset.overbankAlert=
     risks.includes('critical')?'critical':risks.includes('watch')?'watch':
     risks.every(r=>r==='below_watch')?'below_watch':'unassessed';
-  explain.textContent='REAL SNAPSHOT • เกณฑ์สีประกอบการติดตาม (ยังไม่ใช่คำเตือนอย่างเป็นทางการ): สีฟ้า ต่ำกว่าตลิ่ง >0.50 ม., สีส้ม ใกล้ตลิ่งไม่เกิน 0.50 ม., สีแดง เสมอ/เกินตลิ่ง • ระดับตลิ่ง HDA004 '+(data.stations.HDA004?.bankM??'—')+' / S.5 '+(data.stations.S5?.bankM??'—')+' ม.รทก. • สถานีอ้างอิง ไม่ใช่การรับรองความปลอดภัยของ รพ.อุทัย';
+  const hasHistorical=Object.values(data.stations).some(x=>x.status==='historical');
+  explain.textContent=hasHistorical?
+   'HISTORICAL • ตัวเลขเป็นค่าตรวจวัดย้อนหลังจากสถานีอ้างอิง ไม่ใช่สถานการณ์น้ำปัจจุบัน และไม่ใช้ยืนยันความปลอดภัยของ รพ.อุทัย':
+   'REAL/LATEST • เกณฑ์ระดับตลิ่งสถานีอ้างอิง (ไม่ใช่คำเตือนของโรงพยาบาล): เฝ้าระวังใกล้ตลิ่งไม่เกิน 0.50 ม. • HDA004 '+(data.stations.HDA004?.bankM??'—')+' / S.5 '+(data.stations.S5?.bankM??'—')+' ม.รทก.';
  }catch(e){set('s1',null,null,null);set('s2',null,null,null);tag.textContent='API ไม่พร้อม';explain.textContent='UNAVAILABLE • ไม่สามารถอ่านระดับน้ำจาก API ได้ ('+e.message+'). ไม่ใช้ค่าจำลองแทนค่าจริง';}
 };
 })();
