@@ -11,8 +11,8 @@
           "ground_level": 0.227,
           "tele_station_oldcode": "HDA004"
         },
-        "waterlevel_datetime": "2026-10-22 06:50",
-        "waterlevel_msl": 2.89
+        "waterlevel_datetime": "2026-10-22 11:20",
+        "waterlevel_msl": 2.88
       },
       {
         "station": {
@@ -21,8 +21,8 @@
           "ground_level": -8.59,
           "tele_station_oldcode": "S.5"
         },
-        "waterlevel_datetime": "2026-10-22 06:00",
-        "waterlevel_msl": 3.01
+        "waterlevel_datetime": "2026-10-22 10:00",
+        "waterlevel_msl": 2.98
       }
     ]
   }
