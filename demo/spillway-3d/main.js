@@ -285,16 +285,20 @@ function buildSheets(){
   float bayMask=fbm(vec2(aBay*2.3,sAdvBv*0.8));
   // jet thickness anchored to the gate opening: t0 proportional to a at the lip (thin knife -> chunky rounded nose),
   // continuity taper downstream as the jet accelerates (v0/v(s)); turbulence rides on top
-  float t0=(0.045+0.92*uOpen)*(0.8+0.4*bayMask);
+  float t0=(0.05+0.95*pow(uOpen/0.98,1.35))*(0.8+0.4*bayMask); // mass grows superlinearly with opening
   float taper=1.0-0.18*smoothstep(0.0,1.0,uv.y);
   float thick=t0*taper*(0.6+0.4*fbm(vec2(uv.x*4.0+7.7+aBay*3.1,sAdvBv*8.0)));
   vThick=thick;vTaper=taper;
   vec3 pos=vec3(position.x,p.y,p.x);
   // ski-jump detachment: rise above the chute floor as the jet accelerates (visible full prism,
   // no face self-occlusion at shallow angles); landing point stays on the pool impact line
-  float ski=(0.12+0.30*smoothstep(0.08,0.55,uv.y));
-  float lift=mix(0.02, max(ski, t0*0.5+0.05)*(0.5+0.7*uQ), smoothstep(0.0,0.12,uv.y));
-  pos.yz+=nrm*((uv.x*2.0-1.0)*thick*0.75+wob*0.05*(0.25+uv.y)+0.03);
+  // ski-jump arc: parabolic bulge anchored at BOTH ends (leaf bottom + pool impact) — the jet
+  // arcs above the chute floor mid-run (floor can never cut the prism) and the arc height
+  // scales with discharge (higher opening -> thicker, taller mass)
+  float amp=(0.12+0.26*smoothstep(0.05,0.5,uv.y))*(0.6+0.8*uQ)+t0*0.35;
+  float lift=amp*4.0*uv.y*(1.0-uv.y);
+  float hump=1.0-pow(2.0*uv.x-1.0,2.0); // symmetric rounded crest: level top edge, no lateral tilt
+  pos.yz+=nrm*(hump*thick*0.75+wob*0.05*(0.25+uv.y)+0.03);
   pos.y+=lift;
   gl_Position=projectionMatrix*modelViewMatrix*vec4(pos,1.0);}`,
   fragmentShader:`
@@ -333,7 +337,7 @@ function buildSheets(){
   vec3 col=mix(water,white,foam);
   col=mix(col,white,smoothstep(0.30,0.03,vThick/max(vTaper,0.2))*0.30*(0.3+0.7*aer));
   float eN=fbm(vec2(vUv.x*4.5+seed,sAdv*2.5));
-  float core=smoothstep(0.005,0.025+0.03*eN,vUv.x)*smoothstep(0.005,0.025+0.03*eN,1.0-vUv.x);
+  float core=smoothstep(0.006,0.024+0.05*uQ+0.02*eN,vUv.x)*smoothstep(0.006,0.024+0.05*uQ+0.02*eN,1.0-vUv.x);
  float pierFoam=smoothstep(0.09,0.0,min(vUv.x,1.0-vUv.x))*smoothstep(0.25,0.55,s)*0.22;
   float fringe=smoothstep(0.62,0.85,streak)*(1.0-core)*smoothstep(0.15,0.55,s);
   col=mix(col,white,fringe*0.7);
@@ -341,7 +345,7 @@ function buildSheets(){
   float spec=pow(max(streak-0.42,0.0)*1.75,3.0);
   col+=vec3(1.0,0.98,0.92)*spec*0.42;
   float holes=fbm(vec2(vUv.x*7.0+seed*1.7,sAdvB*3.0));
-  float alpha=(0.62+0.38*core)*(0.80+0.40*foam);
+  float alpha=(0.74+0.26*core)*(0.88+0.32*foam); // near-opaque mass: reads over sunlit concrete too
   alpha*=0.85+0.15*band;
   alpha*=1.0-(1.0-core)*smoothstep(0.30,0.58,holes)*0.9;
   alpha*=(0.75+0.5*fbm(vec2(seed*0.7,sAdvB*1.2)));

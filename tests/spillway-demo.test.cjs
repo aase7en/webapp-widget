@@ -92,7 +92,9 @@ test('discharge model couples slider to gate opening, sheet thickness and impact
  assert.match(js,/const Q_MAX_M3S=/);
  assert.match(js,/Math\.pow\(Q,1\.3\)/);                    // impact energy keyed superlinear to discharge
  assert.match(js,/gateOpening=s=>flowState\(s\)\.a/);       // gate lift derives from the model
- assert.match(js,/t0=\(0\.045\+0\.92\*uOpen\)/);            // sheet lip thickness anchored to opening
+ assert.match(js,/pow\(uOpen\/0\.98,1\.35\)/);                    // superlinear mass with opening
+ assert.match(js,/hump=1\.0-pow\(2\.0\*uv\.x-1\.0,2\.0\)/);            // symmetric level crest (no lateral tilt)
+ assert.match(js,/lift=amp\*4\.0\*uv\.y\*\(1\.0-uv\.y\)/);             // arc anchored at leaf AND pool
  assert.match(js,/taper=1\.0-0\.18/);                       // continuity taper downstream
  assert.match(js,/key:'E'/);                                // impact materials keyed to energy scaler
  assert.match(js,/const GZ=-0\.40/);                        // leaf in front of breast stubs (visible lift)
@@ -100,7 +102,7 @@ test('discharge model couples slider to gate opening, sheet thickness and impact
  assert.match(js,/lip=vec2\(-0\.36,2\.75\+open\)/);        // sheet lip anchored to the leaf bottom line
  assert.match(js,/seal bar/);                               // bright moving bottom edge on the leaf
  assert.match(js,/0\.7,0\.875,5\.5/);                        // basin training walls: tops at/below waterline
- assert.match(js,/smoothstep\(0\.005,0\.025\+0\.03\*eN/);   // jet spans to pier lines (full-trough core)
+ assert.match(js,/smoothstep\(0\.006,0\.024\+0\.05\*uQ\+0\.02\*eN/); // jet spans to pier lines, core widens with opening
  // uDbg measurement modes must run before the 0.5 stripe mode (2.5 silhouette, 1.5 band-isolation)
  assert.match(js,/if\(uDbg>2\.5\)[\s\S]*?if\(uDbg>1\.5\)[\s\S]*?if\(uDbg>0\.5\)/);
  assert.match(js,/gateMesh=buildGates\(\);/);                        // leaf mesh actually assigned (lift is wired)
