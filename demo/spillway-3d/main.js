@@ -10,6 +10,7 @@ import { mergeGeometries } from 'https://cdn.jsdelivr.net/npm/three@0.180.0/exam
 
 const stage=document.getElementById('stage'),status=document.getElementById('status'),flowSlider=document.getElementById('flow'),flowValue=document.getElementById('flow-value'),play=document.getElementById('play');
 const reduced=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+const EMBED=new URLSearchParams(location.search).get('display')==='embed'; // additive: compact LED-strip embed mode
 const isMobile=window.matchMedia('(pointer: coarse)').matches||Math.min(innerWidth,innerHeight)<520;
 let playing=!reduced,visible=true,disposed=false,simT=reduced?10.0:0,prev=0;
 
@@ -429,7 +430,7 @@ function buildImpactBand(){
  const mesh=new THREE.Mesh(g,mat);mesh.renderOrder=7;scene.add(mesh);return mesh;
 }
 function buildSplash(){
- const N=isMobile?1000:2600,a=new Float32Array(N*3),rnd=new Float32Array(N*4),ids=new Float32Array(N);
+ const N=Math.round((isMobile?1000:2600)*(EMBED?0.5:1)),a=new Float32Array(N*3),rnd=new Float32Array(N*4),ids=new Float32Array(N);
  for(let i=0;i<N;i++){
   const bx=BAY_X[i%3]+(Math.random()-0.5)*1.7;
   a.set([bx,0.04,IMPACT_Z-0.18+Math.random()*0.4],i*3);
@@ -637,6 +638,13 @@ function initialize(){
    controls.minAzimuthAngle=-1.13;controls.maxAzimuthAngle=1.13;
    controls.minPolarAngle=0.15;controls.maxPolarAngle=1.53; // presets phi 1.46-1.51 land exact, camera stays above water
   controls.update();
+  if(EMBED){
+    document.body.classList.add('embed');
+    const st=document.createElement('style');
+    st.textContent='body.embed main>aside,body.embed main>header,body.embed footer,body.embed .hud{display:none!important}body.embed{padding:0!important;background:#000!important}body.embed .shell{max-width:none!important;margin:0!important}body.embed main{max-width:none!important;margin:0!important}body.embed .stage{position:fixed!important;inset:0!important;width:100%!important;height:100%!important;min-height:0!important;max-height:none!important;aspect-ratio:auto!important;border:0!important;border-radius:0!important;box-shadow:none!important;background:#02080f!important}';
+    document.head.appendChild(st);
+    camera.position.set(0,2.55,10.6);controls.target.set(0,1.55,0.6);controls.update();
+  }
   if(reduced){
    // reduced motion: time stays frozen, but user-driven orbit must still repaint
    controls.addEventListener('change',()=>{lastInteraction=performance.now();renderOnce()});
@@ -725,6 +733,11 @@ function wireControls(){
  document.getElementById('preset-2').addEventListener('click',()=>applyPreset(2));
  document.getElementById('preset-3').addEventListener('click',()=>applyPreset(3));
  document.addEventListener('visibilitychange',()=>{prev=performance.now()});
+ addEventListener('message',(e)=>{ // LED-strip embed hook: {type:'spillway-flow', v:0..100}
+  if(!EMBED||!e.data||e.data.type!=='spillway-flow')return;
+  const v=Math.max(0,Math.min(100,Number(e.data.v)|0));
+  flowSlider.value=String(v);flowSlider.dispatchEvent(new Event('input'));
+ });
  addEventListener('pagehide',()=>{
   disposed=true;
   resizeObserverRef?.disconnect();
@@ -748,7 +761,7 @@ function tick(ts){
  if(playing)simT+=dt;
  stepTween(ts);
  controls.autoRotate=!tween&&playing&&simT>0&&(performance.now()-lastInteraction)>5000;
- if(controls.autoRotate)controls.autoRotateSpeed=0.45*(0.6+0.4*Math.sin(simT*0.1));
+ if(controls.autoRotate)controls.autoRotateSpeed=0.45*(0.6+0.4*Math.sin(simT*0.1))*(EMBED?0.4:1);
  controls.update();
  if(camera.position.y<0.55)camera.position.y=0.55; // camera collision floor (terrain/water safety net)
  // adaptive pixel ratio: step down if avg fps < 45, up if > 58 (hysteresis, silent)
