@@ -606,7 +606,7 @@ function initialize(){
   concreteMat=new THREE.MeshStandardMaterial({color:0xc9c5bc,map,roughnessMap,roughness:1.0,metalness:0.0,envMapIntensity:0.55});track(concreteMat);
   steelMat=new THREE.MeshStandardMaterial({color:0x828d96,metalness:0.88,roughness:0.34,roughnessMap:track(makeSteelRoughness()),envMapIntensity:0.9});track(steelMat);
   buildSky();buildTerrain();buildEnvironment();
-  buildConcrete();buildSteel();buildGates();buildBalusters();buildBolts();
+  buildConcrete();buildSteel();gateMesh=buildGates();buildBalusters();buildBolts();
   buildReservoir();const sheetsMesh=buildSheets();buildPool();buildWet();
   window.__fxSheets=sheetsMesh;
   buildImpactBand();buildSplash();buildMist();buildRings();
@@ -645,8 +645,8 @@ function initialize(){
   wireControls();
   const qr=document.getElementById('q-readout');qr&&(qr.textContent=`Q ~ ${FS.m3s} m³/s (จำลอง) · Q_max ${Q_MAX_M3S} m³/s`);
   setStatusReady();
-  window.__spillway=()=>renderer&&{frame:renderer.info.render.frame,calls:lastCalls,tris:lastTris,fps:fpsShown,dpr:dpr,simT:+simT.toFixed(3),sheetT:+waterUniforms[1].u.uTime.value.toFixed(3),sheetFlow:+waterUniforms[1].u.uQ.value.toFixed(3)};
-  window.__fx={splash:splashPts,mist:mistMesh,band:null};  if(reduced){renderOnce()}else{prev=performance.now();requestAnimationFrame(tick)}
+  window.__spillway=()=>renderer&&{frame:renderer.info.render.frame,calls:lastCalls,tris:lastTris,fps:fpsShown,dpr:dpr,simT:+simT.toFixed(3),sheetT:+waterUniforms[1].u.uTime.value.toFixed(3),sheetFlow:+waterUniforms[1].u.uQ.value.toFixed(3),leafBottomY:+(CREST_Y+FS.a).toFixed(3),leafMeshY:+(gateMesh?gateMesh.position.y.toFixed(3):'null')};
+  window.__fx={splash:splashPts,mist:mistMesh,band:null};window.__gateMesh=gateMesh;  if(reduced){renderOnce()}else{prev=performance.now();requestAnimationFrame(tick)}
  }catch(e){
   status.textContent='WebGL ไม่พร้อม — ใช้ SVG สำรอง';console.info('Demo fallback (SVG สำรอง):',e.message);
  }
