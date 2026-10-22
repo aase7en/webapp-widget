@@ -85,3 +85,18 @@ test('honesty labels preserved: SIMULATED framing stays on page and reduced-moti
  const readme=read('README.md');
  assert.match(readme,/SIMULATED/i);
 });
+test('discharge model couples slider to gate opening, sheet thickness and impact energy (SIMULATED)',()=>{
+ const js=read('main.js'),html=read('index.html');
+ assert.match(js,/function flowState\(/);
+ assert.match(js,/const A_MAX=/);
+ assert.match(js,/const Q_MAX_M3S=/);
+ assert.match(js,/Math\.pow\(Q,1\.3\)/);                    // impact energy keyed superlinear to discharge
+ assert.match(js,/gateOpening=s=>flowState\(s\)\.a/);       // gate lift derives from the model
+ assert.match(js,/t0=\(0\.045\+0\.92\*uOpen\)/);            // sheet lip thickness anchored to opening
+ assert.match(js,/taper=1\.0-0\.18/);                       // continuity taper downstream
+ assert.match(js,/key:'E'/);                                // impact materials keyed to energy scaler
+ assert.match(js,/Q ~ \$\{FS\.m3s\} m³\/s \(จำลอง\)/);      // live readout derives from the model
+ assert.match(html,/ช่องเปิดประตู \(จำลอง\)/);               // honest slider meaning
+ assert.match(html,/id="q-readout"/);
+ assert.match(html,/m³\/s \(จำลอง\)/);
+});

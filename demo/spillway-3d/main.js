@@ -11,15 +11,31 @@ import { mergeGeometries } from 'https://cdn.jsdelivr.net/npm/three@0.180.0/exam
 const stage=document.getElementById('stage'),status=document.getElementById('status'),flowSlider=document.getElementById('flow'),flowValue=document.getElementById('flow-value'),play=document.getElementById('play');
 const reduced=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 const isMobile=window.matchMedia('(pointer: coarse)').matches||Math.min(innerWidth,innerHeight)<520;
-let flow=0.70,playing=!reduced,visible=true,disposed=false,simT=reduced?10.0:0,prev=0;
+let playing=!reduced,visible=true,disposed=false,simT=reduced?10.0:0,prev=0;
+
+// ---------- discharge model (SIMULATED — single source of truth for every visual scaler) ----------
+// Gated ogee crest at ~constant upstream head: jet speed v = sqrt(2·g·H_eff) ≈ const,
+// discharge Q ∝ opening a (orifice/weir blend at constant head). No independent intensity knobs:
+// every material scaler is derived from flowState below.
+const A_MAX=0.98;          // max gate opening in world units (visual scale)
+const HEAD_EFF=1.7;        // effective head driving the sill jet (world units)
+const GRAV=9.81;
+const Q_MAX_M3S=120;       // nominal display maximum for 3 bays (จำลอง, not telemetry)
+function flowState(s){
+ const a=(s/100)*A_MAX;                       // gate opening
+ const v=Math.sqrt(2*GRAV*HEAD_EFF);          // jet speed ≈ const (head-driven)
+ const Q=Math.pow(a/A_MAX,1.08);              // normalized discharge 0..1 (≈linear, slight weight)
+ const E=Math.pow(Q,1.3);                     // impact-energy feel (superlinear)
+ return {s,a,v,Q,E,m3s:Math.round(Q*Q_MAX_M3S)};
+}
+let FS=flowState(70);
+const gateOpening=s=>flowState(s).a;
 
 // ---------- world constants (shared JS <-> GLSL ogee profile) ----------
 // ogee face v in [0,0.72]: z=-0.55+2.0*u^1.7 , y=2.75-1.4*u^1.35
 // ballistic jet v in (0.72,1]: z=1.45+1.6*w , y=1.35-0.89*w-0.44*w^2   (pool entry ~ (3.05,0.02))
 const BAY_X=[-2.7,0,2.7],BAY_W=1.9,IMPACT_Z=3.05,POOL_Y=0,RES_Y=3.55,CREST_Y=2.75,PIER_TOP=5.0;
-const gateOpening=f=>0.12+0.73*f;
-function sheetPoint(v){
- if(v<0.72){const u=v/0.72;return[-0.55+2.0*Math.pow(u,1.7),CREST_Y-1.4*Math.pow(u,1.35)];}
+function sheetPoint(v){ if(v<0.72){const u=v/0.72;return[-0.55+2.0*Math.pow(u,1.7),CREST_Y-1.4*Math.pow(u,1.35)];}
  const w=(v-0.72)/0.28;return[1.45+1.6*w,1.35-0.89*w-0.44*w*w];
 }
 
@@ -194,14 +210,14 @@ function buildGates(){
  const geo=mergeGeometries(parts.map(prepForMerge));track(geo);
  const mat=new THREE.MeshStandardMaterial({color:0x77828b,metalness:0.9,roughness:0.35,roughnessMap:track(makeSteelRoughness()),envMapIntensity:1.0});
  const mesh=new THREE.Mesh(geo,mat);mesh.castShadow=true;mesh.receiveShadow=true;
- mesh.userData.baseY=CREST_Y+gateOpening(flow)+1.4;mesh.position.y=mesh.userData.baseY;
+ mesh.userData.baseY=CREST_Y+FS.a+1.4;mesh.position.y=mesh.userData.baseY;
  scene.add(mesh);return mesh;
 }
 
 // ---------- water: reservoir ----------
 function buildReservoir(){
  const g=new THREE.PlaneGeometry(11.4,7.0,42,26);g.rotateX(-Math.PI/2);g.translate(0,RES_Y,-4.1);track(g);
- const mat=new THREE.ShaderMaterial({uniforms:{uTime:{value:0},uFlow:{value:flow}},vertexShader:`
+ const mat=new THREE.ShaderMaterial({uniforms:{uTime:{value:0},uFlow:{value:FS.Q}},vertexShader:`
  uniform float uTime;varying vec2 vUv;varying vec3 vPos;${NOISE}
  void main(){vUv=uv;vec3 p=position;p.y+=(fbm(vec2(p.x*0.8,p.z*0.8+uTime*0.14))-0.5)*0.035;
  vPos=p;gl_Position=projectionMatrix*modelViewMatrix*vec4(p,1.0);}`,
@@ -221,7 +237,7 @@ function buildReservoir(){
  // slight draw-down and darkening toward operating gates
  col*=1.0-0.18*uFlow*smoothstep(-2.0,-0.6,vPos.z);
  gl_FragColor=vec4(col,1.0);}`});
- track(mat);waterUniforms.push(mat.uniforms);
+ track(mat);waterUniforms.push({u:mat.uniforms,key:'Q'});
  const mesh=new THREE.Mesh(g,mat);mesh.renderOrder=1;scene.add(mesh);return mesh;
 }
 
@@ -235,11 +251,11 @@ function buildSheets(){
  });
  const geo=mergeGeometries(parts);track(geo);
  const mat=new THREE.ShaderMaterial({transparent:true,depthWrite:false,side:THREE.DoubleSide,
-  uniforms:{uTime:{value:0},uFlow:{value:flow},uOpen:{value:gateOpening(flow)},uDbg:{value:0}},
+  uniforms:{uTime:{value:0},uQ:{value:FS.Q},uOpen:{value:FS.a},uDbg:{value:0}},
   vertexShader:`
-  uniform float uTime;uniform float uFlow;uniform float uOpen;
+  uniform float uTime;uniform float uQ;uniform float uOpen;
   attribute float aBay;
-  varying vec2 vUv;varying float vThick;varying float vS;varying float vBay;${NOISE}${PATH_GLSL}
+  varying vec2 vUv;varying float vThick;varying float vS;varying float vBay;varying float vTaper;${NOISE}${PATH_GLSL}
   vec2 sheetPath2(float v,float open){
   float gateV=0.055;
   if(v<gateV){float k=v/gateV;
@@ -257,30 +273,33 @@ function buildSheets(){
   vec2 p=sheetPath2(uv.y,uOpen);
   float e=0.01;vec2 pa=sheetPath2(max(uv.y-e,0.0),uOpen);vec2 pb=sheetPath2(min(uv.y+e,1.0),uOpen);
   vec2 tang=normalize(pb-pa+vec2(0.0001,0.0));vec2 nrm=vec2(-tang.y,tang.x);
-  float k=0.5+0.9*uFlow;
+  float k=0.5+0.9*uQ;
   float sAdvBv=uv.y-uTime*0.30*k;
   float wob=fbm(vec2(uv.x*3.1+aBay*7.3,sAdvBv*6.0))-0.5;
   float bayMask=fbm(vec2(aBay*2.3,sAdvBv*0.8));
-  float thick=(0.14+0.42*uOpen)*(1.0-0.3*uv.y)*(0.6+0.4*fbm(vec2(uv.x*4.0+7.7+aBay*3.1,sAdvBv*8.0)));
-  thick*=(0.75+0.5*bayMask);
-  vThick=thick;
+  // jet thickness anchored to the gate opening: t0 proportional to a at the lip (thin knife -> chunky rounded nose),
+  // continuity taper downstream as the jet accelerates (v0/v(s)); turbulence rides on top
+  float t0=(0.045+0.92*uOpen)*(0.8+0.4*bayMask);
+  float taper=1.0-0.18*smoothstep(0.0,1.0,uv.y);
+  float thick=t0*taper*(0.6+0.4*fbm(vec2(uv.x*4.0+7.7+aBay*3.1,sAdvBv*8.0)));
+  vThick=thick;vTaper=taper;
   vec3 pos=vec3(position.x,p.y,p.x);
-  pos.yz+=nrm*((uv.x*2.0-1.0)*thick*0.3+wob*0.07*(0.25+uv.y)+0.035);
+  pos.yz+=nrm*((uv.x*2.0-1.0)*thick*0.75+wob*0.05*(0.25+uv.y)+0.03+0.14*t0);
   gl_Position=projectionMatrix*modelViewMatrix*vec4(pos,1.0);}`,
   fragmentShader:`
-  uniform float uTime;uniform float uFlow;uniform float uOpen;uniform float uDbg;
-  varying vec2 vUv;varying float vThick;varying float vS;varying float vBay;${NOISE}
+  uniform float uTime;uniform float uQ;uniform float uOpen;uniform float uDbg;
+  varying vec2 vUv;varying float vThick;varying float vS;varying float vBay;varying float vTaper;${NOISE}
   void main(){
-  if(uDbg>0.5){gl_FragColor=vec4(vec3(0.5+0.5*sin(18.0*(vS-uTime*0.3*(0.5+0.9*uFlow)))),1.0);return;}
+  if(uDbg>0.5){gl_FragColor=vec4(vec3(0.5+0.5*sin(18.0*(vS-uTime*0.3*(0.5+0.9*uQ)))),1.0);return;}
   if(uDbg>1.5){ // band-only isolation: aer + band on plain water (measurement mode)
-  float kD=0.5+0.9*uFlow;float sBD=vS-uTime*0.30*kD;
+  float kD=0.5+0.9*uQ;float sBD=vS-uTime*0.30*kD;
   float bandD=0.5+0.5*sin(sBD*18.0);
   float foamD=smoothstep(0.60,0.95,vS*0.5+0.3)*(0.62+0.38*bandD);
   vec3 col=mix(vec3(0.02,0.12,0.22),vec3(0.93,0.975,1.0),foamD);
   gl_FragColor=vec4(col,0.95);return;}
   float s=vS;
   float seed=vBay*7.31;
-  float k=0.5+0.9*uFlow;
+  float k=0.5+0.9*uQ;
   // fold-free downward advection: readable translation speed (~0.2-0.4 jet-lengths/s), base outruns the lip
   float sAdvA=s-uTime*0.16*k;
   float sAdvB=s-uTime*0.30*k;
@@ -300,7 +319,7 @@ function buildSheets(){
   vec3 water=mix(vec3(0.02,0.12,0.22),vec3(0.06,0.30,0.42),n*0.85+0.1);
   vec3 white=vec3(0.93,0.975,1.0);
   vec3 col=mix(water,white,foam);
-  col=mix(col,white,smoothstep(0.30,0.02,vThick)*0.35*(0.3+0.7*aer));
+  col=mix(col,white,smoothstep(0.30,0.03,vThick/max(vTaper,0.2))*0.30*(0.3+0.7*aer));
   float eN=fbm(vec2(vUv.x*4.5+seed,sAdv*2.5));
   float core=smoothstep(0.015,0.10+0.30*eN,vUv.x)*smoothstep(0.015,0.10+0.30*eN,1.0-vUv.x);
   float fringe=smoothstep(0.62,0.85,streak)*(1.0-core)*smoothstep(0.15,0.55,s);
@@ -314,16 +333,16 @@ function buildSheets(){
   alpha*=(0.75+0.5*fbm(vec2(seed*0.7,sAdvB*1.2)));
   alpha*=smoothstep(0.0,0.02,s);
   alpha*=smoothstep(1.0,0.935,s);            // fade out through the submerged tail (no mid-air end)
-  alpha*=smoothstep(0.02,0.10,uFlow);
-  gl_FragColor=vec4(col,alpha*uFlow);}`});
- track(mat);waterUniforms.push(mat.uniforms);
+  alpha*=smoothstep(0.02,0.10,uQ);
+  gl_FragColor=vec4(col,alpha*uQ);}`});
+ track(mat);waterUniforms.push({u:mat.uniforms,key:'sheets'});
  const mesh=new THREE.Mesh(geo,mat);mesh.renderOrder=6;scene.add(mesh);return mesh;
 }
 
 // ---------- water: plunge pool (displaced surface + foam layers) ----------
 function buildPool(){
  const g=new THREE.PlaneGeometry(9.0,5.35,72,44);g.rotateX(-Math.PI/2);g.translate(0,POOL_Y,4.65);track(g);
- const mat=new THREE.ShaderMaterial({uniforms:{uTime:{value:0},uFlow:{value:flow}},vertexShader:`
+ const mat=new THREE.ShaderMaterial({uniforms:{uTime:{value:0},uFlow:{value:FS.E}},vertexShader:`
  uniform float uTime;uniform float uFlow;
  varying vec3 vPos;${NOISE}
  void main(){
@@ -370,7 +389,7 @@ function buildPool(){
  float foamAll=clamp(impactFoam+drift+rings*0.7,0.0,1.0);
  col=mix(col,vec3(0.88,0.94,0.98),foamAll);
  gl_FragColor=vec4(col,1.0);}`});
- track(mat);waterUniforms.push(mat.uniforms);
+ track(mat);waterUniforms.push({u:mat.uniforms,key:'E'});
  const mesh=new THREE.Mesh(g,mat);mesh.renderOrder=2;scene.add(mesh);return mesh;
 }
 
@@ -378,7 +397,7 @@ function buildPool(){
 function buildImpactBand(){
  const g=new THREE.PlaneGeometry(6.8,1.5,1,24);g.rotateX(-Math.PI/2);g.translate(0,0.03,3.3);track(g);
  const mat=new THREE.ShaderMaterial({transparent:true,depthWrite:false,blending:THREE.AdditiveBlending,
-  uniforms:{uTime:{value:0},uFlow:{value:flow}},
+  uniforms:{uTime:{value:0},uFlow:{value:FS.E}},
   vertexShader:`varying vec2 vUv;void main(){vUv=uv;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);}`,
   fragmentShader:`uniform float uTime;uniform float uFlow;varying vec2 vUv;${NOISE}
  void main(){
@@ -388,7 +407,7 @@ function buildImpactBand(){
  float a=band*smoothstep(0.38,0.8,churn)*(0.25+0.55*uFlow)*smoothstep(0.02,0.1,uFlow);
  vec3 col=vec3(0.95,0.985,1.0)*(0.4+0.45*churn);
  gl_FragColor=vec4(col,a*0.5);}`});
- track(mat);waterUniforms.push(mat.uniforms);
+ track(mat);waterUniforms.push({u:mat.uniforms,key:'E'});
  const mesh=new THREE.Mesh(g,mat);mesh.renderOrder=7;scene.add(mesh);return mesh;
 }
 function buildSplash(){
@@ -403,7 +422,7 @@ function buildSplash(){
  g.setAttribute('aRnd',new THREE.BufferAttribute(rnd,4));
  g.setAttribute('aId',new THREE.BufferAttribute(ids,1));
  splashMat=new THREE.ShaderMaterial({transparent:true,depthWrite:false,blending:THREE.AdditiveBlending,
-  uniforms:{uTime:{value:0},uFlow:{value:flow},uCount:{value:N},uPix:{value:dpr}},
+  uniforms:{uTime:{value:0},uFlow:{value:FS.E},uCount:{value:N},uPix:{value:dpr}},
   vertexShader:`
  uniform float uTime;uniform float uFlow;uniform float uCount;uniform float uPix;
  attribute vec4 aRnd;attribute float aId;varying float vA;
@@ -422,7 +441,7 @@ function buildSplash(){
  vec2 c=gl_PointCoord-0.5;float d=length(c)*2.0;
  float a=vA*smoothstep(1.0,0.2,d);
  gl_FragColor=vec4(0.93,0.97,1.0,a*0.65);}`});
- track(splashMat);waterUniforms.push(splashMat.uniforms);
+ track(splashMat);waterUniforms.push({u:splashMat.uniforms,key:'E'});
  splashPts=new THREE.Points(g,splashMat);splashPts.renderOrder=8;splashPts.frustumCulled=false;scene.add(splashPts);
 }
 function buildMist(){
@@ -439,7 +458,7 @@ function buildMist(){
  g.setAttribute('uv',new THREE.BufferAttribute(uv,2));
  g.setIndex(idx);
  mistMat=new THREE.ShaderMaterial({transparent:true,depthWrite:false,blending:THREE.AdditiveBlending,
-  uniforms:{uTime:{value:0},uFlow:{value:flow}},
+  uniforms:{uTime:{value:0},uFlow:{value:FS.E}},
   vertexShader:`
  uniform float uTime;uniform float uFlow;attribute vec4 aSeed;varying vec2 vUv;varying float vA;
  void main(){
@@ -457,7 +476,7 @@ function buildMist(){
  float soft=smoothstep(1.25,0.35,d);
  float n=fbm(vUv*3.0+uTime*0.05)*0.5+0.5;
  gl_FragColor=vec4(0.85,0.92,0.97,vA*soft*smoothstep(0.30,0.75,n));}`});
- track(mistMat);waterUniforms.push(mistMat.uniforms);
+ track(mistMat);waterUniforms.push({u:mistMat.uniforms,key:'E'});
  mistMesh=new THREE.Mesh(g,mistMat);mistMesh.renderOrder=9;mistMesh.frustumCulled=false;scene.add(mistMesh);
 }
 function buildRings(){
@@ -474,7 +493,7 @@ function buildRings(){
  g.setAttribute('aSeed',new THREE.BufferAttribute(new Float32Array(seed),2));
  g.setIndex(idx);
  ringsMat=new THREE.ShaderMaterial({transparent:true,depthWrite:false,blending:THREE.AdditiveBlending,
-  uniforms:{uTime:{value:0},uFlow:{value:flow}},
+  uniforms:{uTime:{value:0},uFlow:{value:FS.Q}},
   vertexShader:`attribute vec2 aSeed;varying vec2 vUv;varying vec2 vSeed;
  void main(){vUv=uv;vSeed=aSeed;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);}`,
   fragmentShader:`uniform float uTime;uniform float uFlow;varying vec2 vUv;varying vec2 vSeed;
@@ -484,14 +503,14 @@ function buildRings(){
  float r=mix(0.12,1.55,ph);
  float ring=smoothstep(0.11,0.0,abs(d-r))*(1.0-ph)*smoothstep(0.02,0.1,uFlow);
  gl_FragColor=vec4(0.9,0.96,1.0,ring*uFlow*0.4);}`});
- track(ringsMat);waterUniforms.push(ringsMat.uniforms);
+ track(ringsMat);waterUniforms.push({u:ringsMat.uniforms,key:'Q'});
  ringsMesh=new THREE.Mesh(g,ringsMat);ringsMesh.renderOrder=8;ringsMesh.frustumCulled=false;scene.add(ringsMesh);
 }
 
 // ---------- wet darkened bands near waterline ----------
 function buildWet(){
  const mat=new THREE.ShaderMaterial({transparent:true,depthWrite:false,
-  uniforms:{uTime:{value:0},uFlow:{value:flow}},
+  uniforms:{uTime:{value:0},uFlow:{value:FS.Q}},
   vertexShader:`varying vec2 vUv;void main(){vUv=uv;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);}`,
    fragmentShader:`uniform float uTime;varying vec2 vUv;${NOISE}
  void main(){
@@ -500,7 +519,7 @@ function buildWet(){
  float fade=smoothstep(0.0,0.65,vUv.y);
  vec3 col=vec3(0.05,0.09,0.11)+vec3(0.9,0.95,1.0)*gloss*0.05;
  gl_FragColor=vec4(col,(0.45+0.2*g)*fade);}`});
- track(mat);waterUniforms.push(mat.uniforms);
+ track(mat);waterUniforms.push({u:mat.uniforms,key:'Q'});
  const parts=[];
  for(const bx of BAY_X)parts.push(translateGeo(ribbonGeo(0.42,0.76,20),bx,0,0));
  const toe=new THREE.PlaneGeometry(8.7,0.5,12,4);toe.deleteAttribute('normal');toe.translate(0,0.28,1.62);parts.push(toe);
@@ -615,8 +634,9 @@ function initialize(){
   if(typeof ResizeObserver!=='undefined'){resizeObserverRef=new ResizeObserver(resize);resizeObserverRef.observe(stage)}
   new IntersectionObserver(x=>{visible=x.some(e=>e.isIntersecting)}).observe(stage);
   wireControls();
+  const qr=document.getElementById('q-readout');qr&&(qr.textContent=`Q ~ ${FS.m3s} m³/s (จำลอง) · Q_max ${Q_MAX_M3S} m³/s`);
   setStatusReady();
-  window.__spillway=()=>renderer&&{frame:renderer.info.render.frame,calls:lastCalls,tris:lastTris,fps:fpsShown,dpr:dpr,simT:+simT.toFixed(3),sheetT:+waterUniforms[1].uTime.value.toFixed(3),sheetFlow:+waterUniforms[1].uFlow.value.toFixed(3)};
+  window.__spillway=()=>renderer&&{frame:renderer.info.render.frame,calls:lastCalls,tris:lastTris,fps:fpsShown,dpr:dpr,simT:+simT.toFixed(3),sheetT:+waterUniforms[1].u.uTime.value.toFixed(3),sheetFlow:+waterUniforms[1].u.uQ.value.toFixed(3)};
   window.__fx={splash:splashPts,mist:mistMesh,band:null};  if(reduced){renderOnce()}else{prev=performance.now();requestAnimationFrame(tick)}
  }catch(e){
   status.textContent='WebGL ไม่พร้อม — ใช้ SVG สำรอง';console.info('Demo fallback (SVG สำรอง):',e.message);
@@ -632,9 +652,9 @@ function resize(){
 }
 function renderOnce(){
  if(!renderer||!scene)return;
- for(const u of waterUniforms){u.uTime.value=simT%600;u.uFlow.value=flow}
- const sheetU=waterUniforms[1];sheetU&&(sheetU.uOpen.value=gateOpening(flow));
- if(gateMesh)gateMesh.position.y=CREST_Y+gateOpening(flow)+1.4;
+ for(const w of waterUniforms){w.u.uTime.value=simT%600;const sv=(w.key==='E')?FS.E:FS.Q;if(w.u.uFlow)w.u.uFlow.value=sv;if(w.u.uQ)w.u.uQ.value=sv}
+ const sheetU=waterUniforms.find(w=>w.key==='sheets');sheetU&&(sheetU.u.uOpen.value=FS.a);
+ if(gateMesh)gateMesh.position.y=CREST_Y+FS.a+1.4;
  renderer.render(scene,camera);
 }
 
@@ -679,7 +699,7 @@ function wireControls(){
   if(e.key==='1'||e.key==='2'||e.key==='3'){applyPreset(+e.key)}
   else if(e.key==='ArrowLeft'||e.key==='ArrowRight'||e.key==='ArrowUp'||e.key==='ArrowDown'){lastInteraction=performance.now()}
  });
- flowSlider.addEventListener('input',()=>{flow=+flowSlider.value/100;flowValue.textContent=flowSlider.value+'%';lastInteraction=performance.now();if(reduced)renderOnce()});
+ flowSlider.addEventListener('input',()=>{FS=flowState(+flowSlider.value);flowValue.textContent=flowSlider.value+'%';const qr=document.getElementById('q-readout');qr&&(qr.textContent=`Q ~ ${FS.m3s} m³/s (จำลอง)`);lastInteraction=performance.now();if(reduced)renderOnce()});
  play.addEventListener('click',()=>{playing=!playing;play.textContent=playing?'หยุดการเคลื่อนไหว':'เริ่มการเคลื่อนไหว';play.setAttribute('aria-pressed',String(playing));if(reduced)renderOnce()});
  document.getElementById('reset').addEventListener('click',()=>applyPreset(1));
  document.getElementById('preset-1').addEventListener('click',()=>applyPreset(1));
@@ -722,9 +742,9 @@ function tick(ts){
    else if(fps>58&&dpr<dprMax){dpr=Math.min(dprMax,dpr+0.25);renderer.setPixelRatio(dpr);composer?.setPixelRatio(dpr);lastDprStep=now;splashMat&&(splashMat.uniforms.uPix.value=dpr)}
   }
  }
- for(const u of waterUniforms){u.uTime.value=simT%600;u.uFlow.value=flow}
- const sheetU=waterUniforms[1];sheetU&&(sheetU.uOpen.value=gateOpening(flow));
- if(gateMesh)gateMesh.position.y=CREST_Y+gateOpening(flow)+1.4;
+ for(const w of waterUniforms){w.u.uTime.value=simT%600;const sv=(w.key==='E')?FS.E:FS.Q;if(w.u.uFlow)w.u.uFlow.value=sv;if(w.u.uQ)w.u.uQ.value=sv}
+ const sheetU=waterUniforms.find(w=>w.key==='sheets');sheetU&&(sheetU.u.uOpen.value=FS.a);
+ if(gateMesh)gateMesh.position.y=CREST_Y+FS.a+1.4;
  renderer.info.reset();
  composer?composer.render():renderer.render(scene,camera);
  lastCalls=renderer.info.render.calls;lastTris=renderer.info.render.triangles;
