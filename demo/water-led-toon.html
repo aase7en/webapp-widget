@@ -3,6 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="icon" href="data:,">
 <title>HDA004 คลองช่องสะเดา — การ์ดน้ำ 3D กลางคืน (SIMULATED)</title>
 <style>
 :root{color-scheme:dark}
@@ -64,7 +65,8 @@ button:disabled{opacity:.5;cursor:default}
 .caption .sep{opacity:.5}
 
 /* ---------- LED strip 432x40 : close-up overflow + water behind clock ---------- */
-.led-frame{position:relative;width:432px;height:40px;margin:12px auto 0;border-radius:5px;overflow:hidden;
+.led-wrap{width:432px;margin:12px auto 0}
+.led-frame{position:relative;width:432px;height:40px;border-radius:5px;overflow:hidden;
  background:#04101c;border:1px solid #173347;transform:scale(var(--led-s,1));transform-origin:top left}
 .led-frame canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
 .led-clock{position:absolute;left:0;top:0;bottom:0;width:64px;padding:3px 5px 2px;display:flex;flex-direction:column;justify-content:center;
@@ -80,9 +82,17 @@ button:disabled{opacity:.5;cursor:default}
 .dot.band-green{background:#63C969}.dot.band-amber{background:#ffc46b}.dot.band-red{background:#ff8f8f}.dot.grey{background:#7f93a3}
 .led-caption{max-width:432px;justify-content:center;text-align:center}
 @media (max-width:720px){
- .card{grid-template-columns:120px 1fr 200px}
- .cz-time{font-size:42px}
- .h-num{font-size:36px}
+ /* mobile: stack vertically — [clock+date row][full-width 3D stage][full-width HUD]; card height flexes to content, nothing clipped */
+ .card{display:flex;flex-direction:column;aspect-ratio:auto;height:auto}
+ .clockzone{flex-direction:row;align-items:center;justify-content:space-between;gap:10px;
+  padding:10px 14px;border-right:0;border-bottom:1px solid rgba(90,138,176,0.25)}
+ .cz-date{font-size:11px}
+ .cz-time{font-size:40px}
+ .cz-cap{display:none}
+ .cz-lvl{margin-top:0;text-align:right;font-size:9.5px}
+ .stage3d{aspect-ratio:16/9;width:100%;height:auto;border-right:0;border-bottom:1px solid rgba(90,138,176,0.25)}
+ .hud{padding:10px 14px 12px}
+ .h-num{font-size:40px}
 }
 </style>
 </head>
@@ -134,7 +144,8 @@ button:disabled{opacity:.5;cursor:default}
   <span>ไม่ใช่คำเตือนภัย — ประกอบการติดตามเท่านั้น</span>
  </div>
 
- <div class="led-frame" id="led-frame" role="img" aria-label="แถบ LED 432x40 จำลอง: น้ำล้นประตูถ่ายใกล้มาก น้ำล้นขอบล่างและไหลหลังพื้นที่นาฬิกา (SIMULATED)">
+ <div class="led-wrap" id="led-wrap">
+  <div class="led-frame" id="led-frame" role="img" aria-label="แถบ LED 432x40 จำลอง: น้ำล้นประตูถ่ายใกล้มาก น้ำล้นขอบล่างและไหลหลังพื้นที่นาฬิกา (SIMULATED)">
   <canvas id="toon-canvas"></canvas>
   <canvas id="strip-canvas" aria-hidden="true"></canvas>
   <div class="led-clock"><b id="led-time">--:--</b><span id="led-day">—</span></div>
@@ -142,6 +153,7 @@ button:disabled{opacity:.5;cursor:default}
    <div class="ls-row"><span>HDA004</span><b id="led-hda">—</b><i class="dot grey" id="led-hda-dot"></i></div>
    <div class="ls-row"><span>S.5</span><b id="led-s5">—</b><i class="dot grey" id="led-s5-dot"></i></div>
   </div>
+ </div>
  </div>
  <div class="caption led-caption">แถบ LED 432×40 (จำลอง): มุมถ่ายระยะใกล้มาก — น้ำล้นผืนประตูทะลุขอบบน/ล่าง และไหลเรืองแสงหลังตัวเลขนาฬิกา · ค่าสถานีอยู่ขวา แถบสีตามเกณฑ์</div>
 </main>
@@ -172,6 +184,16 @@ function sizeCanvases(){
  var r=$('led-frame').getBoundingClientRect();
  var w=Math.max(1,Math.round((r.width||432)*dpr)),h=Math.max(1,Math.round((r.height||40)*dpr));
  if(toonC.width!==w||toonC.height!==h){toonC.width=w;toonC.height=h;stripC.width=w;stripC.height=h;}
+}
+/* LED strip auto-scale: shrink the fixed 432px strip to the viewport (never wider), keep desktop 1:1 */
+function sizeLed(){
+ var wrap=$('led-wrap'),f=$('led-frame');
+ if(!wrap||!f)return;
+ var avail=Math.max(200,Math.min(wrap.parentElement.clientWidth||432,432));
+ var s=avail/432;
+ f.style.setProperty('--led-s',String(s));
+ wrap.style.width=(432*s)+'px';
+ wrap.style.height=(40*s+2)+'px';
 }
 function s2d(c){ /* scale context to CSS units */
  var r=$('led-frame').getBoundingClientRect();
@@ -519,7 +541,9 @@ window.__toon=function(){return {data:lastData,samples:samples.length,flow:flow,
 autoTimer=setInterval(function(){ if(!document.hidden)fetchWater(); },300000);
 
 /* ---------- boot ---------- */
+sizeLed();
 sizeCanvases();
+addEventListener('resize',function(){sizeLed();sizeCanvases();if(reduced&&canvasOk)drawAll();});
 if(reduced&&canvasOk)drawAll(); else startLoop();
 fetchWater();
 })();

@@ -37,6 +37,17 @@ test('honest labels: SIMULATED scene + real ThaiWater source + no fabricated 7-d
   assert.match(html,/รอข้อมูล/);
 });
 
+test('mobile layout: card stacks vertically <=720px (clock row / full-width 16:9 stage / full-width HUD) + LED strip auto-scales, no fixed micro-columns',()=>{
+ const html=read(page);
+ assert.match(html,/@media \(max-width:720px\)/);
+ assert.match(html,/\.card\{display:flex;flex-direction:column;aspect-ratio:auto;height:auto\}/);
+ assert.match(html,/\.stage3d\{aspect-ratio:16\/9;width:100%;height:auto/);
+ assert.match(html,/\.clockzone\{flex-direction:row/);
+ assert.doesNotMatch(html,/grid-template-columns:120px 1fr 200px/); // old fixed micro-columns removed
+ assert.match(html,/id="led-wrap"/);                                // LED scale wrapper
+ assert.match(html,/function sizeLed\(\)/);                         // auto-fit <=432
+ assert.match(html,/wrap\.style\.width=\(432\*s\)/);
+});
 test('data: ThaiWater direct fetch (HDA004 471583 + S.5 2607), fail-closed, 12s timeout, 5-min auto, visibility pause',()=>{
   const js=read(page);
   assert.match(js,/api-v3\.thaiwater\.net\/api\/v1\/thaiwater30\/public\/waterlevel_load/);
