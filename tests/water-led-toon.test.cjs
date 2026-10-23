@@ -16,6 +16,15 @@ test('toon water card exists as a self-contained demo (zero external deps, no pr
   assert.doesNotMatch(html,/index\.html|water\.html(?!-toon)|strip\.js|strip\.css|led-rotation|apps-script|v2\//);
 });
 
+test('v3 card: DOM card embeds the 3D night dam variant (additive style param, same-origin demo only)',()=>{
+ const html=read(page);
+ assert.match(html,/spillway-3d\/\?display=embed&style=night/);   // night art style of the existing pipeline
+ assert.match(html,/id="spill-frame"/);
+ assert.match(html,/applyGateFromData/);                          // gate opening driven by real %bank
+ assert.match(html,/spillway-flow/);                              // postMessage handshake
+ assert.match(html,/id="led-frame"/);                             // LED 432x40 strip
+ assert.match(html,/led-clock/);                                  // water-behind-clock overlay zone
+});
 test('honest labels: SIMULATED scene + real ThaiWater source + no fabricated 7-day history',()=>{
   const html=read(page);
   assert.match(html,/ภาพจำลอง \(SIMULATED\)/);
