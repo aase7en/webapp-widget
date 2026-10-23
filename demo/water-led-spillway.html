@@ -4,8 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#0a1520"><link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 16 16%27%3E%3Crect width=%2716%27 height=%2716%27 fill=%27%230a1520%27/%3E%3Cpath d=%27M2 9c2-3 4-3 6 0s4 3 6 0%27 stroke=%27%235fc9ff%27 stroke-width=%272%27 fill=%27none%27/%3E%3C/svg%3E">
-<title>DEMO · ระดับน้ำ + ประตูระบายน้ำจำลอง 3D — แทนไอคอนฉากกั้นน้ำเดิมบนสไลด์ LED</title>
-<meta name="description" content="หน้าสาธิต (DEMO ONLY): สไลด์น้ำ LED แบบใหม่ — ฝัง spillway-3d จำลอง (SIMULATED) ด้านซ้ายสุดแทนไอคอนฉากกั้นน้ำเดิม ระดับน้ำจริง 2 สถานีจาก RID กรมชลประทาน (วัดจริงรายชั่วโมง) ยังคงเดิม — ไม่มีข้อมูลปลอม ไม่ผูกกับหน้าผลิต">
+<title>DEMO · นาฬิกา + ระดับน้ำจริง + ประตูระบายน้ำจำลอง 3D — สไลด์น้ำ LED v2</title>
+<meta name="description" content="หน้าสาธิต (DEMO ONLY): สไลด์น้ำ LED v2 — นาฬิกาซ้ายสุด, ประตูระบายน้ำจำลอง 3D (SIMULATED) ในช่องไอคอน, ระดับน้ำจริง 2 สถานีจาก RID กรมชลประทาน แบบมีแถบสีตามระดับ — ไม่มีข้อมูลปลอม ไม่ผูกกับหน้าผลิต">
 <style>
 :root{font-family:Tahoma,"Noto Sans Thai",system-ui,sans-serif;color:#eaf3fb;background:#0a1520}
 *{box-sizing:border-box}html,body{margin:0;min-height:100%;background:#0a1520}body{padding:14px}
@@ -17,26 +17,31 @@ header p{margin:4px 0 0;font-size:12px;color:#c0cbd5;line-height:1.6}
 .stage-wrap{background:#000;border:1px solid #486579;border-radius:10px;padding:16px;display:flex;justify-content:center;overflow:hidden}
 .led-scale{position:relative;width:432px;height:40px;transform-origin:top left;overflow:visible;margin:0 auto 10px;flex:0 0 auto}
 .led-frame{width:432px;height:40px;display:flex;align-items:stretch;background:#04101c;border:1px solid #173347;border-radius:4px;overflow:hidden;position:relative;transform:scale(var(--led-s,1));transform-origin:top left}
+/* v2 strip layout: [clock][sep][spillway 3D][sep][S.5][sep][S.26] */
+.clock{width:64px;flex:0 0 64px;padding:4px 6px 2px;display:flex;flex-direction:column;justify-content:center;gap:0;background:#071726;border-right:1px solid #1d3a52}
+.clock .time{font-size:15px;font-weight:800;color:#f3f8fc;line-height:1;letter-spacing:.5px;font-variant-numeric:tabular-nums}
+.clock .day{font-size:8px;font-weight:700;color:#9fc6e0;line-height:1.3;margin-top:2px}
 .spill-slot{width:47px;flex:0 0 47px;position:relative;background:#02080f;border-right:1px solid #1d3a52}
 .spill-slot iframe{border:0;width:47px;height:40px;display:block;background:#02080f}
 .sep{width:1px;background:#1d3a52;flex:0 0 1px}
-.station{flex:1;min-width:0;padding:3px 8px 2px;display:flex;flex-direction:column;justify-content:center;gap:1px}
-.station+.station{border-left:1px solid #1d3a52;margin-left:-1px}
-.st-head{display:flex;align-items:baseline;gap:5px;min-width:0}
-.st-chip{font-size:8px;font-weight:800;color:#04101c;background:#5fc9ff;border-radius:2px;padding:0 3px;letter-spacing:.3px;flex:0 0 auto}
-.st-name{font-size:10px;font-weight:700;color:#bfe0f5;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.st-body{display:flex;align-items:baseline;gap:6px;min-width:0}
-.st-value{font-size:17px;font-weight:800;color:#f3f8fc;white-space:nowrap;line-height:1.05}
-.st-value .unit{font-size:9.5px;font-weight:700;color:#9fc6e0;margin-left:2px}
-.st-value.grey{color:#7f93a3}
-.st-meta{margin-left:auto;text-align:right;font-size:9px;line-height:1.25;color:#9fc6e0;white-space:nowrap}
-.st-meta .pct{font-size:11px;font-weight:800;color:#7fe0b0}
-.st-meta .pct.warn{color:#ffd27a}
-.st-meta .obs{color:#7fa3bd}
-.wait{color:#7f93a3;font-style:normal}
+.station{flex:1;min-width:0;padding:2px 8px 1px 8px;display:flex;flex-direction:column;justify-content:flex-end;align-items:flex-start;text-align:left}
+.st-name{font-size:9.5px;font-weight:700;color:#dff1ff;line-height:1.25;margin:0 0 1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+.st-name.dim{color:#7f93a3}
+.st-numline{display:flex;align-items:baseline;gap:3px;margin:0;line-height:1}
+.st-value{font-size:20px;font-weight:800;line-height:1;white-space:nowrap;font-variant-numeric:tabular-nums}
+.st-value.band-green{color:#7fe8a8;text-shadow:0 0 7px rgba(110,255,170,.45)}
+.st-value.band-amber{color:#ffc46b;text-shadow:0 0 7px rgba(255,180,90,.45)}
+.st-value.band-red{color:#ff7a7a;text-shadow:0 0 8px rgba(255,110,110,.5)}
+.st-value.grey{color:#7f93a3;text-shadow:none}
+.st-unit{font-size:9px;font-weight:700;color:#9fc6e0;align-self:flex-end;padding:0 0 1px 1px}
+.st-pct{font-size:12.5px;font-weight:800;align-self:flex-end;padding:0 0 1px 2px;white-space:nowrap}
+.st-pct.band-green{color:#7fe8a8}.st-pct.band-amber{color:#ffc46b}.st-pct.band-red{color:#ff7a7a}.st-pct.grey{color:#7f93a3}
+.st-bank{font-size:8px;font-weight:600;color:#7fa3bd;line-height:1.2;margin:0;white-space:nowrap}
+.st-body{display:flex;width:100%}
 .caption{max-width:432px;margin:10px auto 0;font-size:11px;color:#9fb2c1;line-height:1.7;display:flex;flex-wrap:wrap;gap:4px 14px;align-items:center}
 .caption .src{color:#8fb6d4}
 .caption .sim{color:#e8c877;font-weight:700}
+.caption .gatenote{color:#a8c8b8}
 .caption button{font:inherit;font-size:10.5px;font-weight:700;color:#04101c;background:#5fc9ff;border:1px solid #5fc9ff;border-radius:5px;padding:2px 8px;cursor:pointer}
 .caption button:hover{background:#9fe0ff}
 .caption button:disabled{opacity:.55;cursor:wait}
@@ -46,6 +51,7 @@ header p{margin:4px 0 0;font-size:12px;color:#c0cbd5;line-height:1.6}
 .rid-state{color:#8fb6d4}
 .rid-state.err{color:#ff8f8f;font-weight:700}
 .note{font-size:11px;color:#9fb2c1;margin:10px auto 0;max-width:432px;line-height:1.7}
+.disc{color:#c9d8b8}
 footer{margin-top:14px;font-size:11px;color:#b8c9d5;line-height:1.7}
 code{background:#122b3e;border-radius:4px;padding:1px 5px;font-size:10.5px}
 </style>
@@ -54,47 +60,56 @@ code{background:#122b3e;border-radius:4px;padding:1px 5px;font-size:10.5px}
 <main>
   <header>
     <div>
-      <h1>DEMO · ระดับน้ำ + ประตูระบายน้ำจำลอง 3D — สไลด์น้ำ LED แบบใหม่</h1>
-      <p>ฝัง <code>spillway-3d</code> (จำลอง) ด้านซ้ายสุดแทนไอคอนฉากกั้นน้ำเดิม · ระดับน้ำจริง 2 สถานี (RID กรมชลประทาน) ยังคงเดิม — หน้านี้เป็นหน้าสาธิต ไม่ผูกกับหน้าผลิต</p>
+      <h1>DEMO · นาฬิกา + ระดับน้ำจริง + ประตูระบายน้ำจำลอง 3D — สไลด์น้ำ LED v2</h1>
+      <p>ผังใหม่: [นาฬิกา][ประตู 3D จำลอง][S.5][S.26] · ตัวเลขระดับน้ำใหญ่มีแถบสีตามระดับ · ประตูเปิดตามสัดส่วนระดับจริง (เชิงสัญลักษณ์) · หน้าสาธิต ไม่ผูกกับหน้าผลิต</p>
     </div>
   </header>
 
   <div class="demo-banner" role="note">
-    <strong>หน้าสาธิต (DEMO ONLY)</strong> — ออกแบบทดแรงสำหรับรีวิว: สไลด์น้ำบนจอ LED โดยตัวเลขระดับน้ำจริง (RID วัดจริงรายชั่วโมง) ยังคงเดิมทุกอย่าง
-    ส่วนภาพประตูระบายน้ำเป็น <em>แบบจำลองสามมิติ (SIMULATED) ไม่ใช่การปล่อยน้ำจริงและไม่เชื่อมข้อมูลประตูจริง</em> · ดึง RID ตรงแบบอ่านอย่างเดียว รีเฟรชด้วยมือเท่านั้น · ไม่มีข้อมูลปลอมแทนข้อมูลสด
+    <strong>หน้าสาธิต (DEMO ONLY)</strong> — ระดับน้ำจริงจาก RID กรมชลประทาน (วัดจริงรายชั่วโมง · รีเฟรชด้วยมือ) ·
+    ภาพประตูระบายน้ำเป็น <em>แบบจำลองสามมิติ (SIMULATED) — ประตูในภาพเปิดตามสัดส่วนระดับจริงเชิงสัญลักษณ์ ไม่ใช่สั่งการเขื่อนจริงและไม่ใช่การปล่อยน้ำจริง</em> ·
+    ไม่มีข้อมูลปลอมแทนข้อมูลสดทุกกรณี
   </div>
 
   <div class="stage-wrap"><div class="led-scale" id="led-scale">
     <div class="led-frame" id="led-frame">
+      <div class="clock" id="clock" aria-label="วันที่และเวลา">
+        <span class="time" id="clock-time">--:--</span>
+        <span class="day" id="clock-day">—</span>
+      </div>
+      <div class="sep" aria-hidden="true"></div>
       <div class="spill-slot" aria-hidden="true" title="ประตูระบายน้ำจำลอง (SIMULATED) — ดูคำอธิบายใต้สไลด์">
-        <iframe id="spill-frame" src="./spillway-3d/?display=embed" title="ประตูระบายน้ำจำลอง 3D (SIMULATED) — ภาพประกอบสไลด์"></iframe>
-        </div>
+        <iframe id="spill-frame" src="./spillway-3d/?display=embed" title="ประตูระบายน้ำจำลอง 3D (SIMULATED) — ช่องไอคอนสไลด์"></iframe>
+      </div>
       <div class="sep" aria-hidden="true"></div>
       <div class="station" id="st-a">
-        <div class="st-head"><span class="st-chip">สถานี ก</span><span class="st-name" id="a-name">S.5 สะพานปรีดี</span></div>
-        <div class="st-body">
-          <span class="st-value wait" id="a-value">— <span class="unit">ม.รทก.</span></span>
-          <span class="st-meta" id="a-meta"><span class="pct">—</span> ของตลิ่ง 4.70 ม.<br><span class="obs">รอข้อมูล</span></span>
+        <div class="st-name" id="a-name">S.5 สะพานปรีดี</div>
+        <div class="st-numline">
+          <span class="st-value grey" id="a-value">—</span><span class="st-unit">ม.รทก.</span>
+          <span class="st-pct grey" id="a-pct">—</span>
         </div>
+        <div class="st-bank" id="a-bank">ระดับตลิ่ง 4.70 ม.</div>
       </div>
       <div class="sep" aria-hidden="true"></div>
       <div class="station" id="st-b">
-        <div class="st-head"><span class="st-chip">สถานี ข</span><span class="st-name" id="b-name">S.26 ท้ายเขื่อน ร.6</span></div>
-        <div class="st-body">
-          <span class="st-value wait" id="b-value">— <span class="unit">ม.รทก.</span></span>
-          <span class="st-meta" id="b-meta"><span class="pct">—</span> ของตลิ่ง 7.20 ม.<br><span class="obs">รอข้อมูล</span></span>
+        <div class="st-name" id="b-name">S.26 ท้ายเขื่อน ร.6</div>
+        <div class="st-numline">
+          <span class="st-value grey" id="b-value">—</span><span class="st-unit">ม.รทก.</span>
+          <span class="st-pct grey" id="b-pct">—</span>
         </div>
+        <div class="st-bank" id="b-bank">ระดับตลิ่ง 7.20 ม.</div>
       </div>
     </div>
   </div></div>
 
   <div class="caption" role="group" aria-label="ที่มาข้อมูลและตัวควบคุมสาธิต">
-    <span class="src">ระดับน้ำ: RID กรมชลประทาน · วัดจริงรายชั่วโมง · <span class="rid-state" id="rid-state">ยังไม่ดึงข้อมูล</span></span>
-    <span class="sim">ประตู 3D: จำลอง (SIMULATED) · ไม่ใช่การปล่อยน้ำจริง · <span id="ts">—</span></span>
+    <span class="src">ระดับน้ำ: RID กรมชลประทาน · วัดจริงรายชั่วโมง · <span class="rid-state" id="rid-state">ยังไม่ดึงข้อมูล</span> · <span id="ts">—</span></span>
+    <span class="sim">ประตู 3D: จำลอง (SIMULATED) · ไม่ใช่การปล่อยน้ำจริง · <span class="gatenote">ประตูเปิดตามสัดส่วนระดับจริง (แสดงเชิงสัญลักษณ์ ไม่ใช่สั่งการเขื่อนจริง)</span></span>
+    <span class="disc">เกณฑ์สี: ปกติ / เฝ้าระวัง (ตลิ่ง−0.50 ม.) / วิกฤต (≥ตลิ่ง) — ประกอบการติดตาม ไม่ใช่คำเตือนทางการ</span>
     <button type="button" id="rid-refresh">รีเฟรชระดับน้ำจริง</button>
     <span class="flowdemo" title="จำลองเท่านั้น — ส่งค่าเข้าภาพ 3D ผ่าน postMessage">ช่องเปิดประตู (จำลอง): <input id="flow-demo" type="range" min="0" max="100" step="5" value="70" aria-label="ช่องเปิดประตูจำลอง"><b id="flow-demo-v">70%</b></span>
   </div>
-  <p class="note">% ของตลิ่ง = ระดับน้ำเทียบระดับตลิ่งทะเบียน (กชป.) ไม่ใช่เกณฑ์เตือนภัย · หน่วย ม.รทก. · ค่าหาย/ว่างแสดงเป็น «— รอข้อมูล» เสมอ (ไม่แสดง 0 แทนข้อมูลที่ไม่ทราบ)</p>
+  <p class="note">% ของระดับตลิ่ง = ระดับน้ำเทียบระดับตลิ่งทะเบียน (กชป.) ไม่ใช่เกณฑ์เตือนภัย · หน่วย ม.รทก. · ค่าหาย/ว่างแสดงเป็น «—» เสมอ (ไม่แสดง 0 แทนข้อมูลที่ไม่ทราบ)</p>
 
   <footer>
     หน้าสาธิตเท่านั้น — ไฟล์สาธิตแยกอิสระ ไม่แตะไฟล์ผลิตทุกไฟล์ · ฝัง 3D ผ่าน <code>?display=embed</code> (โหมดเสริมของ demo/spillway-3d) · ขนาดสไลด์ 432×40 CSS px ปรับสเกลตามจอ
@@ -103,14 +118,11 @@ code{background:#122b3e;border-radius:4px;padding:1px 5px;font-size:10.5px}
 <script>
 (function(){
   'use strict';
-  /* ---------- responsive scaler (established pattern) ---------- */
+  /* ---------- responsive scaler (unscaled-sizer pattern: click-safe at all scales) ---------- */
   var scaleEl=document.getElementById('led-scale'),frameEl=document.getElementById('led-frame');
   function rescale(){
     var avail=Math.min(document.documentElement.clientWidth-28,1100);
     var s=Math.max(0.85,Math.min(2.2,avail/432));
-    /* unscaled-sizer pattern: the OUTER box carries the exact scaled footprint in layout,
-     * the INNER frame is transform-scaled from its top-left corner — visual box and layout
-     * box match, so nothing invisible overlays the caption/buttons (hit-testing stays true) */
     scaleEl.style.width=(432*s)+'px';
     scaleEl.style.height=(40*s)+'px';
     scaleEl.style.setProperty('--led-s',s);
@@ -119,21 +131,39 @@ code{background:#122b3e;border-radius:4px;padding:1px 5px;font-size:10.5px}
     if(note)note.style.maxWidth=(432*s)+'px';
   }
   addEventListener('resize',rescale);rescale();
-  /* ---------- clock ---------- */
+  /* ---------- clock (leftmost, repo LED style) ---------- */
+  var ctEl=document.getElementById('clock-time'),cdEl=document.getElementById('clock-day');
+  function tickClock(){
+    var now=new Date();
+    ctEl.textContent=new Intl.DateTimeFormat('th-TH',{hour:'2-digit',minute:'2-digit'}).format(now);
+    cdEl.textContent=new Intl.DateTimeFormat('th-TH',{weekday:'short',day:'numeric',month:'short'}).format(now);
+  }
+  tickClock();setInterval(tickClock,15000);
   var ts=document.getElementById('ts');
-  function tick(){ if(ts)ts.textContent=new Intl.DateTimeFormat('th-TH',{hour:'2-digit',minute:'2-digit'}).format(new Date())+' น.'; }
-  tick();setInterval(tick,30000);
+  function tickTs(){ if(ts)ts.textContent=new Intl.DateTimeFormat('th-TH',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}).format(new Date())+' น.'; }
+  tickTs();setInterval(tickTs,30000);
   /* ---------- embed flow demo (postMessage -> iframe) ---------- */
   var frame=document.getElementById('spill-frame'),fd=document.getElementById('flow-demo'),fdv=document.getElementById('flow-demo-v');
+  var flowDemoTouched=false;
+  function sendFlow(v){ try{frame.contentWindow.postMessage({type:'spillway-flow',v:v},'*');}catch(_e){} }
   if(fd)fd.addEventListener('input',function(){
+    flowDemoTouched=true;
     if(fdv)fdv.textContent=fd.value+'%';
-    try{frame.contentWindow.postMessage({type:'spillway-flow',v:Number(fd.value)},'*');}catch(_e){}
+    sendFlow(Number(fd.value));
   });
+  /* ---------- color band: green < bank-0.50 ; amber >= bank-0.50 ; red >= bank ---------- */
+  function bandFor(level,bank){
+    if(level==null||bank==null)return 'grey';
+    if(level>=bank)return 'band-red';
+    if(level>=bank-0.50)return 'band-amber';
+    return 'band-green';
+  }
   /* ---------- RID real water levels (proven direct pattern, fail-closed) ---------- */
   var RID_GROUP='704',TIMEOUT_MS=12000,ridInFlight=false;
   var STATIONS=[
-    {id:349,label:'สถานี ก',name:'S.5 สะพานปรีดี',bank:4.70,bankTxt:'4.70'},
-    {id:353,label:'สถานี ข',name:'S.26 ท้ายเขื่อน ร.6',bank:7.20,bankTxt:'7.20'}];
+    {id:349,sid:'a',name:'S.5 สะพานปรีดี',bank:4.70,bankTxt:'4.70'},
+    {id:353,sid:'b',name:'S.26 ท้ายเขื่อน ร.6',bank:7.20,bankTxt:'7.20'}];
+  var lastPcts=[];
   function pad2(n){return (n<10?'0':'')+n;}
   function bkkDateStr(ms){
     var p=new Intl.DateTimeFormat('en-GB',{timeZone:'Asia/Bangkok',day:'2-digit',month:'2-digit',year:'numeric'}).format(new Date(ms)).split('/');
@@ -164,31 +194,38 @@ code{background:#122b3e;border-radius:4px;padding:1px 5px;font-size:10.5px}
     cm.forEach(function(c){
       if(c&&typeof c.name==='string'&&c.name.indexOf('wlvalues')===0&&c.ID!=null){
         var cur=out[c.ID];
-        if(!cur||(c.X||0)>cur.X)out[c.ID]={col:c.name,X:c.X||0};
+        if(!cur||(c.X||0)>cur.X)out[c.ID]=c.name;
       }
     });
     return out;
   }
-  function latestOf(series){
-    for(var i=series.length-1;i>=0;i--){if(series[i].v!=null)return series[i];}
-    return null;
+  function paintStation(sid,level,bank){
+    var vEl=document.getElementById(sid+'-value'),pEl=document.getElementById(sid+'-pct'),nEl=document.getElementById(sid+'-name');
+    if(!vEl||!pEl)return;
+    if(level==null||bank==null){
+      vEl.textContent='—';vEl.className='st-value grey';
+      pEl.textContent='—';pEl.className='st-pct grey';
+      if(nEl)nEl.classList.add('dim');
+      return;
+    }
+    if(nEl)nEl.classList.remove('dim');
+    var band=bandFor(level,bank);
+    vEl.textContent=level.toFixed(2);
+    vEl.className='st-value '+band;
+    pEl.textContent=Math.round(level/bank*100)+'%';
+    pEl.className='st-pct '+band;
+  }
+  function applyGateFromData(){
+    /* symbolic gate drive: effective = max(%bank of S.5, %bank of S.26) -> opening % (linear clamp, idle floor 15%) */
+    if(!lastPcts.length){sendFlow(15);return;}
+    var eff=Math.max.apply(null,lastPcts);
+    var open=Math.round(Math.max(15,Math.min(100,eff)));
+    sendFlow(open);
+    if(fd&&fdv){fd.value=String(open);fdv.textContent=open+'%';}
   }
   function setState(txt,err){
     var e=document.getElementById('rid-state');
     if(e){e.textContent=txt;e.className='rid-state'+(err?' err':'');}
-  }
-  function paintStation(sid,st){
-    var vEl=document.getElementById(sid+'-value'),mEl=document.getElementById(sid+'-meta');
-    if(!vEl||!mEl)return;
-    if(!st){
-      vEl.innerHTML='— <span class="unit">ม.รทก.</span>';vEl.className='st-value wait';
-      mEl.innerHTML='<span class="pct">—</span> ของตลิ่ง '+(sid==='a'?'4.70':'7.20')+' ม.<br><span class="obs">รอข้อมูล</span>';
-      return;
-    }
-    vEl.className='st-value';
-    vEl.innerHTML=st.valueM.toFixed(2)+' <span class="unit">ม.รทก.</span>';
-    var pctCls=(st.pct>=85)?'pct warn':'pct';
-    mEl.innerHTML='<span class="'+pctCls+'">'+st.pct+'%</span> ของตลิ่ง '+st.bankTxt+' ม.<br><span class="obs">วัด '+st.observedAt+' น.</span>';
   }
   function ridFetch(){
     if(ridInFlight)return;
@@ -213,33 +250,36 @@ code{background:#122b3e;border-radius:4px;padding:1px 5px;font-size:10.5px}
         cm.forEach(function(c){if(c&&typeof c.name==='string'&&c.name.indexOf('wlvalues')===0&&c.ID!=null){var cur=out[c.ID];if(!cur||(c.X||0)>cur.X)out[c.ID]=c.name;}});
         return out;
       })();
-      var rows=rs[1]||[],got=0;
+      var rows=rs[1]||[];
+      lastPcts=[];
       STATIONS.forEach(function(cfg){
         var colName=cols[cfg.id];
-        var paint=function(v,h,dateStr){
-          if(v==null){paintStation(cfg.id===349?'a':'b',null);return;}
-          got++;
-          var hm=pad2(Math.round(h)) + ':00';
-          var ddmm=dateStr.split('/').slice(0,2).join('/');
-          paintStation(cfg.id===349?'a':'b',{valueM:v,bankTxt:cfg.bankTxt,pct:Math.max(0,Math.min(100,Math.round(v/cfg.bank*100))),observedAt:ddmm+' '+hm});
+        var paint=function(v){
+          if(v==null){paintStation(cfg.sid,null,cfg.bank);return;}
+          paintStation(cfg.sid,v,cfg.bank);
+          lastPcts.push(Math.max(0,Math.min(100,Math.round(v/cfg.bank*100))));
         };
-        if(!colName){paintStation(cfg.id===349?'a':'b',null);return;}
+        if(!colName){paintStation(cfg.sid,null,cfg.bank);return;}
         var series=(rows||[]).map(function(r){var h=parseFloat(r&&r.hourlytime);return {h:isFinite(h)?h:null,v:num(r?r[colName]:null)};}).sort(function(x,y){return (x.h||0)-(y.h||0);});
         var lt=null;
         for(var i=series.length-1;i>=0;i--){if(series[i].v!=null){lt=series[i];break;}}
-        if(lt&&lt.v!=null){paint(lt.v,lt.h,todayStr);return;}
+        if(lt&&lt.v!=null){paint(lt.v);return;}
         postHourly(RID_GROUP,ydayStr).then(function(rowsY){
           var sy=(rowsY||[]).map(function(r){var hh=parseFloat(r&&r.hourlytime);return {h:isFinite(hh)?hh:null,v:num(r?r[colName]:null)};}).sort(function(x,y){return (x.h||0)-(y.h||0);});
           var ltY=null;
           for(var j=sy.length-1;j>=0;j--){if(sy[j].v!=null){ltY=sy[j];break;}}
-          paint(ltY?ltY.v:null,ltY?ltY.h:null,ydayStr);
-        }).catch(function(){paint(null,null,todayStr);});
+          paint(ltY?ltY.v:null);
+        }).catch(function(){paint(null,todayStr);});
       });
-      return Promise.all(STATIONS.map(function(c){return Promise.resolve();})).then(function(){
-        setState(got?('อัปเดต '+got+' สถานี'):'ยังไม่มีข้อมูลวัดจริง',!got);
+      return Promise.all(STATIONS.map(function(_,i){return Promise.resolve();})).then(function(){
+        /* symbolic gate follows the real levels */
+        applyGateFromData();
+        setState(lastPcts.length?('อัปเดต '+lastPcts.length+' สถานี'):'ยังไม่มีข้อมูลวัดจริง',!lastPcts.length);
       });
     }).catch(function(){
-      STATIONS.forEach(function(c){paintStation(c.id===349?'a':'b',null);});
+      lastPcts=[];
+      STATIONS.forEach(function(c){paintStation(c.sid,null,c.bank);});
+      applyGateFromData();
       setState('เชื่อม RID ไม่สำเร็จ — รอข้อมูล',true);
     }).then(function(){
       ridInFlight=false;

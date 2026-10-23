@@ -19,15 +19,50 @@ test('honest labels: SIMULATED spillway + real RID source + fail-closed grey val
   assert.match(html,/ไม่ใช่การปล่อยน้ำจริง/);
   assert.match(html,/RID กรมชลประทาน · วัดจริงรายชั่วโมง/);
   assert.match(html,/ไม่แสดง 0 แทนข้อมูลที่ไม่ทราบ|รอข้อมูล/);
-  // both stations kept with banks, % ของตลิ่ง, ม.รทก. units, observed time
+  // both stations kept with banks, % ของระดับตลิ่ง, ม.รทก. units
   assert.match(html,/S\.5 สะพานปรีดี/);
   assert.match(html,/S\.26 ท้ายเขื่อน ร\.6/);
-  assert.match(html,/ของตลิ่ง 4\.70 ม\./);
-  assert.match(html,/ของตลิ่ง 7\.20 ม\./);
+  assert.match(html,/ระดับตลิ่ง 4\.70 ม\./);
+  assert.match(html,/ระดับตลิ่ง 7\.20 ม\./);
   assert.match(html,/ม\.รทก\./);
   // fail-closed: fetch errors paint grey wait values, never fabricated numbers
-  assert.match(html,/paintStation\(cfg\.id===349\?'a':'b',null\)/);
+  assert.match(html,/paintStation\(cfg\.sid,null,cfg\.bank\)/);
   assert.match(html,/รอข้อมูล/);
+  // no observed date/time on the strip (caption carries it)
+  const strip=html.slice(html.indexOf('led-frame'),html.indexOf('</div>\n  </div></div>'));
+  assert.doesNotMatch(strip,/observedAt/);
+});
+test('v2 layout: clock leftmost, no สถานี ก/ข chips, level+name left-aligned stack',()=>{
+  const html=read(page);
+  const iClock=html.indexOf('class="clock"'),iSpill=html.indexOf('class="spill-slot"'),
+        iA=html.indexOf('id="st-a"'),iB=html.indexOf('id="st-b"');
+  assert.ok(iClock>-1&&iClock<iSpill&&iSpill<iA&&iA<iB,'strip order must be clock -> spillway -> S.5 -> S.26');
+  assert.doesNotMatch(html,/สถานี ก|สถานี ข/);                 // ก/ข chips removed per spec
+  assert.match(html,/class="st-name" id="a-name"/);            // name is the highlighted header
+  assert.match(html,/class="st-numline"/);                     // left-aligned number stack
+});
+test('color bands: amber >= bank-0.50, red >= bank; glow on numbers',()=>{
+  const js=read(path.join(root,'demo/spillway-3d/main.js'));
+  const html=read(page);
+  assert.match(html,/if\(level>=bank\)return 'band-red';/);
+  assert.match(html,/if\(level>=bank-0\.50\)return 'band-amber';/);
+  assert.match(html,/band-green/);
+  assert.match(html,/text-shadow:0 0 7px/);                    // subtle glow like the PM numbers
+});
+test('symbolic gate drive: max(%bank) -> opening, idle floor 15, honest note',()=>{
+  const html=read(page);
+  assert.match(html,/applyGateFromData/);
+  assert.match(html,/Math\.max\.apply\(null,lastPcts\)/);
+  assert.match(html,/Math\.max\(15,Math\.min\(100,eff\)\)/);  // idle floor 15%, linear clamp
+  assert.match(html,/ประตูเปิดตามสัดส่วนระดับจริง \(แสดงเชิงสัญลักษณ์ ไม่ใช่สั่งการเขื่อนจริง\)/);
+  assert.match(html,/sendFlow\(15\)/);                        // RID blocked -> idle 15%
+});
+test('embed drone camera path: ping-pong upper-right -> lower-left, reduced static, sector-clamped',()=>{
+  const js=read(path.join(root,'demo/spillway-3d/main.js'));
+  assert.match(js,/droneAz=\(45-70\*e\)/);                   // +45deg -> -25deg sweep
+  assert.match(js,/droneEl=\(24-18\*e\)/);                   // 24deg -> 6deg descend
+  assert.match(js,/if\(reduced\)\{droneAz=10\*Math\.PI\/180;droneEl=14\*Math\.PI\/180;\}/);
+  assert.match(js,/camAz/);                                    // exposed for verification
 });
 
 test('RID direct pattern: colModel -> hourly rows -> latest non-empty, manual refresh only',()=>{
