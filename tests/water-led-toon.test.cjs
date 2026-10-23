@@ -16,14 +16,16 @@ test('toon water card exists as a self-contained demo (zero external deps, no pr
   assert.doesNotMatch(html,/index\.html|water\.html(?!-toon)|strip\.js|strip\.css|led-rotation|apps-script|v2\//);
 });
 
-test('v3 card: DOM card embeds the 3D night dam variant (additive style param, same-origin demo only)',()=>{
+test('card v4: 2.5D painted scene on the card, no 3D embed, flow slider on the card',()=>{
  const html=read(page);
- assert.match(html,/spillway-3d\/\?display=embed&style=night/);   // night art style of the existing pipeline
- assert.match(html,/id="spill-frame"/);
- assert.match(html,/applyGateFromData/);                          // gate opening driven by real %bank
- assert.match(html,/spillway-flow/);                              // postMessage handshake
- assert.match(html,/id="led-frame"/);                             // LED 432x40 strip
- assert.match(html,/led-clock/);                                  // water-behind-clock overlay zone
+ assert.match(html,/id="scene-canvas"/);                          // 2.5D painted scene canvas
+ assert.match(html,/function drawScene\(/);                       // single painter reused by card + LED
+ assert.doesNotMatch(html,/<iframe/);                             // three.js embed dropped from this page
+ assert.match(html,/class="scene-flow"/);                         // flow slider lives ON the card
+ assert.match(html,/flowOverride/);                               // slider overrides art only
+ assert.match(html,/applyGateFromData/);                          // default flow derives from real %bank
+ assert.match(html,/id="led-frame"/);
+ assert.match(html,/led-clock/);                                  // clock/date over the LED scene
 });
 test('honest labels: SIMULATED scene + real ThaiWater source + no fabricated 7-day history',()=>{
   const html=read(page);
@@ -41,7 +43,7 @@ test('mobile layout: card stacks vertically <=720px (clock row / full-width 16:9
  const html=read(page);
  assert.match(html,/@media \(max-width:720px\)/);
  assert.match(html,/\.card\{display:flex;flex-direction:column;aspect-ratio:auto;height:auto\}/);
- assert.match(html,/\.stage3d\{aspect-ratio:16\/9;width:100%;height:auto/);
+ assert.match(html,/\.scene\{aspect-ratio:16\/9;width:100%;height:auto/);
  assert.match(html,/\.clockzone\{flex-direction:row/);
  assert.doesNotMatch(html,/grid-template-columns:120px 1fr 200px/); // old fixed micro-columns removed
  assert.match(html,/id="led-wrap"/);                                // LED scale wrapper
