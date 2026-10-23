@@ -37,6 +37,16 @@ const gateOpening=s=>flowState(s).a;
 // ballistic jet v in (0.72,1]: z=1.45+1.6*w , y=1.35-0.89*w-0.44*w^2   (pool entry ~ (3.05,0.02))
 const BAY_X=[-2.7,0,2.7],BAY_W=1.9,IMPACT_Z=3.05,POOL_Y=0,RES_Y=3.55,CREST_Y=2.75,PIER_TOP=5.0;
 let gateLift=CREST_Y+FS.a+1.4,gateLiftTarget=gateLift; // smoothed leaf lift (~0.4s ease)
+// embed-only drone path: ping-pong sweep upper-right (elevated) -> lower-left, eased, ~26s period
+let droneAz=10*Math.PI/180,droneEl=14*Math.PI/180;
+function droneCam(){
+ const T=26,ph=(simT%T)/T,tri=ph<0.5?ph*2:2-ph*2,e=tri*tri*(3-2*tri);
+ droneAz=(45-70*e)*Math.PI/180;               // +45deg (upper-right) -> -25deg (lower-left)
+ droneEl=(24-18*e)*Math.PI/180;               // 24deg elevated -> 6deg low
+ const r=11.2,cx=0,cy=1.9,cz=0.6;
+ camera.position.set(cx+r*Math.cos(droneEl)*Math.sin(droneAz),cy+r*Math.sin(droneEl),cz+r*Math.cos(droneEl)*Math.cos(droneAz));
+ camera.lookAt(cx,cy,cz);
+}
 function sheetPoint(v){ if(v<0.72){const u=v/0.72;return[-0.55+2.0*Math.pow(u,1.7),CREST_Y-1.4*Math.pow(u,1.35)];}
  const w=(v-0.72)/0.28;return[1.45+1.6*w,1.35-0.89*w-0.44*w*w];
 }
@@ -639,6 +649,7 @@ function initialize(){
    controls.minPolarAngle=0.15;controls.maxPolarAngle=1.53; // presets phi 1.46-1.51 land exact, camera stays above water
   controls.update();
   if(EMBED){
+    if(reduced){droneAz=10*Math.PI/180;droneEl=14*Math.PI/180;} // reduced: static mid-path pose
     document.body.classList.add('embed');
     const st=document.createElement('style');
     st.textContent='body.embed main>aside,body.embed main>header,body.embed footer,body.embed .hud{display:none!important}body.embed{padding:0!important;background:#000!important}body.embed .shell{max-width:none!important;margin:0!important}body.embed main{max-width:none!important;margin:0!important}body.embed .stage{position:fixed!important;inset:0!important;width:100%!important;height:100%!important;min-height:0!important;max-height:none!important;aspect-ratio:auto!important;border:0!important;border-radius:0!important;box-shadow:none!important;background:#02080f!important}';
@@ -662,7 +673,7 @@ function initialize(){
   wireControls();
   const qr=document.getElementById('q-readout');qr&&(qr.textContent=`Q ~ ${FS.m3s} m³/s (จำลอง) · Q_max ${Q_MAX_M3S} m³/s`);
   setStatusReady();
-  window.__spillway=()=>renderer&&{frame:renderer.info.render.frame,calls:lastCalls,tris:lastTris,fps:fpsShown,dpr:dpr,simT:+simT.toFixed(3),sheetT:+waterUniforms[1].u.uTime.value.toFixed(3),sheetFlow:+waterUniforms[1].u.uQ.value.toFixed(3),leafBottomY:+(CREST_Y+FS.a).toFixed(3),leafMeshY:+(gateMesh?gateMesh.position.y.toFixed(3):'null')};
+  window.__spillway=()=>renderer&&{frame:renderer.info.render.frame,calls:lastCalls,tris:lastTris,fps:fpsShown,dpr:dpr,simT:+simT.toFixed(3),sheetT:+waterUniforms[1].u.uTime.value.toFixed(3),sheetFlow:+waterUniforms[1].u.uQ.value.toFixed(3),leafBottomY:+(CREST_Y+FS.a).toFixed(3),leafMeshY:+(gateMesh?gateMesh.position.y.toFixed(3):'null'),camAz:+(droneAz*180/Math.PI).toFixed(1),camEl:+(droneEl*180/Math.PI).toFixed(1)};
   window.__fx={splash:splashPts,mist:mistMesh,band:null};window.__gateMesh=gateMesh;  if(reduced){renderOnce()}else{prev=performance.now();requestAnimationFrame(tick)}
  }catch(e){
   status.textContent='WebGL ไม่พร้อม — ใช้ SVG สำรอง';console.info('Demo fallback (SVG สำรอง):',e.message);
@@ -760,9 +771,9 @@ function tick(ts){
  if(!visible)return;
  if(playing)simT+=dt;
  stepTween(ts);
- controls.autoRotate=!tween&&playing&&simT>0&&(performance.now()-lastInteraction)>5000;
+ controls.autoRotate=!EMBED&&!tween&&playing&&simT>0&&(performance.now()-lastInteraction)>5000;
  if(controls.autoRotate)controls.autoRotateSpeed=0.45*(0.6+0.4*Math.sin(simT*0.1))*(EMBED?0.4:1);
- controls.update();
+ if(EMBED){droneCam();}else{controls.update();}
  if(camera.position.y<0.55)camera.position.y=0.55; // camera collision floor (terrain/water safety net)
  // adaptive pixel ratio: step down if avg fps < 45, up if > 58 (hysteresis, silent)
  fpsFrames++;fpsTime+=dt;
