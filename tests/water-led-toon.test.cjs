@@ -10,7 +10,7 @@ test('toon water card exists as a self-contained demo (zero external deps, no pr
   assert.doesNotMatch(html,/<script[^>]*src=/);
   assert.doesNotMatch(html,/<link[^>]*href=["']?https?:/);
   assert.doesNotMatch(html,/three\.js|three\.module|jsdelivr|unpkg|cdn\./);
-  assert.match(html,/<canvas id="dam-canvas"/);
+  assert.match(html,/<canvas id="toon-canvas"/);   // rebuilt: single full-bleed card canvas
   assert.match(html,/<canvas id="strip-canvas"/);
   // no production file references
   assert.doesNotMatch(html,/index\.html|water\.html(?!-toon)|strip\.js|strip\.css|led-rotation|apps-script|v2\//);
@@ -50,6 +50,7 @@ test('animation quality: แรงน้ำ slider, reduced-motion static, DPR-a
   assert.match(js,/devicePixelRatio/);                         // DPR-aware
   assert.match(js,/requestAnimationFrame/);
   assert.match(js,/impact foam|foam/i);
-  assert.match(js,/foreground waves|wave/i);
-  assert.match(js,/sparkle/i);
+  assert.match(js,/bwY=0\.88\*H/);                      // rebuilt: rippled water band across the lower edge
+ assert.match(js,/T\.bandStreak/);                        // #6699BD streaks on the band
+  assert.match(js,/sparkle|glow/); // rebuilt: glow + sparkle accents
 });
