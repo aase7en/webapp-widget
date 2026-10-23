@@ -11,6 +11,9 @@ on:
       - strip.js
       - strip.css
       - assets/**
+      - demo/spillway-3d/**
+      - demo/water-led-toon.html
+      - demo/water-led-spillway.html
       - apps-script/**
       - demo/spillway-3d/**
       - tests/**
@@ -29,6 +32,9 @@ on:
       - strip.js
       - strip.css
       - assets/**
+      - demo/spillway-3d/**
+      - demo/water-led-toon.html
+      - demo/water-led-spillway.html
       - apps-script/**
       - demo/spillway-3d/**
       - tests/**
