@@ -148,31 +148,38 @@ footer{margin-top:14px;font-size:11px;color:#8e9ca5;line-height:1.7}
   }
   function drawFalls(ctx,W,H,t,flow){
     var gates=[0.335,0.465];
+    /* shared blue curtain wall across both gates (reference: continuous falls face) */
+    var topY=0.355*H, botY=0.71*H, wBase=0.105*W;
+    var wall=ctx.createLinearGradient(0,topY,0,botY);
+    wall.addColorStop(0,'rgba(80,144,212,1.00)');
+    wall.addColorStop(0.55,'rgba(78,144,215,1.00)');
+    wall.addColorStop(1,'rgba(70,132,200,1.00)');
+    ctx.fillStyle=wall;
+    ctx.beginPath();
+    ctx.moveTo(gates[0]*W-wBase*0.62,topY);
+    ctx.lineTo(gates[1]*W+wBase*0.62,topY);
+    ctx.lineTo(gates[1]*W+wBase*0.55,botY);
+    ctx.lineTo(gates[0]*W-wBase*0.55,botY);
+    ctx.closePath();ctx.fill();
     for(var gi=0;gi<gates.length;gi++){
       var gx=gates[gi]*W;
       var topY=0.355*H, botY=0.71*H;
       var wBase=0.105*W;
       /* wide luminous halo lifting the whole dam face into cyan */
       ctx.globalCompositeOperation='lighter';
-      var halo=ctx.createRadialGradient(gx,(topY+botY)*0.5,2,gx,(topY+botY)*0.5,wBase*1.8);
-      halo.addColorStop(0,'rgba(163,220,246,0.20)');
-      halo.addColorStop(0.55,'rgba(78,144,215,0.11)');
+      var halo=ctx.createRadialGradient(gx,(topY+botY)*0.5,2,gx,(topY+botY)*0.5,wBase*1.15);
+      halo.addColorStop(0,'rgba(163,220,246,0.10)');
       halo.addColorStop(1,'rgba(78,144,215,0)');
       ctx.fillStyle=halo;
-      ctx.beginPath();ctx.ellipse(gx,(topY+botY)*0.5,wBase*1.8,(botY-topY)*0.70,0,0,6.283);ctx.fill();
+      ctx.beginPath();ctx.ellipse(gx,(topY+botY)*0.5,wBase*1.15,(botY-topY)*0.62,0,0,6.283);ctx.fill();
       ctx.globalCompositeOperation='source-over';
-      /* wide translucent back-sheet: the falls read as a broad luminous curtain */
-      var bs=ctx.createLinearGradient(gx,topY,gx,botY);
-      bs.addColorStop(0,'rgba(163,220,246,0.42)');
-      bs.addColorStop(1,'rgba(78,144,215,0.22)');
-      ctx.fillStyle=bs;
-      ctx.beginPath();ctx.ellipse(gx,topY+(botY-topY)*0.45,wBase*1.35,(botY-topY)*0.60,0,0,6.283);ctx.fill();
       /* 3-step luminous ramp, multi-stop gradient (never flat) */
       var g=ctx.createLinearGradient(gx,topY,gx,botY);
-      g.addColorStop(0,'rgba(234,252,252,1.00)');   /* #EAFCFC hot at lip */
-      g.addColorStop(0.38,'rgba(163,220,246,0.97)');/* #A3DCF6 */
-      g.addColorStop(0.75,'rgba(78,144,215,0.92)'); /* #4E90D7 */
-      g.addColorStop(1,'rgba(78,144,215,0.70)');
+      g.addColorStop(0,'rgba(234,252,252,0.85)');   /* #EAFCFC thin hot lip */
+      g.addColorStop(0.07,'rgba(163,220,246,0.94)');/* #A3DCF6 transition */
+      g.addColorStop(0.16,'rgba(133,202,214,0.96)');/* #85CAD6 shoulder */
+      g.addColorStop(0.28,'rgba(78,144,215,1.00)'); /* #4E90D7 body (bulk of the curtain) */
+      g.addColorStop(1,'rgba(78,144,215,0.96)');
       var spd=(0.8+0.5*gi)*flow;
       ctx.fillStyle=g;
       ctx.beginPath();
@@ -192,25 +199,25 @@ footer{margin-top:14px;font-size:11px;color:#8e9ca5;line-height:1.7}
       /* brighter core ribbon (lighter composite where it overlaps the sheet) */
       ctx.globalCompositeOperation='lighter';
       var cg=ctx.createLinearGradient(gx,topY,gx,botY);
-      cg.addColorStop(0,'rgba(234,252,252,0.50)');
-      cg.addColorStop(0.5,'rgba(163,220,246,0.58)');
-      cg.addColorStop(1,'rgba(224,245,252,0.75)');
+      cg.addColorStop(0,'rgba(234,252,252,0.55)');
+      cg.addColorStop(0.45,'rgba(163,220,246,0.40)');
+      cg.addColorStop(1,'rgba(224,245,252,0.45)');
       ctx.fillStyle=cg;
       ctx.beginPath();
-      ctx.moveTo(gx-wBase*0.22,topY);
+      ctx.moveTo(gx-wBase*0.13,topY);
       for(var i=1;i<=steps;i++){
         var yy=topY+(botY-topY)*i/steps;
         var wv=Math.sin(t*(1.6+spd*2.4)+i*0.8+gi*2.0+0.7)*wBase*0.06*(0.4+flow);
-        ctx.lineTo(gx-wBase*0.22+wv,yy);
+        ctx.lineTo(gx-wBase*0.13+wv,yy);
       }
       for(var i=steps;i>=0;i--){
         var yy=topY+(botY-topY)*i/steps;
         var wv=Math.sin(t*(1.6+spd*2.4)+i*0.8+gi*2.0+0.7)*wBase*0.06*(0.4+flow);
-        ctx.lineTo(gx+wBase*0.22+wv,yy);
+        ctx.lineTo(gx+wBase*0.13+wv,yy);
       }
       ctx.closePath();ctx.fill();
       /* fine spray lines down the sheet */
-      ctx.strokeStyle='rgba(153,209,243,0.5)';
+      ctx.strokeStyle='rgba(133,202,214,0.30)';
       ctx.lineWidth=1;
       for(var ln=-1;ln<=1;ln++){
         ctx.beginPath();
@@ -224,7 +231,7 @@ footer{margin-top:14px;font-size:11px;color:#8e9ca5;line-height:1.7}
       ctx.globalCompositeOperation='source-over';
       /* impact bloom where the sheet meets the pool */
       var bloom=ctx.createRadialGradient(gx,botY,2,gx,botY,wBase*1.15);
-      bloom.addColorStop(0,'rgba(224,245,252,0.90)');
+      bloom.addColorStop(0,'rgba(224,245,252,0.70)');
       bloom.addColorStop(0.55,'rgba(153,209,243,0.50)');
       bloom.addColorStop(1,'rgba(153,209,243,0)');
       ctx.fillStyle=bloom;
@@ -236,21 +243,22 @@ footer{margin-top:14px;font-size:11px;color:#8e9ca5;line-height:1.7}
   /* phase 0 = back glow + soft base puffs (painted UNDER the falls),
      phase 1 = front billow field (painted OVER the falls base) */
   function drawFoam(ctx,W,H,t,flow,phase){
-    var cx=0.42*W, spread=0.42*W, base=0.675*H;
+    var cx=0.42*W, spread=0.42*W, base=0.72*H;
     if(phase===0){
       ctx.globalCompositeOperation='lighter';
       /* broad cyan pool glow: unifies the billow field without flattening it */
-      var mg=ctx.createRadialGradient(cx,base,4,cx,base,spread*0.72);
-      mg.addColorStop(0,'rgba(190,236,252,0.78)');
-      mg.addColorStop(0.45,'rgba(163,220,246,0.55)');
-      mg.addColorStop(0.78,'rgba(153,209,243,0.36)');
-      mg.addColorStop(1,'rgba(153,209,243,0)');
+      var mg=ctx.createRadialGradient(cx,base,4,cx,base,spread*0.6);
+      mg.addColorStop(0,'rgba(163,220,246,0.25)');
+      mg.addColorStop(0.45,'rgba(133,202,214,0.30)');
+      mg.addColorStop(0.78,'rgba(78,144,215,0.20)');
+      mg.addColorStop(1,'rgba(78,144,215,0)');
       ctx.fillStyle=mg;
-      ctx.beginPath();ctx.ellipse(cx,base,spread*0.72,H*0.10,0,0,6.283);ctx.fill();
+      ctx.beginPath();ctx.ellipse(cx,base,spread*0.6,H*0.08,0,0,6.283);ctx.fill();
       /* lower pool sheen filling the dark gap above the foreground band */
       var mg2=ctx.createRadialGradient(cx,base+H*0.045,2,cx,base+H*0.045,spread*0.95);
-      mg2.addColorStop(0,'rgba(153,209,243,0.36)');
-      mg2.addColorStop(1,'rgba(153,209,243,0)');
+      mg2.addColorStop(0,'rgba(78,144,215,0.60)');
+      mg2.addColorStop(0.5,'rgba(62,121,180,0.30)');
+      mg2.addColorStop(1,'rgba(62,121,180,0)');
       ctx.fillStyle=mg2;
       ctx.beginPath();ctx.ellipse(cx,base+H*0.045,spread*0.95,H*0.085,0,0,6.283);ctx.fill();
       /* soft base puffs behind the falls */
@@ -258,11 +266,11 @@ footer{margin-top:14px;font-size:11px;color:#8e9ca5;line-height:1.7}
         var bC1=n2(c*19.3+2,8.3), bC2=n2(c*6.7+17,5.2);
         var bx=cx+(bC1-0.5)*spread*1.05;
         var by=base+(bC2-0.5)*H*0.07;
-        var br=(16+14*bC2)*(0.6+0.9*flow)*(H/271);
+        var br=(11+10*bC2)*(0.6+0.9*flow)*(H/271);
         var bg2=ctx.createRadialGradient(bx,by-br*0.15,br*0.1,bx,by,br);
-        bg2.addColorStop(0,'rgba(207,236,250,0.42)');
-        bg2.addColorStop(0.6,'rgba(163,220,246,0.30)');
-        bg2.addColorStop(1,'rgba(153,209,243,0)');
+        bg2.addColorStop(0,'rgba(186,228,248,0.32)');
+        bg2.addColorStop(0.55,'rgba(133,202,214,0.34)');
+        bg2.addColorStop(1,'rgba(78,144,215,0)');
         ctx.fillStyle=bg2;
         ctx.beginPath();ctx.arc(bx,by,br,0,6.283);ctx.fill();
       }
@@ -270,25 +278,33 @@ footer{margin-top:14px;font-size:11px;color:#8e9ca5;line-height:1.7}
       return;
     }
     /* front billow field (phase 1) */
+    /* deep-blue water base between billows (reference: #3E76BF-class water shows through) */
+    var db=ctx.createRadialGradient(cx,base,2,cx,base,spread*0.85);
+    db.addColorStop(0,'rgba(88,152,220,0.78)');
+    db.addColorStop(0.55,'rgba(88,152,220,0.62)');
+    db.addColorStop(1,'rgba(78,144,215,0)');
+    ctx.fillStyle=db;
+    ctx.beginPath();ctx.ellipse(cx,base,spread*0.85,H*0.085,0,0,6.283);ctx.fill();
     ctx.globalCompositeOperation='lighter';
-    for(var c=0;c<10;c++){
+    for(var c=0;c<14;c++){
       var sC1=n2(c*17.7+5,9.1), sC2=n2(c*7.9+31,4.7);
-      var ccx=cx+(sC1-0.5)*spread*1.14;
+      var ccx=cx+(sC1-0.5)*spread*0.95;
       var ccy=base+(sC2-0.5)*H*0.075;
-      var cR=(13+13*sC2)*(0.6+0.9*flow)*(H/271);
+      var cR=(10+10*sC2)*(0.6+0.9*flow)*(H/271);
       for(var k=0;k<6;k++){
         var s1=n2(c*13.3+k*7.7,7.7);
         var s2=n2(c*5.1+k*11.9,3.1);
         var life=(t*(0.22+0.45*s2)+s1*9)%1;
         var px3=ccx+(s1-0.5)*cR*2.1;
-        var py3=ccy+(s2-0.5)*cR*1.3-life*H*0.018;
+        var py3=ccy+(s2-0.5)*cR*1.3-life*H*0.012;
         var rr=cR*(0.62+0.72*s1)*(0.55+0.85*life);
         /* volumetric puff: white-hot #E0F5FC core over #A3DCF6/#99D1F3 billow body */
         var rg=ctx.createRadialGradient(px3,py3-rr*0.18,rr*0.12,px3,py3,rr);
-        rg.addColorStop(0,'rgba(224,245,252,0.88)');
-        rg.addColorStop(0.38,'rgba(231,248,252,0.74)');
-        rg.addColorStop(0.72,'rgba(163,220,246,0.64)');
-        rg.addColorStop(0.88,'rgba(99,178,235,0.26)');
+        rg.addColorStop(0,'rgba(224,245,252,0.68)');
+        rg.addColorStop(0.22,'rgba(214,240,250,0.62)');
+        rg.addColorStop(0.55,'rgba(163,220,246,0.78)');
+        rg.addColorStop(0.78,'rgba(133,202,214,0.55)');
+        rg.addColorStop(0.92,'rgba(78,144,215,0.24)');
         rg.addColorStop(1,'rgba(78,144,215,0)');
         ctx.fillStyle=rg;
         ctx.beginPath();ctx.arc(px3,py3,rr,0,6.283);ctx.fill();
@@ -296,7 +312,7 @@ footer{margin-top:14px;font-size:11px;color:#8e9ca5;line-height:1.7}
     }
     /* dense small bright puffs (fills the pool into one mass) */
     var spread2=spread;
-    for(var k=0;k<Math.round(30+34*flow);k++){
+    for(var k=0;k<Math.round(40+30*flow);k++){
       var s3=n2(k*3.31+53,7.7);
       var s4=n2(k*9.7+13,3.1);
       var life2=(t*(0.35+0.55*s4)+s3*7)%1;
@@ -304,8 +320,8 @@ footer{margin-top:14px;font-size:11px;color:#8e9ca5;line-height:1.7}
       var py4=base+(s4-0.5)*H*0.075*(1-life2*0.2);
       var rr3=(4+9*s3)*(0.55+0.75*life2)*(0.55+0.75*flow)*(H/271);
       var rg3=ctx.createRadialGradient(px4,py4,rr3*0.15,px4,py4,rr3);
-      rg3.addColorStop(0,'rgba(240,253,255,0.95)');
-      rg3.addColorStop(1,'rgba(231,248,252,0)');
+      rg3.addColorStop(0,'rgba(224,246,252,0.92)');
+      rg3.addColorStop(1,'rgba(163,220,246,0)');
       ctx.fillStyle=rg3;
       ctx.beginPath();ctx.arc(px4,py4,rr3,0,6.283);ctx.fill();
     }
@@ -315,15 +331,15 @@ footer{margin-top:14px;font-size:11px;color:#8e9ca5;line-height:1.7}
       var life=(t*(0.7+0.8*s1)+s1*4)%1;
       var px2=cx+(s1-0.5)*spread*1.15;
       var py2=base-H*0.06*life*(0.4+0.8*n2(k+91,2.3));
-      ctx.fillStyle='rgba(224,245,252,'+(0.8*(1-life)).toFixed(3)+')';
+      ctx.fillStyle='rgba(214,238,250,'+(0.8*(1-life)).toFixed(3)+')';
       ctx.beginPath();ctx.arc(px2,py2,1.4+3.2*s1,0,6.283);ctx.fill();
     }
     /* wide ambient pool reflection across the lower water (reference: glow reaches the left third) */
     var amb=ctx.createRadialGradient(0.20*W,0.82*H,4,0.20*W,0.82*H,0.38*W);
-    amb.addColorStop(0,'rgba(122,183,238,0.22)');
+    amb.addColorStop(0,'rgba(122,183,238,0.16)');
     amb.addColorStop(1,'rgba(122,183,238,0)');
     ctx.fillStyle=amb;
-    ctx.beginPath();ctx.ellipse(0.20*W,0.82*H,0.38*W,H*0.05,0,0,6.283);ctx.fill();
+    ctx.beginPath();ctx.ellipse(0.20*W,0.82*H,0.38*W,H*0.035,0,0,6.283);ctx.fill();
     ctx.globalCompositeOperation='source-over';
   }
 
@@ -331,14 +347,14 @@ footer{margin-top:14px;font-size:11px;color:#8e9ca5;line-height:1.7}
   function drawDam(ctx,W,H,t,flow){
     /* crest deck behind the gates */
     var dg=ctx.createLinearGradient(0,0.30*H,0,0.44*H);
-    dg.addColorStop(0,'#8C9BA6');dg.addColorStop(0.6,'#5A6570');dg.addColorStop(1,'#2C333C');
+    dg.addColorStop(0,'#8AA3B5');dg.addColorStop(0.6,'#67798A');dg.addColorStop(1,'#3A4754');
     ctx.fillStyle=dg;
     ctx.fillRect(0.285*W,0.30*H,0.30*W,0.16*H);
     /* two towers (concrete, soft-shadow painterly: side faces darker) */
     for(var i=0;i<2;i++){
       var tx=(0.30+0.17*i)*W, tw=0.075*W, ty0=0.22*H, th=0.36*H;
       var tg=ctx.createLinearGradient(tx,0,tx+tw,0);
-      tg.addColorStop(0,'#8496A2');tg.addColorStop(0.55,'#525E6A');tg.addColorStop(1,'#2C333C');
+      tg.addColorStop(0,'#819BB0');tg.addColorStop(0.55,'#61768A');tg.addColorStop(1,'#394653');
       ctx.fillStyle=tg;ctx.fillRect(tx,ty0,tw,th);
       /* warm amber lit windows — the ONLY warm accent */
       ctx.fillStyle=T.warmHi;
@@ -479,9 +495,10 @@ footer{margin-top:14px;font-size:11px;color:#8e9ca5;line-height:1.7}
     /* dam + gates + falls + foam (center-left) */
     /* pool water body under the dam (reference: mid-blue water fills the lower scene) */
     var pwg=ctx.createLinearGradient(0,0.52*H,0,0.88*H);
-    pwg.addColorStop(0,'rgba(56,116,178,0.55)');
-    pwg.addColorStop(0.55,'rgba(38,82,140,0.64)');
-    pwg.addColorStop(1,'rgba(20,48,86,0.82)');
+    pwg.addColorStop(0,'rgba(96,156,214,0.97)');
+    pwg.addColorStop(0.30,'rgba(82,148,212,0.96)');
+    pwg.addColorStop(0.52,'rgba(78,144,215,0.90)');
+    pwg.addColorStop(1,'rgba(24,54,98,0.88)');
     ctx.fillStyle=pwg;
     ctx.fillRect(0,0.52*H,0.62*W,0.36*H);
     ctx.strokeStyle='rgba(153,209,243,0.30)';
@@ -515,13 +532,13 @@ footer{margin-top:14px;font-size:11px;color:#8e9ca5;line-height:1.7}
     for(var k=0;k<9;k++){
       var seed=n2(k*17.3);
       var yy=bwY+4+seed*(H-bwY-8);
-      ctx.lineWidth=0.8+seed;
+      ctx.lineWidth=1+seed*1.4;
       ctx.beginPath();
       for(var x=0;x<=W;x+=14){
         var xx=x+Math.sin(x*0.02+t*(0.4+seed)+k*2)*8;
         if(x===0)ctx.moveTo(xx,yy);else ctx.lineTo(xx,yy);
       }
-      ctx.globalAlpha=0.35+0.3*seed;
+      ctx.globalAlpha=0.5+0.35*seed;
       ctx.stroke();
     }
     ctx.globalAlpha=1;
@@ -542,7 +559,7 @@ footer{margin-top:14px;font-size:11px;color:#8e9ca5;line-height:1.7}
     ctx.globalAlpha=1;
     /* corner vignette */
     var vg=ctx.createRadialGradient(W*0.5,H*0.45,H*0.55,W*0.5,H*0.5,H*1.05);
-    vg.addColorStop(0,'rgba(1,8,20,0)');vg.addColorStop(1,'rgba(1,8,20,0.46)');
+    vg.addColorStop(0,'rgba(1,8,20,0)');vg.addColorStop(1,'rgba(1,8,20,0.38)');
     ctx.fillStyle=vg;ctx.fillRect(0,0,W,H);
     /* disclaimer under panel — painted LAST so the foreground band never covers it */
     ctx.fillStyle=T.textSec;
