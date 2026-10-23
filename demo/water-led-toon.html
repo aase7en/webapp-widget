@@ -150,14 +150,29 @@ footer{margin-top:14px;font-size:11px;color:#8e9ca5;line-height:1.7}
     var gates=[0.335,0.465];
     for(var gi=0;gi<gates.length;gi++){
       var gx=gates[gi]*W;
-      var topY=0.365*H, botY=0.70*H;
-      var wBase=0.058*W;
+      var topY=0.355*H, botY=0.71*H;
+      var wBase=0.105*W;
+      /* wide luminous halo lifting the whole dam face into cyan */
+      ctx.globalCompositeOperation='lighter';
+      var halo=ctx.createRadialGradient(gx,(topY+botY)*0.5,2,gx,(topY+botY)*0.5,wBase*1.8);
+      halo.addColorStop(0,'rgba(163,220,246,0.20)');
+      halo.addColorStop(0.55,'rgba(78,144,215,0.11)');
+      halo.addColorStop(1,'rgba(78,144,215,0)');
+      ctx.fillStyle=halo;
+      ctx.beginPath();ctx.ellipse(gx,(topY+botY)*0.5,wBase*1.8,(botY-topY)*0.70,0,0,6.283);ctx.fill();
+      ctx.globalCompositeOperation='source-over';
+      /* wide translucent back-sheet: the falls read as a broad luminous curtain */
+      var bs=ctx.createLinearGradient(gx,topY,gx,botY);
+      bs.addColorStop(0,'rgba(163,220,246,0.42)');
+      bs.addColorStop(1,'rgba(78,144,215,0.22)');
+      ctx.fillStyle=bs;
+      ctx.beginPath();ctx.ellipse(gx,topY+(botY-topY)*0.45,wBase*1.35,(botY-topY)*0.60,0,0,6.283);ctx.fill();
       /* 3-step luminous ramp, multi-stop gradient (never flat) */
       var g=ctx.createLinearGradient(gx,topY,gx,botY);
-      g.addColorStop(0,'rgba(234,252,252,0.98)');   /* #EAFCFC hot at lip */
-      g.addColorStop(0.35,'rgba(163,220,246,0.92)');/* #A3DCF6 */
-      g.addColorStop(0.75,'rgba(78,144,215,0.85)'); /* #4E90D7 */
-      g.addColorStop(1,'rgba(78,144,215,0.55)');
+      g.addColorStop(0,'rgba(234,252,252,1.00)');   /* #EAFCFC hot at lip */
+      g.addColorStop(0.38,'rgba(163,220,246,0.97)');/* #A3DCF6 */
+      g.addColorStop(0.75,'rgba(78,144,215,0.92)'); /* #4E90D7 */
+      g.addColorStop(1,'rgba(78,144,215,0.70)');
       var spd=(0.8+0.5*gi)*flow;
       ctx.fillStyle=g;
       ctx.beginPath();
@@ -165,33 +180,33 @@ footer{margin-top:14px;font-size:11px;color:#8e9ca5;line-height:1.7}
       ctx.moveTo(gx-wBase/2,topY);
       for(var i=1;i<=steps;i++){
         var yy=topY+(botY-topY)*i/steps;
-        var wv=Math.sin(t*(1.6+spd*2.4)+i*0.8+gi*2.0)*wBase*0.10*(0.4+flow);
+        var wv=Math.sin(t*(1.6+spd*2.4)+i*0.8+gi*2.0)*wBase*0.03*(0.4+flow);
         ctx.lineTo(gx-wBase/2+wv*0.4,yy);
       }
       for(var i=steps;i>=0;i--){
         var yy=topY+(botY-topY)*i/steps;
-        var wv=Math.sin(t*(1.6+spd*2.4)+i*0.8+gi*2.0+1.3)*wBase*0.10*(0.4+flow);
+        var wv=Math.sin(t*(1.6+spd*2.4)+i*0.8+gi*2.0+0.5)*wBase*0.03*(0.4+flow);
         ctx.lineTo(gx+wBase/2+wv*0.4,yy);
       }
       ctx.closePath();ctx.fill();
       /* brighter core ribbon (lighter composite where it overlaps the sheet) */
       ctx.globalCompositeOperation='lighter';
       var cg=ctx.createLinearGradient(gx,topY,gx,botY);
-      cg.addColorStop(0,'rgba(234,252,252,0.30)');
-      cg.addColorStop(0.5,'rgba(163,220,246,0.38)');
-      cg.addColorStop(1,'rgba(224,245,252,0.55)');
+      cg.addColorStop(0,'rgba(234,252,252,0.50)');
+      cg.addColorStop(0.5,'rgba(163,220,246,0.58)');
+      cg.addColorStop(1,'rgba(224,245,252,0.75)');
       ctx.fillStyle=cg;
       ctx.beginPath();
-      ctx.moveTo(gx-wBase*0.16,topY);
+      ctx.moveTo(gx-wBase*0.22,topY);
       for(var i=1;i<=steps;i++){
         var yy=topY+(botY-topY)*i/steps;
         var wv=Math.sin(t*(1.6+spd*2.4)+i*0.8+gi*2.0+0.7)*wBase*0.06*(0.4+flow);
-        ctx.lineTo(gx-wBase*0.16+wv,yy);
+        ctx.lineTo(gx-wBase*0.22+wv,yy);
       }
       for(var i=steps;i>=0;i--){
         var yy=topY+(botY-topY)*i/steps;
         var wv=Math.sin(t*(1.6+spd*2.4)+i*0.8+gi*2.0+0.7)*wBase*0.06*(0.4+flow);
-        ctx.lineTo(gx+wBase*0.16+wv,yy);
+        ctx.lineTo(gx+wBase*0.22+wv,yy);
       }
       ctx.closePath();ctx.fill();
       /* fine spray lines down the sheet */
@@ -208,83 +223,122 @@ footer{margin-top:14px;font-size:11px;color:#8e9ca5;line-height:1.7}
       }
       ctx.globalCompositeOperation='source-over';
       /* impact bloom where the sheet meets the pool */
-      var bloom=ctx.createRadialGradient(gx,botY,2,gx,botY,wBase*0.9);
-      bloom.addColorStop(0,'rgba(224,245,252,0.85)');
-      bloom.addColorStop(0.55,'rgba(153,209,243,0.45)');
+      var bloom=ctx.createRadialGradient(gx,botY,2,gx,botY,wBase*1.15);
+      bloom.addColorStop(0,'rgba(224,245,252,0.90)');
+      bloom.addColorStop(0.55,'rgba(153,209,243,0.50)');
       bloom.addColorStop(1,'rgba(153,209,243,0)');
       ctx.fillStyle=bloom;
-      ctx.beginPath();ctx.ellipse(gx,botY,wBase*0.95,7*(0.5+flow),0,0,6.283);ctx.fill();
+      ctx.beginPath();ctx.ellipse(gx,botY,wBase*1.2,8*(0.5+flow),0,0,6.283);ctx.fill();
     }
   }
 
-  /* ---------- volumetric foam pool ---------- */
-  function drawFoam(ctx,W,H,t,flow){
-    var cx=0.44*W, spread=0.40*W, base=0.675*H;
-    var count=Math.round(44+50*flow);
-    /* bright base glow: the whole impact zone reads as one white-hot mass */
-    var mg=ctx.createRadialGradient(cx,base,4,cx,base,spread*1.05);
-    mg.addColorStop(0,'rgba(235,250,254,0.98)');
-    mg.addColorStop(0.45,'rgba(224,245,252,0.75)');
-    mg.addColorStop(1,'rgba(153,209,243,0.16)');
-    ctx.globalCompositeOperation='lighter';
-    ctx.fillStyle=mg;
-    ctx.beginPath();ctx.ellipse(cx,base,spread*0.75,H*0.075,0,0,6.283);ctx.fill();
-    for(var k=0;k<count;k++){
-      var s1=n2(k*12.9+floor8(t*0.35),7.7);
-      var s2=n2(k*7.3,3.1);
-      var life=(t*(0.25+0.5*s2)+s1*9)%1;
-      var px=cx+(s1-0.5)*spread*(0.55+life*0.95);
-      var py=base+(s2-0.5)*H*0.085*(1-life*0.25);
-      var rr=(6+17*s1)*(0.5+0.95*life)*(0.6+0.85*flow)*(H/271);
-      /* volumetric puff: white-hot #E0F5FC core, #99D1F3 -> #E7F8FC mid tones */
-      var rg=ctx.createRadialGradient(px,py-rr*0.2,rr*0.1,px,py,rr);
-      rg.addColorStop(0,'rgba(224,245,252,0.98)');
-      rg.addColorStop(0.4,'rgba(231,248,252,0.8)');
-      rg.addColorStop(0.75,'rgba(153,209,243,0.5)');
-      rg.addColorStop(1,'rgba(153,209,243,0)');
-      ctx.fillStyle=rg;
-      ctx.beginPath();ctx.arc(px,py,rr,0,6.283);ctx.fill();
+  /* ---------- volumetric foam pool: billowing clustered puffs ---------- */
+  /* phase 0 = back glow + soft base puffs (painted UNDER the falls),
+     phase 1 = front billow field (painted OVER the falls base) */
+  function drawFoam(ctx,W,H,t,flow,phase){
+    var cx=0.42*W, spread=0.42*W, base=0.675*H;
+    if(phase===0){
+      ctx.globalCompositeOperation='lighter';
+      /* broad cyan pool glow: unifies the billow field without flattening it */
+      var mg=ctx.createRadialGradient(cx,base,4,cx,base,spread*0.72);
+      mg.addColorStop(0,'rgba(190,236,252,0.78)');
+      mg.addColorStop(0.45,'rgba(163,220,246,0.55)');
+      mg.addColorStop(0.78,'rgba(153,209,243,0.36)');
+      mg.addColorStop(1,'rgba(153,209,243,0)');
+      ctx.fillStyle=mg;
+      ctx.beginPath();ctx.ellipse(cx,base,spread*0.72,H*0.10,0,0,6.283);ctx.fill();
+      /* lower pool sheen filling the dark gap above the foreground band */
+      var mg2=ctx.createRadialGradient(cx,base+H*0.045,2,cx,base+H*0.045,spread*0.95);
+      mg2.addColorStop(0,'rgba(153,209,243,0.36)');
+      mg2.addColorStop(1,'rgba(153,209,243,0)');
+      ctx.fillStyle=mg2;
+      ctx.beginPath();ctx.ellipse(cx,base+H*0.045,spread*0.95,H*0.085,0,0,6.283);ctx.fill();
+      /* soft base puffs behind the falls */
+      for(var c=0;c<7;c++){
+        var bC1=n2(c*19.3+2,8.3), bC2=n2(c*6.7+17,5.2);
+        var bx=cx+(bC1-0.5)*spread*1.05;
+        var by=base+(bC2-0.5)*H*0.07;
+        var br=(16+14*bC2)*(0.6+0.9*flow)*(H/271);
+        var bg2=ctx.createRadialGradient(bx,by-br*0.15,br*0.1,bx,by,br);
+        bg2.addColorStop(0,'rgba(207,236,250,0.42)');
+        bg2.addColorStop(0.6,'rgba(163,220,246,0.30)');
+        bg2.addColorStop(1,'rgba(153,209,243,0)');
+        ctx.fillStyle=bg2;
+        ctx.beginPath();ctx.arc(bx,by,br,0,6.283);ctx.fill();
+      }
+      ctx.globalCompositeOperation='source-over';
+      return;
     }
-    /* second-layer small bright puffs (dense core field) */
-    for(var k=0;k<Math.round(26+30*flow);k++){
+    /* front billow field (phase 1) */
+    ctx.globalCompositeOperation='lighter';
+    for(var c=0;c<10;c++){
+      var sC1=n2(c*17.7+5,9.1), sC2=n2(c*7.9+31,4.7);
+      var ccx=cx+(sC1-0.5)*spread*1.14;
+      var ccy=base+(sC2-0.5)*H*0.075;
+      var cR=(13+13*sC2)*(0.6+0.9*flow)*(H/271);
+      for(var k=0;k<6;k++){
+        var s1=n2(c*13.3+k*7.7,7.7);
+        var s2=n2(c*5.1+k*11.9,3.1);
+        var life=(t*(0.22+0.45*s2)+s1*9)%1;
+        var px3=ccx+(s1-0.5)*cR*2.1;
+        var py3=ccy+(s2-0.5)*cR*1.3-life*H*0.018;
+        var rr=cR*(0.62+0.72*s1)*(0.55+0.85*life);
+        /* volumetric puff: white-hot #E0F5FC core over #A3DCF6/#99D1F3 billow body */
+        var rg=ctx.createRadialGradient(px3,py3-rr*0.18,rr*0.12,px3,py3,rr);
+        rg.addColorStop(0,'rgba(224,245,252,0.88)');
+        rg.addColorStop(0.38,'rgba(231,248,252,0.74)');
+        rg.addColorStop(0.72,'rgba(163,220,246,0.64)');
+        rg.addColorStop(0.88,'rgba(99,178,235,0.26)');
+        rg.addColorStop(1,'rgba(78,144,215,0)');
+        ctx.fillStyle=rg;
+        ctx.beginPath();ctx.arc(px3,py3,rr,0,6.283);ctx.fill();
+      }
+    }
+    /* dense small bright puffs (fills the pool into one mass) */
+    var spread2=spread;
+    for(var k=0;k<Math.round(30+34*flow);k++){
       var s3=n2(k*3.31+53,7.7);
       var s4=n2(k*9.7+13,3.1);
       var life2=(t*(0.35+0.55*s4)+s3*7)%1;
-      var spread2=0.40*W;                          // was: stray ref to drawFoam-scoped spread (NaN)
-      var px3=cx+(s3-0.5)*spread2*(0.4+life2*0.8);
-      var py3=base+(s4-0.5)*H*0.06*(1-life2*0.2);
-      var rr3=(3+7*s3)*(0.5+0.7*life2)*(0.5+0.7*flow)*(H/271);
-      var rg3=ctx.createRadialGradient(px3,py3,rr3*0.15,px3,py3,rr3);
+      var px4=cx+(s3-0.5)*spread2*(0.4+life2*0.8);
+      var py4=base+(s4-0.5)*H*0.075*(1-life2*0.2);
+      var rr3=(4+9*s3)*(0.55+0.75*life2)*(0.55+0.75*flow)*(H/271);
+      var rg3=ctx.createRadialGradient(px4,py4,rr3*0.15,px4,py4,rr3);
       rg3.addColorStop(0,'rgba(240,253,255,0.95)');
       rg3.addColorStop(1,'rgba(231,248,252,0)');
       ctx.fillStyle=rg3;
-      ctx.beginPath();ctx.arc(px3,py3,rr3,0,6.283);ctx.fill();
+      ctx.beginPath();ctx.arc(px4,py4,rr3,0,6.283);ctx.fill();
     }
     /* scattered spray dots above the pool */
-    for(var k=0;k<Math.round(22+26*flow);k++){
+    for(var k=0;k<Math.round(24+28*flow);k++){
       var s1=n2(k*5.7+21);
       var life=(t*(0.7+0.8*s1)+s1*4)%1;
       var px2=cx+(s1-0.5)*spread*1.15;
-      var py2=base-H*0.055*life*(0.4+0.8*n2(k+91,2.3));
+      var py2=base-H*0.06*life*(0.4+0.8*n2(k+91,2.3));
       ctx.fillStyle='rgba(224,245,252,'+(0.8*(1-life)).toFixed(3)+')';
-      ctx.beginPath();ctx.arc(px2,py2,1.2+2.8*s1,0,6.283);ctx.fill();
+      ctx.beginPath();ctx.arc(px2,py2,1.4+3.2*s1,0,6.283);ctx.fill();
     }
+    /* wide ambient pool reflection across the lower water (reference: glow reaches the left third) */
+    var amb=ctx.createRadialGradient(0.20*W,0.82*H,4,0.20*W,0.82*H,0.38*W);
+    amb.addColorStop(0,'rgba(122,183,238,0.22)');
+    amb.addColorStop(1,'rgba(122,183,238,0)');
+    ctx.fillStyle=amb;
+    ctx.beginPath();ctx.ellipse(0.20*W,0.82*H,0.38*W,H*0.05,0,0,6.283);ctx.fill();
     ctx.globalCompositeOperation='source-over';
   }
-  function floor8(x){return Math.floor(x);}
 
   /* ---------- dam + towers ---------- */
   function drawDam(ctx,W,H,t,flow){
     /* crest deck behind the gates */
     var dg=ctx.createLinearGradient(0,0.30*H,0,0.44*H);
-    dg.addColorStop(0,T.conHi);dg.addColorStop(0.6,T.conLo);dg.addColorStop(1,T.conShadow);
+    dg.addColorStop(0,'#8C9BA6');dg.addColorStop(0.6,'#5A6570');dg.addColorStop(1,'#2C333C');
     ctx.fillStyle=dg;
     ctx.fillRect(0.285*W,0.30*H,0.30*W,0.16*H);
     /* two towers (concrete, soft-shadow painterly: side faces darker) */
     for(var i=0;i<2;i++){
       var tx=(0.30+0.17*i)*W, tw=0.075*W, ty0=0.22*H, th=0.36*H;
       var tg=ctx.createLinearGradient(tx,0,tx+tw,0);
-      tg.addColorStop(0,T.conHi);tg.addColorStop(0.55,T.conLo);tg.addColorStop(1,T.conShadow);
+      tg.addColorStop(0,'#8496A2');tg.addColorStop(0.55,'#525E6A');tg.addColorStop(1,'#2C333C');
       ctx.fillStyle=tg;ctx.fillRect(tx,ty0,tw,th);
       /* warm amber lit windows — the ONLY warm accent */
       ctx.fillStyle=T.warmHi;
@@ -305,31 +359,38 @@ footer{margin-top:14px;font-size:11px;color:#8e9ca5;line-height:1.7}
 
   /* ---------- HUD panel ---------- */
   function drawPanel(ctx,W,H,t,data){
-    var px=0.575*W,py=0.055*H,pw=0.395*W,ph=0.885*H,r=0.045*W;
+    var px=0.575*W,py=0.055*H,pw=0.395*W,ph=0.815*H,r=0.045*W;
     ctx.save();
     ctx.shadowColor='rgba(127,194,238,0.45)';ctx.shadowBlur=0.02*W;
-    ctx.fillStyle='rgba(10,26,46,0.94)';
+    ctx.fillStyle='rgba(8,28,50,0.88)';
     roundRect(ctx,px,py,pw,ph,r);ctx.fill();
     ctx.shadowBlur=0;
     ctx.strokeStyle=T.frameGlow;ctx.lineWidth=1.2;
     roundRect(ctx,px,py,pw,ph,r);ctx.stroke();
     ctx.strokeStyle='rgba(127,194,238,0.35)';ctx.lineWidth=0.6;
     roundRect(ctx,px+2,py+2,pw-4,ph-4,r*0.92);ctx.stroke();
+    /* cyan glass wash (reference: water glow bleeds through the data side) */
+    var wash=ctx.createLinearGradient(0,py,0,py+ph);
+    wash.addColorStop(0,'rgba(153,209,243,0.15)');
+    wash.addColorStop(0.5,'rgba(163,220,246,0.10)');
+    wash.addColorStop(1,'rgba(153,209,243,0.06)');
+    ctx.fillStyle=wash;
+    roundRect(ctx,px,py,pw,ph,r);ctx.fill();
     ctx.restore();
     /* header + sublabel */
     ctx.textAlign='left';ctx.textBaseline='alphabetic';
     ctx.fillStyle=T.textHi;
     ctx.font='800 '+Math.round(0.052*H)+'px Tahoma,"Noto Sans Thai",sans-serif';
     ctx.shadowColor='rgba(127,194,238,0.8)';ctx.shadowBlur=6;
-    ctx.fillText('HDA004 คลองช่องสะเดา',px+0.055*pw,py+0.14*ph);
+    ctx.fillText('HDA004 คลองช่องสะเดา',px+0.055*pw,py+0.155*ph);
     ctx.shadowBlur=0;
     ctx.fillStyle=T.textSec;
     ctx.font='600 '+Math.round(0.036*H)+'px Tahoma,"Noto Sans Thai",sans-serif';
-    ctx.fillText('ใกล้ รพ.อุทัย',px+0.055*pw,py+0.205*ph);
+    ctx.fillText('ใกล้ รพ.อุทัย',px+0.055*pw,py+0.215*ph);
     /* giant level number + cyan glow */
     var big=(data&&data.hda&&data.hda.v!=null)?data.hda.v.toFixed(2):'—';
     ctx.fillStyle=data&&data.hda?T.textHi:T.textSec;
-    ctx.font='800 '+Math.round(0.175*H)+'px Tahoma,"Noto Sans Thai",sans-serif';
+    ctx.font='800 '+Math.round(0.165*H)+'px Tahoma,"Noto Sans Thai",sans-serif';
     ctx.shadowColor=data&&data.hda?T.textAcc:'rgba(142,156,165,0.6)';
     ctx.shadowBlur=0.035*W;
     ctx.fillText(big,px+0.055*pw,py+0.46*ph);
@@ -348,15 +409,15 @@ footer{margin-top:14px;font-size:11px;color:#8e9ca5;line-height:1.7}
       ctx.fillText(dTxt,px+0.375*pw,py+0.46*ph);
       ctx.font='600 '+Math.round(0.032*H)+'px Tahoma,sans-serif';
       ctx.fillStyle=T.textSec;
-      ctx.fillText('(เทียบตอนเปิดหน้า)',px+0.375*pw,py+0.515*ph);
+      ctx.fillText('(เทียบตอนเปิดหน้า)',px+0.375*pw,py+0.545*ph);
     }
-    /* banded status pill (green gradient) */
+    /* banded status pill (measured green gradient #63C969→#347548) */
     var band=(data&&data.hda&&data.hda.band)?data.hda.band:'grey';
     var badgeTxt=(data&&data.hda&&data.hda.badge)?data.hda.badge:'รอข้อมูล';
-    var pillY=py+0.585*ph,pillH=0.145*ph,pillW=0.72*pw;
+    var pillY=py+0.60*ph,pillH=0.15*ph,pillW=0.72*pw;
     var pgrad=ctx.createLinearGradient(px+0.055*pw,pillY,px+0.055*pw,pillY+pillH);
     var pc1='#8e9ca5',pc2='#5a6a75';
-    if(band==='band-green'){pc1='#6FD377';pc2='#3B8554';}
+    if(band==='band-green'){pc1=T.pillA;pc2=T.pillB;}
     if(band==='band-amber'){pc1='#D9AC55';pc2='#96742F';}
     if(band==='band-red'){pc1='#e07a7a';pc2='#964040';}
     if(band==='grey'){pc1='#8e9ca5';pc2='#5a6a75';}
@@ -368,8 +429,8 @@ footer{margin-top:14px;font-size:11px;color:#8e9ca5;line-height:1.7}
     ctx.textAlign='center';
     ctx.fillText(badgeTxt,px+0.055*pw+pillW*0.5,pillY+pillH*0.78);
     ctx.textAlign='left';
-    /* sparkline slot: honest grey, NO fake data + band disclaimer INSIDE the panel (nothing clipped) */
-    var spY=pillY+pillH+0.045*ph,spH=0.135*ph;
+    /* sparkline slot: honest grey, NO fake data */
+    var spY=pillY+pillH+0.045*ph,spH=0.088*ph;
     ctx.fillStyle=T.chartPanel;
     roundRect(ctx,px+0.055*pw,spY,0.86*pw,spH,0.015*W);ctx.fill();
     ctx.strokeStyle='rgba(90,138,176,0.5)';ctx.lineWidth=1;
@@ -379,37 +440,15 @@ footer{margin-top:14px;font-size:11px;color:#8e9ca5;line-height:1.7}
     ctx.textAlign='center';
     ctx.fillText('ประวัติ 7 วัน · รอแหล่งข้อมูลยืนยัน',px+0.055*pw+0.43*pw,spY+spH*0.58);
     ctx.textAlign='left';
-    ctx.fillStyle=T.textSec;
-    ctx.font='600 '+Math.round(0.030*H)+'px Tahoma,"Noto Sans Thai",sans-serif';
-    ctx.fillText('เกณฑ์สี: ปกติ / เฝ้าระวัง (ตลิ่ง−0.50 ม.) / ถึงระดับตลิ่ง — ไม่ใช่คำเตือนทางการ',px+0.055*pw,py+0.965*ph);
-    /* S.5 secondary row */
+    /* S.5 secondary row (kept ABOVE the foreground band — never clipped) */
     ctx.fillStyle=T.textSec;
     ctx.font='700 '+Math.round(0.042*H)+'px Tahoma,"Noto Sans Thai",sans-serif';
     var s5v=(data&&data.s5&&data.s5.v!=null)?data.s5.v.toFixed(2):'—';
-    ctx.fillText('S.5 สะพานปรีดี  '+s5v+' ม.',px+0.055*pw,spY+spH+0.055*ph);
-    /* disclaimer under panel */
+    ctx.fillText('S.5 สะพานปรีดี  '+s5v+' ม.',px+0.055*pw,py+0.925*ph);
+    /* band disclaimer INSIDE the panel (kept ABOVE the foreground band — never clipped) */
     ctx.fillStyle=T.textSec;
     ctx.font='600 '+Math.round(0.030*H)+'px Tahoma,"Noto Sans Thai",sans-serif';
-    ctx.fillText('เกณฑ์สี: ปกติ / เฝ้าระวัง (ตลิ่ง−0.50 ม.) / ถึงระดับตลิ่ง — ประกอบการติดตาม ไม่ใช่คำเตือนทางการ',px+0.02*pw,py+ph+0.055*H);
-    /* bottom rippled foreground water band (across the lower edge) */
-    var bwY=0.88*H;
-    var bgrad=ctx.createLinearGradient(0,bwY,0,H);
-    bgrad.addColorStop(0,T.bandTop);bgrad.addColorStop(1,T.bandBot);
-    ctx.fillStyle=bgrad;ctx.fillRect(0,bwY,W,H-bwY);
-    ctx.strokeStyle=T.bandStreak;
-    for(var k=0;k<7;k++){
-      var seed=n2(k*17.3);
-      var yy=bwY+6+seed*(H-bwY-12);
-      ctx.lineWidth=0.8+seed*1.4;
-      ctx.beginPath();
-      for(var x=0;x<=W;x+=16){
-        var xx=x+Math.sin(x*0.015+t*(0.3+seed*0.6)+k*2.4)*10;
-        if(x===0)ctx.moveTo(xx,yy);else ctx.lineTo(xx,yy);
-      }
-      ctx.globalAlpha=0.3+0.35*seed;
-      ctx.stroke();
-    }
-    ctx.globalAlpha=1;
+    ctx.fillText('เกณฑ์สี: ปกติ / เฝ้าระวัง (ตลิ่ง−0.50 ม.) / ถึงระดับตลิ่ง — ไม่ใช่คำเตือนทางการ',px+0.055*pw,py+0.995*ph);
   }
   function roundRect(ctx,x,y,w,h,r){
     ctx.beginPath();
@@ -424,7 +463,7 @@ footer{margin-top:14px;font-size:11px;color:#8e9ca5;line-height:1.7}
     var W=VW,H=VH;
     /* near-black navy ambience */
     var bg=ctx.createLinearGradient(0,0,0,H);
-    bg.addColorStop(0,T.bgGlow);bg.addColorStop(0.5,T.skyLo);bg.addColorStop(1,T.bgDeep);
+    bg.addColorStop(0,'#123052');bg.addColorStop(0.42,'#0D2542');bg.addColorStop(0.75,'#081A30');bg.addColorStop(1,T.bgDeep);
     ctx.fillStyle=bg;ctx.fillRect(0,0,W,H);
     /* date + clock (left third, glowing white, no panel) */
     var now=new Date();
@@ -438,13 +477,37 @@ footer{margin-top:14px;font-size:11px;color:#8e9ca5;line-height:1.7}
     ctx.fillText(pad2(now.getHours())+':'+pad2(now.getMinutes()),0.03*W,0.42*H);
     ctx.shadowBlur=0;
     /* dam + gates + falls + foam (center-left) */
+    /* pool water body under the dam (reference: mid-blue water fills the lower scene) */
+    var pwg=ctx.createLinearGradient(0,0.52*H,0,0.88*H);
+    pwg.addColorStop(0,'rgba(56,116,178,0.55)');
+    pwg.addColorStop(0.55,'rgba(38,82,140,0.64)');
+    pwg.addColorStop(1,'rgba(20,48,86,0.82)');
+    ctx.fillStyle=pwg;
+    ctx.fillRect(0,0.52*H,0.62*W,0.36*H);
+    ctx.strokeStyle='rgba(153,209,243,0.30)';
+    for(var ws=0;ws<3;ws++){
+      var wsY=(0.63+0.075*ws)*H;
+      ctx.lineWidth=0.8+ws*0.5;
+      ctx.beginPath();
+      for(var wx=0;wx<=0.62*W;wx+=18){
+        var wxx=wx+Math.sin(wx*0.02+t*(0.5+ws*0.3)+ws*2.1)*6;
+        if(wx===0)ctx.moveTo(wxx,wsY);else ctx.lineTo(wxx,wsY);
+      }
+      ctx.stroke();
+    }
+    var sky=ctx.createRadialGradient(0.29*W,0.40*H,4,0.29*W,0.40*H,0.36*W);
+    sky.addColorStop(0,'rgba(70,110,153,0.22)');
+    sky.addColorStop(1,'rgba(70,110,153,0)');
+    ctx.fillStyle=sky;
+    ctx.beginPath();ctx.ellipse(0.29*W,0.40*H,0.36*W,H*0.17,0,0,6.283);ctx.fill();
     drawDam(ctx,W,H,t,flow);
+    drawFoam(ctx,W,H,t,flow,0);
     drawFalls(ctx,W,H,t,flow);
-    drawFoam(ctx,W,H,t,flow);
+    drawFoam(ctx,W,H,t,flow,1);
     /* HUD panel (right third) */
     drawPanel(ctx,W,H,t,data);
     /* bottom rippled water band */
-    var bwY=0.875*H;
+    var bwY=0.88*H;
     var bg2=ctx.createLinearGradient(0,bwY,0,H);
     bg2.addColorStop(0,T.bandTop);bg2.addColorStop(1,T.bandBot);
     ctx.fillStyle=bg2;ctx.fillRect(0,bwY,W,H-bwY);
@@ -462,14 +525,30 @@ footer{margin-top:14px;font-size:11px;color:#8e9ca5;line-height:1.7}
       ctx.stroke();
     }
     ctx.globalAlpha=1;
+    /* gate reflection columns on the foreground water (reference: bright streaks below the falls) */
+    ctx.globalCompositeOperation='lighter';
+    for(var gi=0;gi<2;gi++){
+      var rgx=(0.335+0.13*gi)*W;
+      var refl=ctx.createLinearGradient(0,bwY,0,H);
+      refl.addColorStop(0,'rgba(153,209,243,0.26)');
+      refl.addColorStop(1,'rgba(153,209,243,0)');
+      ctx.fillStyle=refl;
+      ctx.beginPath();ctx.ellipse(rgx,bwY+(H-bwY)*0.45,0.055*W,(H-bwY)*0.62,0,0,6.283);ctx.fill();
+    }
+    ctx.globalCompositeOperation='source-over';
     /* painterly grain pass */
     ctx.globalAlpha=0.05;
     for(var gx=0;gx<W;gx+=140)for(var gy=0;gy<H;gy+=140)ctx.drawImage(grain,gx,gy);
     ctx.globalAlpha=1;
     /* corner vignette */
     var vg=ctx.createRadialGradient(W*0.5,H*0.45,H*0.55,W*0.5,H*0.5,H*1.05);
-    vg.addColorStop(0,'rgba(1,8,20,0)');vg.addColorStop(1,'rgba(1,8,20,0.55)');
+    vg.addColorStop(0,'rgba(1,8,20,0)');vg.addColorStop(1,'rgba(1,8,20,0.46)');
     ctx.fillStyle=vg;ctx.fillRect(0,0,W,H);
+    /* disclaimer under panel — painted LAST so the foreground band never covers it */
+    ctx.fillStyle=T.textSec;
+    ctx.font='600 '+Math.round(0.030*H)+'px Tahoma,"Noto Sans Thai",sans-serif';
+    ctx.textAlign='left';
+    ctx.fillText('เกณฑ์สี: ปกติ / เฝ้าระวัง (ตลิ่ง−0.50 ม.) / ถึงระดับตลิ่ง — ประกอบการติดตาม ไม่ใช่คำเตือนทางการ',0.583*W,0.925*H);
   }
   function pad2(n){return (n<10?'0':'')+n;}
 
@@ -489,8 +568,9 @@ footer{margin-top:14px;font-size:11px;color:#8e9ca5;line-height:1.7}
     sctx.save();sctx.beginPath();sctx.rect(56,0,110,H);sctx.clip();
     sctx.translate(56,0);
     drawDam(sctx,110,H,simT,flow);
+    drawFoam(sctx,110,H,simT,flow,0);
     drawFalls(sctx,110,H,simT,flow);
-    drawFoam(sctx,110,H,simT,flow);
+    drawFoam(sctx,110,H,simT,flow,1);
     sctx.restore();
     /* HDA004 value + badge */
     var d=lastData&&lastData.hda;
@@ -578,7 +658,7 @@ footer{margin-top:14px;font-size:11px;color:#8e9ca5;line-height:1.7}
       var band=bandFor(hda.v,hda.bank);
       var pct=Math.max(0,Math.min(100,Math.round(hda.v/hda.bank*100)));
       samples.push({v:hda.v,t:Date.now()});
-      lastData={hda:{v:hda.v,color:band.color,badgeText:band.badge,badgeColor:band.badgeColor},s5:null};
+      lastData={hda:{v:hda.v,color:band.color,band:band.band,badge:band.badge,badgeText:band.badge,badgeColor:band.color},s5:null};
       var sr=$('sr-data');
       if(sr)sr.textContent='ระดับน้ำ HDA004: '+hda.v.toFixed(2)+' ม.รทก. · '+band.badge+' · '+pct+'% ของระดับตลิ่ง';
       var upd=$('updated-at'); /* no such element on the canvas card; guarded */
@@ -591,7 +671,7 @@ footer{margin-top:14px;font-size:11px;color:#8e9ca5;line-height:1.7}
     /* S.5 secondary */
     if(s5&&s5.v!=null&&s5.bank!=null){
       var sb=bandFor(s5.v,s5.bank);
-      lastData=lastData||{};lastData.s5={v:s5.v,color:sb.color,badgeText:sb.badge,badgeColor:sb.color};
+      lastData=lastData||{};lastData.s5={v:s5.v,color:sb.color,band:sb.band,badge:sb.badge,badgeText:sb.badge,badgeColor:sb.color};
     } else if(lastData){lastData.s5=null;}
     /* trend vs previous session sample (honest: hidden until a second sample) */
     if(trendEl){
