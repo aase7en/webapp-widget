@@ -671,6 +671,7 @@ function initialize(){
   if(typeof ResizeObserver!=='undefined'){resizeObserverRef=new ResizeObserver(resize);resizeObserverRef.observe(stage)}
   new IntersectionObserver(x=>{visible=x.some(e=>e.isIntersecting)}).observe(stage);
   wireControls();
+  try{window.parent.postMessage({source:'spillway',type:'ready'},'*');}catch(_e){} // handshake: scene ready
   const qr=document.getElementById('q-readout');qr&&(qr.textContent=`Q ~ ${FS.m3s} m³/s (จำลอง) · Q_max ${Q_MAX_M3S} m³/s`);
   setStatusReady();
   window.__spillway=()=>renderer&&{frame:renderer.info.render.frame,calls:lastCalls,tris:lastTris,fps:fpsShown,dpr:dpr,simT:+simT.toFixed(3),sheetT:+waterUniforms[1].u.uTime.value.toFixed(3),sheetFlow:+waterUniforms[1].u.uQ.value.toFixed(3),leafBottomY:+(CREST_Y+FS.a).toFixed(3),leafMeshY:+(gateMesh?gateMesh.position.y.toFixed(3):'null'),camAz:+(droneAz*180/Math.PI).toFixed(1),camEl:+(droneEl*180/Math.PI).toFixed(1)};
@@ -748,7 +749,9 @@ function wireControls(){
   if(!EMBED||!e.data||e.data.type!=='spillway-flow')return;
   const v=Math.max(0,Math.min(100,Number(e.data.v)|0));
   flowSlider.value=String(v);flowSlider.dispatchEvent(new Event('input'));
+  try{window.parent.postMessage({source:'spillway',type:'flowAck',value:v},'*');}catch(_e){}
  });
+ try{window.parent.postMessage({source:'spillway',type:'ready'},'*');}catch(_e){} // handshake: listener attached
  addEventListener('pagehide',()=>{
   disposed=true;
   resizeObserverRef?.disconnect();
