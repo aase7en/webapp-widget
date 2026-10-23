@@ -144,10 +144,31 @@ code{background:#122b3e;border-radius:4px;padding:1px 5px;font-size:10.5px}
   tickTs();setInterval(tickTs,30000);
   /* ---------- embed flow demo (postMessage -> iframe) ---------- */
   var frame=document.getElementById('spill-frame'),fd=document.getElementById('flow-demo'),fdv=document.getElementById('flow-demo-v');
-  var flowDemoTouched=false;
-  function sendFlow(v){ try{frame.contentWindow.postMessage({type:'spillway-flow',v:v},'*');}catch(_e){} }
+  /* ---------- robust embed handshake ----------
+   * the 3D iframe posts {source:'spillway',type:'ready'} once its message
+   * listener is attached; the parent stores the latest target flow and
+   * (re)sends it on ready + short retries until the first flowAck — so the
+   * gate never misses the target even when RID answers before the 3D boots.
+   * Applying the same value twice is harmless (idempotent state set). */
+  var embedReady=false,lastTarget=70,retryTimers=[];
+  function postToFrame(msg){ try{frame.contentWindow.postMessage(msg,'*');}catch(_e){} }
+  function clearRetries(){ retryTimers.forEach(clearTimeout); retryTimers=[]; }
+  function sendFlow(v){
+    lastTarget=v;
+    postToFrame({type:'spillway-flow',v:v});
+    if(!embedReady){
+      clearRetries();
+      retryTimers.push(setTimeout(function(){ if(!embedReady)postToFrame({type:'spillway-flow',v:lastTarget}); },300));
+      retryTimers.push(setTimeout(function(){ if(!embedReady)postToFrame({type:'spillway-flow',v:lastTarget}); },900));
+    }
+  }
+  addEventListener('message',function(e){
+    var d=e.data;
+    if(!d||d.source!=='spillway')return;
+    if(d.type==='ready'){ embedReady=true; clearRetries(); if(lastTarget!=null)sendFlow(lastTarget); }
+    /* flowAck events are informational; applying the same value twice is a no-op */
+  });
   if(fd)fd.addEventListener('input',function(){
-    flowDemoTouched=true;
     if(fdv)fdv.textContent=fd.value+'%';
     sendFlow(Number(fd.value));
   });
@@ -217,11 +238,13 @@ code{background:#122b3e;border-radius:4px;padding:1px 5px;font-size:10.5px}
   }
   function applyGateFromData(){
     /* symbolic gate drive: effective = max(%bank of S.5, %bank of S.26) -> opening % (linear clamp, idle floor 15%) */
-    if(!lastPcts.length){sendFlow(15);return;}
-    var eff=Math.max.apply(null,lastPcts);
-    var open=Math.round(Math.max(15,Math.min(100,eff)));
+    var open=15;
+    if(lastPcts.length){
+      var eff=Math.max.apply(null,lastPcts);
+      open=Math.round(Math.max(15,Math.min(100,eff)));
+    }
+    if(fd&&fdv){fd.value=String(open);fdv.textContent=open+'%';} // parent slider always matches the 3D (blocked path included)
     sendFlow(open);
-    if(fd&&fdv){fd.value=String(open);fdv.textContent=open+'%';}
   }
   function setState(txt,err){
     var e=document.getElementById('rid-state');

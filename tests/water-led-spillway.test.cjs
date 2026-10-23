@@ -55,7 +55,23 @@ test('symbolic gate drive: max(%bank) -> opening, idle floor 15, honest note',()
   assert.match(html,/Math\.max\.apply\(null,lastPcts\)/);
   assert.match(html,/Math\.max\(15,Math\.min\(100,eff\)\)/);  // idle floor 15%, linear clamp
   assert.match(html,/ประตูเปิดตามสัดส่วนระดับจริง \(แสดงเชิงสัญลักษณ์ ไม่ใช่สั่งการเขื่อนจริง\)/);
-  assert.match(html,/sendFlow\(15\)/);                        // RID blocked -> idle 15%
+  assert.match(html,/sendFlow\(open\)/); // blocked path -> idle 15% target
+});
+test('robust embed handshake: ready ping + retries + flowAck + blocked slider sync',()=>{
+  const html=read(page);
+  const js=read(path.join(root,'demo/spillway-3d/main.js'));
+  // iframe announces readiness (listener attach + after scene init) and acks applied flow
+  assert.match(js,/postMessage\(\{source:'spillway',type:'ready'\}/);
+  assert.match(js,/type:'flowAck',value:v/);
+  // parent tracks readiness and re-sends the stored target
+  assert.match(html,/embedReady/);
+  assert.match(html,/type:'ready'/);
+  assert.match(html,/lastTarget/);
+  assert.match(html,/300\)/);
+  assert.match(html,/900\)/);
+  // blocked path syncs the parent slider to the idle 15%
+  assert.match(html,/fd\.value=String\(open\);fdv\.textContent=open\+'%';/);
+  assert.match(html,/var open=15;/);
 });
 test('embed drone camera path: ping-pong upper-right -> lower-left, reduced static, sector-clamped',()=>{
   const js=read(path.join(root,'demo/spillway-3d/main.js'));
