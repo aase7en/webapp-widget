@@ -33,6 +33,9 @@ test('honest labels: SIMULATED spillway + real RID source + fail-closed grey val
   assert.doesNotMatch(strip,/observedAt/);
 });
 test('v2 layout: clock leftmost, no สถานี ก/ข chips, level+name left-aligned stack',()=>{
+  const html2=read(page);
+  assert.match(html2,/\.st-name\{position:absolute;top:2px;right:6px/); // name pinned top-right of its column
+  assert.match(html2,/\.spill-slot\{width:100px;flex:0 0 100px/);        // 3D slot widened to ~100px
   const html=read(page);
   const iClock=html.indexOf('class="clock"'),iSpill=html.indexOf('class="spill-slot"'),
         iA=html.indexOf('id="st-a"'),iB=html.indexOf('id="st-b"');
