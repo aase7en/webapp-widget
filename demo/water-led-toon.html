@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <link rel="icon" href="data:,">
-<title>HDA004 คลองช่องสะเดา — การ์ดน้ำ 3D กลางคืน (SIMULATED)</title>
+<title>HDA004 คลองช่องสะเดา — การ์ดน้ำ 2.5D ยามค่ำ (SIMULATED)</title>
 <style>
 :root{color-scheme:dark}
 *{box-sizing:border-box}
@@ -14,28 +14,33 @@ header{display:flex;justify-content:space-between;align-items:center;gap:10px;pa
 header h1{font-size:13px;margin:0;color:#cfe0ee;font-weight:700}
 .sim-chip{font-size:10px;color:#ffd9a8;background:rgba(165,130,99,0.18);border:1px solid rgba(165,130,99,0.45);border-radius:999px;padding:2px 9px}
 .controls{display:flex;align-items:center;gap:10px;font-size:11px;color:#9fb2c1;flex-wrap:wrap}
-.controls input[type=range]{accent-color:#4e90d7;width:110px}
 .rid-state{font-size:11px;color:#7fe8a8}
 .rid-state.err{color:#ffc46b}
 button{font:600 11px Tahoma,sans-serif;color:#dcebff;background:#12314f;border:1px solid #2c587f;border-radius:6px;padding:4px 10px;cursor:pointer}
 button:disabled{opacity:.5;cursor:default}
 
-/* ---------- card 3.32:1 : [clock | 3D night dam | HUD] ---------- */
+/* ---------- card 3.32:1 : [clock | 2.5D scene | HUD] ---------- */
 .card{position:relative;width:100%;max-width:822px;aspect-ratio:822/248;border-radius:12px;overflow:hidden;
  background:#010814;border:1px solid rgba(90,138,176,0.35);display:grid;grid-template-columns:180px 1fr 244px}
 .card::after{content:"";position:absolute;inset:0;pointer-events:none;border-radius:12px;
- box-shadow:inset 0 0 60px rgba(1,8,20,0.55)}
+ box-shadow:inset 0 0 60px rgba(1,8,20,0.5)}
 .clockzone{position:relative;display:flex;flex-direction:column;justify-content:center;gap:2px;padding:10px 8px 10px 16px;
  background:linear-gradient(160deg,#0a1c33 0%,#071426 60%,#050f1d 100%);border-right:1px solid rgba(90,138,176,0.25)}
 .cz-date{font-size:12px;font-weight:700;color:#9fb6c9;letter-spacing:.02em}
 .cz-time{font-size:58px;line-height:1;font-weight:800;color:#f5f8fb;letter-spacing:.01em;
  text-shadow:0 0 14px rgba(127,194,238,0.85),0 0 34px rgba(78,144,215,0.55),0 0 60px rgba(78,144,215,0.3)}
 .cz-cap{font-size:9.5px;color:#6d84a0;margin-top:4px}
-.cz-lvl{font-size:10px;color:#8fb3d4;margin-top:8px;line-height:1.5}
-.stage3d{position:relative;background:#02080f;border-right:1px solid rgba(90,138,176,0.25)}
-.stage3d iframe{position:absolute;inset:0;width:100%;height:100%;border:0;display:block;background:#02080f}
-.stage-chip{position:absolute;left:8px;bottom:6px;font-size:9px;color:#bcd2e4;background:rgba(2,8,15,0.6);
+.scene{position:relative;background:#02080f;border-right:1px solid rgba(90,138,176,0.25)}
+.scene canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
+.scene-chip{position:absolute;left:8px;top:6px;font-size:9px;color:#bcd2e4;background:rgba(2,8,15,0.6);
  border:1px solid rgba(90,138,176,0.4);border-radius:999px;padding:1px 8px;pointer-events:none}
+.scene-flow{position:absolute;left:8px;right:8px;bottom:8px;display:flex;align-items:center;gap:7px;
+ background:rgba(2,8,15,0.66);border:1px solid rgba(90,138,176,0.45);border-radius:8px;padding:4px 9px;
+ font-size:10px;color:#cfe0ee;backdrop-filter:blur(2px)}
+.scene-flow input[type=range]{flex:1;accent-color:#4e90d7;min-width:60px}
+.scene-flow b{min-width:32px;text-align:right;color:#a4ecf7}
+.flow-sim{font-size:8.5px;color:#ffd9a8;background:rgba(165,130,99,0.25);border:1px solid rgba(165,130,99,0.5);
+ border-radius:999px;padding:0 6px;white-space:nowrap}
 .hud{position:relative;padding:12px 16px 10px;display:flex;flex-direction:column;gap:2px;
  background:linear-gradient(200deg,rgba(21,41,66,0.92) 0%,rgba(8,24,44,0.94) 100%)}
 .h-head{font-size:13.5px;font-weight:800;color:#f0f6fb;text-shadow:0 1px 6px rgba(0,0,0,.5)}
@@ -64,33 +69,35 @@ button:disabled{opacity:.5;cursor:default}
 .caption{max-width:822px;margin:9px auto 0;font-size:10.5px;color:#8fa0b2;line-height:1.65;display:flex;flex-wrap:wrap;gap:3px 14px;align-items:center}
 .caption .sep{opacity:.5}
 
-/* ---------- LED strip 432x40 : close-up overflow + water behind clock ---------- */
+/* ---------- LED strip 432x40 : full 2.5D icon scene left (behind clock/date) + stations right ---------- */
 .led-wrap{width:432px;margin:12px auto 0}
 .led-frame{position:relative;width:432px;height:40px;border-radius:5px;overflow:hidden;
  background:#04101c;border:1px solid #173347;transform:scale(var(--led-s,1));transform-origin:top left}
 .led-frame canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
-.led-clock{position:absolute;left:0;top:0;bottom:0;width:64px;padding:3px 5px 2px;display:flex;flex-direction:column;justify-content:center;
- background:rgba(4,12,24,0.42);border-right:1px solid rgba(29,58,82,0.8);pointer-events:none}
+.led-clock{position:absolute;left:7px;top:3px;bottom:2px;display:flex;flex-direction:column;justify-content:center;pointer-events:none}
 .led-clock b{font-size:15px;font-weight:800;color:#f5f8fb;line-height:1;letter-spacing:.01em;
- text-shadow:0 0 8px rgba(127,194,238,0.9),0 0 18px rgba(78,144,215,0.5)}
-.led-clock span{font-size:7px;color:#a9bdd0;margin-top:2px}
-.led-station{position:absolute;right:0;top:0;bottom:0;width:118px;padding:3px 8px 2px 6px;display:flex;flex-direction:column;justify-content:center;gap:2px;
- background:linear-gradient(90deg,rgba(4,12,24,0) 0%,rgba(4,12,24,0.55) 26%);pointer-events:none}
-.ls-row{display:flex;align-items:center;gap:4px;font-size:8px;color:#9fb2c1;justify-content:flex-end}
-.ls-row b{font-size:11px;font-weight:800;color:#e8eef5;min-width:30px;text-align:right}
+ text-shadow:0 0 8px rgba(127,194,238,0.95),0 0 18px rgba(78,144,215,0.6),0 1px 2px rgba(1,8,20,0.9)}
+.led-clock span{font-size:7px;color:#d7e4f0;margin-top:2px;
+ text-shadow:0 1px 2px rgba(1,8,20,0.95),0 0 6px rgba(78,144,215,0.5)}
+.led-station{position:absolute;right:0;top:0;bottom:0;width:128px;padding:3px 8px 2px 6px;display:flex;flex-direction:column;justify-content:center;gap:2px;
+ background:linear-gradient(90deg,rgba(4,12,24,0) 0%,rgba(4,12,24,0.6) 30%);pointer-events:none}
+.ls-row{display:flex;align-items:center;gap:4px;font-size:8px;color:#b9c9d9;justify-content:flex-end;
+ text-shadow:0 1px 2px rgba(1,8,20,0.9)}
+.ls-row b{font-size:11px;font-weight:800;color:#f5f8fb;min-width:30px;text-align:right}
 .ls-row .dot{width:7px;height:7px;border-radius:50%;display:inline-block;border:1px solid rgba(255,255,255,0.25)}
 .dot.band-green{background:#63C969}.dot.band-amber{background:#ffc46b}.dot.band-red{background:#ff8f8f}.dot.grey{background:#7f93a3}
 .led-caption{max-width:432px;justify-content:center;text-align:center}
+
+/* ---------- mobile: stack vertically, nothing clipped ---------- */
 @media (max-width:720px){
- /* mobile: stack vertically — [clock+date row][full-width 3D stage][full-width HUD]; card height flexes to content, nothing clipped */
  .card{display:flex;flex-direction:column;aspect-ratio:auto;height:auto}
  .clockzone{flex-direction:row;align-items:center;justify-content:space-between;gap:10px;
   padding:10px 14px;border-right:0;border-bottom:1px solid rgba(90,138,176,0.25)}
  .cz-date{font-size:11px}
  .cz-time{font-size:40px}
  .cz-cap{display:none}
- .cz-lvl{margin-top:0;text-align:right;font-size:9.5px}
- .stage3d{aspect-ratio:16/9;width:100%;height:auto;border-right:0;border-bottom:1px solid rgba(90,138,176,0.25)}
+ .cz-lvl{display:none}
+ .scene{aspect-ratio:16/9;width:100%;height:auto;border-right:0;border-bottom:1px solid rgba(90,138,176,0.25)}
  .hud{padding:10px 14px 12px}
  .h-num{font-size:40px}
 }
@@ -99,16 +106,13 @@ button:disabled{opacity:.5;cursor:default}
 <body>
 <main>
  <header>
-  <h1>HDA004 คลองช่องสะเดา · การ์ดน้ำ 3D ยามค่ำ — ภาพจำลอง (SIMULATED)</h1>
+  <h1>HDA004 คลองช่องสะเดา · การ์ดน้ำ 2.5D ยามค่ำ — ภาพจำลอง (SIMULATED)</h1>
   <span class="sim-chip">SIMULATED · ไม่ใช่คำเตือนภัย</span>
  </header>
  <div class="controls">
   <button id="refresh" type="button">ดึงข้อมูลใหม่</button>
   <span id="rid-state" class="rid-state">กำลังเตรียม…</span>
-  <span class="sep">·</span>
-  <label for="flow-demo">แรงน้ำ (จำลอง) <input id="flow-demo" type="range" min="0" max="100" step="5" value="70" aria-label="แรงน้ำจำลองสำหรับแถบ LED"><b id="flow-v">70%</b></label>
-  <span class="sep">·</span>
-  <span>ช่องเปิดประตูในภาพ 3D ขับด้วยระดับน้ำจริง (% ตลิ่ง — จำลองการแสดงผลเท่านั้น)</span>
+  <span>ช่องเปิดประตูในภาพขับด้วยระดับน้ำจริง (% ตลิ่ง) — ปรับเองได้ด้วยแรงน้ำ (จำลอง) บนการ์ด</span>
  </div>
 
  <div class="card">
@@ -116,11 +120,17 @@ button:disabled{opacity:.5;cursor:default}
    <div class="cz-date" id="card-day">—</div>
    <div class="cz-time" id="card-time">--:--</div>
    <div class="cz-cap">เวลาประเทศไทย</div>
-   <div class="cz-lvl">ระดับน้ำดิบ (ม.รทก.) อ่านจากแผงขวา<br>ประตูจำลองเปิดตาม % ตลิ่งจริง</div>
+   <div class="cz-lvl">ระดับน้ำดิบ (ม.รทก.) อ่านจากแผงขวา<br>บานประตูจำลองเปิดตาม % ตลิ่งจริง</div>
   </div>
-  <div class="stage3d">
-   <iframe id="spill-frame" src="./spillway-3d/?display=embed&style=night" title="ประตูระบายน้ำจำลอง 3D ยามค่ำคืน (SIMULATED) — เขื่อนและประตูปล่อยน้ำสไตล์ย่อ"></iframe>
-   <span class="stage-chip">3D จำลอง (SIMULATED) · ประตูปล่อยน้ำ + บานประตูเหล็ก</span>
+  <div class="scene">
+   <canvas id="scene-canvas"></canvas>
+   <span class="scene-chip">2.5D จำลอง (SIMULATED) · ประตูปล่อยน้ำ</span>
+   <div class="scene-flow" aria-label="แรงน้ำจำลอง ปรับความแรงของภาพ (ไม่กระทบตัวเลขจริง)">
+    <span>แรงน้ำ (จำลอง)</span>
+    <input id="flow-demo" type="range" min="0" max="100" step="5" value="66" aria-label="แรงน้ำจำลอง">
+    <b id="flow-v">66%</b>
+    <span class="flow-sim">จำลอง</span>
+   </div>
   </div>
   <div class="hud">
    <div class="h-head">HDA004 คลองช่องสะเดา</div>
@@ -134,7 +144,7 @@ button:disabled{opacity:.5;cursor:default}
    <div class="h-slot">ประวัติ 7 วัน · รอแหล่งข้อมูลยืนยัน</div>
    <div class="h-s5">S.5 สะพานปรีดี <b id="s5-value">—</b> ม. <span id="s5-badge" class="h-disc"></span></div>
    <div class="h-disc">เกณฑ์สี: ปกติ / เฝ้าระวัง (ตลิ่ง−0.50 ม.) / ถึงระดับตลิ่ง — ไม่ใช่คำเตือนทางการ</div>
-   <div class="h-disc2">ข้อมูลระดับน้ำจริงจาก ThaiWater/HII · ภาพ 3D และการไหลเป็นภาพจำลอง (SIMULATED) — ประกอบการติดตาม ไม่ใช่คำเตือนทางการ</div>
+   <div class="h-disc2">ข้อมูลระดับน้ำจริงจาก ThaiWater/HII · ภาพ 2.5D และการไหลเป็นภาพจำลอง (SIMULATED) — ประกอบการติดตาม ไม่ใช่คำเตือนทางการ</div>
   </div>
  </div>
 
@@ -145,17 +155,17 @@ button:disabled{opacity:.5;cursor:default}
  </div>
 
  <div class="led-wrap" id="led-wrap">
-  <div class="led-frame" id="led-frame" role="img" aria-label="แถบ LED 432x40 จำลอง: น้ำล้นประตูถ่ายใกล้มาก น้ำล้นขอบล่างและไหลหลังพื้นที่นาฬิกา (SIMULATED)">
-  <canvas id="toon-canvas"></canvas>
-  <canvas id="strip-canvas" aria-hidden="true"></canvas>
-  <div class="led-clock"><b id="led-time">--:--</b><span id="led-day">—</span></div>
-  <div class="led-station">
-   <div class="ls-row"><span>HDA004</span><b id="led-hda">—</b><i class="dot grey" id="led-hda-dot"></i></div>
-   <div class="ls-row"><span>S.5</span><b id="led-s5">—</b><i class="dot grey" id="led-s5-dot"></i></div>
+  <div class="led-frame" id="led-frame" role="img" aria-label="แถบ LED 432x40 จำลอง: ไอคอนเขื่อน 2.5D เต็มองค์ประกอบซ้าย เป็นพื้นหลังหลังนาฬิกา/วันที่ · ค่าสถานีขวา (SIMULATED)">
+   <canvas id="toon-canvas"></canvas>
+   <canvas id="strip-canvas" aria-hidden="true"></canvas>
+   <div class="led-clock"><b id="led-time">--:--</b><span id="led-day">—</span></div>
+   <div class="led-station">
+    <div class="ls-row"><span>HDA004</span><b id="led-hda">—</b><i class="dot grey" id="led-hda-dot"></i></div>
+    <div class="ls-row"><span>S.5</span><b id="led-s5">—</b><i class="dot grey" id="led-s5-dot"></i></div>
+   </div>
   </div>
  </div>
- </div>
- <div class="caption led-caption">แถบ LED 432×40 (จำลอง): มุมถ่ายระยะใกล้มาก — น้ำล้นผืนประตูทะลุขอบบน/ล่าง และไหลเรืองแสงหลังตัวเลขนาฬิกา · ค่าสถานีอยู่ขวา แถบสีตามเกณฑ์</div>
+ <div class="caption led-caption">แถบ LED 432×40 (จำลอง): ไอคอนเขื่อน 2.5D เต็มองค์ประกอบโซนซ้าย เป็นพื้นหลังให้นาฬิกา/วันที่บดบังได้เล็กน้อย · ค่าสถานีแถบสีอยู่ขวา</div>
 </main>
 
 <script>
@@ -172,20 +182,26 @@ var T={
 };
 
 /* ---------- canvases ---------- */
-var toonC=$('toon-canvas'),stripC=$('strip-canvas');
+var sceneC=$('scene-canvas'),toonC=$('toon-canvas'),stripC=$('strip-canvas');
+var sctx=sceneC?sceneC.getContext('2d'):null;
 var tctx=toonC?toonC.getContext('2d'):null;
 var gctx=stripC?stripC.getContext('2d'):null;
-var canvasOk=!!(tctx&&gctx);
+var canvasOk=!!(sctx&&tctx&&gctx);
 var reduced=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 var dpr=Math.min(window.devicePixelRatio||1,2);
 
+function rectOf(el){return el.getBoundingClientRect();}
+function fitCanvas(c,wCss,hCss){
+ var w=Math.max(1,Math.round(wCss*dpr)),h=Math.max(1,Math.round(hCss*dpr));
+ if(c.width!==w||c.height!==h){c.width=w;c.height=h;}
+}
 function sizeCanvases(){
  if(!canvasOk)return;
- var r=$('led-frame').getBoundingClientRect();
- var w=Math.max(1,Math.round((r.width||432)*dpr)),h=Math.max(1,Math.round((r.height||40)*dpr));
- if(toonC.width!==w||toonC.height!==h){toonC.width=w;toonC.height=h;stripC.width=w;stripC.height=h;}
+ var rs=rectOf(sceneC);fitCanvas(sceneC,rs.width||396,rs.height||283);
+ var rl=rectOf(toonC);fitCanvas(toonC,rl.width||432,rl.height||40);fitCanvas(stripC,rl.width||432,rl.height||40);
 }
-/* LED strip auto-scale: shrink the fixed 432px strip to the viewport (never wider), keep desktop 1:1 */
+function ctx2d(c,W,H){c.setTransform(dpr,0,0,dpr,0,0);c.clearRect(0,0,W,H);return c;}
+/* LED strip auto-scale: shrink the fixed 432px strip to the viewport (never wider), desktop stays 1:1 */
 function sizeLed(){
  var wrap=$('led-wrap'),f=$('led-frame');
  if(!wrap||!f)return;
@@ -194,12 +210,6 @@ function sizeLed(){
  f.style.setProperty('--led-s',String(s));
  wrap.style.width=(432*s)+'px';
  wrap.style.height=(40*s+2)+'px';
-}
-function s2d(c){ /* scale context to CSS units */
- var r=$('led-frame').getBoundingClientRect();
- var sx=(r.width||432),sy=(r.height||40);
- c.setTransform(dpr,0,0,dpr,0,0);
- return [sx,sy];
 }
 
 /* ---------- deterministic noise (painterly grain) ---------- */
@@ -211,6 +221,7 @@ function makeGrain(){
 }
 var grain=makeGrain();
 function n2(seed,salt){var x=Math.sin(seed*127.1+(salt||1)*311.7)*43758.5453;return x-Math.floor(x);}
+function pad2(n){return (n<10?'0':'')+n;}
 
 /* ---------- clock (card + LED) ---------- */
 function tickClock(){
@@ -225,134 +236,272 @@ function tickClock(){
 tickClock();setInterval(tickClock,15000);
 
 /* ---------- data state ---------- */
-var lastData=null,samples=[],flow=0.7,simT=0,gateTarget=12;
+var lastData=null,samples=[],flowData=0.66,flowOverride=false,flow=0.66,simT=0;
 
-/* ---------- LED strip: ultra-close overflowing falls (water crosses top/bottom edges) ---------- */
-function drawWaterStrip(t){
- var m=s2d(tctx),W=m[0],H=m[1];
- var bwY=0.88*H; // pool baseline token (scene constant)
- tctx.clearRect(0,0,W,H);
- /* deep night water bg */
- var bg=tctx.createLinearGradient(0,0,0,H);
- bg.addColorStop(0,'#091E3E');bg.addColorStop(0.55,'#061226');bg.addColorStop(1,'#04101F');
- tctx.fillStyle=bg;tctx.fillRect(0,0,W,H);
- /* distant training wall + warm control-building sliver (left, behind clock zone) */
- tctx.fillStyle='#1a3a63';tctx.fillRect(0,H*0.16,W,H*0.30);
- tctx.fillStyle='rgba(78,144,215,0.25)';tctx.fillRect(0,H*0.20,W,H*0.10);
- tctx.fillStyle='rgba(165,130,99,0.55)';
- for(var wx=14;wx<W*0.42;wx+=26){tctx.fillRect(wx,H*0.24,5,3);}
- tctx.fillStyle='rgba(250,226,201,0.30)';
- for(var wx2=18;wx2<W*0.40;wx2+=26){tctx.fillRect(wx2,H*0.24,2.6,2.2);}
- /* two huge gate sheets: cross the TOP edge (water arrives from above) and plunge past the BOTTOM edge */
- var gates=[W*0.33,W*0.70],wBase=W*0.23;
- for(var gi=0;gi<gates.length;gi++){
-  var gx=gates[gi],topY=-H*0.25,botY=H*1.30;
-  var g=tctx.createLinearGradient(gx,topY,gx,botY);
-  g.addColorStop(0,'rgba(232,250,252,0.92)');
-  g.addColorStop(0.16,'rgba(150,204,240,0.94)');
-  g.addColorStop(0.42,'rgba(96,166,224,0.95)');
-  g.addColorStop(1,'rgba(70,132,200,0.88)');
-  tctx.fillStyle=g;
-  tctx.beginPath();
-  var steps=10;
-  tctx.moveTo(gx-wBase/2,topY);
-  for(var i=1;i<=steps;i++){
-   var yy=topY+(botY-topY)*i/steps;
-   var wv=Math.sin(t*(2.2+gi)+i*0.9+gi*2.0)*wBase*0.05*(0.4+flow);
-   tctx.lineTo(gx-wBase/2+wv,yy);
+/* ================================================================
+   2.5D painted scene — layered parallax planes, measured night palette
+   planes: sky/glow -> far towers -> gate structure (piers+leaves+rails+hoist)
+   -> water sheets + foam -> foreground wave band -> grain + vignette
+   ================================================================ */
+function drawScene(c,W,H,t,fl){
+ var sc=H/283; /* px scale: parallax amplitudes stay 2-4 css px */
+ function sway(w){ if(reduced)return 0; var ph=(t*w)%2,tri=ph<1?ph:2-ph;var e=tri*tri*(3-2*tri);return (e-0.5)*2; }
+ var pFar=sway(0.10)*2.4*sc,pGate=sway(0.13)*3.2*sc,pWat=sway(0.16)*4*sc;
+ /* --- plane 1: night sky + volumetric glow --- */
+ var sky=c.createLinearGradient(0,0,0,H*0.8);
+ sky.addColorStop(0,T.bgDeep);sky.addColorStop(0.55,T.skyLo);sky.addColorStop(1,'#0C2038');
+ c.fillStyle=sky;c.fillRect(0,0,W,H);
+ var glow=c.createRadialGradient(W*0.40,H*0.34,2,W*0.40,H*0.34,W*0.44);
+ glow.addColorStop(0,'rgba(78,144,215,0.30)');glow.addColorStop(0.55,'rgba(78,144,215,0.12)');glow.addColorStop(1,'rgba(78,144,215,0)');
+ c.fillStyle=glow;c.fillRect(0,0,W,H);
+ /* reservoir strip behind the dam crest */
+ var rv=c.createLinearGradient(0,H*0.25,0,H*0.35);
+ rv.addColorStop(0,'rgba(10,42,78,0)');rv.addColorStop(0.5,'rgba(10,42,78,0.75)');rv.addColorStop(1,'rgba(10,42,78,0)');
+ c.fillStyle=rv;c.fillRect(0,H*0.25,W,H*0.10);
+ /* --- plane 2: far towers (amber windows + faint shafts) --- */
+ c.save();c.translate(pFar,0);
+ function tower(tx,tw,ty){
+  var tg=c.createLinearGradient(tx,0,tx+tw,0);
+  tg.addColorStop(0,'#4a5058');tg.addColorStop(0.5,'#343646');tg.addColorStop(1,'#23272e');
+  c.fillStyle=tg;c.fillRect(tx,ty,tw,H*0.30-ty);
+  c.fillStyle='#5a6068';c.fillRect(tx-0.02*W,ty,tw+0.04*W,H*0.012);
+  for(var r2=0;r2<2;r2++)for(var c2=0;c2<2;c2++){
+   var wx=tx+tw*(0.22+0.4*c2),wy=ty+H*0.045+r2*H*0.055;
+   c.save();c.shadowColor='rgba(250,226,201,0.9)';c.shadowBlur=6*sc;
+   c.fillStyle=T.warmHi;c.fillRect(wx,wy,tw*0.2,H*0.018);c.restore();
   }
-  for(var i2=steps;i2>=0;i2--){
-   var yy2=topY+(botY-topY)*i2/steps;
-   var wv2=Math.sin(t*(2.2+gi)+i2*0.9+gi*2.0+0.5)*wBase*0.05*(0.4+flow);
-   tctx.lineTo(gx+wBase/2+wv2,yy2);
+  var shaft=c.createLinearGradient(tx+tw*0.3,ty,tx+tw*0.1,H*0.30);
+  shaft.addColorStop(0,'rgba(250,226,201,0.07)');shaft.addColorStop(1,'rgba(250,226,201,0)');
+  c.fillStyle=shaft;
+  c.beginPath();c.moveTo(tx+tw*0.28,ty+H*0.05);c.lineTo(tx+tw*0.55,ty+H*0.05);
+  c.lineTo(tx+tw*0.18,H*0.30);c.lineTo(tx-tw*0.15,H*0.30);c.closePath();c.fill();
+ }
+ tower(W*0.045,W*0.085,H*0.075);
+ tower(W*0.87,W*0.085,H*0.075);
+ c.restore();
+ /* --- plane 3: gate structure — deck, piers, bays, raised leaves, rails, hoist --- */
+ var deckY=H*0.285,deckH=H*0.055,bayTop=deckY+deckH,bayH=H*0.315,poolY=H*0.80;
+ var bays=[[W*0.155,W*0.40],[W*0.50,W*0.745]];
+ c.save();c.translate(pGate,0);
+ /* ogee chute face under the bays (dark concrete, wet sheen) */
+ var ch=c.createLinearGradient(0,bayTop,0,poolY+H*0.04);
+ ch.addColorStop(0,'#0c1522');ch.addColorStop(1,'#1a2c42');
+ c.fillStyle=ch;c.fillRect(W*0.10,bayTop,W*0.70,poolY-bayTop+H*0.04);
+ /* bays: dark opening + raised steel leaf + guide rails + seal bar */
+ for(var bi=0;bi<bays.length;bi++){
+  var x0=bays[bi][0],x1=bays[bi][1],bw=x1-x0;
+  /* dark opening (below the leaf): rectangular bay void */
+  var og=c.createLinearGradient(0,bayTop,0,bayTop+bayH);
+  og.addColorStop(0,'#0A1830');og.addColorStop(1,'#050B16');
+  c.fillStyle=og;c.fillRect(x0,bayTop,bw,bayH);
+  /* raised leaf: hangs from the deck; opening fraction grows with flow, so the leaf retracts upward */
+  var openF=0.12+0.78*fl;
+  var leafH=bayH*(1-openF);
+  var leafBot=bayTop+leafH;
+  var lg=c.createLinearGradient(x0,0,x1,0);
+  lg.addColorStop(0,T.conHi);lg.addColorStop(0.5,'#5f6a76');lg.addColorStop(1,T.conLo);
+   c.fillStyle=lg;c.fillRect(x0+0.012*W,bayTop-0.006*H,bw-0.024*W,leafH);
+  /* leaf ribs */
+  c.strokeStyle='rgba(20,26,34,0.7)';c.lineWidth=Math.max(1,1.1*sc);
+  for(var ry=bayTop+H*0.02;ry<leafBot-H*0.01;ry+=H*0.032){
+   c.beginPath();c.moveTo(x0+0.014*W,ry);c.lineTo(x1-0.014*W,ry);c.stroke();
   }
-  tctx.closePath();tctx.fill();
-  /* bright core ribbon (lighter) */
-  tctx.globalCompositeOperation='lighter';
-  var cg=tctx.createLinearGradient(gx,topY,gx,botY);
-  cg.addColorStop(0,'rgba(234,252,252,0.55)');
-  cg.addColorStop(0.5,'rgba(163,220,246,0.45)');
-  cg.addColorStop(1,'rgba(224,245,252,0.55)');
-  tctx.fillStyle=cg;
-  tctx.fillRect(gx-wBase*0.11,topY,wBase*0.22,botY-topY);
-  tctx.globalCompositeOperation='source-over';
-  /* streak lines inside the sheet */
-  tctx.strokeStyle='rgba(153,209,243,0.35)';tctx.lineWidth=1;
-  for(var ln=-1;ln<=1;ln++){
-   tctx.beginPath();
-   for(var y=topY;y<=botY;y+=9){
-    var pr=(y-topY)/(botY-topY);
-    var xx=gx+ln*wBase*0.18+Math.sin(pr*8+t*(2.4+gi))*3*(0.4+flow)*pr;
-    if(y===topY)tctx.moveTo(xx,y);else tctx.lineTo(xx,y);
+  /* bright bottom seal bar = moving tracked edge */
+  c.fillStyle='#cfd9df';
+  c.fillRect(x0+0.012*W,leafBot-Math.max(1,1.4*sc),bw-0.024*W,Math.max(1.4,1.8*sc));
+  /* guide rails flanking the leaf travel */
+  c.fillStyle='#6a7580';
+  c.fillRect(x0-0.006*W,bayTop-0.01*H,Math.max(1.5,2*sc),bayH*0.9);
+  c.fillRect(x1-0.001*W,bayTop-0.01*H,Math.max(1.5,2*sc),bayH*0.9);
+  /* water emerging from UNDER the leaf: 3-step luminous sheet */
+  var shH=poolY-leafBot+H*0.02;
+  var sg=c.createLinearGradient(0,leafBot,0,poolY+H*0.02);
+  sg.addColorStop(0,'rgba(78,144,215,0.95)');
+  sg.addColorStop(0.45,'rgba(163,220,246,0.92)');
+  sg.addColorStop(1,'rgba(224,245,252,0.88)');
+  c.fillStyle=sg;
+   var sw2=bw*(0.72+0.2*fl);
+  var wob=Math.sin(t*(2.0+2.2*fl)+bi*2.1)*bw*0.03*(0.3+fl);
+   /* painterly sheet: tapered silhouette with wavy edges (no hard rect) */
+   var shx=gx1(x0,x1,sw2,wob),shSteps=8;
+   c.beginPath();
+   c.moveTo(shx+sw2*0.08,leafBot+1);
+   for(var si=1;si<=shSteps;si++){
+    var sy=leafBot+1+shH*si/shSteps;
+    var spread=sw2*(0.85+0.3*(si/shSteps))*0.5;
+    var wv=Math.sin(t*(2.4+fl*2)+si*1.5+bi)*bw*0.02*(0.3+fl);
+    c.lineTo(shx+sw2/2-spread+wv,sy);
    }
-   tctx.stroke();
-  }
+   for(var si2=shSteps;si2>=0;si2--){
+    var sy2=leafBot+1+shH*si2/shSteps;
+    var spread2=sw2*(0.85+0.3*(si2/shSteps))*0.5;
+    var wv2=Math.sin(t*(2.4+fl*2)+si2*1.5+bi+0.9)*bw*0.02*(0.3+fl);
+    c.lineTo(shx+sw2/2+spread2+wv2,sy2);
+   }
+   c.closePath();c.fill();
+   /* luminous core ribbon (lighter) */
+   c.globalCompositeOperation='lighter';
+   var cg=c.createLinearGradient(0,leafBot,0,poolY);
+   cg.addColorStop(0,'rgba(163,220,246,0.35)');
+   cg.addColorStop(1,'rgba(234,252,252,0.55)');
+   c.fillStyle=cg;
+   c.fillRect(shx+sw2*0.34,leafBot+1,sw2*0.32,shH);
+   c.globalCompositeOperation='source-over';
+   /* impact spray at the sheet base */
+   for(var sp=0;sp<Math.round(4+6*fl);sp++){
+    var ss1=n2(bi*31+sp*5.3),life3=(t*(1.2+ss1)+ss1*4)%1;
+    var spx=shx+sw2*(0.15+0.7*ss1);
+    var spy=poolY-H*0.005-H*0.05*life3*(0.4+0.8*n2(sp+7,2.1));
+    c.fillStyle='rgba(224,245,252,'+(0.75*(1-life3)).toFixed(3)+')';
+    c.beginPath();c.arc(spx,spy,0.8+1.8*ss1,0,6.283);c.fill();
+   }
+  /* pier seams flanking the bay */
+  c.strokeStyle='rgba(129,135,156,0.4)';c.lineWidth=Math.max(1,1*sc);
+  c.strokeRect(x0,bayTop,bw,bayH*0.62);
  }
- /* foam pool mass: crosses the BOTTOM edge, billowing white-hot clusters over deep-blue water */
- var db=tctx.createLinearGradient(0,H*0.45,0,H);
- db.addColorStop(0,'rgba(62,118,191,0.55)');
- db.addColorStop(0.5,'rgba(41,89,145,0.75)');
- db.addColorStop(1,'rgba(24,54,98,0.9)');
- tctx.fillStyle=db;tctx.fillRect(0,H*0.45,W,H*0.55);
- tctx.globalCompositeOperation='lighter';
- for(var k=0;k<Math.round(26+16*flow);k++){
-  var s1=n2(k*12.9+Math.floor(t*0.5)*0.37,7.7),s2=n2(k*7.3,3.1);
-  var life=(t*(0.35+0.5*s2)+s1*9)%1;
-  var px2=W*0.05+s1*W*0.9;
-  var py2=H*0.72+(s2-0.5)*H*0.4*(1-life*0.3);
-  var rr=(6+13*s1)*(0.6+0.75*life)*(0.75+0.65*flow);
-  var rg=tctx.createRadialGradient(px2,py2-rr*0.2,rr*0.12,px2,py2,rr);
-  rg.addColorStop(0,'rgba(224,245,252,0.78)');
+ function gx1(x0,x1,sw2,wob){var cx=(x0+x1)/2+wob*0.4;return cx-sw2/2;}
+ /* piers between/around the bays: concrete volumes with seams + amber windows */
+ for(var pi=0;pi<3;pi++){
+  var pxx=[W*0.095,W*0.40,W*0.745][pi],pw2=[W*0.06,W*0.10,W*0.06][pi];
+  var pg2=c.createLinearGradient(pxx,0,pxx+pw2,0);
+  pg2.addColorStop(0,'#3d434c');pg2.addColorStop(0.5,T.conLo);pg2.addColorStop(1,'#2a2e36');
+  c.fillStyle=pg2;c.fillRect(pxx,deckY-H*0.01,pw2,poolY-deckY+H*0.05);
+  c.strokeStyle='rgba(129,135,156,0.35)';c.lineWidth=1;
+  for(var sy2=deckY+H*0.03;sy2<poolY;sy2+=H*0.05){
+   c.beginPath();c.moveTo(pxx+1,sy2);c.lineTo(pxx+pw2-1,sy2);c.stroke();
+  }
+  c.save();c.shadowColor='rgba(250,226,201,0.9)';c.shadowBlur=5*sc;
+  c.fillStyle=T.warmHi;
+  c.fillRect(pxx+pw2*0.2,deckY+H*0.045,pw2*0.28,H*0.022);
+  c.fillRect(pxx+pw2*0.2,deckY+H*0.095,pw2*0.28,H*0.022);
+  c.restore();
+ }
+ /* hoist beam + trolleys + cables above each leaf */
+ var hy=deckY-H*0.052;
+ var hg=c.createLinearGradient(0,hy,0,hy+H*0.028);
+ hg.addColorStop(0,T.conHi);hg.addColorStop(1,'#3a4048');
+ c.fillStyle=hg;c.fillRect(W*0.09,hy,W*0.72,H*0.016);
+ c.fillStyle='#2a2e36';c.fillRect(W*0.09,hy+H*0.016,W*0.72,H*0.012);
+ for(var bi2=0;bi2<bays.length;bi2++){
+  var txx=(bays[bi2][0]+bays[bi2][1])/2;
+  c.fillStyle='#4a5058';
+  c.fillRect(txx-0.024*W,hy-H*0.012,0.048*W,H*0.016);
+  c.strokeStyle='rgba(160,170,182,0.65)';c.lineWidth=Math.max(0.8,0.9*sc);
+  var lb=bayTop+bayH*(1-(0.12+0.78*fl));
+  c.beginPath();c.moveTo(txx-0.02*W,hy+H*0.028);c.lineTo(txx-0.02*W,lb-H*0.008);
+  c.moveTo(txx+0.02*W,hy+H*0.028);c.lineTo(txx+0.02*W,lb-H*0.008);c.stroke();
+ }
+ c.restore();
+ /* --- plane 4: plunge pool + clustered billow foam + reflection sheen --- */
+ c.save();c.translate(pWat,0);
+ var pool=c.createLinearGradient(0,poolY-H*0.03,0,H*0.9);
+ pool.addColorStop(0,'rgba(41,89,145,0.55)');
+ pool.addColorStop(0.5,'rgba(29,66,115,0.8)');
+ pool.addColorStop(1,'rgba(12,30,56,0.92)');
+ c.fillStyle=pool;c.fillRect(0,poolY-H*0.03,W,H*0.93-poolY);
+ /* cyan under-shading slab under each bay mouth */
+ for(var bi3=0;bi3<bays.length;bi3++){
+  var ux=(bays[bi3][0]+bays[bi3][1])/2;
+  var ug=c.createRadialGradient(ux,poolY+H*0.035,2,ux,poolY+H*0.035,W*0.12);
+  ug.addColorStop(0,'rgba(41,89,145,0.55)');ug.addColorStop(1,'rgba(41,89,145,0)');
+  c.fillStyle=ug;
+  c.beginPath();c.ellipse(ux,poolY+H*0.035,W*0.12,H*0.035,0,0,6.283);c.fill();
+ }
+ /* clustered billows: white-hot cores + cyan shading, density keyed to flow */
+ var puffs=Math.round(14+22*fl);
+ c.globalCompositeOperation='lighter';
+ for(var k=0;k<puffs;k++){
+  var bi4=k%2,s1=n2(k*12.9+Math.floor(t*(0.5+0.6*fl))*0.31,7.7),s2=n2(k*7.3,3.1);
+  var life=(t*(0.5+0.55*s2)+s1*9)%1;
+  var bx=(bays[bi4][0]+bays[bi4][1])/2+(s1-0.5)*(bays[bi4][1]-bays[bi4][0])*(1.1+0.4*life);
+  var by=poolY+H*0.02+(s2-0.5)*H*0.045*(1-life*0.3);
+  var rr=(4+9*s1)*(0.6+0.75*life)*(0.65+0.6*fl)*sc;
+  var rg=c.createRadialGradient(bx,by-rr*0.2,rr*0.12,bx,by,rr);
+  rg.addColorStop(0,'rgba(224,245,252,0.85)');
   rg.addColorStop(0.4,'rgba(231,248,252,0.6)');
-  rg.addColorStop(0.75,'rgba(153,209,243,0.4)');
+  rg.addColorStop(0.75,'rgba(153,209,243,0.38)');
   rg.addColorStop(1,'rgba(153,209,243,0)');
-  tctx.fillStyle=rg;
-  tctx.beginPath();tctx.arc(px2,py2,rr,0,6.283);tctx.fill();
+  c.fillStyle=rg;
+  c.beginPath();c.arc(bx,by,rr,0,6.283);c.fill();
  }
- /* spray dots bursting upward past the mid-line */
- for(var k2=0;k2<Math.round(20+14*flow);k2++){
-  var s3=n2(k2*5.7+21),life3=(t*(0.8+0.8*s3)+s3*4)%1;
-  var px3=W*0.08+s3*W*0.84;
-  var py3=H*0.62-H*0.5*life3*(0.4+0.8*n2(k2+91,2.3));
-  tctx.fillStyle='rgba(224,245,252,'+(0.75*(1-life3)).toFixed(3)+')';
-  tctx.beginPath();tctx.arc(px3,py3,0.8+2.2*s3,0,6.283);tctx.fill();
+ /* reflection sheen columns under the bays */
+ for(var gi=0;gi<2;gi++){
+  var rgx=(bays[gi][0]+bays[gi][1])/2;
+  var rf=c.createLinearGradient(0,poolY,0,H*0.88);
+  rf.addColorStop(0,'rgba(163,220,246,0.24)');rf.addColorStop(1,'rgba(163,220,246,0)');
+  c.fillStyle=rf;
+  c.fillRect(rgx-W*0.045,poolY,W*0.09,H*0.088-poolY);
  }
- /* band streaks on the lower water (reference token) */
- tctx.globalCompositeOperation='source-over';
- tctx.strokeStyle=T.bandStreak;
- for(var ks=0;ks<3;ks++){
-  var sy2=H*(0.80+0.07*ks);
-  tctx.lineWidth=0.7+ks*0.35;tctx.globalAlpha=0.4+0.3*ks*0.3;
-  tctx.beginPath();
-  for(var sx2=0;sx2<=W;sx2+=16){
-   var sx3=sx2+Math.sin(sx2*0.03+t*(0.6+ks*0.4)+ks*2)*4;
-   if(sx2===0)tctx.moveTo(sx3,sy2);else tctx.lineTo(sx3,sy2);
+ c.globalCompositeOperation='source-over';
+ c.restore();
+ /* --- plane 5: foreground wave band (energy keyed to flow) --- */
+ var bwY=0.88*H;
+ var bgrad=c.createLinearGradient(0,bwY,0,H);
+ bgrad.addColorStop(0,T.bandTop);bgrad.addColorStop(1,T.bandBot);
+ c.fillStyle=bgrad;c.fillRect(0,bwY,W,H-bwY);
+ c.strokeStyle=T.bandStreak;
+ for(var k3=0;k3<3;k3++){
+  var seed=n2(k3*17.3);
+  var yy=bwY+4+seed*(H-bwY-8);
+  c.lineWidth=(1+seed*1.4)*sc;
+  c.beginPath();
+  for(var x=0;x<=W;x+=14){
+   var xx=x+Math.sin(x*0.02+t*(0.5+0.9*fl)+k3*2)*(3+4*fl);
+   if(x===0)c.moveTo(xx,yy);else c.lineTo(xx,yy);
   }
-  tctx.stroke();
+  c.globalAlpha=0.5+0.35*seed;
+  c.stroke();
  }
- tctx.globalAlpha=1;
+ c.globalAlpha=1;
+ /* --- finishing: painterly grain + corner vignette --- */
+ c.globalAlpha=0.05;
+ for(var gx2=0;gx2<W;gx2+=140)for(var gy2=0;gy2<H;gy2+=140)c.drawImage(grain,gx2,gy2);
+ c.globalAlpha=1;
+ var vg=c.createRadialGradient(W*0.5,H*0.45,H*0.55,W*0.5,H*0.5,H*1.05);
+ vg.addColorStop(0,'rgba(1,8,20,0)');vg.addColorStop(1,'rgba(1,8,20,0.42)');
+ c.fillStyle=vg;c.fillRect(0,0,W,H);
 }
 
-/* ---------- sparkle/grain overlay (separate accent layer) ---------- */
-function drawSparkle(t){
- var m=s2d(gctx),W=m[0],H=m[1];
+/* ---------- sparkle/grain overlay for the LED strip ---------- */
+function drawSparkle(t,W,H){
  gctx.clearRect(0,0,W,H);
- for(var k=0;k<16;k++){
+ for(var k=0;k<14;k++){
   var s1=n2(k*3.7+Math.floor(t*2.2)*1.13),s2=n2(k*9.1,5.2);
-  var tw=Math.max(0,Math.sin(t*(2+s2*3)+k)) * 0.5;
-  gctx.fillStyle='rgba(224,245,252,'+(tw*0.5).toFixed(3)+')';
-  gctx.beginPath();gctx.arc(s1*W,H*0.18+s2*H*0.66,0.7+s2*1.3,0,6.283);gctx.fill();
+  var tw=Math.max(0,Math.sin(t*(2+s2*3)+k))*0.5;
+  gctx.fillStyle='rgba(224,245,252,'+(tw*0.45).toFixed(3)+')';
+  gctx.beginPath();gctx.arc(s1*W,H*0.2+s2*H*0.6,0.7+s2*1.2,0,6.283);gctx.fill();
  }
- gctx.globalAlpha=0.06;
- for(var gx2=0;gx2<W;gx2+=140)gctx.drawImage(grain,gx2,0);
+ gctx.globalAlpha=0.05;
+ for(var gx=0;gx<W;gx+=140)gctx.drawImage(grain,gx,0);
  gctx.globalAlpha=1;
 }
 
 function drawAll(){
  if(!canvasOk)return;
  sizeCanvases();
- drawWaterStrip(simT);
- drawSparkle(simT);
+ var rs=rectOf(sceneC),W=rs.width||396,H=rs.height||283;
+ ctx2d(sctx,W,H);
+ drawScene(sctx,W,H,simT,flow);
+ var rl=rectOf(toonC),LW=rl.width||432,LH=rl.height||40;
+ ctx2d(tctx,LW,LH);
+ /* right station panel zone */
+ var pg=tctx.createLinearGradient(0,0,0,LH);
+ pg.addColorStop(0,'#071726');pg.addColorStop(1,'#04101c');
+ tctx.fillStyle=pg;tctx.fillRect(0,0,LW,LH);
+ /* full 2.5D icon scene, LEFT zone, rendered entirely (fit, never cropped) */
+ var sceneW=Math.min(LW*0.60,268);
+ tctx.save();tctx.beginPath();tctx.rect(0,0,sceneW,LH);tctx.clip();
+ drawScene(tctx,sceneW,LH,simT,flow);
+ /* readability scrim (~20%) under the clock/date typography */
+ var sc=tctx.createLinearGradient(0,0,LW*0.44,0);
+ sc.addColorStop(0,'rgba(4,12,24,0.25)');sc.addColorStop(1,'rgba(4,12,24,0)');
+ tctx.fillStyle=sc;tctx.fillRect(0,0,LW*0.44,LH);
+ tctx.restore();
+ /* divider */
+ tctx.fillStyle='#1d3a52';tctx.fillRect(sceneW,3,1,LH-6);
+ var gs=rectOf(stripC),GW=gs.width||432,GH=gs.height||40;
+ ctx2d(gctx,GW,GH);
+ drawSparkle(simT,GW,GH);
 }
 
 /* ---------- main loop ---------- */
@@ -373,10 +522,11 @@ document.addEventListener('visibilitychange',function(){
  else{lastT=0;if(!reduced)startLoop();else drawAll();}
 });
 
-/* ---------- แรงน้ำ demo slider (LED strip art only) ---------- */
+/* ---------- แรงน้ำ demo slider — ON the card; art only, numbers stay real ---------- */
 var fd=$('flow-demo'),fv=$('flow-v');
 if(fd)fd.addEventListener('input',function(){
  flow=(Number(fd.value)||0)/100;
+ flowOverride=true;
  if(fv)fv.textContent=fd.value+'%';
  if(reduced&&canvasOk)drawAll();
 });
@@ -391,41 +541,23 @@ function bandFor(level,bank){
 function num(x){ if(x==null)return null; if(typeof x==='number')return isFinite(x)?x:null;
  if(typeof x==='string'){var t=x.trim();if(!t)return null;var f=parseFloat(t);return isFinite(f)?f:null;} return null; }
 
-/* ---------- 3D embed handshake (gate opening driven by real %bank) ---------- */
-var frame3d=$('spill-frame'),embedReady=false,lastFlowTarget=null,retryTimers=[];
-function postToFrame(msg){ try{frame3d.contentWindow.postMessage(msg,'*');}catch(_e){} }
-function clearRetries(){ retryTimers.forEach(clearTimeout); retryTimers=[]; }
-function sendFlow(v){
- lastFlowTarget=v;
- postToFrame({type:'spillway-flow',v:v});
- if(!embedReady){
-  clearRetries();
-  retryTimers.push(setTimeout(function(){ if(!embedReady)postToFrame({type:'spillway-flow',v:lastFlowTarget}); },300));
-  retryTimers.push(setTimeout(function(){ if(!embedReady)postToFrame({type:'spillway-flow',v:lastFlowTarget}); },900));
- }
-}
-addEventListener('message',function(e){
- var d=e.data;
- if(!d||d.source!=='spillway')return;
- if(d.type==='ready'){ embedReady=true; clearRetries(); if(lastFlowTarget!=null)sendFlow(lastFlowTarget); }
-});
-
-/* symbolic gate drive: effective = max(%bank of HDA004, %bank of S.5) -> opening % (idle floor 12%, fail-closed idle) */
+/* symbolic gate drive: flow defaults to max(%bank of HDA004, %bank of S.5); data refresh wins over the slider */
 function applyGateFromData(){
  var pcts=[];
  if(lastData&&lastData.hda&&lastData.hda.v!=null&&lastData.hda.bank!=null)
   pcts.push(Math.max(0,Math.min(100,Math.round(lastData.hda.v/lastData.hda.bank*100))));
  if(lastData&&lastData.s5&&lastData.s5.v!=null)
   pcts.push(Math.max(0,Math.min(100,Math.round(lastData.s5.v/4.70*100))));
- var open=12; /* fail-closed idle: no data -> gates nearly closed */
+ var open=12; /* fail-closed idle: no data -> water nearly still */
  if(pcts.length)open=Math.round(Math.max(12,Math.min(100,Math.max.apply(null,pcts))));
- gateTarget=open;
- sendFlow(open);
+ flowData=open/100;
+ if(fd)fd.value=String(open);
+ if(fv)fv.textContent=open+'%';
+ if(!flowOverride)flow=flowData;
 }
 
 /* ---------- ThaiWater real data (fail-closed; real payload shape) ---------- */
 var TIMEOUT_MS=12000,fetchInFlight=false,autoTimer=null,baseV=null;
-function num0(x){return num(x);}
 function fetchT(url,opts){
  var ctrl=(typeof AbortController!=='undefined')?new AbortController():null;
  var o=opts||{};if(ctrl)o.signal=ctrl.signal;
@@ -437,7 +569,6 @@ function applyData(stations){
  var vEl=$('hda-value'),pEl=$('hda-pill'),tEl=$('hda-trend'),dEl=$('hda-delta');
  var s5El=$('s5-value'),s5bEl=$('s5-badge');
  var lh=$('led-hda'),lhD=$('led-hda-dot'),ls=$('led-s5'),lsD=$('led-s5-dot');
- /* HDA004 */
  if(hda&&hda.v!=null&&hda.bank!=null){
   var band=bandFor(hda.v,hda.bank);
   var pct=Math.max(0,Math.min(100,Math.round(hda.v/hda.bank*100)));
@@ -474,7 +605,6 @@ function applyData(stations){
   var sr2=$('rid-state');
   if(sr2)sr2.textContent='ระดับน้ำ HDA004: รอข้อมูล';
  }
- /* S.5 */
  if(s5&&s5.v!=null&&s5.bank!=null){
   var sb=bandFor(s5.v,s5.bank);
   lastData=lastData||{};lastData.s5={v:s5.v,bank:s5.bank,color:sb.color,band:sb.band,badge:sb.badge,badgeText:sb.badge,badgeColor:sb.color};
@@ -499,11 +629,11 @@ function parseThaiwater(j){
   for(var i=0;i<src.length;i++){
    var r=src[i]||{},st=r.station||{},sid=st.id;
    if(sid===471583){
-    out.push({sid:'a',v:num0(r.waterlevel_msl),bank:num0(st.min_bank),
+    out.push({sid:'a',v:num(r.waterlevel_msl),bank:num(st.min_bank),
      when:(r.waterlevel_datetime||'').replace('T',' ').slice(0,16)});
    }
    if(sid===2607){
-    out.push({sid:'s5',v:num0(r.waterlevel_msl),bank:4.70,when:(r.waterlevel_datetime||'').slice(0,16)});
+    out.push({sid:'s5',v:num(r.waterlevel_msl),bank:4.70,when:(r.waterlevel_datetime||'').slice(0,16)});
    }
   }
  }catch(_e){}
@@ -537,7 +667,7 @@ function setState(txt,err){
 }
 var rb=$('refresh');
 if(rb)rb.addEventListener('click',function(){fetchWater();});
-window.__toon=function(){return {data:lastData,samples:samples.length,flow:flow,gateTarget:gateTarget,canvasOk:canvasOk};};
+window.__toon=function(){return {data:lastData,samples:samples.length,flow:flow,flowData:flowData,override:flowOverride,canvasOk:canvasOk};};
 autoTimer=setInterval(function(){ if(!document.hidden)fetchWater(); },300000);
 
 /* ---------- boot ---------- */
