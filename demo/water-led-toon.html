@@ -1,0 +1,532 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#071421"><link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 16 16%27%3E%3Crect width=%2716%27 height=%2716%27 fill=%27%23071421%27/%3E%3Cpath d=%27M2 9c2-3 4-3 6 0s4 3 6 0%27 stroke=%27%233ddcff%27 stroke-width=%272%27 fill=%27none%27/%3E%3C/svg%3E">
+<title>DEMO · การ์ดน้ำแบบภาพจำลอง (SIMULATED) — ระดับน้ำจริง HDA004 · ThaiWater</title>
+<meta name="description" content="หน้าสาธิต (DEMO ONLY): การ์ดน้ำสไตล์ภาพวาด 2.5D (ฉากจำลอง ไม่ใช่ข้อมูลจริงของฉาก) — ระดับน้ำจริงจาก ThaiWater/HII (HDA004 คลองช่องสะเดา · S.5) · ไม่มีข้อมูลปลอม · ไม่ผูกกับหน้าผลิต">
+<style>
+:root{font-family:Tahoma,"Noto Sans Thai",system-ui,sans-serif;color:#eaf3fb;background:#071421}
+*{box-sizing:border-box}html,body{margin:0;min-height:100%;background:#071421}body{padding:14px}
+main{max-width:980px;margin:0 auto}
+header{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;border-bottom:1px solid #2c4a5e;padding-bottom:12px}
+h1{font-size:19px;margin:0;font-weight:800}
+header p{margin:4px 0 0;font-size:12px;color:#b7c9d6;line-height:1.6}
+.demo-banner{margin:12px 0;background:#3d3113;border:1px solid #d9b44a;border-left:5px solid #d9b44a;border-radius:8px;padding:10px 12px;font-size:12.5px;line-height:1.7;color:#f5e6b8}
+.card{position:relative;max-width:900px;margin:0 auto;border-radius:18px;padding:2px;
+  background:linear-gradient(140deg,#3ddcff 0%,#1379b4 30%,#0d3a5c 70%,#123b5e 100%);
+  box-shadow:0 0 26px rgba(61,220,255,.28),0 18px 50px rgba(0,0,0,.55)}
+.card-inner{display:flex;gap:0;border-radius:16px;overflow:hidden;background:linear-gradient(180deg,#0a2233 0%,#081c2c 100%)}
+.scene-wrap{flex:0 0 55%;position:relative;min-height:240px;background:#061625}
+.scene-wrap canvas{display:block;width:100%;height:100%}
+.panel{flex:1;min-width:0;padding:14px 16px 10px;display:flex;flex-direction:column;gap:6px;text-align:left}
+.st-name{font-size:12.5px;font-weight:800;color:#cfeeff;line-height:1.35}
+.numline{display:flex;align-items:baseline;gap:6px;margin:2px 0 0}
+.big-value{font-size:42px;font-weight:800;line-height:1;font-variant-numeric:tabular-nums;white-space:nowrap}
+.unit{font-size:12px;font-weight:700;color:#9fc6e0}
+.trend{font-size:15px;font-weight:800;margin-left:2px}
+.trend.up{color:#ffb454}.trend.down{color:#7fe8a8}.trend.grey{color:#7f93a3}
+.trend-cap{font-size:8.5px;color:#7f93a3;margin-left:2px}
+.badge{display:inline-block;font-size:12px;font-weight:800;border-radius:6px;padding:2px 9px;margin-top:4px}
+.badge.green{color:#0a2028;background:#7fe8a8}
+.badge.amber{color:#2a1a05;background:#ffc46b}
+.badge.red{color:#2a0808;background:#ff8f8f}
+.badge.grey{color:#c6d0dc;background:#33475a}
+.pct{font-size:13px;font-weight:700;color:#bfe0f5;margin-top:2px}
+.sub-sep{border:0;border-top:1px dashed #2c4a5e;margin:8px 0 4px}
+.sub-row{display:flex;align-items:baseline;gap:6px;font-size:12px}
+.sub-name{color:#9fc6e0;font-weight:700}
+.sub-value{font-weight:800;color:#dff1ff}
+.sub-value.band-green{color:#7fe8a8}.sub-value.band-amber{color:#ffc46b}.sub-value.band-red{color:#ff7a7a}.sub-value.grey{color:#7f93a3}
+.updated{font-size:9px;color:#7f93a3;margin-top:auto;padding-top:8px}
+.caption{max-width:900px;margin:10px auto 0;font-size:11.5px;color:#9fb2c1;line-height:1.8;display:flex;flex-wrap:wrap;gap:4px 16px;align-items:center}
+.caption .src{color:#8fb6d4}
+.caption .sim{color:#e8c877;font-weight:700}
+.caption .gatenote{color:#a8c8b8}
+.caption button{font:inherit;font-size:11px;font-weight:700;color:#04101c;background:#5fc9ff;border:1px solid #5fc9ff;border-radius:6px;padding:3px 10px;cursor:pointer}
+.caption button:hover{background:#9fe0ff}
+.caption button:disabled{opacity:.55;cursor:wait}
+.caption .flowdemo{display:inline-flex;align-items:center;gap:6px;color:#c9b8e0}
+.caption .flowdemo input{width:110px;accent-color:#3ddcff}
+.caption .flowdemo b{color:#e6d9f5}
+.rid-state{color:#8fb6d4}.rid-state.err{color:#ff8f8f;font-weight:700}
+.strip-wrap{max-width:900px;margin:26px auto 0}
+.strip-label{font-size:10.5px;font-weight:700;color:#8fb6d4;letter-spacing:.4px;margin:0 0 6px}
+.led-sizer{position:relative;width:432px;height:40px;margin:0 auto;flex:0 0 auto}
+.led-frame{width:432px;height:40px;transform:scale(var(--led-s,1));transform-origin:top left;position:relative;border-radius:4px;overflow:hidden;background:#04101c;border:1px solid #1d3a52;box-shadow:0 0 0 1px rgba(61,220,255,.25),0 0 14px rgba(61,220,255,.2)}
+.led-frame canvas{display:block;width:432px;height:40px}
+.note{font-size:11px;color:#9fb2c1;margin:10px auto 0;max-width:900px;line-height:1.7}
+.disc{color:#c9d8b8}
+footer{margin-top:14px;font-size:11px;color:#b8c9d5;line-height:1.7}
+.fallback-panel{display:none;max-width:900px;margin:0 auto;border:1px dashed #486579;border-radius:14px;padding:18px;background:#0a2233}
+.fallback-panel.on{display:block}
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <div>
+      <h1>DEMO · การ์ดน้ำแบบภาพจำลอง — ระดับน้ำจริง HDA004 · S.5</h1>
+      <p>ฉากและการไหลเป็นภาพจำลอง (SIMULATED) · ตัวเลขระดับน้ำจริงจาก ThaiWater/HII · รีเฟรชด้วยมือ + อัตโนมัติทุก 5 นาที · ไม่ผูกกับหน้าผลิต</p>
+    </div>
+  </header>
+
+  <div class="demo-banner" role="note">
+    <strong>หน้าสาธิต (DEMO ONLY)</strong> — ตัวเลขระดับน้ำจริงจาก ThaiWater/HII (วัดจริงรายชั่วโมง) ·
+    ฉากประตู/สายน้ำ/ฟอง เป็น <em>แบบจำลองเชิงภาพ (SIMULATED) ไม่ใช่ภาพสถานีจริงและไม่ใช่คำเตือนภัย</em> ·
+    กราฟย้อนหลัง 7 วัน ยังไม่เปิดใช้ (รอแหล่งข้อมูลยืนยัน) · ค่าหาย/ว่างแสดงเป็น «— รอข้อมูล» เสมอ ไม่แสดง 0 แทนข้อมูลที่ไม่ทราบ
+  </div>
+
+  <section class="card" aria-label="การ์ดระดับน้ำ สถานี HDA004 (ฉากจำลอง)">
+    <div class="card-inner">
+      <div class="scene-wrap"><canvas id="dam-canvas" aria-label="ภาพจำลองเคลื่อนไหว: เขื่อน 3 ช่องประตู น้ำไหลลงสู่สระ มีฟองและคลื่นหน้า (ภาพสังเคราะห์ ไม่ใช่ภาพจริง)" role="img"></canvas></div>
+      <div class="panel">
+        <div class="st-name" id="hda-name">HDA004 คลองช่องสะเดา · ต.อุทัย</div>
+        <div class="numline">
+          <span class="big-value grey" id="hda-value">—</span>
+          <span class="unit">ม.รทก.</span>
+          <span class="trend grey" id="hda-trend" hidden>–</span><span class="trend-cap" id="hda-trend-cap" hidden>เทียบตอนเปิดหน้า</span>
+        </div>
+        <span class="badge grey" id="hda-badge">รอข้อมูล</span>
+        <div class="pct" id="hda-pct">— ของระดับตลิ่ง</div>
+        <hr class="sub-sep">
+        <div class="sub-row"><span class="sub-name">S.5 สะพานปรีดี</span><span class="sub-value grey" id="s5-value">— ม.รทก.</span></div>
+        <div class="updated" id="updated-at">อัปเดต: ยังไม่มีข้อมูล</div>
+      </div>
+    </div>
+  </section>
+
+  <div class="fallback-panel" id="fallback-panel">
+    <strong>โหมดสำรอง (ไม่มี Canvas)</strong>
+    <div>ระดับน้ำ HDA004: <span id="fb-hda">— รอข้อมูล</span> · S.5: <span id="fb-s5">— รอข้อมูล</span></div>
+  </div>
+
+  <div class="strip-wrap">
+    <p class="strip-label">ตัวอย่างปรับบนจอ LED 432×40 (จำลอง)</p>
+    <div class="led-sizer" id="led-sizer"><div class="led-frame"><canvas id="strip-canvas" aria-label="แถบ LED จำลอง: นาฬิกา ฉากเขื่อน และระดับน้ำ (ภาพสังเคราะห์)" role="img"></canvas></div></div>
+  </div>
+
+  <div class="caption" role="group" aria-label="ที่มาข้อมูลและตัวควบคุมสาธิต">
+    <span class="src">ข้อมูลจริง: ThaiWater/HII · <span class="rid-state" id="rid-state">ยังไม่ดึงข้อมูล</span> · <span id="ts">—</span></span>
+    <span class="sim">ฉากและการไหลเป็นภาพจำลอง (SIMULATED) · ไม่ใช่คำเตือนภัย</span>
+    <span class="flowdemo">แรงน้ำ (จำลอง): <input id="flow-demo" type="range" min="0" max="100" value="60" aria-label="แรงน้ำจำลอง"><b id="flow-v">60%</b></span>
+    <button type="button" id="refresh">รีเฟรชระดับน้ำจริง</button>
+  </div>
+  <p class="note disc">เกณฑ์สีประกอบการติดตาม: ปกติ (ต่ำกว่าตลิ่ง−0.50 ม.) / เฝ้าระวัง (ใกล้ตลิ่ง) / ถึงระดับตลิ่ง — ไม่ใช่คำเตือนทางการ · % ของระดับตลิ่ง = ระดับน้ำเทียบระดับตลิ่งทะเบียน</p>
+
+  <footer>
+    หน้าสาธิตเท่านั้น — ไฟล์สาธิตแยกอิสระ (ไม่มีไลบรารีภายนอก) · ไม่แตะไฟล์ผลิตทุกไฟล์ · ตัวเลขจาก ThaiWater/HII เท่านั้น
+  </footer>
+</main>
+<script>
+(function(){
+  'use strict';
+  /* ---------- state ---------- */
+  var flow=0.60;                 // แรงน้ำ (จำลอง) 0..1
+  var samples=[];                // HDA004 samples this session {v,t}
+  var lastData=null;             // {hda:{v,bank,pct,band,when}, s5:{v,band}, trend}
+  var dpr=Math.min(window.devicePixelRatio||1,2);
+  var reduced=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var canvasOk=true,rafId=null,simT=0,lastT=0;
+
+  /* ---------- DOM ---------- */
+  var $=function(id){return document.getElementById(id);};
+  var damCv=$('dam-canvas'),stripCv=$('strip-canvas');
+
+  /* ---------- canvas boot (graceful fallback) ---------- */
+  try{
+    if(!damCv.getContext||!damCv.getContext('2d'))canvasOk=false;
+  }catch(_e){canvasOk=false;}
+  if(!canvasOk){
+    damCv.style.display='none';
+    var fp=$('fallback-panel');if(fp)fp.classList.add('on');
+  }
+  var dctx=canvasOk?damCv.getContext('2d'):null;
+  var sctx=null;
+  try{ sctx=stripCv.getContext('2d'); }catch(_e){ sctx=null; }
+
+  /* ---------- sizes (DPR-aware) ---------- */
+  var damW=0,damH=0,strW=432,strH=40;
+  function sizeCanvases(){
+    if(!canvasOk)return;
+    var r=damCv.parentElement.getBoundingClientRect();
+    damW=Math.max(200,r.width);damH=Math.max(200,r.height);
+    damCv.width=Math.round(damW*dpr);damCv.height=Math.round(damH*dpr);
+    if(dctx)dctx.setTransform(dpr,0,0,dpr,0,0);
+    strW=432;strH=40;
+    stripCv.width=strW*dpr;stripCv.height=strH*dpr;
+    if(sctx)sctx.setTransform(dpr,0,0,dpr,0,0);
+    if(reduced)drawAll();   // keep the static composed frame crisp on resize
+  }
+  addEventListener('resize',sizeCanvases);
+
+  /* ---------- shared palette ---------- */
+  var P={
+    skyTop:'#0a2233',skyBot:'#0d3350',
+    faceLight:'#b9c2c4',faceDark:'#95a0a2',faceWarm:'rgba(255,214,150,0.16)',
+    pier:'#a9b2b4',pierDark:'#8b9597',
+    leaf:'#6b7684',leafEdge:'#8b97a5',
+    sheetTop:'rgba(140,235,255,0.95)',sheetBot:'rgba(30,160,220,0.85)',sheetCore:'rgba(235,252,255,0.9)',
+    poolTop:'rgba(90,215,255,0.9)',poolBot:'rgba(20,120,190,0.95)',
+    waveA:'rgba(120,230,255,0.20)',waveB:'rgba(80,190,240,0.16)',waveC:'rgba(160,240,255,0.12)',
+    foam:'rgba(255,255,255,0.92)',spray:'rgba(255,255,255,0.8)',spark:'rgba(220,250,255,0.9)',
+    text:'#eaf6ff',textDim:'#9fc6e0'
+  };
+
+  /* ---------- noise ---------- */
+  function n2(x,y){var s=Math.sin(x*127.1+y*311.7)*43758.5453;return s-Math.floor(s);}
+
+  /* ---------- draw one composed frame (both canvases share this) ---------- */
+  function drawScene(ctx,W,H,t,flow,stripMode){
+    ctx.clearRect(0,0,W,H);
+    if(stripMode){
+      /* ---- LED strip recomposition: clock | mini dam | HDA004 | S.5 ---- */
+      ctx.fillStyle='#04101c';ctx.fillRect(0,0,W,H);
+      /* clock */
+      var now=new Date();
+      ctx.fillStyle=P.text;ctx.font='700 15px Tahoma,"Noto Sans Thai",sans-serif';ctx.textBaseline='middle';ctx.textAlign='left';
+      ctx.fillText(pad2(now.getHours())+':'+pad2(now.getMinutes()),6,14);
+      ctx.fillStyle=P.textDim;ctx.font='600 7.5px Tahoma,"Noto Sans Thai",sans-serif';
+      try{ctx.fillText(new Intl.DateTimeFormat('th-TH',{day:'numeric',month:'short'}).format(now),6,29);}catch(_e){}
+      ctx.fillStyle='#1d3a52';ctx.fillRect(52,0,1,H);
+      /* mini dam (shared scene, left 45%) */
+      ctx.save();ctx.beginPath();ctx.rect(56,0,150,H);ctx.clip();
+      drawDam(ctx,56,150,H,t,flow,true);
+      ctx.restore();
+      ctx.fillStyle='#1d3a52';ctx.fillRect(210,0,1,H);
+      /* HDA004 value */
+      ctx.textAlign='left';ctx.textBaseline='middle';
+      var d=lastData&&lastData.hda;
+      ctx.font='800 17px Tahoma,"Noto Sans Thai",sans-serif';
+      ctx.fillStyle=d?d.color:'#7f93a3';
+      ctx.fillText(d?d.v.toFixed(2):'—',220,13);
+      ctx.fillStyle=P.textDim;ctx.font='700 7.5px Tahoma,"Noto Sans Thai",sans-serif';
+      ctx.fillText('ม.รทก. · HDA004',220,25);
+      if(d){ctx.fillStyle=d.badgeColor;ctx.font='700 7.5px Tahoma,"Noto Sans Thai",sans-serif';ctx.fillText(d.badgeText,220,35);}
+      /* divider + S.5 */
+      ctx.fillStyle='#1d3a52';ctx.fillRect(320,4,1,H-8);
+      var s5=lastData&&lastData.s5;
+      ctx.font='800 15px Tahoma,"Noto Sans Thai",sans-serif';
+      ctx.fillStyle=s5?s5.color:'#7f93a3';
+      ctx.fillText(s5?s5.v.toFixed(2):'—',332,16);
+      ctx.fillStyle=P.textDim;ctx.font='600 7px Tahoma,"Noto Sans Thai",sans-serif';
+      ctx.fillText('S.5 สะพานปรีดี',332,28);
+      if(s5){ctx.fillStyle=s5.badgeColor;ctx.font='600 7px Tahoma,"Noto Sans Thai",sans-serif';ctx.fillText(s5.badgeText,332,36);}
+      return;
+    }
+    /* ---- full card scene ---- */
+    var sky=ctx.createLinearGradient(0,0,0,H*0.45);
+    sky.addColorStop(0,P.skyTop);sky.addColorStop(1,P.skyBot);
+    ctx.fillStyle=sky;ctx.fillRect(0,0,W,H);
+    drawDam(ctx,0,W,H,t,flow,false);
+  }
+
+  function drawDam(ctx,x0,W,H,t,flow,stripMode){
+    var s=stripMode?0.52:1;                       /* mini scale for the strip */
+    var ox=x0;                                     /* left of this scene */
+    var base=H;                                    /* pool bottom line */
+    var faceTop=stripMode?H*0.10:H*0.24;
+    var faceBot=stripMode?H*0.72:H*0.78;
+    var faceL=ox+ (stripMode?10:26)*s, faceR=stripMode?ox+150*s:ox+W- (stripMode?10:26)*s;
+    var faceW=faceR-faceL;
+    /* reservoir band behind the deck */
+    ctx.fillStyle='rgba(24,110,160,0.9)';
+    ctx.fillRect(faceL,faceTop- (stripMode?4:10)*s,faceW,(stripMode?6:14)*s);
+    /* concrete face: two-tone shading bands */
+    var g=ctx.createLinearGradient(0,faceTop,0,faceBot);
+    g.addColorStop(0,P.faceLight);g.addColorStop(0.55,P.faceDark);g.addColorStop(1,P.faceDark);
+    ctx.fillStyle=g;ctx.fillRect(faceL,faceTop,faceW,faceBot-faceTop);
+    /* warm accent light from the left */
+    var warm=ctx.createLinearGradient(faceL,0,faceL+faceW*0.45,0);
+    warm.addColorStop(0,'rgba(255,220,160,0.20)');warm.addColorStop(1,'rgba(255,220,160,0)');
+    ctx.fillStyle=warm;ctx.fillRect(faceL,faceTop,faceW*0.45,faceBot-faceTop);
+    /* 3 bays: openings + gate leaves (lift with flow) */
+    var bayW=faceW/3;
+    var a=0.10+0.85*flow;                          /* gate opening 0..0.95 */
+    var leafH=(faceBot-faceTop)*0.42;
+    for(var b=0;b<3;b++){
+      var bl=faceL+b*bayW+bayW*0.10, bw=bayW*0.80;
+      /* opening (dark recess) */
+      ctx.fillStyle='#0e2230';
+      ctx.fillRect(bl,faceTop+2*s,bw,faceBot-faceTop-4*s);
+      /* water sheet from this bay (wavy cyan gradient, per-bay speed) */
+      var spd=(0.7+0.35*b)*flow;
+      var sheetW=bw*0.85;
+      var sheetL=bl+(bw-sheetW)/2;
+      var grad=ctx.createLinearGradient(0,faceTop+leafH*0.4,0,faceBot);
+      grad.addColorStop(0,P.sheetCore);grad.addColorStop(0.45,P.sheetTop);grad.addColorStop(1,P.sheetBot);
+      ctx.fillStyle=grad;
+      ctx.beginPath();
+      var steps=14;
+      ctx.moveTo(sheetL,faceTop+leafH*0.5);
+      for(var i=1;i<=steps;i++){
+        var yy=faceTop+leafH*0.5+(faceBot-faceTop-leafH*0.5)*i/steps;
+        var wv=Math.sin(t*(2.0+spd*3.0)+i*0.9+b*2.2)*sheetW*0.045*(0.4+flow);
+        ctx.lineTo(sheetL+sheetW/2+wv,yy);
+      }
+      for(var i=steps;i>=0;i--){
+        var yy=faceTop+leafH*0.5+(faceBot-faceTop-leafH*0.5)*i/steps;
+        var wv=Math.sin(t*(2.0+spd*3.0)+i*0.9+b*2.2+1.4)*sheetW*0.045*(0.4+flow);
+        ctx.lineTo(sheetL+sheetW+wv,yy);
+      }
+      ctx.closePath();ctx.fill();
+      /* bright core stripe */
+      ctx.fillStyle='rgba(240,253,255,0.5)';
+      ctx.fillRect(sheetL+sheetW*0.34,faceTop+leafH*0.55,sheetW*0.30,faceBot-faceTop-leafH*0.45);
+      /* flow-line texture inside the sheet */
+      for(var fl=0;fl<3;fl++){
+        var fx=sheetL+sheetW*(0.22+fl*0.28);
+        ctx.strokeStyle='rgba(240,253,255,'+(0.30-fl*0.06).toFixed(2)+')';
+        ctx.lineWidth=1.2;
+        ctx.beginPath();
+        for(var yy2=faceTop+leafH*0.5;yy2<faceBot;yy2+=6){
+          var wob=Math.sin(yy2*0.05+t*3+fl*2.4)*sheetW*0.06;
+          if(yy2===faceTop+leafH*0.5)ctx.moveTo(fx+wob,yy2);else ctx.lineTo(fx+wob,yy2);
+        }
+        ctx.stroke();
+      }
+      /* gate leaf (steel) sliding up with flow */
+      var leafBot=faceTop+2*s+ (1-a)*(faceBot-faceTop-6*s);
+      var leafGrad=ctx.createLinearGradient(0,faceTop,0,faceTop+leafH);
+      leafGrad.addColorStop(0,P.leafEdge);leafGrad.addColorStop(1,P.leaf);
+      ctx.fillStyle=leafGrad;
+      ctx.fillRect(bl,faceTop,bw,Math.max(4,(leafBot-faceTop)));
+      ctx.fillStyle='rgba(255,255,255,0.14)';
+      for(var rr=1;rr<4;rr++)ctx.fillRect(bl,faceTop+rr*leafH/4,bw,1.2);
+      /* piers */
+      ctx.fillStyle=P.pier;ctx.fillRect(bl-bayW*0.10,faceTop-2*s,bayW*0.10+2,faceBot-faceTop+4*s);
+      if(b===2){ctx.fillStyle=P.pier;ctx.fillRect(bl+bw,faceTop-2*s,bayW*0.10+2,faceBot-faceTop+4*s);}
+    }
+    /* deck + hoist line */
+    ctx.fillStyle=P.pierDark;ctx.fillRect(faceL-2*s,faceTop-8*s,faceW+4*s,(stripMode?4:7)*s);
+    if(!stripMode){
+      ctx.fillStyle='rgba(255,255,255,0.25)';
+      ctx.fillRect(faceL-2*s,faceTop-9.5*s,faceW+4*s,1.5);
+    }
+    /* pool */
+    var poolTop=faceBot, poolH=H-poolTop;
+    var pg=ctx.createLinearGradient(0,poolTop,0,H);
+    pg.addColorStop(0,P.poolTop);pg.addColorStop(1,P.poolBot);
+    ctx.fillStyle=pg;ctx.fillRect(0,poolTop,W,poolH);
+    /* bright churn band where the sheets hit the pool */
+    for(var b=0;b<3;b++){
+      var bx=faceL+(b+0.5)*bayW*(stripMode?0.52:1)*(W/((stripMode?160:W)))* (stripMode?1:1);
+      bx=faceL+(b+0.5)*(stripMode?46:(W-2*(stripMode?10:26)*s))/3;
+      var bw2=(stripMode?40:(W-2*(stripMode?10:26)*s))*0.62;
+      var cg=ctx.createRadialGradient(bx+bw2/2,poolTop+3,2,bx+bw2/2,poolTop+3,bw2*0.62);
+      cg.addColorStop(0,'rgba(255,255,255,0.95)');cg.addColorStop(1,'rgba(255,255,255,0.05)');
+      ctx.fillStyle=cg;ctx.beginPath();ctx.ellipse(bx+bw2/2,poolTop+3,bw2/2,(stripMode?7:11),0,0,6.283);ctx.fill();
+    }
+    /* impact foam: blob clusters at sheet bases (grow/burst/fade) */
+    var dens=0.35+0.75*flow;
+    for(var b=0;b<3;b++){
+      var bx=faceL+(b+0.5)*bayW*(stripMode?0.52:1)*(W/((stripMode?160:W)))* (stripMode?1:1);
+      bx=faceL+(b+0.5)*((stripMode?94:W-2*(stripMode?10:26)*s))/3 + (stripMode?10:26)*s*0;
+      bx=faceL+(b+0.5)*(stripMode?46:(W-2*(stripMode?10:26)*s))/3;
+      var blobs=Math.round(10+14*dens);
+      for(var k=0;k<blobs;k++){
+        var seed=n2(b*31+k*7);
+        var life=(t*(0.5+seed)+seed*9)%1;
+        var rr=(3+9*seed)*(0.5+0.9*flow)*(0.6+life*0.8)*(stripMode?0.4:1);
+        var fx=bx+(seed-0.5)*(stripMode?40:110)*(0.6+life);
+        var fy=poolTop+4+ (seed*0.5)*(stripMode?6:14)*(1-life*0.4);
+        ctx.fillStyle='rgba(255,255,255,'+(0.85*(1-life)).toFixed(3)+')';
+        ctx.beginPath();ctx.arc(fx,fy,Math.max(0.5,rr),0,6.283);ctx.fill();
+      }
+    }
+    /* fine spray: small white arcs above the foam */
+    for(var k=0;k<Math.round(8+14*flow);k++){
+      var seed=n2(k*13.7+3);
+      var life=(t*(0.8+seed)+seed*5)%1;
+      var fx=faceL+(0.15+0.7*seed)*(faceW);
+      var fy=poolTop- (stripMode?3:8)*s - life*(stripMode?6:26)*(0.5+flow);
+      ctx.strokeStyle='rgba(255,255,255,'+(0.75*(1-life)).toFixed(3)+')';
+      ctx.lineWidth=Math.max(0.6,1.6*(1-life));
+      ctx.beginPath();ctx.arc(fx,fy,1.5+3*seed,Math.PI*1.05,Math.PI*1.95);ctx.stroke();
+    }
+    /* sparkles on the pool */
+    for(var k=0;k<Math.round(10*flow+4);k++){
+      var seed=n2(k*57.3+11);
+      var tw=(Math.sin(t*(2+3*seed)+seed*9)*0.5+0.5);
+      ctx.fillStyle='rgba(220,250,255,'+(0.55*tw).toFixed(3)+')';
+      ctx.fillRect(ox+seed*W*0.9,poolTop+8+((seed*7919)%(poolH-16)),1.6,1.6);
+    }
+    /* foreground waves: 2-3 translucent bands crossing the bottom */
+    for(var wI=0;wI<3;wI++){
+      var amp=(stripMode?1.2:4.5)*(1-wI*0.25);
+      var yBase=H-(stripMode?3:10)+wI*(stripMode?2.5:9);
+      var drift=t*(12+wI*7)*(0.4+flow);
+      ctx.fillStyle=[P.waveA,P.waveB,P.waveC][wI];
+      ctx.beginPath();ctx.moveTo(0,H);
+      for(var x=0;x<=W;x+=8){
+        var yy=yBase+Math.sin(x*0.02+drift*0.05+wI*2.1)*amp;
+        ctx.lineTo(x,yy);
+      }
+      ctx.lineTo(W,H);ctx.closePath();ctx.fill();
+    }
+  }
+
+  function pad2(n){return (n<10?'0':'')+n;}
+
+  /* ---------- LED strip layout (recompose) ---------- */
+  function drawStrip(){
+    if(!sctx)return;
+    /* clock text depends on wall time even when water motion is frozen */
+    drawScene(sctx,strW,strH,simT,flow,true);
+  }
+
+  /* ---------- main loop ---------- */
+  function frame(ts){
+    rafId=null;
+    if(document.hidden){return;}
+    if(lastT===0)lastT=ts;
+    var dt=Math.min(0.05,(ts-lastT)/1000);lastT=ts;
+    simT+=dt;
+    if(canvasOk&&dctx){drawScene(dctx,damW,damH,simT,flow,false);}
+    drawStrip();
+    if(!reduced)rafId=requestAnimationFrame(frame);
+  }
+  function startLoop(){
+    if(reduced||!canvasOk||rafId)return;
+    lastT=0;rafId=requestAnimationFrame(frame);
+  }
+  function stopLoop(){ if(rafId){cancelAnimationFrame(rafId);rafId=null;} }
+
+  /* ---------- visibility pause ---------- */
+  document.addEventListener('visibilitychange',function(){
+    if(document.hidden){stopLoop();}
+    else{lastT=0;if(!reduced)startLoop();else if(canvasOk)drawAll();}
+  });
+
+  function drawAll(){
+    if(!canvasOk)return;
+    drawScene(dctx,damW,damH,simT,flow,false);
+    drawStrip();
+  }
+
+  /* ---------- flow demo slider ---------- */
+  var fd=$('flow-demo'),fv=$('flow-v');
+  if(fd)fd.addEventListener('input',function(){
+    flow=(Number(fd.value)||0)/100;
+    if(fv)fv.textContent=fd.value+'%';
+    if(reduced&&canvasOk)drawAll();
+  });
+
+  /* ---------- ThaiWater/HII real data (direct, CORS-open; fail-closed) ---------- */
+  var TIMEOUT_MS=12000,fetchInFlight=false,autoTimer=null;
+  function bandFor(level,bank){
+    if(level==null||bank==null)return {band:'grey',badge:'รอข้อมูล',badgeCls:'grey',color:'#7f93a3',badgeColor:'#33475a'};
+    if(level>=bank)return {band:'band-red',badge:'ถึงระดับตลิ่ง',badgeCls:'red',color:'#ff8f8f',badgeColor:'#ff8f8f'};
+    if(level>=bank-0.50)return {band:'band-amber',badge:'เฝ้าระวัง',badgeCls:'amber',color:'#ffc46b',badgeColor:'#ffc46b'};
+    return {band:'band-green',badge:'ระดับปกติ',badgeCls:'green',color:'#7fe8a8',badgeColor:'#7fe8a8'};
+  }
+  function num(x){ if(x==null)return null; if(typeof x==='number')return isFinite(x)?x:null;
+    if(typeof x==='string'){var t=x.trim();if(!t)return null;var f=parseFloat(t);return isFinite(f)?f:null;} return null; }
+  function fetchT(url,opts){
+    var ctrl=(typeof AbortController!=='undefined')?new AbortController():null;
+    var o=opts||{};if(ctrl)o.signal=ctrl.signal;
+    var timer=setTimeout(function(){if(ctrl)ctrl.abort();},TIMEOUT_MS);
+    return fetch(url,o).then(function(r){clearTimeout(timer);return r.json();},function(err){clearTimeout(timer);throw err;});
+  }
+  function applyData(stations){
+    /* stations: [{sid,v,bank,name,when}] — v==null → grey wait */
+    var hda=stations[0],s5=stations[1];
+    var trendEl=$('hda-trend'),trendCap=$('hda-trend-cap');
+    /* HDA004 */
+    if(hda&&hda.v!=null&&hda.bank!=null){
+      var band=bandFor(hda.v,hda.bank);
+      var vEl=$('hda-value');vEl.textContent=hda.v.toFixed(2);vEl.className='big-value '+band.band;
+      var badge=$('hda-badge');badge.textContent=band.badge;badge.className='badge '+band.badgeCls;
+      var pct=$('hda-pct');pct.textContent=Math.round(hda.v/hda.bank*100)+'% ของระดับตลิ่ง';
+      /* trend vs previous session sample (honest: grey until 2nd sample) */
+      var prev=null;
+      for(var i=samples.length-1;i>=0;i--){if(samples[i].v!=null&&samples[i].t<Date.now()-60000){prev=samples[i];break;}}
+      samples.push({v:hda.v,t:Date.now()});
+      if(prev&&trendEl&&trendCap){
+        trendEl.hidden=false;trendCap.hidden=false;
+        if(hda.v>prev.v+0.005){trendEl.textContent='▲';trendEl.className='trend up';}
+        else if(hda.v<prev.v-0.005){trendEl.textContent='▼';trendEl.className='trend down';}
+        else{trendEl.textContent='▬';trendEl.className='trend grey';}
+      } else if(trendEl){trendEl.hidden=true;}
+      var upd=$('updated-at');
+      if(upd)upd.textContent='อัปเดต: '+hda.when+' น. (วัดจริงรายชั่วโมง)';
+      lastData={hda:{v:hda.v,color:band.color,badgeText:band.badge,badgeColor:band.badgeColor},s5:null};
+    } else {
+      var vEl=$('hda-value');if(vEl){vEl.textContent='—';vEl.className='big-value grey';}
+      var badge=$('hda-badge');if(badge){badge.textContent='รอข้อมูล';badge.className='badge grey';}
+      var pct=$('hda-pct');if(pct)pct.textContent='— ของระดับตลิ่ง';
+      var u=$('updated-at');if(u)u.textContent='อัปเดต: ยังไม่มีข้อมูล';
+      lastData=null;
+    }
+    /* S.5 secondary */
+    var s5=stations[1],s5El=$('s5-value');
+    if(s5&&s5.v!=null&&s5.bank!=null){
+      var sb=bandFor(s5.v,s5.bank);
+      if(s5El){s5El.textContent=s5.v.toFixed(2)+' ม.รทก.';s5El.className='sub-value '+sb.band;}
+      lastData=lastData||{};lastData.s5={v:s5.v,color:sb.color,badgeText:bandFor(s5.v,s5.bank).badge,badgeColor:sb.color};
+    } else if(s5El){s5El.textContent='— ม.รทก.';s5El.className='sub-value grey';if(lastData)lastData.s5=null;}
+    if(reduced&&canvasOk)drawAll();
+    /* symbolic gate follows the real level (proportional to %bank) */
+    var gv=15;
+    if(hda&&hda.v!=null&&hda.bank)gv=Math.max(15,Math.min(100,Math.round(hda.v/hda.bank*100)));
+    flow=Math.max(0.05,Math.min(1,gv/100));
+    if(fd){fd.value=String(gv);var fvb=$('flow-v');if(fvb)fvb.textContent=gv+'%';}
+  }
+  function parseThaiwater(j){
+    var out=[];
+    try{
+      var src=j&&j.waterlevel_data&&Array.isArray(j.waterlevel_data.data)?j.waterlevel_data.data:[];
+      for(var i=0;i<src.length;i++){
+        var r=src[i]||{},st=r.station||{},sid=st.id;
+        if(sid===471583){
+          out.push({sid:'a',v:num(r.waterlevel_msl),bank:num(st.min_bank),
+            when:(r.waterlevel_datetime||'').replace('T',' ').slice(0,16)});
+        }
+        if(sid===2607){
+          out.push({sid:'s5',v:num(r.waterlevel_msl),bank:4.70,when:(r.waterlevel_datetime||'').slice(0,16)});
+        }
+      }
+    }catch(_e){}
+    return out;
+  }
+  function fetchWater(){
+    if(fetchInFlight)return;
+    fetchInFlight=true;
+    var btn=$('refresh');if(btn)btn.disabled=true;
+    setState('กำลังดึง…');
+    fetchT('https://api-v3.thaiwater.net/api/v1/thaiwater30/public/waterlevel_load',{method:'GET'})
+    .then(function(j){
+      var st=parseThaiwater(j);
+      if(!st.length)throw Error('ไม่พบสถานีในผลลัพธ์');
+      var hda=null,s5=null;
+      for(var i=0;i<st.length;i++){if(st[i].sid==='a')hda=st[i];if(st[i].sid==='s5')s5=st[i];}
+      if(!hda)throw Error('ไม่พบ HDA004');
+      if(hda.when)hda.when=hda.when;
+      applyData([hda,s5||{sid:'s5',v:null,bank:4.70}]);
+      setState('อัปเดตล่าสุด');
+    }).catch(function(err){
+      applyData([{sid:'a',v:null},{sid:'s5',v:null}]);
+      setState('เชื่อม ThaiWater ไม่สำเร็จ — รอข้อมูล',true);
+    }).then(function(){
+      fetchInFlight=false;
+      if(btn)btn.disabled=false;
+    });
+  }
+  function setState(txt,err){
+    var e=$('rid-state');
+    if(e){e.textContent=txt;e.className='rid-state'+(err?' err':'');}
+  }
+  var rb=$('refresh');
+  if(rb)rb.addEventListener('click',function(){fetchWater();});
+  /* auto refresh every 5 min (skips when hidden) */
+  autoTimer=setInterval(function(){ if(!document.hidden)fetchWater(); },300000);
+
+  /* ---------- boot ---------- */
+  sizeCanvases();
+  if(reduced&&canvasOk)drawAll(); else startLoop();
+  fetchWater();
+})();
+</script>
+</body>
+</html>
