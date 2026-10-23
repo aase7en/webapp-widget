@@ -11,6 +11,7 @@ import { mergeGeometries } from 'https://cdn.jsdelivr.net/npm/three@0.180.0/exam
 const stage=document.getElementById('stage'),status=document.getElementById('status'),flowSlider=document.getElementById('flow'),flowValue=document.getElementById('flow-value'),play=document.getElementById('play');
 const reduced=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 const EMBED=new URLSearchParams(location.search).get('display')==='embed'; // additive: compact LED-strip embed mode
+const NIGHT=EMBED&&new URLSearchParams(location.search).get('style')==='night'; // additive: embed night-token art style (SIMULATED art direction only — measured reference palette)
 const isMobile=window.matchMedia('(pointer: coarse)').matches||Math.min(innerWidth,innerHeight)<520;
 let playing=!reduced,visible=true,disposed=false,simT=reduced?10.0:0,prev=0;
 
@@ -43,7 +44,8 @@ function droneCam(){
  const T=26,ph=(simT%T)/T,tri=ph<0.5?ph*2:2-ph*2,e=tri*tri*(3-2*tri);
  droneAz=(45-70*e)*Math.PI/180;               // +45deg (upper-right) -> -25deg (lower-left)
  droneEl=(24-18*e)*Math.PI/180;               // 24deg elevated -> 6deg low
- const r=11.2,cx=0,cy=1.9,cz=0.6;
+ if(NIGHT){droneAz=(20-30*e)*Math.PI/180;droneEl=(15-6*e)*Math.PI/180;} // night: near-frontal low drone keeps leaf+opening+hoist in frame
+  const r=NIGHT?9.4:11.2,cx=0,cy=NIGHT?1.55:1.9,cz=NIGHT?0.9:0.6;
  camera.position.set(cx+r*Math.cos(droneEl)*Math.sin(droneAz),cy+r*Math.sin(droneEl),cz+r*Math.cos(droneEl)*Math.cos(droneAz));
  camera.lookAt(cx,cy,cz);
 }
@@ -195,6 +197,35 @@ function buildSteel(){
  const geo=mergeGeometries(parts.map(prepForMerge));track(geo);
  const mesh=new THREE.Mesh(geo,steelMat);mesh.castShadow=true;mesh.receiveShadow=true;scene.add(mesh);return mesh;
 }
+function buildNightWindows(){
+ // night-only art direction: warm amber control-building window strip + faint light shafts (SIMULATED)
+ const winMat=new THREE.MeshStandardMaterial({color:0x050505,emissive:0xe8a866,emissiveIntensity:1.35});track(winMat);
+ const trimMat=new THREE.MeshStandardMaterial({color:0x343646,roughness:0.85,metalness:0.1});track(trimMat);
+ const shaftMat=new THREE.MeshBasicMaterial({color:0xfae2c9,transparent:true,opacity:0.028,depthWrite:false,blending:THREE.AdditiveBlending,side:THREE.DoubleSide});track(shaftMat);
+ const hut=new THREE.Mesh(new THREE.BoxGeometry(2.1,0.95,0.9),trimMat);hut.position.set(-3.4,5.72,-0.7);hut.castShadow=true;scene.add(hut);
+ for(let i=0;i<5;i++){
+  const w=new THREE.Mesh(new THREE.BoxGeometry(0.2,0.26,0.03),winMat);
+  w.position.set(-4.25+i*0.42,5.72,-0.26);scene.add(w);
+ }
+ // warm control-room windows on the pier front faces (visible above the chute, like the reference)
+ for(const px of[-1.35,1.35])for(let r2=0;r2<2;r2++)for(let c2=0;c2<2;c2++){
+  const w=new THREE.Mesh(new THREE.BoxGeometry(0.42,0.26,0.04),winMat);
+  w.position.set(px+(c2-0.5)*0.34,3.42+r2*0.42,1.42);scene.add(w);
+ }
+ for(const ax of[-4.05,4.05]){
+  const w=new THREE.Mesh(new THREE.BoxGeometry(0.34,0.2,0.04),winMat);
+  w.position.set(ax,3.5,1.12);scene.add(w);
+ }
+ for(const px of[-1.35,1.35]){
+  const p=new THREE.Mesh(new THREE.BoxGeometry(0.5,0.1,0.04),winMat);
+  p.position.set(px,4.62,-0.32);scene.add(p);
+ }
+ const shaftGeo=new THREE.PlaneGeometry(1.1,2.6);
+ for(const[sx,sz,rot] of [[-3.4,-0.2,0.5],[-1.35,0.0,0.35]]){
+  const sh=new THREE.Mesh(shaftGeo,shaftMat);sh.position.set(sx+0.7,4.2,sz+0.8);sh.rotation.set(0,rot,0.42);sh.renderOrder=10;scene.add(sh);
+ }
+ track(shaftGeo);
+}
 function buildBalusters(){
  const g=new THREE.CylinderGeometry(0.014,0.014,0.52,6);
  const mat=new THREE.MeshStandardMaterial({color:0x6f7a82,metalness:0.85,roughness:0.4,envMapIntensity:0.8});
@@ -247,10 +278,10 @@ function buildReservoir(){
  vec3 n=normalize(vec3((n1-0.5)*0.14,1.0,(n2-0.5)*0.12));
  float fres=pow(1.0-max(dot(n,vd),0.0),3.2);
  float depth=smoothstep(-0.6,-6.8,vPos.z);
- vec3 col=mix(vec3(0.07,0.44,0.56),vec3(0.02,0.16,0.26),depth*0.85+0.1);
- col=mix(col,vec3(0.60,0.72,0.78),fres*0.6);
- vec3 L=normalize(vec3(-0.5,0.72,0.45));
- col+=vec3(1.0,0.94,0.82)*pow(max(dot(reflect(-L,n),vd),0.0),90.0)*0.5;
+  vec3 col=mix(${NIGHT?'vec3(0.05,0.19,0.38)':'vec3(0.07,0.44,0.56)'},${NIGHT?'vec3(0.008,0.05,0.12)':'vec3(0.02,0.16,0.26)'},depth*0.85+0.1);
+  col=mix(col,${NIGHT?'vec3(0.64,0.86,0.96)':'vec3(0.60,0.72,0.78)'},fres*0.6);
+  vec3 L=normalize(vec3(-0.5,0.72,0.45));
+  col+=${NIGHT?'vec3(0.85,0.92,1.0)':'vec3(1.0,0.94,0.82)'}*pow(max(dot(reflect(-L,n),vd),0.0),90.0)*0.5;
  // slight draw-down and darkening toward operating gates
  col*=1.0-0.18*uFlow*smoothstep(-2.0,-0.6,vPos.z);
  gl_FragColor=vec4(col,1.0);}`});
@@ -343,9 +374,9 @@ function buildSheets(){
   float foamVal=n*0.75+streak*0.45+aer*0.25;
   float foam=smoothstep(0.60,0.95,foamVal)*(0.55+0.45*streak);
   foam*=0.72+0.28*band;
-  vec3 water=mix(vec3(0.04,0.24,0.42),vec3(0.13,0.56,0.72),n*0.85+0.1);
-  vec3 white=vec3(0.93,0.975,1.0);
-  vec3 col=mix(water,white,foam);
+   vec3 water=${NIGHT?'mix(vec3(0.10,0.35,0.66),vec3(0.30,0.62,0.84),n*0.85+0.1)':'mix(vec3(0.04,0.24,0.42),vec3(0.13,0.56,0.72),n*0.85+0.1)'};
+   vec3 white=${NIGHT?'vec3(0.918,0.988,0.988)':'vec3(0.93,0.975,1.0)'};
+   vec3 col=mix(water,white,foam);
   col=mix(col,white,smoothstep(0.30,0.03,vThick/max(vTaper,0.2))*0.30*(0.3+0.7*aer));
   float eN=fbm(vec2(vUv.x*4.5+seed,sAdv*2.5));
   float core=smoothstep(0.006,0.024+0.05*uQ+0.02*eN,vUv.x)*smoothstep(0.006,0.024+0.05*uQ+0.02*eN,1.0-vUv.x);
@@ -353,8 +384,9 @@ function buildSheets(){
   float fringe=smoothstep(0.62,0.85,streak)*(1.0-core)*smoothstep(0.15,0.55,s);
   col=mix(col,white,fringe*0.7);
  col=mix(col,white,pierFoam);
-  float spec=pow(max(streak-0.42,0.0)*1.75,3.0);
-  col+=vec3(1.0,0.98,0.92)*spec*0.42;
+   float spec=pow(max(streak-0.42,0.0)*1.75,3.0);
+   col+=vec3(1.0,0.98,0.92)*spec*0.42;
+   ${NIGHT?'col*=1.10;':''}
   float holes=fbm(vec2(vUv.x*7.0+seed*1.7,sAdvB*3.0));
   float alpha=(0.74+0.26*core)*(0.88+0.32*foam); // near-opaque mass: reads over sunlit concrete too
   alpha*=0.85+0.15*band;
@@ -396,10 +428,10 @@ function buildPool(){
  vec3 n=normalize(vec3((nz1-0.5)*nAmp,1.0,(nz2-0.5)*nAmp));
  float fres=pow(1.0-max(dot(n,vd),0.0),3.0);
  float depth=smoothstep(7.3,2.2,vPos.z);
- vec3 col=mix(vec3(0.06,0.40,0.55),vec3(0.02,0.15,0.25),depth*0.75+0.15);
- col=mix(col,vec3(0.62,0.74,0.80),fres*0.32);
- vec3 L=normalize(vec3(-0.5,0.72,0.45));
- col+=vec3(1.0,0.95,0.85)*pow(max(dot(reflect(-L,n),vd),0.0),60.0)*0.5;
+  vec3 col=mix(${NIGHT?'vec3(0.13,0.30,0.55)':'vec3(0.06,0.40,0.55)'},${NIGHT?'vec3(0.02,0.08,0.18)':'vec3(0.02,0.15,0.25)'},depth*0.75+0.15);
+  col=mix(col,${NIGHT?'vec3(0.68,0.88,0.97)':'vec3(0.62,0.74,0.80)'},fres*0.32);
+  vec3 L=normalize(vec3(-0.5,0.72,0.45));
+  col+=${NIGHT?'vec3(0.85,0.92,1.0)':'vec3(1.0,0.95,0.85)'}*pow(max(dot(reflect(-L,n),vd),0.0),60.0)*0.5;
  float xEnv=smoothstep(3.7,2.5,abs(vPos.x));
  float foamN=fbm(vec2(vPos.x*3.2+vPos.z*0.8,vPos.z*3.2-uTime*(1.0+1.6*uFlow)));
  float impactFoam=smoothstep(0.60,0.90,foamN)*exp(-di*2.2)*xEnv*(0.5*uFlow);
@@ -434,7 +466,7 @@ function buildImpactBand(){
  +fbm(vec2(vUv.x*15.0+3.0,vUv.y*9.0-uTime*(2.0+2.4*uFlow)))*0.35;
  float band=exp(-pow((vUv.y-0.35)*3.6,2.0));
  float a=band*smoothstep(0.38,0.8,churn)*(0.25+0.55*uFlow)*smoothstep(0.02,0.1,uFlow);
- vec3 col=vec3(0.95,0.985,1.0)*(0.4+0.45*churn);
+ vec3 col=${NIGHT?'vec3(0.88,0.96,0.99)':'vec3(0.95,0.985,1.0)'}*(0.4+0.45*churn);
  gl_FragColor=vec4(col,a*0.5);}`});
  track(mat);waterUniforms.push({u:mat.uniforms,key:'E'});
  const mesh=new THREE.Mesh(g,mat);mesh.renderOrder=7;scene.add(mesh);return mesh;
@@ -563,7 +595,7 @@ function buildTerrain(){
  for(const s of[-1,1]){const bank=new THREE.BoxGeometry(40,4.1,7.0);bank.translate(s*24.35,1.55,-4.05);parts.push(bank)}
  const down=new THREE.BoxGeometry(90,4.0,45.6);down.translate(0,-2.05,22.25);parts.push(down);
  const geo=mergeGeometries(parts.map(prepForMerge));track(geo);
- const mat=new THREE.MeshStandardMaterial({color:0x5a6055,roughness:1.0,metalness:0.0});track(mat);
+ const mat=new THREE.MeshStandardMaterial({color:NIGHT?0x1a2436:0x5a6055,roughness:1.0,metalness:0.0});track(mat);
  const mesh=new THREE.Mesh(geo,mat);mesh.receiveShadow=false;scene.add(mesh);return mesh;
 }
 let envScene=null;
@@ -575,13 +607,16 @@ function skyMesh(){
   fragmentShader:`varying vec3 vDir;
  void main(){
  float h=clamp(vDir.y*0.5+0.5,0.0,1.0);
- vec3 col=mix(vec3(0.82,0.88,0.90),vec3(0.40,0.62,0.78),pow(h,0.8));
+ ${NIGHT?`vec3 col=mix(vec3(0.004,0.031,0.086),vec3(0.035,0.118,0.243),pow(h,0.9));
+ float m=pow(max(dot(vDir,normalize(vec3(-0.5,0.72,0.45))),0.0),300.0);
+ col+=vec3(0.72,0.82,1.0)*m*0.6;`
+ :`vec3 col=mix(vec3(0.82,0.88,0.90),vec3(0.40,0.62,0.78),pow(h,0.8));
  col=mix(vec3(0.75,0.80,0.82),col,smoothstep(0.35,0.52,h));
  vec3 sun=normalize(vec3(-0.5,0.72,0.45));
  float s=pow(max(dot(vDir,sun),0.0),260.0);
  col+=vec3(1.0,0.88,0.70)*s*1.1;
  float halo=pow(max(dot(vDir,sun),0.0),9.0)*0.16;
- col+=vec3(1.0,0.92,0.78)*halo;
+ col+=vec3(1.0,0.92,0.78)*halo;`}
  gl_FragColor=vec4(col,1.0);}`});
  return new THREE.Mesh(g,mat);
 }
@@ -593,13 +628,13 @@ function buildEnvironment(){
  try{
   envScene=new THREE.Scene();
   const envSky=skyMesh();envSky.geometry.scale(0.5,0.5,0.5);envScene.add(envSky);
-  const ground=new THREE.Mesh(new THREE.PlaneGeometry(120,120),new THREE.MeshBasicMaterial({color:0x565b52}));
+  const    ground=new THREE.Mesh(new THREE.PlaneGeometry(120,120),new THREE.MeshBasicMaterial({color:NIGHT?0x0a1220:0x565b52}));
   ground.rotation.x=-Math.PI/2;ground.position.y=-4;envScene.add(ground);
-  const block=new THREE.Mesh(new THREE.BoxGeometry(8,3,3),new THREE.MeshBasicMaterial({color:0x7e8489}));
+  const block=new THREE.Mesh(new THREE.BoxGeometry(8,3,3),new THREE.MeshBasicMaterial({color:NIGHT?0x1a2436:0x7e8489}));
   block.position.set(-6,0,2);envScene.add(block);
-  pmrem=new THREE.PMREMGenerator(renderer);
-  envRT=pmrem.fromScene(envScene,0.05);
-  scene.environment=envRT.texture;scene.environmentIntensity=0.55;
+   pmrem=new THREE.PMREMGenerator(renderer);
+   envRT=pmrem.fromScene(envScene,0.05);
+   scene.environment=envRT.texture;scene.environmentIntensity=NIGHT?0.15:0.55;
  }catch(e){console.info('Demo env fallback (procedural lighting only):',e.message)}
 }
 
@@ -611,34 +646,50 @@ function initialize(){
   if(!gl)throw Error('WebGL unavailable');
   renderer=new THREE.WebGLRenderer({canvas,antialias:true,powerPreference:'high-performance'});
   renderer.setPixelRatio(dpr);
-  renderer.outputColorSpace=THREE.SRGBColorSpace;
-  renderer.toneMapping=THREE.ACESFilmicToneMapping;
-  renderer.toneMappingExposure=1.12;
+   renderer.outputColorSpace=THREE.SRGBColorSpace;
+   renderer.toneMapping=THREE.ACESFilmicToneMapping;
+   renderer.toneMappingExposure=NIGHT?1.02:1.12;
   renderer.shadowMap.enabled=true;
   renderer.shadowMap.type=THREE.PCFSoftShadowMap;
   renderer.info.autoReset=false;
   stage.appendChild(renderer.domElement);
-  scene=new THREE.Scene();
-  scene.fog=new THREE.Fog(0xbfd2dc,24,75);
+   scene=new THREE.Scene();
+   scene.fog=new THREE.Fog(NIGHT?0x091e3e:0xbfd2dc,NIGHT?9:24,NIGHT?42:75);
   camera=new THREE.PerspectiveCamera(40,1,0.1,140);
   camera.position.copy(PRESETS[1].pos);
   const{map,roughnessMap}=makeConcreteMaps();track(map);track(roughnessMap);
-  concreteMat=new THREE.MeshStandardMaterial({color:0xc9c5bc,map,roughnessMap,roughness:1.0,metalness:0.0,envMapIntensity:0.55});track(concreteMat);
-  steelMat=new THREE.MeshStandardMaterial({color:0x828d96,metalness:0.88,roughness:0.34,roughnessMap:track(makeSteelRoughness()),envMapIntensity:0.9});track(steelMat);
+   concreteMat=new THREE.MeshStandardMaterial({color:NIGHT?0x343646:0xc9c5bc,map,roughnessMap,roughness:1.0,metalness:0.0,envMapIntensity:NIGHT?0.25:0.55});track(concreteMat);
+   steelMat=new THREE.MeshStandardMaterial({color:NIGHT?0x5a6a7d:0x828d96,metalness:0.88,roughness:0.34,roughnessMap:track(makeSteelRoughness()),envMapIntensity:NIGHT?0.35:0.9});track(steelMat);
   buildSky();buildTerrain();buildEnvironment();
   buildConcrete();buildSteel();gateMesh=buildGates();buildBalusters();buildBolts();
   buildReservoir();const sheetsMesh=buildSheets();buildPool();buildWet();
   window.__fxSheets=sheetsMesh;
   buildImpactBand();buildSplash();buildMist();buildRings();
-  // lighting: warm sun + subtle hemisphere, PCFSoft shadows
-  const sun=new THREE.DirectionalLight(0xffe3c0,2.6);
-  sun.position.set(-7,10,6);sun.castShadow=true;
-  sun.shadow.mapSize.set(2048,2048);
-  Object.assign(sun.shadow.camera,{left:-9,right:9,top:8,bottom:-5,near:2,far:32});
-  sun.shadow.camera.updateProjectionMatrix();
-  sun.shadow.bias=-0.0004;sun.shadow.normalBias=0.02;
-  scene.add(sun);scene.add(sun.target);sun.target.position.set(0,1,1);
-  scene.add(new THREE.HemisphereLight(0xcfe4f2,0x4c5548,0.85));
+   // lighting: warm sun + subtle hemisphere (day) / cool moon + navy ambient (night), PCFSoft shadows
+   const sun=new THREE.DirectionalLight(NIGHT?0x8fb3e0:0xffe3c0,NIGHT?0.5:2.6);
+   sun.position.set(-7,10,6);sun.castShadow=true;
+   sun.shadow.mapSize.set(2048,2048);
+   Object.assign(sun.shadow.camera,{left:-9,right:9,top:8,bottom:-5,near:2,far:32});
+   sun.shadow.camera.updateProjectionMatrix();
+   sun.shadow.bias=-0.0004;sun.shadow.normalBias=0.02;
+   scene.add(sun);scene.add(sun.target);sun.target.position.set(0,1,1);
+   scene.add(new THREE.HemisphereLight(NIGHT?0x24406e:0xcfe4f2,NIGHT?0x050a14:0x4c5548,NIGHT?0.5:0.85));
+   if(NIGHT){
+    // night water up-glow: cyan key from the plunge pool + cool fill on the falls face (luminous-water read)
+    const pg=new THREE.PointLight(0x4e90d7,26,10,2);pg.position.set(0,0.8,3.0);scene.add(pg);
+    const wg=new THREE.PointLight(0xa3dcf6,16,8,2);wg.position.set(0,2.3,1.4);scene.add(wg);
+    // gate floodlight: dam-style night illumination so the leaf/opening/hoist read mechanically
+    const gl=new THREE.SpotLight(0xbfd9f5,140,16,0.75,0.55,1.6);
+    gl.position.set(0,6.8,4.6);gl.target.position.set(0,3.1,-0.4);
+    scene.add(gl);scene.add(gl.target);
+    const pl=new THREE.PointLight(0x9db8dd,20,9,2);pl.position.set(-4.6,4.4,-0.2);scene.add(pl);
+    const guideMat=new THREE.MeshStandardMaterial({color:0x0a1420,emissive:0xbfd9f5,emissiveIntensity:1.3});track(guideMat);
+    for(const bx of BAY_X)for(const sd of[-1,1]){
+     const gm=new THREE.Mesh(new THREE.BoxGeometry(0.05,2.6,0.05),guideMat);
+     gm.position.set(bx+sd*(BAY_W/2+0.05),4.05,-0.30);scene.add(gm);
+    }
+    buildNightWindows();
+   }
   controls=new OrbitControls(camera,renderer.domElement);
   controls.target.copy(PRESETS[1].tgt);
   controls.enableDamping=true;controls.dampingFactor=0.08;
@@ -663,7 +714,7 @@ function initialize(){
   if(!reduced){
    composer=new EffectComposer(renderer);
    composer.addPass(new RenderPass(scene,camera));
-   if(!isMobile){bloomPass=new UnrealBloomPass(new THREE.Vector2(2,2),0.22,0.45,0.85);composer.addPass(bloomPass)}
+   if(!isMobile){bloomPass=new UnrealBloomPass(new THREE.Vector2(2,2),NIGHT?0.35:0.22,0.45,0.85);composer.addPass(bloomPass)}
    composer.addPass(new OutputPass());
    composer.setPixelRatio(dpr);
   }
