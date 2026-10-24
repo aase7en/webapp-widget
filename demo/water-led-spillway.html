@@ -17,38 +17,39 @@ header p{margin:4px 0 0;font-size:12px;color:#c0cbd5;line-height:1.6}
 .stage-wrap{background:#000;border:1px solid #486579;border-radius:10px;padding:16px;display:flex;justify-content:center;overflow:hidden}
 .led-scale{position:relative;width:432px;height:40px;transform-origin:top left;overflow:visible;margin:0 auto 10px;flex:0 0 auto}
 .led-frame{width:432px;height:40px;display:flex;align-items:stretch;background:#04101c;border:1px solid #173347;border-radius:4px;overflow:hidden;position:relative;transform:scale(var(--led-s,1));transform-origin:top left}
-/* v2 strip layout: [clock over scene][3D vivid scene as soft-edged background][S.5][S.26] */
-.clock{width:64px;flex:0 0 64px;padding:4px 6px 2px;display:flex;flex-direction:column;justify-content:center;gap:0;position:relative;z-index:2;
- background:linear-gradient(90deg,#071726 0%,#071726 55%,rgba(7,23,38,0.45) 100%);border-right:1px solid rgba(29,58,82,0.4)}
-.clock .time{font-size:15px;font-weight:800;color:#f3f8fc;line-height:1;letter-spacing:.5px;font-variant-numeric:tabular-nums;
- text-shadow:0 1px 3px rgba(2,8,15,0.85),0 0 7px rgba(95,201,255,0.35)}
-.clock .day{font-size:8px;font-weight:700;color:#cfe4f2;line-height:1.3;margin-top:2px;
- text-shadow:0 1px 2px rgba(2,8,15,0.9)}
-/* scene as BACKGROUND: absolute layer extending slightly under the clock's right digits and softly under the station zone;
-   alpha mask fades every edge (no hard rectangle) + backdrop blur hint at the extremes */
-.spill-slot{position:absolute;left:44px;top:0;bottom:0;width:150px;z-index:0;
- -webkit-mask-image:linear-gradient(90deg,transparent 0,#000 14%,#000 76%,transparent 100%),linear-gradient(180deg,transparent 0,#000 14%,#000 86%,transparent 100%);
- mask-image:linear-gradient(90deg,transparent 0,#000 14%,#000 76%,transparent 100%),linear-gradient(180deg,transparent 0,#000 14%,#000 86%,transparent 100%);
- -webkit-mask-composite:source-in;mask-composite:intersect}
+/* v3 strip layout: [glass hero: vivid scene BEHIND clock digits — one shared box][compact data cluster right] */
+.led-frame{width:432px;height:40px;display:block;position:relative;background:#04101c;border:1px solid #173347;border-radius:4px;overflow:hidden;transform:scale(var(--led-s,1));transform-origin:top left}
+/* the glass hero box: one visual container holding BOTH the animation and the clock (contiguous, gap ≤2px) */
+.spill-slot{position:absolute;left:2px;top:3px;bottom:3px;width:260px;z-index:1;border-radius:9px;overflow:hidden;
+ border:1px solid rgba(127,194,238,0.42);box-shadow:inset 0 0 14px rgba(78,144,215,0.18),0 0 10px rgba(78,144,215,0.12);
+ -webkit-mask-image:linear-gradient(90deg,#000 0,#000 84%,transparent 100%);
+ mask-image:linear-gradient(90deg,#000 0,#000 84%,transparent 100%)}
 .spill-slot iframe{border:0;width:100%;height:100%;display:block;background:transparent}
-.spill-slot::after{content:"";position:absolute;inset:0;backdrop-filter:blur(1.1px);-webkit-backdrop-filter:blur(1.1px);
- -webkit-mask-image:linear-gradient(90deg,#000 0,transparent 13%,transparent 87%,#000 100%),linear-gradient(180deg,#000 0,transparent 16%,transparent 84%,#000 100%);
- mask-image:linear-gradient(90deg,#000 0,transparent 13%,transparent 87%,#000 100%),linear-gradient(180deg,#000 0,transparent 16%,transparent 84%,#000 100%)}
-.station{position:relative;z-index:1;flex:1;min-width:0;padding:0 6px 1px 6px;display:flex;flex-direction:column;justify-content:flex-end;align-items:flex-start;text-align:left;
- background:linear-gradient(270deg,#04101c 0%,#04101c 58%,rgba(4,16,28,0.35) 100%)}
-.st-name{position:absolute;top:2px;right:6px;font-size:9.5px;font-weight:800;color:#8fe3ff;line-height:1.2;white-space:nowrap;letter-spacing:.2px;text-shadow:0 0 6px rgba(95,201,255,.55);border-bottom:1px solid rgba(95,201,255,.35);padding:0 2px 1px;z-index:2}
+/* LOCAL glyph backdrop: a tight pill immediately behind the digits only — no big scrim over the scene */
+.clock{position:absolute;left:9px;top:4px;bottom:4px;z-index:3;display:flex;flex-direction:column;justify-content:center;gap:1px;
+ padding:2px 8px;border-radius:7px;background:rgba(4,12,24,0.32);border:1px solid rgba(29,58,82,0.45);
+ backdrop-filter:blur(2px) brightness(0.62);-webkit-backdrop-filter:blur(2px) brightness(0.62)}
+.clock .time{font-size:15px;font-weight:800;color:#f3f8fc;line-height:1;letter-spacing:.5px;font-variant-numeric:tabular-nums;
+ text-shadow:0 1px 3px rgba(2,8,15,0.9),0 0 7px rgba(95,201,255,0.4)}
+.clock .day{font-size:8px;font-weight:700;color:#d7e6f2;line-height:1.3;margin-top:2px;
+ text-shadow:0 1px 2px rgba(2,8,15,0.95)}
+/* compact data cluster: translucent dark panel ONLY behind itself; scene reads continuous around it */
+.data-cluster{position:absolute;right:2px;top:2px;bottom:2px;width:170px;z-index:2;border-radius:8px;overflow:hidden;
+ background:rgba(4,10,20,0.55);border:1px solid rgba(29,58,82,0.55);padding:2px 5px;display:flex;flex-direction:column;justify-content:center;gap:1px}
+.station{position:relative;flex:0 0 16px;height:16px;overflow:hidden}
+.st-name{position:static;font-size:7px;font-weight:800;color:#8fe3ff;line-height:1.15;white-space:nowrap;letter-spacing:.2px;text-shadow:0 0 6px rgba(95,201,255,.55),0 1px 2px rgba(2,8,15,.9);padding:0 0 0 1px}
 .st-name.dim{color:#7f93a3}
-.st-numline{display:flex;align-items:baseline;gap:2px;margin:0;line-height:1}
-.st-value{font-size:20px;font-weight:800;line-height:1;white-space:nowrap;font-variant-numeric:tabular-nums}
+.st-numline{position:absolute;left:2px;bottom:0;display:flex;align-items:baseline;gap:2px;margin:0;line-height:1}
+.st-value{font-size:12px;font-weight:800;line-height:1;white-space:nowrap;font-variant-numeric:tabular-nums}
 .st-value.band-green{color:#7fe8a8;text-shadow:0 0 7px rgba(110,255,170,.45)}
 .st-value.band-amber{color:#ffc46b;text-shadow:0 0 7px rgba(255,180,90,.45)}
 .st-value.band-red{color:#ff7a7a;text-shadow:0 0 8px rgba(255,110,110,.5)}
 .st-value.grey{color:#7f93a3;text-shadow:none}
-.st-unit{font-size:9px;font-weight:700;color:#9fc6e0;align-self:flex-end;padding:0 0 1px 1px}
-.st-pct{font-size:12.5px;font-weight:800;align-self:flex-end;padding:0 0 1px 2px;white-space:nowrap}
+.st-unit{font-size:6.5px;font-weight:700;color:#9fc6e0;align-self:flex-end;padding:0 0 1px 1px}
+.st-pct{font-size:9.5px;font-weight:800;align-self:flex-end;padding:0 0 1px 2px;white-space:nowrap}
 .st-pct.band-green{color:#7fe8a8}.st-pct.band-amber{color:#ffc46b}.st-pct.band-red{color:#ff7a7a}.st-pct.grey{color:#7f93a3}
-.st-bank{font-size:8px;font-weight:600;color:#7fa3bd;line-height:1.2;margin:0;white-space:nowrap}
-.st-body{display:flex;width:100%}
+.st-bank{position:static;font-size:6px;font-weight:600;color:#7fa3bd;line-height:1.2;white-space:nowrap;align-self:flex-end;padding:0 0 1px 2px}
+.st-name.dim{color:#7f93a3}
 .caption{max-width:432px;margin:10px auto 0;font-size:11px;color:#9fb2c1;line-height:1.7;display:flex;flex-wrap:wrap;gap:4px 14px;align-items:center}
 .caption .src{color:#8fb6d4}
 .caption .sim{color:#e8c877;font-weight:700}
@@ -91,22 +92,23 @@ code{background:#122b3e;border-radius:4px;padding:1px 5px;font-size:10.5px}
       <div class="spill-slot" aria-hidden="true" title="ประตูระบายน้ำจำลอง 2.5 มิติสีสดใส (SIMULATED) — พื้นหลังเบลอขอบ ดูคำอธิบายใต้สไลด์">
         <iframe id="spill-frame" src="./spillway-3d/?display=embed&style=vivid" title="ประตูระบายน้ำจำลอง 3D โทนสดใส (SIMULATED) — พื้นหลังสไลด์"></iframe>
       </div>
-      <div class="station" id="st-a">
-        <div class="st-name" id="a-name">S.5 สะพานปรีดี</div>
-        <div class="st-numline">
-          <span class="st-value grey" id="a-value">—</span><span class="st-unit">ม.รทก.</span>
-          <span class="st-pct grey" id="a-pct">—</span>
+      <div class="data-cluster" aria-label="ระดับน้ำจริงจาก RID กรมชลประทาน">
+        <div class="station" id="st-a">
+          <div class="st-name" id="a-name">S.5 สะพานปรีดี</div>
+          <div class="st-numline">
+            <span class="st-value grey" id="a-value">—</span><span class="st-unit">ม.รทก.</span>
+            <span class="st-pct grey" id="a-pct">—</span>
+            <span class="st-bank" id="a-bank">ระดับตลิ่ง 4.70 ม.</span>
+          </div>
         </div>
-        <div class="st-bank" id="a-bank">ระดับตลิ่ง 4.70 ม.</div>
-      </div>
-      <div class="sep" aria-hidden="true"></div>
-      <div class="station" id="st-b">
-        <div class="st-name" id="b-name">S.26 ท้ายเขื่อน ร.6</div>
-        <div class="st-numline">
-          <span class="st-value grey" id="b-value">—</span><span class="st-unit">ม.รทก.</span>
-          <span class="st-pct grey" id="b-pct">—</span>
+        <div class="station" id="st-b">
+          <div class="st-name" id="b-name">S.26 ท้ายเขื่อน ร.6</div>
+          <div class="st-numline">
+            <span class="st-value grey" id="b-value">—</span><span class="st-unit">ม.รทก.</span>
+            <span class="st-pct grey" id="b-pct">—</span>
+            <span class="st-bank" id="b-bank">ระดับตลิ่ง 7.20 ม.</span>
+          </div>
         </div>
-        <div class="st-bank" id="b-bank">ระดับตลิ่ง 7.20 ม.</div>
       </div>
     </div>
   </div></div>

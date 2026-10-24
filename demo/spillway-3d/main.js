@@ -46,10 +46,10 @@ function droneCam(){
  droneAz=(45-70*e)*Math.PI/180;               // +45deg (upper-right) -> -25deg (lower-left)
  droneEl=(24-18*e)*Math.PI/180;               // 24deg elevated -> 6deg low
  if(NIGHT){droneAz=(20-30*e)*Math.PI/180;droneEl=(15-6*e)*Math.PI/180;} // night: near-frontal low drone keeps leaf+opening+hoist in frame
- if(VIVID){droneEl=(6-3*e)*Math.PI/180;}      // vivid: waterline drone keeps the luminous falls+pool filling the band
-  const r=NIGHT?9.4:11.2,cx=0,cy=NIGHT?1.55:1.9,cz=NIGHT?0.9:0.6;
+ if(VIVID){droneAz=(14-12*e)*Math.PI/180;droneEl=(7-3*e)*Math.PI/180;} // vivid: close frontal drone fills the wide strip
+  const r=VIVID?7.0:NIGHT?9.4:11.2,cx=0,cy=VIVID?2.3:NIGHT?1.55:1.9,cz=VIVID?1.8:NIGHT?0.9:0.6;
  camera.position.set(cx+r*Math.cos(droneEl)*Math.sin(droneAz),cy+r*Math.sin(droneEl),cz+r*Math.cos(droneEl)*Math.cos(droneAz));
- camera.lookAt(cx,cy,cz);
+ camera.lookAt(cx,VIVID?2.1:NIGHT?2.15:cy,cz);
 }
 function sheetPoint(v){ if(v<0.72){const u=v/0.72;return[-0.55+2.0*Math.pow(u,1.7),CREST_Y-1.4*Math.pow(u,1.35)];}
  const w=(v-0.72)/0.28;return[1.45+1.6*w,1.35-0.89*w-0.44*w*w];
