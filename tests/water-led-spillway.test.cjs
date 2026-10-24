@@ -29,16 +29,20 @@ test('honest labels: SIMULATED spillway + real RID source + fail-closed grey val
   assert.match(html,/paintStation\(cfg\.sid,null,cfg\.bank\)/);
   assert.match(html,/รอข้อมูล/);
   // no observed date/time on the strip (caption carries it)
-  const strip=html.slice(html.indexOf('led-frame'),html.indexOf('</div>\n  </div></div>'));
+  const strip=html.slice(html.indexOf('led-frame'),html.indexOf('</canvas>\n  </div></div>'));
   assert.doesNotMatch(strip,/observedAt/);
 });
 test('v2 layout: clock leftmost, no สถานี ก/ข chips, level+name left-aligned stack',()=>{
   const html2=read(page);
   assert.match(html2,/\.station\{position:relative;flex:0 0 16px;height:16px;overflow:hidden\}/); // compact two-line station block (name line + number line)
-  assert.match(html2,/\.spill-slot\{position:absolute;left:2px;top:3px;bottom:3px;width:260px/); // glass hero box: scene + clock share ONE container (60% of strip)
-  assert.match(html2,/mask-image:linear-gradient\(90deg,#000 0,#000 84%,transparent 100%\)/); // soft fade only where the scene meets data
+  assert.match(html2,/\.spill-slot\{position:absolute;left:2px;top:3px;bottom:3px;width:130px/); // glass hero box (width halved per owner): scene + clock share ONE container (60% of strip)
+  assert.match(html2,/mask-image:linear-gradient\(90deg,#000 0,#000 55%,rgba\(0,0,0,0\.62\) 78%,rgba\(0,0,0,0\.4\) 100%\)/); // focal gradient: vivid center, ~40% opacity near data
   assert.match(html2,/\.data-cluster\{position:absolute;right:2px/); // compact translucent data panel behind itself only
-  assert.match(html2,/backdrop-filter:blur\(2px\) brightness\(0\.62\)/); // LOCAL glyph backdrop, not a big scrim
+  assert.match(html2,/id="spill-canvas"/);                                 // overflow spill layer below the hero
+  assert.match(html2,/function drawSpill\(/);                          // drip/streak painter
+  assert.match(html2,/linear-gradient\(90deg,#000 0,#000 55%,rgba\(0,0,0,0\.62\) 78%,rgba\(0,0,0,0\.4\) 100%\)/); // focal: vivid center, ~40% opacity near data
+  assert.match(html2,/\.clock\{position:absolute;left:7px;top:4px;bottom:4px;z-index:3;display:flex;flex-direction:column;justify-content:center;gap:1px;/); // no clock|scene seam: borderless, shares the hero box
+  assert.match(html2,/\.clock::before\{content:"";position:absolute;inset:-6px -14px;border-radius:10px;/); // LOCAL radial scrim behind glyphs only  assert.match(html2,/backdrop-filter:blur\(2px\) brightness\(0\.62\)/); // LOCAL glyph backdrop, not a big scrim
   assert.match(html2,/style=vivid/);                                   // vivid toon grading in the strip embed
   const html=read(page);
   const iClock=html.indexOf('class="clock"'),iSpill=html.indexOf('class="spill-slot"'),
