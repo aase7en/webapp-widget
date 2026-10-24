@@ -19,22 +19,24 @@ header p{margin:4px 0 0;font-size:12px;color:#c0cbd5;line-height:1.6}
 .led-frame{width:432px;height:40px;display:flex;align-items:stretch;background:#04101c;border:1px solid #173347;border-radius:4px;overflow:hidden;position:relative;transform:scale(var(--led-s,1));transform-origin:top left}
 /* v3 strip layout: [glass hero: vivid scene BEHIND clock digits — one shared box][compact data cluster right] */
 .led-frame{width:432px;height:40px;display:block;position:relative;background:#04101c;border:1px solid #173347;border-radius:4px;overflow:hidden;transform:scale(var(--led-s,1));transform-origin:top left}
+#spill-canvas{position:absolute;display:block;pointer-events:none;z-index:0}
 /* the glass hero box: one visual container holding BOTH the animation and the clock (contiguous, gap ≤2px) */
-.spill-slot{position:absolute;left:2px;top:3px;bottom:3px;width:260px;z-index:1;border-radius:9px;overflow:hidden;
- border:1px solid rgba(127,194,238,0.42);box-shadow:inset 0 0 14px rgba(78,144,215,0.18),0 0 10px rgba(78,144,215,0.12);
- -webkit-mask-image:linear-gradient(90deg,#000 0,#000 84%,transparent 100%);
- mask-image:linear-gradient(90deg,#000 0,#000 84%,transparent 100%)}
+.spill-slot{position:absolute;left:2px;top:3px;bottom:3px;width:130px;z-index:1;border-radius:9px;overflow:hidden;
+ border:0;box-shadow:inset 0 0 14px rgba(78,144,215,0.14);
+ -webkit-mask-image:linear-gradient(90deg,#000 0,#000 55%,rgba(0,0,0,0.62) 78%,rgba(0,0,0,0.4) 100%);
+ mask-image:linear-gradient(90deg,#000 0,#000 55%,rgba(0,0,0,0.62) 78%,rgba(0,0,0,0.4) 100%)}
 .spill-slot iframe{border:0;width:100%;height:100%;display:block;background:transparent}
 /* LOCAL glyph backdrop: a tight pill immediately behind the digits only — no big scrim over the scene */
-.clock{position:absolute;left:9px;top:4px;bottom:4px;z-index:3;display:flex;flex-direction:column;justify-content:center;gap:1px;
- padding:2px 8px;border-radius:7px;background:rgba(4,12,24,0.32);border:1px solid rgba(29,58,82,0.45);
- backdrop-filter:blur(2px) brightness(0.62);-webkit-backdrop-filter:blur(2px) brightness(0.62)}
+.clock{position:absolute;left:7px;top:4px;bottom:4px;z-index:3;display:flex;flex-direction:column;justify-content:center;gap:1px;
+ padding:2px 7px}
+.clock::before{content:"";position:absolute;inset:-6px -14px;border-radius:10px;
+ background:radial-gradient(65% 85% at 45% 50%,rgba(4,12,24,0.52),rgba(4,12,24,0) 78%);pointer-events:none}
 .clock .time{font-size:15px;font-weight:800;color:#f3f8fc;line-height:1;letter-spacing:.5px;font-variant-numeric:tabular-nums;
  text-shadow:0 1px 3px rgba(2,8,15,0.9),0 0 7px rgba(95,201,255,0.4)}
 .clock .day{font-size:8px;font-weight:700;color:#d7e6f2;line-height:1.3;margin-top:2px;
  text-shadow:0 1px 2px rgba(2,8,15,0.95)}
 /* compact data cluster: translucent dark panel ONLY behind itself; scene reads continuous around it */
-.data-cluster{position:absolute;right:2px;top:2px;bottom:2px;width:170px;z-index:2;border-radius:8px;overflow:hidden;
+.data-cluster{position:absolute;right:2px;top:2px;bottom:2px;width:204px;z-index:2;border-radius:8px;overflow:hidden;
  background:rgba(4,10,20,0.55);border:1px solid rgba(29,58,82,0.55);padding:2px 5px;display:flex;flex-direction:column;justify-content:center;gap:1px}
 .station{position:relative;flex:0 0 16px;height:16px;overflow:hidden}
 .st-name{position:static;font-size:7px;font-weight:800;color:#8fe3ff;line-height:1.15;white-space:nowrap;letter-spacing:.2px;text-shadow:0 0 6px rgba(95,201,255,.55),0 1px 2px rgba(2,8,15,.9);padding:0 0 0 1px}
@@ -111,6 +113,7 @@ code{background:#122b3e;border-radius:4px;padding:1px 5px;font-size:10.5px}
         </div>
       </div>
     </div>
+    <canvas id="spill-canvas" aria-hidden="true"></canvas>
   </div></div>
 
   <div class="caption" role="group" aria-label="ที่มาข้อมูลและตัวควบคุมสาธิต">
@@ -129,8 +132,51 @@ code{background:#122b3e;border-radius:4px;padding:1px 5px;font-size:10.5px}
 <script>
 (function(){
   'use strict';
+  var reduced=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   /* ---------- responsive scaler (unscaled-sizer pattern: click-safe at all scales) ---------- */
   var scaleEl=document.getElementById('led-scale'),frameEl=document.getElementById('led-frame');
+  /* ---------- overflow spill: water drips/streaks falling beneath the hero box (จำลอง) ---------- */
+  var spillC=document.getElementById('spill-canvas'),spillCtx=spillC?spillC.getContext('2d'):null;
+  var spillDrips=[],spillRaf=null;
+  function sizeSpill(s){
+    if(!spillCtx)return;
+    var w=Math.max(1,Math.round(130*s)),h=Math.max(1,Math.round(9*s));
+    spillC.style.left=(2*s)+'px';spillC.style.top=(40*s+1)+'px';
+    spillC.style.width=w+'px';spillC.style.height=h+'px';
+    var dpr=Math.min(window.devicePixelRatio||1,2);
+    if(spillC.width!==Math.round(w*dpr)||spillC.height!==Math.round(h*dpr)){spillC.width=Math.round(w*dpr);spillC.height=Math.round(h*dpr);}
+    spillCtx.setTransform(dpr,0,0,dpr,0,0);
+  }
+  function drawSpill(t){
+    if(!spillCtx)return;
+    var w=130,h=9,fl=Math.max(0,Math.min(1,(lastTarget||0)/100));
+    spillCtx.clearRect(0,0,w,h);
+    var want=Math.round(8+30*fl);
+    while(spillDrips.length<want)spillDrips.push({x:Math.random(),ph:Math.random(),v:0.6+Math.random()*0.9,r:0.6+Math.random()*1.1,len:2+Math.random()*4});
+    if(spillDrips.length>want)spillDrips.length=want;
+    for(var i=0;i<spillDrips.length;i++){
+      var d=spillDrips[i];
+      var cyc=(t*d.v*0.6+d.ph)%1;
+      var dy=cyc*h;
+      var fade=Math.sin(cyc*3.14159)*(0.5+0.5*fl);
+      spillCtx.strokeStyle='rgba(127,224,245,'+(0.8*fade).toFixed(3)+')';
+      spillCtx.lineWidth=d.r;
+      spillCtx.beginPath();spillCtx.moveTo(d.x*w,dy-d.len*(0.5+fl));spillCtx.lineTo(d.x*w,dy);spillCtx.stroke();
+      spillCtx.fillStyle='rgba(236,250,254,'+(0.95*fade).toFixed(3)+')';
+      spillCtx.beginPath();spillCtx.arc(d.x*w,dy,d.r,0,6.283);spillCtx.fill();
+    }
+  }
+  function spillLoop(ts){
+    spillRaf=null;
+    if(document.hidden||reduced)return;
+    drawSpill(ts/1000);
+    spillRaf=requestAnimationFrame(spillLoop);
+  }
+  function startSpill(){
+    if(reduced||!spillCtx||spillRaf)return;
+    spillRaf=requestAnimationFrame(spillLoop);
+  }
+  function stopSpill(){ if(spillRaf){cancelAnimationFrame(spillRaf);spillRaf=null;} if(spillCtx)drawSpill(0); }
   function rescale(){
     var avail=Math.min(document.documentElement.clientWidth-28,1100);
     var s=Math.max(0.85,Math.min(2.2,avail/432));
@@ -140,8 +186,14 @@ code{background:#122b3e;border-radius:4px;padding:1px 5px;font-size:10.5px}
     var cap=document.querySelector('.caption'),note=document.querySelector('.note');
     if(cap)cap.style.maxWidth=(432*s)+'px';
     if(note)note.style.maxWidth=(432*s)+'px';
+    sizeSpill(s);
+    if(reduced&&spillCtx)drawSpill(0);
   }
-  addEventListener('resize',rescale);rescale();
+  addEventListener('resize',function(){rescale();if(reduced&&spillCtx)drawSpill(0);});
+  rescale();
+  document.addEventListener('visibilitychange',function(){ if(document.hidden){stopSpill();} else if(!reduced){startSpill();} else if(spillCtx){drawSpill(0);} });
+  sizeSpill(parseFloat(getComputedStyle(scaleEl).getPropertyValue('--led-s'))||1);
+  if(reduced){drawSpill(0);}else{startSpill();}
   /* ---------- clock (leftmost, repo LED style) ---------- */
   var ctEl=document.getElementById('clock-time'),cdEl=document.getElementById('clock-day');
   function tickClock(){

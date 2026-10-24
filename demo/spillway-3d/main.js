@@ -280,8 +280,8 @@ function buildReservoir(){
  vec3 n=normalize(vec3((n1-0.5)*0.14,1.0,(n2-0.5)*0.12));
  float fres=pow(1.0-max(dot(n,vd),0.0),3.2);
  float depth=smoothstep(-0.6,-6.8,vPos.z);
-  vec3 col=mix(${VIVID?'vec3(0.10,0.50,0.68)':NIGHT?'vec3(0.05,0.19,0.38)':'vec3(0.07,0.44,0.56)'},${VIVID?'vec3(0.03,0.22,0.38)':NIGHT?'vec3(0.008,0.05,0.12)':'vec3(0.02,0.16,0.26)'},depth*0.85+0.1);
-  col=mix(col,${VIVID?'vec3(0.72,0.90,0.98)':NIGHT?'vec3(0.64,0.86,0.96)':'vec3(0.60,0.72,0.78)'},fres*0.6);
+  vec3 col=mix(${VIVID?'vec3(0.08,0.58,0.78)':NIGHT?'vec3(0.05,0.19,0.38)':'vec3(0.07,0.44,0.56)'},${VIVID?'vec3(0.03,0.20,0.38)':NIGHT?'vec3(0.008,0.05,0.12)':'vec3(0.02,0.16,0.26)'},depth*0.85+0.1);
+  col=mix(col,${VIVID?'vec3(0.60,0.90,0.97)':NIGHT?'vec3(0.64,0.86,0.96)':'vec3(0.60,0.72,0.78)'},fres*0.6);
   vec3 L=normalize(vec3(-0.5,0.72,0.45));
   col+=${NIGHT?'vec3(0.85,0.92,1.0)':'vec3(1.0,0.94,0.82)'}*pow(max(dot(reflect(-L,n),vd),0.0),90.0)*0.5;
  // slight draw-down and darkening toward operating gates
@@ -376,8 +376,8 @@ function buildSheets(){
   float foamVal=n*0.75+streak*0.45+aer*0.25;
   float foam=smoothstep(0.60,0.95,foamVal)*(0.55+0.45*streak);
   foam*=0.72+0.28*band;
-   vec3 water=${VIVID?'mix(vec3(0.16,0.50,0.80),vec3(0.42,0.75,0.95),n*0.85+0.1)':NIGHT?'mix(vec3(0.10,0.35,0.66),vec3(0.30,0.62,0.84),n*0.85+0.1)':'mix(vec3(0.04,0.24,0.42),vec3(0.13,0.56,0.72),n*0.85+0.1)'};
-   vec3 white=${VIVID?'vec3(0.878,0.961,0.988)':NIGHT?'vec3(0.918,0.988,0.988)':'vec3(0.93,0.975,1.0)'};
+   vec3 water=${VIVID?'mix(vec3(0.10,0.62,0.85),vec3(0.30,0.78,0.94),n*0.85+0.1)':NIGHT?'mix(vec3(0.10,0.35,0.66),vec3(0.30,0.62,0.84),n*0.85+0.1)':'mix(vec3(0.04,0.24,0.42),vec3(0.13,0.56,0.72),n*0.85+0.1)'};
+   vec3 white=${VIVID?'vec3(0.949,0.992,1.0)':NIGHT?'vec3(0.918,0.988,0.988)':'vec3(0.93,0.975,1.0)'};
    vec3 col=mix(water,white,foam);
   col=mix(col,white,smoothstep(0.30,0.03,vThick/max(vTaper,0.2))*0.30*(0.3+0.7*aer));
   float eN=fbm(vec2(vUv.x*4.5+seed,sAdv*2.5));
@@ -416,7 +416,7 @@ function buildPool(){
  float ring=ripple*exp(-abs(d)*0.55);
  float chop=fbm(vec2(p.x*1.6,p.z*1.6-uTime*(0.8+1.5*uFlow)))-0.5;
  float env=exp(-abs(dz)*0.6);
- float amp=0.015+0.075*uFlow;
+ float amp=${VIVID?'(0.03+0.11*uFlow)':'(0.015+0.075*uFlow)'};
  p.y+=(ring*0.8+chop)*amp*(0.35+0.65*env);
  vPos=p;gl_Position=projectionMatrix*modelViewMatrix*vec4(p,1.0);}`,
  fragmentShader:`
@@ -430,15 +430,16 @@ function buildPool(){
  vec3 n=normalize(vec3((nz1-0.5)*nAmp,1.0,(nz2-0.5)*nAmp));
  float fres=pow(1.0-max(dot(n,vd),0.0),3.0);
  float depth=smoothstep(7.3,2.2,vPos.z);
-  vec3 col=mix(${VIVID?'vec3(0.10,0.45,0.62)':NIGHT?'vec3(0.13,0.30,0.55)':'vec3(0.06,0.40,0.55)'},${VIVID?'vec3(0.03,0.18,0.30)':NIGHT?'vec3(0.02,0.08,0.18)':'vec3(0.02,0.15,0.25)'},depth*0.75+0.15);
-  col=mix(col,${VIVID?'vec3(0.70,0.88,0.98)':NIGHT?'vec3(0.68,0.88,0.97)':'vec3(0.62,0.74,0.80)'},fres*0.32);
+  vec3 col=mix(${VIVID?'vec3(0.06,0.52,0.72)':NIGHT?'vec3(0.13,0.30,0.55)':'vec3(0.06,0.40,0.55)'},${VIVID?'vec3(0.02,0.16,0.34)':NIGHT?'vec3(0.02,0.08,0.18)':'vec3(0.02,0.15,0.25)'},depth*0.75+0.15);
+  col=mix(col,${VIVID?'vec3(0.55,0.88,0.97)':NIGHT?'vec3(0.68,0.88,0.97)':'vec3(0.62,0.74,0.80)'},fres*0.32);
+  ${VIVID?'float stk=smoothstep(0.55,0.85,fbm(vec2(vPos.x*2.0-vPos.z*1.3+uTime*0.3,vPos.z*2.5-uTime*(1.0+1.4*uFlow))));col+=vec3(0.55,0.88,0.97)*stk*0.20;':''}
   vec3 L=normalize(vec3(-0.5,0.72,0.45));
   col+=${NIGHT?'vec3(0.85,0.92,1.0)':'vec3(1.0,0.95,0.85)'}*pow(max(dot(reflect(-L,n),vd),0.0),60.0)*0.5;
  float xEnv=smoothstep(3.7,2.5,abs(vPos.x));
  float foamN=fbm(vec2(vPos.x*3.2+vPos.z*0.8,vPos.z*3.2-uTime*(1.0+1.6*uFlow)));
- float impactFoam=smoothstep(0.60,0.90,foamN)*exp(-di*2.2)*xEnv*(0.5*uFlow);
+ float impactFoam=smoothstep(0.60,0.90,foamN)*exp(-di*2.2)*xEnv*(${VIVID?'0.8':'0.5'}*uFlow);
  float driftN=fbm(vec2(vPos.x*1.5,vPos.z*1.1-uTime*0.35));
- float drift=smoothstep(0.55,0.85,driftN)*smoothstep(7.0,3.2,vPos.z)*xEnv*uFlow*0.45;
+ float drift=smoothstep(0.55,0.85,driftN)*smoothstep(7.0,3.2,vPos.z)*xEnv*uFlow*${VIVID?'0.7':'0.45'};
  // noise-warped foam ring decals around each bay's impact line
  float rings=0.0;
  for(int b=0;b<3;b++){
@@ -468,13 +469,13 @@ function buildImpactBand(){
  +fbm(vec2(vUv.x*15.0+3.0,vUv.y*9.0-uTime*(2.0+2.4*uFlow)))*0.35;
  float band=exp(-pow((vUv.y-0.35)*3.6,2.0));
  float a=band*smoothstep(0.38,0.8,churn)*(0.25+0.55*uFlow)*smoothstep(0.02,0.1,uFlow);
- vec3 col=${NIGHT?'vec3(0.88,0.96,0.99)':'vec3(0.95,0.985,1.0)'}*(0.4+0.45*churn);
+ vec3 col=${VIVID?'vec3(0.93,0.99,1.0)':NIGHT?'vec3(0.88,0.96,0.99)':'vec3(0.95,0.985,1.0)'}*(0.4+0.45*churn);
  gl_FragColor=vec4(col,a*0.5);}`});
  track(mat);waterUniforms.push({u:mat.uniforms,key:'E'});
  const mesh=new THREE.Mesh(g,mat);mesh.renderOrder=7;scene.add(mesh);return mesh;
 }
 function buildSplash(){
- const N=Math.round((isMobile?1000:2600)*(EMBED?0.5:1)),a=new Float32Array(N*3),rnd=new Float32Array(N*4),ids=new Float32Array(N);
+ const N=Math.round((isMobile?1000:2600)*(EMBED?0.5:1)*(VIVID?2.2:1)),a=new Float32Array(N*3),rnd=new Float32Array(N*4),ids=new Float32Array(N);
  for(let i=0;i<N;i++){
   const bx=BAY_X[i%3]+(Math.random()-0.5)*1.7;
   a.set([bx,0.04,IMPACT_Z-0.18+Math.random()*0.4],i*3);
@@ -612,7 +613,9 @@ function skyMesh(){
  ${NIGHT?`vec3 col=mix(vec3(0.004,0.031,0.086),vec3(0.035,0.118,0.243),pow(h,0.9));
  float m=pow(max(dot(vDir,normalize(vec3(-0.5,0.72,0.45))),0.0),300.0);
  col+=vec3(0.72,0.82,1.0)*m*0.6;`
- :VIVID?`vec3 col=mix(vec3(0.55,0.80,0.95),vec3(0.14,0.34,0.60),pow(h,0.8));`
+ :VIVID?`vec3 col=mix(vec3(0.62,0.85,0.98),vec3(0.18,0.42,0.68),pow(h,0.8));
+ float wg=pow(max(dot(vDir,normalize(vec3(-0.5,0.72,0.45))),0.0),8.0);
+ col+=vec3(1.0,0.90,0.70)*wg*0.22;`
  :`vec3 col=mix(vec3(0.82,0.88,0.90),vec3(0.40,0.62,0.78),pow(h,0.8));
  col=mix(vec3(0.75,0.80,0.82),col,smoothstep(0.35,0.52,h));
  vec3 sun=normalize(vec3(-0.5,0.72,0.45));
@@ -651,7 +654,7 @@ function initialize(){
   renderer.setPixelRatio(dpr);
    renderer.outputColorSpace=THREE.SRGBColorSpace;
    renderer.toneMapping=THREE.ACESFilmicToneMapping;
-   renderer.toneMappingExposure=VIVID?1.5:NIGHT?1.02:1.12;
+   renderer.toneMappingExposure=VIVID?1.3:NIGHT?1.02:1.12;
   renderer.shadowMap.enabled=true;
   renderer.shadowMap.type=THREE.PCFSoftShadowMap;
   renderer.info.autoReset=false;
@@ -661,7 +664,7 @@ function initialize(){
   camera=new THREE.PerspectiveCamera(40,1,0.1,140);
   camera.position.copy(PRESETS[1].pos);
   const{map,roughnessMap}=makeConcreteMaps();track(map);track(roughnessMap);
-   concreteMat=new THREE.MeshStandardMaterial({color:VIVID?0xb8c4ce:NIGHT?0x343646:0xc9c5bc,map,roughnessMap,roughness:1.0,metalness:0.0,envMapIntensity:VIVID?0.4:NIGHT?0.25:0.55});track(concreteMat);
+   concreteMat=new THREE.MeshStandardMaterial({color:VIVID?0xc8beb4:NIGHT?0x343646:0xc9c5bc,map,roughnessMap,roughness:1.0,metalness:0.0,envMapIntensity:VIVID?0.45:NIGHT?0.25:0.55});track(concreteMat);
    steelMat=new THREE.MeshStandardMaterial({color:VIVID?0x9aa8b5:NIGHT?0x5a6a7d:0x828d96,metalness:0.88,roughness:0.34,roughnessMap:track(makeSteelRoughness()),envMapIntensity:VIVID?0.5:NIGHT?0.35:0.9});track(steelMat);
   buildSky();buildTerrain();buildEnvironment();
   buildConcrete();buildSteel();gateMesh=buildGates();buildBalusters();buildBolts();
@@ -669,7 +672,7 @@ function initialize(){
   window.__fxSheets=sheetsMesh;
   buildImpactBand();buildSplash();buildMist();buildRings();
    // lighting: warm sun + subtle hemisphere (day) / cool moon + navy ambient (night), PCFSoft shadows
-   const sun=new THREE.DirectionalLight(NIGHT?0x8fb3e0:0xffe3c0,VIVID?2.4:NIGHT?0.5:2.6);
+   const sun=new THREE.DirectionalLight(NIGHT?0x8fb3e0:0xffedd0,VIVID?2.6:NIGHT?0.5:2.6);
    sun.position.set(-7,10,6);sun.castShadow=true;
    sun.shadow.mapSize.set(2048,2048);
    Object.assign(sun.shadow.camera,{left:-9,right:9,top:8,bottom:-5,near:2,far:32});
