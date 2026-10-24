@@ -50,18 +50,21 @@ test('mobile layout: card stacks vertically <=720px (clock row / full-width 16:9
  assert.match(html,/function sizeLed\(\)/);                         // auto-fit <=432
  assert.match(html,/wrap\.style\.width=\(432\*s\)/);
 });
-test('data: ThaiWater direct fetch (HDA004 471583 + S.5 2607), fail-closed, 12s timeout, 5-min auto, visibility pause',()=>{
-  const js=read(page);
-  assert.match(js,/api-v3\.thaiwater\.net\/api\/v1\/thaiwater30\/public\/waterlevel_load/);
-  assert.match(js,/471583/);
-  assert.match(js,/2607/);
-  assert.match(js,/min_bank/);
-  assert.match(js,/TIMEOUT_MS=12000|12000/);
-  assert.match(js,/300000/);                                   // 5-min auto refresh
-  assert.match(js,/document\.addEventListener\('visibilitychange'/); // pause when hidden
-  assert.match(js,/fetchInFlight/);                            // single-flight
-  // fail-closed paint
-  assert.match(js,/applyData\(\[\{sid:'a',v:null\},\{sid:'s5',v:null\}\]\)/);
+test('data: canonical API Report_PM2.5 Sheet read-only JSONP, no direct HII 429, 15-minute cache-friendly checks',()=>{
+ const js=read(page);
+ assert.match(js,/SHEET_WATER_URL/);
+ assert.match(js,/action=water_history/);
+ assert.match(js,/471583/);
+ assert.match(js,/2607/);
+ assert.match(js,/TIMEOUT_MS=12000/);
+ assert.match(js,/900000/); // only Google Sheet read cadence, not provider API
+ assert.match(js,/document\.addEventListener\('visibilitychange'/);
+ assert.match(js,/fetchInFlight/);
+ assert.match(js,/verifiedSheetStation/);
+ assert.match(js,/historical/);
+ assert.doesNotMatch(js,/api-v3\.thaiwater\.net/);
+ assert.doesNotMatch(js,/fetchT\(/);
+ assert.match(js,/applyData\(\[\{sid:'a',v:null\},\{sid:'s5',v:null\}\]\)/);
 });
 
 test('animation quality: แรงน้ำ slider, reduced-motion static, DPR-aware, foreground waves/foam/spray',()=>{
@@ -75,4 +78,40 @@ test('animation quality: แรงน้ำ slider, reduced-motion static, DPR-a
   assert.match(js,/bwY=0\.88\*H/);                      // rebuilt: rippled water band across the lower edge
  assert.match(js,/T\.bandStreak/);                        // #6699BD streaks on the band
   assert.match(js,/sparkle|glow/); // rebuilt: glow + sparkle accents
+});
+
+test('five user-controlled illustrated gate presets with explicit simulated meaning',()=>{
+ const html=read(page);
+ for(const x of [0,25,50,75,100])assert.match(html,new RegExp('data-gate="'+x+'"'));
+ assert.match(html,/flow=selected\/100/);
+ assert.match(html,/step="25" value="75"/);
+ assert.match(html,/ประตูน้ำเป็นภาพจำลอง 5 ระดับ/);
+ assert.doesNotMatch(html,/flowData=open\/100/);
+ assert.match(html,/function applyGateFromData\(\)\{\s*flowData=flow/);
+ assert.match(html,/toggle-motion/);
+});
+
+test('moving water sheets, foam spray, impact ripples and accessible motion controls',()=>{
+ const html=read(page);
+ assert.match(html,/Moving highlights clipped INSIDE each water curtain/);
+ assert.match(html,/t\*speed/);
+ assert.match(html,/Impact jets, outward-running foam and spray/);
+ assert.match(html,/c\.ellipse\(center,poolY/);
+ assert.match(html,/var openF=0\.90\*fl/);
+ assert.match(html,/if\(fl>0\.001\)/); // zero release really closes water flow
+ assert.match(html,/reduced\|\|paused/);
+ assert.match(html,/paused\?\'เล่นภาพ\':\'หยุดภาพ\'/);
+});
+
+test('the original user-provided luxury blue-gold scene is backed by a local sprite atlas',()=>{
+ const html=read(page),asset=path.join(root,'demo/assets/water-gate-5levels-4frames.webp');
+ assert.ok(fs.existsSync(asset),'local 5-level × 4-frame atlas must exist');
+ const bytes=fs.readFileSync(asset);
+ assert.equal(bytes.subarray(0,4).toString('ascii'),'RIFF');
+ assert.equal(bytes.subarray(8,12).toString('ascii'),'WEBP');
+ assert.match(html,/gateAtlas\.src='assets\/water-gate-5levels-4frames\.webp'/);
+ assert.match(html,/drawAtlasScene\(c,W,H,t,fl\)/);
+ assert.match(html,/tile\(next,eased\)/);
+ assert.match(html,/if\(atlasReady\)\{drawAtlasScene/);
+ assert.match(html,/gateAtlas\.onerror/); // procedural fallback if unavailable
 });
