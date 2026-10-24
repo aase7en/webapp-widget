@@ -19,6 +19,13 @@ header h1{font-size:13px;margin:0;color:#cfe0ee;font-weight:700}
 button{font:600 11px Tahoma,sans-serif;color:#dcebff;background:#12314f;border:1px solid #2c587f;border-radius:6px;padding:4px 10px;cursor:pointer}
 button:disabled{opacity:.5;cursor:default}
 
+/* Five explicit visual release states; never interpreted as sensor positions. */
+.level-select{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin:5px 0 11px}
+.level-select button{min-width:53px;padding:6px 10px;border-radius:9px}
+.level-select button[aria-pressed="true"]{color:#05233d;background:linear-gradient(180deg,#c5fcff,#36ccee);
+ border-color:#9cf8ff;box-shadow:0 0 14px #19cbff77}
+.motion-state{font-size:11px;color:#7feeff;margin-left:5px}
+@media(prefers-reduced-motion:reduce){.level-select button{transition:none}}
 /* ---------- card 3.32:1 : [clock | 2.5D scene | HUD] ---------- */
 .card{position:relative;width:100%;max-width:822px;aspect-ratio:822/248;border-radius:12px;overflow:hidden;
  background:#010814;border:1px solid rgba(90,138,176,0.35);display:grid;grid-template-columns:180px 1fr 244px}
@@ -112,23 +119,33 @@ button:disabled{opacity:.5;cursor:default}
  <div class="controls">
   <button id="refresh" type="button">ดึงข้อมูลใหม่</button>
   <span id="rid-state" class="rid-state">กำลังเตรียม…</span>
-  <span>ช่องเปิดประตูในภาพขับด้วยระดับน้ำจริง (% ตลิ่ง) — ปรับเองได้ด้วยแรงน้ำ (จำลอง) บนการ์ด</span>
+  <span>ประตูน้ำเป็นภาพจำลอง 5 ระดับ แยกจากข้อมูลระดับน้ำที่ตรวจวัดจริง</span>
  </div>
 
+ <div class="level-select" role="group" aria-label="เลือกระดับการปล่อยน้ำในภาพจำลอง">
+  <span>ระดับเปิดประตู (จำลอง)</span>
+  <button type="button" data-gate="0" aria-pressed="false">0%</button>
+  <button type="button" data-gate="25" aria-pressed="false">25%</button>
+  <button type="button" data-gate="50" aria-pressed="false">50%</button>
+  <button type="button" data-gate="75" aria-pressed="true">75%</button>
+  <button type="button" data-gate="100" aria-pressed="false">100%</button>
+  <button type="button" id="toggle-motion" aria-pressed="false">หยุดภาพ</button>
+  <span class="motion-state" id="motion-state">กำลังเล่น Animation น้ำไหล</span>
+ </div>
  <div class="card">
   <div class="clockzone" aria-label="เวลาประเทศไทย">
    <div class="cz-date" id="card-day">—</div>
    <div class="cz-time" id="card-time">--:--</div>
    <div class="cz-cap">เวลาประเทศไทย</div>
-   <div class="cz-lvl">ระดับน้ำดิบ (ม.รทก.) อ่านจากแผงขวา<br>บานประตูจำลองเปิดตาม % ตลิ่งจริง</div>
+   <div class="cz-lvl">ระดับน้ำดิบ (ม.รทก.) อ่านจากแผงขวา<br>ภาพประตูเปิดเป็นสถานการณ์จำลอง ไม่ใช่ข้อมูลจาก API</div>
   </div>
   <div class="scene">
    <canvas id="scene-canvas"></canvas>
    <span class="scene-chip">2.5D จำลอง (SIMULATED) · ประตูปล่อยน้ำ</span>
    <div class="scene-flow" aria-label="แรงน้ำจำลอง ปรับความแรงของภาพ (ไม่กระทบตัวเลขจริง)">
     <span>แรงน้ำ (จำลอง)</span>
-    <input id="flow-demo" type="range" min="0" max="100" step="5" value="66" aria-label="แรงน้ำจำลอง">
-    <b id="flow-v">66%</b>
+    <input id="flow-demo" type="range" min="0" max="100" step="25" value="75" aria-label="แรงน้ำจำลอง 5 ระดับ">
+    <b id="flow-v">75%</b>
     <span class="flow-sim">จำลอง</span>
    </div>
   </div>
@@ -144,13 +161,13 @@ button:disabled{opacity:.5;cursor:default}
    <div class="h-slot">ประวัติ 7 วัน · รอแหล่งข้อมูลยืนยัน</div>
    <div class="h-s5">S.5 สะพานปรีดี <b id="s5-value">—</b> ม. <span id="s5-badge" class="h-disc"></span></div>
    <div class="h-disc">เกณฑ์สี: ปกติ / เฝ้าระวัง (ตลิ่ง−0.50 ม.) / ถึงระดับตลิ่ง — ไม่ใช่คำเตือนทางการ</div>
-   <div class="h-disc2">ข้อมูลระดับน้ำจริงจาก ThaiWater/HII · ภาพ 2.5D และการไหลเป็นภาพจำลอง (SIMULATED) — ประกอบการติดตาม ไม่ใช่คำเตือนทางการ</div>
+   <div class="h-disc2">ข้อมูลระดับน้ำจาก ThaiWater/HII ผ่าน Google Sheets · ภาพ 2.5D และการไหลเป็นภาพจำลอง (SIMULATED) — ประกอบการติดตาม ไม่ใช่คำเตือนทางการ</div>
   </div>
  </div>
 
  <div class="caption">
   <span>ระดับน้ำจริง: ThaiWater/HII (HDA004 คลองช่องสะเดา + S.5 สะพานปีดี)</span><span class="sep">·</span>
-  <span>ดึงอัตโนมัติทุก 5 นาที · ไม่มีข้อมูล = แสดง “รอข้อมูล” (fail-closed)</span><span class="sep">·</span>
+  <span>อ่าน Google Sheets ทุก 15 นาที · ไม่มีข้อมูล = แสดง “รอข้อมูล” (fail-closed)</span><span class="sep">·</span>
   <span>ไม่ใช่คำเตือนภัย — ประกอบการติดตามเท่านั้น</span>
  </div>
 
@@ -236,7 +253,95 @@ function tickClock(){
 tickClock();setInterval(tickClock,15000);
 
 /* ---------- data state ---------- */
-var lastData=null,samples=[],flowData=0.66,flowOverride=false,flow=0.66,simT=0;
+var lastData=null,samples=[],flowData=0.75,flowOverride=true,flow=0.75,simT=0;
+
+/* User-supplied luxury night-dam sprite atlas: five release states × four
+   reference frames. This is an illustrated LOOP, not hydrodynamic simulation.
+   If the asset cannot load, the existing procedural painter remains available. */
+var gateAtlas=new Image();
+var atlasReady=false;
+gateAtlas.onload=function(){atlasReady=gateAtlas.naturalWidth===1120&&gateAtlas.naturalHeight===688; if(reduced)drawAll();};
+gateAtlas.onerror=function(){atlasReady=false;};
+gateAtlas.src='assets/water-gate-5levels-4frames.webp';
+
+/* High-frame-rate secondary motion blends four authored frames and adds
+   traveling flow highlights, foam droplets and concentric wave rings. */
+function drawAtlasScene(c,W,H,t,fl){
+ var col=Math.max(0,Math.min(4,Math.round(fl*4)));
+ var pos=(t*2.7)%4,first=Math.floor(pos),next=(first+1)%4,mix=pos-first;
+ var eased=mix*mix*(3-2*mix);
+ // Crop source tile borders; the atlas is 5x4 (224x172 per tile).
+ function tile(frame,a){
+  if(a<=0)return;
+  c.globalAlpha=a;
+  c.drawImage(gateAtlas,col*224+4,frame*172+4,216,164,0,0,W,H);
+ }
+ c.save();
+ tile(first,1);
+ tile(next,eased);
+ c.globalAlpha=1;
+ var energy=fl;
+ // A dark/cyan, fast-moving vertical current remains bounded to gate openings.
+ if(energy>0){
+  for(var bay=0;bay<2;bay++){
+   var center=W*(bay===0?.374:.626),span=W*(.020+.158*energy);
+   var top=H*(.45-.04*energy),bottom=H*(.735+.03*energy),height=bottom-top;
+   c.save();c.beginPath();c.rect(center-span*.5,top,span,height);c.clip();
+   for(var k=0;k<Math.round(10+20*energy);k++){
+    var seed=n2(k*5.81+bay*20.13,10.7);
+    var speed=H*(.5+.7*energy)*(.65+seed*.7);
+    var length=H*(.06+.16*n2(k*2.37,3));
+    var py=top-length+(t*speed+seed*height*4)%(height+length);
+    var xx=center+(seed-.5)*span;
+    var wiggle=Math.sin(t*4+seed*17)*W*.004;
+    c.lineWidth=Math.max(.6,W*(.0008+.0014*seed));
+    c.strokeStyle=k%5===0?'rgba(255,255,255,.58)':
+      k%2===0?'rgba(22,144,250,.31)':'rgba(126,246,255,.40)';
+    c.shadowColor='#38eaff';c.shadowBlur=2;
+    c.beginPath();c.moveTo(xx,py);
+    c.bezierCurveTo(xx+wiggle,py+length*.35,xx-wiggle,py+length*.75,xx+wiggle,py+length);
+    c.stroke();
+   }
+   c.restore();
+   // Foam bursts are driven by phase and energy, not static image opacity.
+   for(var f=0;f<Math.round(8+28*energy);f++){
+    var r=n2(f*6.19+bay*17,7),r2=n2(f*9.1+bay*8,8);
+    var age=(t*(.85+.6*energy)+r2*11)%1;
+    var side=r>.5?1:-1;
+    var dx=side*W*(.02+.12*energy)*age*(.45+r2);
+    var sy=H*(.76+.012*r2)-H*(.018+.12*energy)*Math.sin(age*Math.PI);
+    var radius=W*(.0013+.0033*r2)*(1-age);
+    c.fillStyle='rgba(225,255,255,'+(.72*(1-age)*energy).toFixed(3)+')';
+    c.shadowColor='#0dd6ff';c.shadowBlur=H*.014;
+    c.beginPath();c.arc(center+dx,sy,Math.max(.45,radius),0,6.283);c.fill();
+   }
+   c.shadowBlur=0;
+   for(var ring=0;ring<3;ring++){
+    var age2=(t*(.34+.50*energy)+ring/3)%1;
+    c.strokeStyle='rgba(112,240,255,'+(.34*(1-age2)*energy).toFixed(3)+')';
+    c.lineWidth=Math.max(.7,H*.003);
+    c.beginPath();
+    c.ellipse(center,H*(.85+.07*age2),
+      W*(.027+.16*energy*age2),H*(.003+.008*age2),0,.10,Math.PI-.10);
+    c.stroke();
+   }
+  }
+ }
+ // Flowing reflections and traveling waves across the foreground pool,
+ // including when gates are closed (weak ambient surface movement only).
+ for(var w=0;w<7;w++){
+  var yy=H*(.84+w*.022),phase=t*(1.4+2.8*energy)+w*1.8;
+  c.strokeStyle='rgba(73,226,255,'+(0.09+.25*energy).toFixed(3)+')';
+  c.lineWidth=.6+energy;
+  c.beginPath();
+  for(var x=0;x<=W;x+=8){
+   var wy=yy+Math.sin(x*.043-phase)*H*(.002+.008*energy);
+   if(x===0)c.moveTo(x,wy);else c.lineTo(x,wy);
+  }
+  c.stroke();
+ }
+ c.restore();
+}
 
 /* ================================================================
    2.5D painted scene — layered parallax planes, measured night palette
@@ -244,6 +349,7 @@ var lastData=null,samples=[],flowData=0.66,flowOverride=false,flow=0.66,simT=0;
    -> water sheets + foam -> foreground wave band -> grain + vignette
    ================================================================ */
 function drawScene(c,W,H,t,fl){
+ if(atlasReady){drawAtlasScene(c,W,H,t,fl);return;}
  var sc=H/283; /* px scale: parallax amplitudes stay 2-4 css px */
  function sway(w){ if(reduced)return 0; var ph=(t*w)%2,tri=ph<1?ph:2-ph;var e=tri*tri*(3-2*tri);return (e-0.5)*2; }
  var pFar=sway(0.10)*2.4*sc,pGate=sway(0.13)*3.2*sc,pWat=sway(0.16)*4*sc;
@@ -295,7 +401,7 @@ function drawScene(c,W,H,t,fl){
   og.addColorStop(0,'#0A1830');og.addColorStop(1,'#050B16');
   c.fillStyle=og;c.fillRect(x0,bayTop,bw,bayH);
   /* raised leaf: hangs from the deck; opening fraction grows with flow, so the leaf retracts upward */
-  var openF=0.12+0.78*fl;
+  var openF=0.90*fl;
   var leafH=bayH*(1-openF);
   var leafBot=bayTop+leafH;
   var lg=c.createLinearGradient(x0,0,x1,0);
@@ -313,6 +419,8 @@ function drawScene(c,W,H,t,fl){
   c.fillStyle='#6a7580';
   c.fillRect(x0-0.006*W,bayTop-0.01*H,Math.max(1.5,2*sc),bayH*0.9);
   c.fillRect(x1-0.001*W,bayTop-0.01*H,Math.max(1.5,2*sc),bayH*0.9);
+  /* Water release exists ONLY when the visually simulated gate is open. */
+  if(fl>0.001){
   /* water emerging from UNDER the leaf: 3-step luminous sheet */
   var shH=poolY-leafBot+H*0.02;
   var sg=c.createLinearGradient(0,leafBot,0,poolY+H*0.02);
@@ -320,7 +428,7 @@ function drawScene(c,W,H,t,fl){
   sg.addColorStop(0.45,'rgba(163,220,246,0.92)');
   sg.addColorStop(1,'rgba(224,245,252,0.88)');
   c.fillStyle=sg;
-   var sw2=bw*(0.72+0.2*fl);
+   var sw2=bw*(0.16+0.79*fl);
   var wob=Math.sin(t*(2.0+2.2*fl)+bi*2.1)*bw*0.03*(0.3+fl);
    /* painterly sheet: tapered silhouette with wavy edges (no hard rect) */
    var shx=gx1(x0,x1,sw2,wob),shSteps=8;
@@ -339,6 +447,42 @@ function drawScene(c,W,H,t,fl){
     c.lineTo(shx+sw2/2+spread2+wv2,sy2);
    }
    c.closePath();c.fill();
+   /* Moving highlights clipped INSIDE each water curtain: this is actual
+      time-based downstream motion, not a faded static picture. */
+   c.save();
+   c.clip();
+   var speed=(74+125*fl)*sc;
+   for(var ribbon=0;ribbon<24;ribbon++){
+     var rx=shx+sw2*(0.03+(ribbon+0.45)/24*0.94);
+     var seed=n2(ribbon*2.61+bi*31,4.1);
+     var dashLen=shH*(0.12+seed*0.27);
+     var shift=(t*speed*(0.7+seed*.65)+seed*shH*3)%(shH+dashLen);
+     var yStart=leafBot-dashLen+shift;
+     c.strokeStyle=ribbon%5===0?'rgba(241,255,255,0.95)':
+       ribbon%3===0?'rgba(3,110,244,0.62)':'rgba(118,239,255,0.67)';
+     c.lineWidth=Math.max(0.6,sw2*(0.008+seed*0.01));
+     c.shadowColor='#39dfff';c.shadowBlur=2.2*sc;
+     c.beginPath();
+     c.moveTo(rx,yStart);
+     c.bezierCurveTo(rx+Math.sin(t*3+seed*9)*3*sc,yStart+dashLen*.35,
+       rx+Math.sin(t*4+seed*11)*5*sc,yStart+dashLen*.7,
+       rx+Math.sin(t*3.6+seed*12)*3*sc,yStart+dashLen);
+     c.stroke();
+   }
+   c.shadowBlur=0;
+   /* Accelerating water pulses travel from top to bottom. */
+   for(var pulse=0;pulse<7;pulse++){
+     var vp=(t*(0.5+fl*.9)+pulse/7)%1;
+     var yPulse=leafBot+shH*vp;
+     var aPulse=(1-vp)*.22;
+     c.strokeStyle='rgba(228,255,255,'+aPulse.toFixed(3)+')';
+     c.lineWidth=(1.3+fl*1.2)*sc;
+     c.beginPath();
+     c.moveTo(shx,yPulse);
+     c.quadraticCurveTo(shx+sw2*.5,yPulse+Math.sin(t*7+pulse)*2.5*sc,
+       shx+sw2,yPulse);c.stroke();
+   }
+   c.restore();
    /* luminous core ribbon (lighter) */
    c.globalCompositeOperation='lighter';
    var cg=c.createLinearGradient(0,leafBot,0,poolY);
@@ -355,6 +499,7 @@ function drawScene(c,W,H,t,fl){
     c.fillStyle='rgba(224,245,252,'+(0.75*(1-life3)).toFixed(3)+')';
     c.beginPath();c.arc(spx,spy,0.8+1.8*ss1,0,6.283);c.fill();
    }
+  }
   /* pier seams flanking the bay */
   c.strokeStyle='rgba(129,135,156,0.4)';c.lineWidth=Math.max(1,1*sc);
   c.strokeRect(x0,bayTop,bw,bayH*0.62);
@@ -387,7 +532,7 @@ function drawScene(c,W,H,t,fl){
   c.fillStyle='#4a5058';
   c.fillRect(txx-0.024*W,hy-H*0.012,0.048*W,H*0.016);
   c.strokeStyle='rgba(160,170,182,0.65)';c.lineWidth=Math.max(0.8,0.9*sc);
-  var lb=bayTop+bayH*(1-(0.12+0.78*fl));
+  var lb=bayTop+bayH*(1-0.90*fl);
   c.beginPath();c.moveTo(txx-0.02*W,hy+H*0.028);c.lineTo(txx-0.02*W,lb-H*0.008);
   c.moveTo(txx+0.02*W,hy+H*0.028);c.lineTo(txx+0.02*W,lb-H*0.008);c.stroke();
  }
@@ -408,7 +553,7 @@ function drawScene(c,W,H,t,fl){
   c.beginPath();c.ellipse(ux,poolY+H*0.035,W*0.12,H*0.035,0,0,6.283);c.fill();
  }
  /* clustered billows: white-hot cores + cyan shading, density keyed to flow */
- var puffs=Math.round(14+22*fl);
+ var puffs=Math.round(39*fl);
  c.globalCompositeOperation='lighter';
  for(var k=0;k<puffs;k++){
   var bi4=k%2,s1=n2(k*12.9+Math.floor(t*(0.5+0.6*fl))*0.31,7.7),s2=n2(k*7.3,3.1);
@@ -423,6 +568,34 @@ function drawScene(c,W,H,t,fl){
   rg.addColorStop(1,'rgba(153,209,243,0)');
   c.fillStyle=rg;
   c.beginPath();c.arc(bx,by,rr,0,6.283);c.fill();
+ }
+ /* Impact jets, outward-running foam and spray. The spray count, arc size,
+    opacity and travel distance follow ONLY the manually selected demo level. */
+ for(var ib=0;ib<2;ib++){
+   var center=(bays[ib][0]+bays[ib][1])*.5;
+   var span=(bays[ib][1]-bays[ib][0])*(.32+.8*fl);
+   if(fl>0){
+     for(var j=0;j<Math.round(12+38*fl);j++){
+       var rand=n2(j*3.97+ib*41,5.1),rand2=n2(j*5.71+ib,7.8);
+       var life=(t*(.66+fl*.9)+rand2*13)%1;
+       var side=rand>.5?1:-1;
+       var spread=(.05+.82*life)*span*side;
+       var x=center+spread+(rand-.5)*span*.16;
+       var y=poolY+H*.027-(Math.sin(Math.PI*life))*H*(.045+.20*fl)*(.3+rand2*.7);
+       var r=(.65+2.8*rand)*(1-life)*(.45+fl)*sc;
+       c.fillStyle='rgba(229,254,255,'+(0.8*(1-life)).toFixed(3)+')';
+       c.shadowColor='#3be5ff';c.shadowBlur=3*sc;
+       c.beginPath();c.arc(x,y,Math.max(.45,r),0,6.283);c.fill();
+     }
+     c.shadowBlur=0;
+     for(var ring=0;ring<4;ring++){
+       var age=(t*(.48+fl*.52)+ring*.25)%1;
+       var ew=span*(.3+age*(.55+fl*.85));
+       c.strokeStyle='rgba(105,242,255,'+(.62*(1-age)*fl).toFixed(3)+')';
+       c.lineWidth=(1.2+fl)*sc;c.beginPath();
+       c.ellipse(center,poolY+H*.052+age*H*.055,ew,Math.max(1,3*sc)*(1+age),0,Math.PI*.06,Math.PI*.94);c.stroke();
+     }
+   }
  }
  /* reflection sheen columns under the bays */
  for(var gi=0;gi<2;gi++){
@@ -440,14 +613,15 @@ function drawScene(c,W,H,t,fl){
  bgrad.addColorStop(0,T.bandTop);bgrad.addColorStop(1,T.bandBot);
  c.fillStyle=bgrad;c.fillRect(0,bwY,W,H-bwY);
  c.strokeStyle=T.bandStreak;
- for(var k3=0;k3<3;k3++){
+ for(var k3=0;k3<Math.round(3+5*fl);k3++){
   var seed=n2(k3*17.3);
   var yy=bwY+4+seed*(H-bwY-8);
   c.lineWidth=(1+seed*1.4)*sc;
   c.beginPath();
   for(var x=0;x<=W;x+=14){
-   var xx=x+Math.sin(x*0.02+t*(0.5+0.9*fl)+k3*2)*(3+4*fl);
-   if(x===0)c.moveTo(xx,yy);else c.lineTo(xx,yy);
+   var xx=x+Math.sin(x*0.02+t*(1.6+2.5*fl)+k3*2)*(3+4*fl);
+   var py=yy+Math.sin(x*.035-t*(2.8+4.2*fl)+k3)*H*(.006+.018*fl);
+   if(x===0)c.moveTo(xx,py);else c.lineTo(xx,py);
   }
   c.globalAlpha=0.5+0.35*seed;
   c.stroke();
@@ -513,22 +687,43 @@ function frame(ts){
  var dt=Math.min(0.05,(ts-lastT)/1000||0.016);
  lastT=ts;simT+=dt;
  drawAll();
- if(!reduced)rafId=requestAnimationFrame(frame);
+ if(!reduced&&!paused)rafId=requestAnimationFrame(frame);
 }
-function startLoop(){ if(reduced||!canvasOk||rafId)return; lastT=0;rafId=requestAnimationFrame(frame); }
+function startLoop(){ if(reduced||paused||!canvasOk||rafId)return; lastT=0;rafId=requestAnimationFrame(frame); }
 function stopLoop(){ if(rafId){cancelAnimationFrame(rafId);rafId=null;} }
 document.addEventListener('visibilitychange',function(){
  if(document.hidden){stopLoop();}
- else{lastT=0;if(!reduced)startLoop();else drawAll();}
+ else{lastT=0;if(!reduced&&!paused)startLoop();else drawAll();}
 });
 
+/* Five discrete, visual-only release modes. */
+var paused=false;
+function setFlowPct(pct){
+ var selected=[0,25,50,75,100].includes(Number(pct))?Number(pct):75;
+ flow=selected/100;flowOverride=true;
+ if(fd)fd.value=String(selected);
+ if(fv)fv.textContent=selected+'%';
+ document.querySelectorAll('[data-gate]').forEach(function(b){
+   b.setAttribute('aria-pressed',String(Number(b.dataset.gate)===selected));
+ });
+ if(reduced||paused)drawAll();
+}
+document.querySelectorAll('[data-gate]').forEach(function(btn){
+ btn.addEventListener('click',function(){setFlowPct(btn.dataset.gate);});
+});
+var toggleMotion=$('toggle-motion');
+function setPaused(p){
+ paused=!!p;
+ if(toggleMotion){toggleMotion.textContent=paused?'เล่นภาพ':'หยุดภาพ';toggleMotion.setAttribute('aria-pressed',String(paused));}
+ var label=$('motion-state');
+ if(label)label.textContent=paused?'หยุด Animation ชั่วคราว':'กำลังเล่น Animation น้ำไหล';
+ if(paused)stopLoop();else if(!reduced)startLoop();
+}
+if(toggleMotion)toggleMotion.addEventListener('click',function(){setPaused(!paused);});
 /* ---------- แรงน้ำ demo slider — ON the card; art only, numbers stay real ---------- */
 var fd=$('flow-demo'),fv=$('flow-v');
 if(fd)fd.addEventListener('input',function(){
- flow=(Number(fd.value)||0)/100;
- flowOverride=true;
- if(fv)fv.textContent=fd.value+'%';
- if(reduced&&canvasOk)drawAll();
+ setFlowPct(fd.value);
 });
 
 /* ---------- banded classification (green < bank-0.50 ; amber >= bank-0.50 ; red >= bank) ---------- */
@@ -541,36 +736,20 @@ function bandFor(level,bank){
 function num(x){ if(x==null)return null; if(typeof x==='number')return isFinite(x)?x:null;
  if(typeof x==='string'){var t=x.trim();if(!t)return null;var f=parseFloat(t);return isFinite(f)?f:null;} return null; }
 
-/* symbolic gate drive: flow defaults to max(%bank of HDA004, %bank of S.5); data refresh wins over the slider */
+/* Visual-only gate setting: river gauge height does NOT reveal gate opening.
+   Never infer a physical sluice opening from a water-level/bank ratio. */
 function applyGateFromData(){
- var pcts=[];
- if(lastData&&lastData.hda&&lastData.hda.v!=null&&lastData.hda.bank!=null)
-  pcts.push(Math.max(0,Math.min(100,Math.round(lastData.hda.v/lastData.hda.bank*100))));
- if(lastData&&lastData.s5&&lastData.s5.v!=null)
-  pcts.push(Math.max(0,Math.min(100,Math.round(lastData.s5.v/4.70*100))));
- var open=12; /* fail-closed idle: no data -> water nearly still */
- if(pcts.length)open=Math.round(Math.max(12,Math.min(100,Math.max.apply(null,pcts))));
- flowData=open/100;
- if(fd)fd.value=String(open);
- if(fv)fv.textContent=open+'%';
- if(!flowOverride)flow=flowData;
+ flowData=flow;
+ if(reduced&&canvasOk)drawAll();
 }
 
-/* ---------- ThaiWater real data (fail-closed; real payload shape) ---------- */
-var TIMEOUT_MS=12000,fetchInFlight=false,autoTimer=null,baseV=null;
-function fetchT(url,opts){
- var ctrl=(typeof AbortController!=='undefined')?new AbortController():null;
- var o=opts||{};if(ctrl)o.signal=ctrl.signal;
- var timer=setTimeout(function(){if(ctrl)ctrl.abort();},TIMEOUT_MS);
- return fetch(url,o).then(function(r){clearTimeout(timer);return r.json();},function(err){clearTimeout(timer);throw err;});
-}
 function applyData(stations){
  var hda=stations[0],s5=stations[1];
  var vEl=$('hda-value'),pEl=$('hda-pill'),tEl=$('hda-trend'),dEl=$('hda-delta');
  var s5El=$('s5-value'),s5bEl=$('s5-badge');
  var lh=$('led-hda'),lhD=$('led-hda-dot'),ls=$('led-s5'),lsD=$('led-s5-dot');
  if(hda&&hda.v!=null&&hda.bank!=null){
-  var band=bandFor(hda.v,hda.bank);
+  var band=hda.historical?{band:'grey',badge:'ข้อมูลย้อนหลัง',color:'#9db4c9'}:bandFor(hda.v,hda.bank);
   var pct=Math.max(0,Math.min(100,Math.round(hda.v/hda.bank*100)));
   samples.push({v:hda.v,t:Date.now()});
   if(baseV==null)baseV=hda.v;
@@ -606,7 +785,7 @@ function applyData(stations){
   if(sr2)sr2.textContent='ระดับน้ำ HDA004: รอข้อมูล';
  }
  if(s5&&s5.v!=null&&s5.bank!=null){
-  var sb=bandFor(s5.v,s5.bank);
+  var sb=s5.historical?{band:'grey',badge:'ข้อมูลย้อนหลัง',color:'#9db4c9'}:bandFor(s5.v,s5.bank);
   lastData=lastData||{};lastData.s5={v:s5.v,bank:s5.bank,color:sb.color,band:sb.band,badge:sb.badge,badgeText:sb.badge,badgeColor:sb.color};
   if(s5El)s5El.textContent=s5.v.toFixed(2);
   if(s5bEl)s5bEl.textContent='· '+sb.badge;
@@ -622,44 +801,48 @@ function applyData(stations){
  applyGateFromData();
  if(reduced&&canvasOk)drawAll();
 }
-function parseThaiwater(j){
- var out=[];
- try{
-  var src=j&&j.waterlevel_data&&Array.isArray(j.waterlevel_data.data)?j.waterlevel_data.data:[];
-  for(var i=0;i<src.length;i++){
-   var r=src[i]||{},st=r.station||{},sid=st.id;
-   if(sid===471583){
-    out.push({sid:'a',v:num(r.waterlevel_msl),bank:num(st.min_bank),
-     when:(r.waterlevel_datetime||'').replace('T',' ').slice(0,16)});
-   }
-   if(sid===2607){
-    out.push({sid:'s5',v:num(r.waterlevel_msl),bank:4.70,when:(r.waterlevel_datetime||'').slice(0,16)});
-   }
-  }
- }catch(_e){}
- return out;
+/* Single canonical backend: existing API Report_PM2.5 spreadsheet and bound
+   Apps Script. Browser reading DOES NOT call ThaiWater/HII directly. */
+var SHEET_WATER_URL='https://script.google.com/macros/s/AKfycbwwUQCeJoz4N0P9UuRJF39pt17mBjPz0_yMDDxTO7BoiUiTQaO7Yay0UKq80EvE6dk/exec?action=water_history';
+var TIMEOUT_MS=12000,fetchInFlight=false,autoTimer=null,baseV=null,sheetSeq=0;
+function loadSheetWater(){
+ return new Promise(function(resolve,reject){
+  var cb='__uthToonSheet'+Date.now()+'_'+(sheetSeq++),tag=document.createElement('script'),settled=false;
+  function end(err,value){if(settled)return;settled=true;clearTimeout(timer);delete window[cb];tag.remove();if(err)reject(err);else resolve(value);}
+  var timer=setTimeout(function(){end(Error('Google Sheet timeout'));},TIMEOUT_MS);
+  window[cb]=function(data){end(null,data);};
+  tag.onerror=function(){end(Error('Google Sheet unavailable'));};
+  tag.src=SHEET_WATER_URL+'&callback='+encodeURIComponent(cb);
+  document.head.appendChild(tag);
+ });
+}
+function verifiedSheetStation(s,code,expectedId,now){
+ var unknown={sid:code,v:null,bank:null,historical:false,when:null};
+ if(!s||s.stationId!==expectedId||!['ok','historical'].includes(s.status))return unknown;
+ var stamp=typeof s.observedAt==='string'?Date.parse(s.observedAt):NaN;
+ var age=now-stamp,level=s.levelMsl,bank=s.bankM;
+ if(!Number.isFinite(stamp)||age< -120000||age>48*3600000||
+    typeof level!=='number'||!Number.isFinite(level)||level< -50||level>200||
+    typeof bank!=='number'||!Number.isFinite(bank)||bank< -50||bank>200)return unknown;
+ return {sid:code,v:level,bank:bank,historical:age>3*3600000||s.status==='historical',
+         when:typeof s.observedTimeTH==='string'?s.observedTimeTH:''};
 }
 function fetchWater(){
  if(fetchInFlight)return;
  fetchInFlight=true;
  var btn=$('refresh');if(btn)btn.disabled=true;
- setState('กำลังดึง…');
- fetchT('https://api-v3.thaiwater.net/api/v1/thaiwater30/public/waterlevel_load',{method:'GET'})
- .then(function(j){
-  var st=parseThaiwater(j);
-  if(!st.length)throw Error('ไม่พบสถานีในผลลัพธ์');
-  var hda=null,s5=null;
-  for(var i=0;i<st.length;i++){if(st[i].sid==='a')hda=st[i];if(st[i].sid==='s5')s5=st[i];}
-  if(!hda)throw Error('ไม่พบ HDA004');
-  applyData([hda,s5||{sid:'s5',v:null,bank:4.70}]);
-  setState('อัปเดตล่าสุด');
- }).catch(function(err){
+ setState('อ่านประวัติจาก Google Sheets…');
+ loadSheetWater().then(function(raw){
+  if(!raw||raw.schema!==1||raw.kind!=='LAST_OBSERVATION_NOT_LIVE'||!raw.stations)throw Error('Invalid water history schema');
+  var now=Date.now(),h=verifiedSheetStation(raw.stations.HDA004,'a',471583,now),
+      s5=verifiedSheetStation(raw.stations.S5,'s5',2607,now);
+  applyData([h,s5]);
+  setState(h.v===null?'Google Sheets ไม่มีข้อมูลระดับน้ำที่ใช้ได้':
+    h.historical?'ข้อมูลย้อนหลัง Google Sheets · ไม่ใช่ค่าปัจจุบัน':'ค่าตรวจวัดล่าสุดจาก Google Sheets',h.v===null);
+ }).catch(function(){
   applyData([{sid:'a',v:null},{sid:'s5',v:null}]);
-  setState('เชื่อม ThaiWater ไม่สำเร็จ — รอข้อมูล',true);
- }).then(function(){
-  fetchInFlight=false;
-  if(btn)btn.disabled=false;
- });
+  setState('อ่าน Google Sheets ไม่สำเร็จ — รอข้อมูล',true);
+ }).then(function(){fetchInFlight=false;if(btn)btn.disabled=false;});
 }
 function setState(txt,err){
  var e=$('rid-state');
@@ -667,8 +850,8 @@ function setState(txt,err){
 }
 var rb=$('refresh');
 if(rb)rb.addEventListener('click',function(){fetchWater();});
-window.__toon=function(){return {data:lastData,samples:samples.length,flow:flow,flowData:flowData,override:flowOverride,canvasOk:canvasOk};};
-autoTimer=setInterval(function(){ if(!document.hidden)fetchWater(); },300000);
+window.__toon=function(){return {data:lastData,samples:samples.length,flow:flow,flowData:flowData,override:flowOverride,canvasOk:canvasOk,simTime:simT,paused:paused,atlasReady:atlasReady};};
+autoTimer=setInterval(function(){ if(!document.hidden)fetchWater(); },900000);
 
 /* ---------- boot ---------- */
 sizeLed();
