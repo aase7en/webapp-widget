@@ -34,9 +34,11 @@ test('honest labels: SIMULATED spillway + real RID source + fail-closed grey val
 });
 test('v2 layout: clock leftmost, no สถานี ก/ข chips, level+name left-aligned stack',()=>{
   const html2=read(page);
-  assert.match(html2,/\.st-name\{position:absolute;top:2px;right:6px/); // name pinned top-right of its column
-  assert.match(html2,/\.spill-slot\{position:absolute;left:44px;top:0;bottom:0;width:150px/); // scene as soft-masked BACKGROUND (under clock digits + station edge)
-  assert.match(html2,/mask-image:linear-gradient\(90deg,transparent 0,#000 14%,#000 76%,transparent 100%\)/); // no hard rectangle: alpha fades on all edges
+  assert.match(html2,/\.station\{position:relative;flex:0 0 16px;height:16px;overflow:hidden\}/); // compact two-line station block (name line + number line)
+  assert.match(html2,/\.spill-slot\{position:absolute;left:2px;top:3px;bottom:3px;width:260px/); // glass hero box: scene + clock share ONE container (60% of strip)
+  assert.match(html2,/mask-image:linear-gradient\(90deg,#000 0,#000 84%,transparent 100%\)/); // soft fade only where the scene meets data
+  assert.match(html2,/\.data-cluster\{position:absolute;right:2px/); // compact translucent data panel behind itself only
+  assert.match(html2,/backdrop-filter:blur\(2px\) brightness\(0\.62\)/); // LOCAL glyph backdrop, not a big scrim
   assert.match(html2,/style=vivid/);                                   // vivid toon grading in the strip embed
   const html=read(page);
   const iClock=html.indexOf('class="clock"'),iSpill=html.indexOf('class="spill-slot"'),
