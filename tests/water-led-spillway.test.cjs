@@ -35,7 +35,9 @@ test('honest labels: SIMULATED spillway + real RID source + fail-closed grey val
 test('v2 layout: clock leftmost, no สถานี ก/ข chips, level+name left-aligned stack',()=>{
   const html2=read(page);
   assert.match(html2,/\.st-name\{position:absolute;top:2px;right:6px/); // name pinned top-right of its column
-  assert.match(html2,/\.spill-slot\{width:100px;flex:0 0 100px/);        // 3D slot widened to ~100px
+  assert.match(html2,/\.spill-slot\{position:absolute;left:44px;top:0;bottom:0;width:150px/); // scene as soft-masked BACKGROUND (under clock digits + station edge)
+  assert.match(html2,/mask-image:linear-gradient\(90deg,transparent 0,#000 14%,#000 76%,transparent 100%\)/); // no hard rectangle: alpha fades on all edges
+  assert.match(html2,/style=vivid/);                                   // vivid toon grading in the strip embed
   const html=read(page);
   const iClock=html.indexOf('class="clock"'),iSpill=html.indexOf('class="spill-slot"'),
         iA=html.indexOf('id="st-a"'),iB=html.indexOf('id="st-b"');

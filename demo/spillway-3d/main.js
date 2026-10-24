@@ -12,6 +12,7 @@ const stage=document.getElementById('stage'),status=document.getElementById('sta
 const reduced=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 const EMBED=new URLSearchParams(location.search).get('display')==='embed'; // additive: compact LED-strip embed mode
 const NIGHT=EMBED&&new URLSearchParams(location.search).get('style')==='night'; // additive: embed night-token art style (SIMULATED art direction only — measured reference palette)
+const VIVID=EMBED&&new URLSearchParams(location.search).get('style')==='vivid'; // additive: vivid toon grading (modern stylized product-viz look, SIMULATED art direction)
 const isMobile=window.matchMedia('(pointer: coarse)').matches||Math.min(innerWidth,innerHeight)<520;
 let playing=!reduced,visible=true,disposed=false,simT=reduced?10.0:0,prev=0;
 
@@ -45,6 +46,7 @@ function droneCam(){
  droneAz=(45-70*e)*Math.PI/180;               // +45deg (upper-right) -> -25deg (lower-left)
  droneEl=(24-18*e)*Math.PI/180;               // 24deg elevated -> 6deg low
  if(NIGHT){droneAz=(20-30*e)*Math.PI/180;droneEl=(15-6*e)*Math.PI/180;} // night: near-frontal low drone keeps leaf+opening+hoist in frame
+ if(VIVID){droneEl=(6-3*e)*Math.PI/180;}      // vivid: waterline drone keeps the luminous falls+pool filling the band
   const r=NIGHT?9.4:11.2,cx=0,cy=NIGHT?1.55:1.9,cz=NIGHT?0.9:0.6;
  camera.position.set(cx+r*Math.cos(droneEl)*Math.sin(droneAz),cy+r*Math.sin(droneEl),cz+r*Math.cos(droneEl)*Math.cos(droneAz));
  camera.lookAt(cx,cy,cz);
@@ -278,8 +280,8 @@ function buildReservoir(){
  vec3 n=normalize(vec3((n1-0.5)*0.14,1.0,(n2-0.5)*0.12));
  float fres=pow(1.0-max(dot(n,vd),0.0),3.2);
  float depth=smoothstep(-0.6,-6.8,vPos.z);
-  vec3 col=mix(${NIGHT?'vec3(0.05,0.19,0.38)':'vec3(0.07,0.44,0.56)'},${NIGHT?'vec3(0.008,0.05,0.12)':'vec3(0.02,0.16,0.26)'},depth*0.85+0.1);
-  col=mix(col,${NIGHT?'vec3(0.64,0.86,0.96)':'vec3(0.60,0.72,0.78)'},fres*0.6);
+  vec3 col=mix(${VIVID?'vec3(0.10,0.50,0.68)':NIGHT?'vec3(0.05,0.19,0.38)':'vec3(0.07,0.44,0.56)'},${VIVID?'vec3(0.03,0.22,0.38)':NIGHT?'vec3(0.008,0.05,0.12)':'vec3(0.02,0.16,0.26)'},depth*0.85+0.1);
+  col=mix(col,${VIVID?'vec3(0.72,0.90,0.98)':NIGHT?'vec3(0.64,0.86,0.96)':'vec3(0.60,0.72,0.78)'},fres*0.6);
   vec3 L=normalize(vec3(-0.5,0.72,0.45));
   col+=${NIGHT?'vec3(0.85,0.92,1.0)':'vec3(1.0,0.94,0.82)'}*pow(max(dot(reflect(-L,n),vd),0.0),90.0)*0.5;
  // slight draw-down and darkening toward operating gates
@@ -374,8 +376,8 @@ function buildSheets(){
   float foamVal=n*0.75+streak*0.45+aer*0.25;
   float foam=smoothstep(0.60,0.95,foamVal)*(0.55+0.45*streak);
   foam*=0.72+0.28*band;
-   vec3 water=${NIGHT?'mix(vec3(0.10,0.35,0.66),vec3(0.30,0.62,0.84),n*0.85+0.1)':'mix(vec3(0.04,0.24,0.42),vec3(0.13,0.56,0.72),n*0.85+0.1)'};
-   vec3 white=${NIGHT?'vec3(0.918,0.988,0.988)':'vec3(0.93,0.975,1.0)'};
+   vec3 water=${VIVID?'mix(vec3(0.16,0.50,0.80),vec3(0.42,0.75,0.95),n*0.85+0.1)':NIGHT?'mix(vec3(0.10,0.35,0.66),vec3(0.30,0.62,0.84),n*0.85+0.1)':'mix(vec3(0.04,0.24,0.42),vec3(0.13,0.56,0.72),n*0.85+0.1)'};
+   vec3 white=${VIVID?'vec3(0.878,0.961,0.988)':NIGHT?'vec3(0.918,0.988,0.988)':'vec3(0.93,0.975,1.0)'};
    vec3 col=mix(water,white,foam);
   col=mix(col,white,smoothstep(0.30,0.03,vThick/max(vTaper,0.2))*0.30*(0.3+0.7*aer));
   float eN=fbm(vec2(vUv.x*4.5+seed,sAdv*2.5));
@@ -385,7 +387,7 @@ function buildSheets(){
   col=mix(col,white,fringe*0.7);
  col=mix(col,white,pierFoam);
    float spec=pow(max(streak-0.42,0.0)*1.75,3.0);
-   col+=vec3(1.0,0.98,0.92)*spec*0.42;
+   col+=vec3(1.0,0.98,0.92)*spec*${VIVID?'0.55':'0.42'};
    ${NIGHT?'col*=1.10;':''}
   float holes=fbm(vec2(vUv.x*7.0+seed*1.7,sAdvB*3.0));
   float alpha=(0.74+0.26*core)*(0.88+0.32*foam); // near-opaque mass: reads over sunlit concrete too
@@ -428,8 +430,8 @@ function buildPool(){
  vec3 n=normalize(vec3((nz1-0.5)*nAmp,1.0,(nz2-0.5)*nAmp));
  float fres=pow(1.0-max(dot(n,vd),0.0),3.0);
  float depth=smoothstep(7.3,2.2,vPos.z);
-  vec3 col=mix(${NIGHT?'vec3(0.13,0.30,0.55)':'vec3(0.06,0.40,0.55)'},${NIGHT?'vec3(0.02,0.08,0.18)':'vec3(0.02,0.15,0.25)'},depth*0.75+0.15);
-  col=mix(col,${NIGHT?'vec3(0.68,0.88,0.97)':'vec3(0.62,0.74,0.80)'},fres*0.32);
+  vec3 col=mix(${VIVID?'vec3(0.10,0.45,0.62)':NIGHT?'vec3(0.13,0.30,0.55)':'vec3(0.06,0.40,0.55)'},${VIVID?'vec3(0.03,0.18,0.30)':NIGHT?'vec3(0.02,0.08,0.18)':'vec3(0.02,0.15,0.25)'},depth*0.75+0.15);
+  col=mix(col,${VIVID?'vec3(0.70,0.88,0.98)':NIGHT?'vec3(0.68,0.88,0.97)':'vec3(0.62,0.74,0.80)'},fres*0.32);
   vec3 L=normalize(vec3(-0.5,0.72,0.45));
   col+=${NIGHT?'vec3(0.85,0.92,1.0)':'vec3(1.0,0.95,0.85)'}*pow(max(dot(reflect(-L,n),vd),0.0),60.0)*0.5;
  float xEnv=smoothstep(3.7,2.5,abs(vPos.x));
@@ -448,7 +450,7 @@ function buildPool(){
  }
  rings*=xEnv*uFlow*smoothstep(0.02,0.1,uFlow);
  float foamAll=clamp(impactFoam+drift+rings*0.7,0.0,1.0);
- col=mix(col,vec3(0.95,0.99,1.0),foamAll);
+  col=mix(col,${VIVID?'vec3(0.90,0.97,1.0)':'vec3(0.95,0.99,1.0)'},foamAll);
  gl_FragColor=vec4(col,1.0);}`});
  track(mat);waterUniforms.push({u:mat.uniforms,key:'E'});
  const mesh=new THREE.Mesh(g,mat);mesh.renderOrder=2;scene.add(mesh);return mesh;
@@ -595,7 +597,7 @@ function buildTerrain(){
  for(const s of[-1,1]){const bank=new THREE.BoxGeometry(40,4.1,7.0);bank.translate(s*24.35,1.55,-4.05);parts.push(bank)}
  const down=new THREE.BoxGeometry(90,4.0,45.6);down.translate(0,-2.05,22.25);parts.push(down);
  const geo=mergeGeometries(parts.map(prepForMerge));track(geo);
- const mat=new THREE.MeshStandardMaterial({color:NIGHT?0x1a2436:0x5a6055,roughness:1.0,metalness:0.0});track(mat);
+ const mat=new THREE.MeshStandardMaterial({color:VIVID?0x5f7f8c:NIGHT?0x1a2436:0x5a6055,roughness:1.0,metalness:0.0});track(mat);
  const mesh=new THREE.Mesh(geo,mat);mesh.receiveShadow=false;scene.add(mesh);return mesh;
 }
 let envScene=null;
@@ -610,6 +612,7 @@ function skyMesh(){
  ${NIGHT?`vec3 col=mix(vec3(0.004,0.031,0.086),vec3(0.035,0.118,0.243),pow(h,0.9));
  float m=pow(max(dot(vDir,normalize(vec3(-0.5,0.72,0.45))),0.0),300.0);
  col+=vec3(0.72,0.82,1.0)*m*0.6;`
+ :VIVID?`vec3 col=mix(vec3(0.55,0.80,0.95),vec3(0.14,0.34,0.60),pow(h,0.8));`
  :`vec3 col=mix(vec3(0.82,0.88,0.90),vec3(0.40,0.62,0.78),pow(h,0.8));
  col=mix(vec3(0.75,0.80,0.82),col,smoothstep(0.35,0.52,h));
  vec3 sun=normalize(vec3(-0.5,0.72,0.45));
@@ -634,7 +637,7 @@ function buildEnvironment(){
   block.position.set(-6,0,2);envScene.add(block);
    pmrem=new THREE.PMREMGenerator(renderer);
    envRT=pmrem.fromScene(envScene,0.05);
-   scene.environment=envRT.texture;scene.environmentIntensity=NIGHT?0.15:0.55;
+   scene.environment=envRT.texture;scene.environmentIntensity=VIVID?0.7:NIGHT?0.15:0.55;
  }catch(e){console.info('Demo env fallback (procedural lighting only):',e.message)}
 }
 
@@ -648,32 +651,38 @@ function initialize(){
   renderer.setPixelRatio(dpr);
    renderer.outputColorSpace=THREE.SRGBColorSpace;
    renderer.toneMapping=THREE.ACESFilmicToneMapping;
-   renderer.toneMappingExposure=NIGHT?1.02:1.12;
+   renderer.toneMappingExposure=VIVID?1.5:NIGHT?1.02:1.12;
   renderer.shadowMap.enabled=true;
   renderer.shadowMap.type=THREE.PCFSoftShadowMap;
   renderer.info.autoReset=false;
   stage.appendChild(renderer.domElement);
    scene=new THREE.Scene();
-   scene.fog=new THREE.Fog(NIGHT?0x091e3e:0xbfd2dc,NIGHT?9:24,NIGHT?42:75);
+   scene.fog=new THREE.Fog(NIGHT?0x091e3e:VIVID?0x9ec9e8:0xbfd2dc,NIGHT?9:24,NIGHT?42:75);
   camera=new THREE.PerspectiveCamera(40,1,0.1,140);
   camera.position.copy(PRESETS[1].pos);
   const{map,roughnessMap}=makeConcreteMaps();track(map);track(roughnessMap);
-   concreteMat=new THREE.MeshStandardMaterial({color:NIGHT?0x343646:0xc9c5bc,map,roughnessMap,roughness:1.0,metalness:0.0,envMapIntensity:NIGHT?0.25:0.55});track(concreteMat);
-   steelMat=new THREE.MeshStandardMaterial({color:NIGHT?0x5a6a7d:0x828d96,metalness:0.88,roughness:0.34,roughnessMap:track(makeSteelRoughness()),envMapIntensity:NIGHT?0.35:0.9});track(steelMat);
+   concreteMat=new THREE.MeshStandardMaterial({color:VIVID?0xb8c4ce:NIGHT?0x343646:0xc9c5bc,map,roughnessMap,roughness:1.0,metalness:0.0,envMapIntensity:VIVID?0.4:NIGHT?0.25:0.55});track(concreteMat);
+   steelMat=new THREE.MeshStandardMaterial({color:VIVID?0x9aa8b5:NIGHT?0x5a6a7d:0x828d96,metalness:0.88,roughness:0.34,roughnessMap:track(makeSteelRoughness()),envMapIntensity:VIVID?0.5:NIGHT?0.35:0.9});track(steelMat);
   buildSky();buildTerrain();buildEnvironment();
   buildConcrete();buildSteel();gateMesh=buildGates();buildBalusters();buildBolts();
   buildReservoir();const sheetsMesh=buildSheets();buildPool();buildWet();
   window.__fxSheets=sheetsMesh;
   buildImpactBand();buildSplash();buildMist();buildRings();
    // lighting: warm sun + subtle hemisphere (day) / cool moon + navy ambient (night), PCFSoft shadows
-   const sun=new THREE.DirectionalLight(NIGHT?0x8fb3e0:0xffe3c0,NIGHT?0.5:2.6);
+   const sun=new THREE.DirectionalLight(NIGHT?0x8fb3e0:0xffe3c0,VIVID?2.4:NIGHT?0.5:2.6);
    sun.position.set(-7,10,6);sun.castShadow=true;
    sun.shadow.mapSize.set(2048,2048);
    Object.assign(sun.shadow.camera,{left:-9,right:9,top:8,bottom:-5,near:2,far:32});
    sun.shadow.camera.updateProjectionMatrix();
    sun.shadow.bias=-0.0004;sun.shadow.normalBias=0.02;
    scene.add(sun);scene.add(sun.target);sun.target.position.set(0,1,1);
-   scene.add(new THREE.HemisphereLight(NIGHT?0x24406e:0xcfe4f2,NIGHT?0x050a14:0x4c5548,NIGHT?0.5:0.85));
+   scene.add(new THREE.HemisphereLight(NIGHT?0x24406e:0xcfe4f2,NIGHT?0x050a14:0x4c5548,NIGHT?0.5:VIVID?1.15:0.85));
+   if(VIVID){
+    // amber gate-floodlight accent (kept from the night look, brighter day-grade)
+    const vgl=new THREE.SpotLight(0xffd9a0,120,16,0.7,0.6,1.6);
+    vgl.position.set(0,6.6,4.8);vgl.target.position.set(0,3.2,-0.4);
+    scene.add(vgl);scene.add(vgl.target);
+   }
    if(NIGHT){
     // night water up-glow: cyan key from the plunge pool + cool fill on the falls face (luminous-water read)
     const pg=new THREE.PointLight(0x4e90d7,26,10,2);pg.position.set(0,0.8,3.0);scene.add(pg);
@@ -714,7 +723,7 @@ function initialize(){
   if(!reduced){
    composer=new EffectComposer(renderer);
    composer.addPass(new RenderPass(scene,camera));
-   if(!isMobile){bloomPass=new UnrealBloomPass(new THREE.Vector2(2,2),NIGHT?0.35:0.22,0.45,0.85);composer.addPass(bloomPass)}
+   if(!isMobile){bloomPass=new UnrealBloomPass(new THREE.Vector2(2,2),VIVID?0.28:NIGHT?0.35:0.22,0.45,0.85);composer.addPass(bloomPass)}
    composer.addPass(new OutputPass());
    composer.setPixelRatio(dpr);
   }
