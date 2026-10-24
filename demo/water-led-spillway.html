@@ -17,14 +17,25 @@ header p{margin:4px 0 0;font-size:12px;color:#c0cbd5;line-height:1.6}
 .stage-wrap{background:#000;border:1px solid #486579;border-radius:10px;padding:16px;display:flex;justify-content:center;overflow:hidden}
 .led-scale{position:relative;width:432px;height:40px;transform-origin:top left;overflow:visible;margin:0 auto 10px;flex:0 0 auto}
 .led-frame{width:432px;height:40px;display:flex;align-items:stretch;background:#04101c;border:1px solid #173347;border-radius:4px;overflow:hidden;position:relative;transform:scale(var(--led-s,1));transform-origin:top left}
-/* v2 strip layout: [clock][sep][spillway 3D][sep][S.5][sep][S.26] */
-.clock{width:64px;flex:0 0 64px;padding:4px 6px 2px;display:flex;flex-direction:column;justify-content:center;gap:0;background:#071726;border-right:1px solid #1d3a52}
-.clock .time{font-size:15px;font-weight:800;color:#f3f8fc;line-height:1;letter-spacing:.5px;font-variant-numeric:tabular-nums}
-.clock .day{font-size:8px;font-weight:700;color:#9fc6e0;line-height:1.3;margin-top:2px}
-.spill-slot{width:100px;flex:0 0 100px;position:relative;background:#02080f;border-right:1px solid #1d3a52}
-.spill-slot iframe{border:0;width:100px;height:40px;display:block;background:#02080f}
-.sep{width:1px;background:#1d3a52;flex:0 0 1px}
-.station{position:relative;flex:1;min-width:0;padding:0 6px 1px 6px;display:flex;flex-direction:column;justify-content:flex-end;align-items:flex-start;text-align:left}
+/* v2 strip layout: [clock over scene][3D vivid scene as soft-edged background][S.5][S.26] */
+.clock{width:64px;flex:0 0 64px;padding:4px 6px 2px;display:flex;flex-direction:column;justify-content:center;gap:0;position:relative;z-index:2;
+ background:linear-gradient(90deg,#071726 0%,#071726 55%,rgba(7,23,38,0.45) 100%);border-right:1px solid rgba(29,58,82,0.4)}
+.clock .time{font-size:15px;font-weight:800;color:#f3f8fc;line-height:1;letter-spacing:.5px;font-variant-numeric:tabular-nums;
+ text-shadow:0 1px 3px rgba(2,8,15,0.85),0 0 7px rgba(95,201,255,0.35)}
+.clock .day{font-size:8px;font-weight:700;color:#cfe4f2;line-height:1.3;margin-top:2px;
+ text-shadow:0 1px 2px rgba(2,8,15,0.9)}
+/* scene as BACKGROUND: absolute layer extending slightly under the clock's right digits and softly under the station zone;
+   alpha mask fades every edge (no hard rectangle) + backdrop blur hint at the extremes */
+.spill-slot{position:absolute;left:44px;top:0;bottom:0;width:150px;z-index:0;
+ -webkit-mask-image:linear-gradient(90deg,transparent 0,#000 14%,#000 76%,transparent 100%),linear-gradient(180deg,transparent 0,#000 14%,#000 86%,transparent 100%);
+ mask-image:linear-gradient(90deg,transparent 0,#000 14%,#000 76%,transparent 100%),linear-gradient(180deg,transparent 0,#000 14%,#000 86%,transparent 100%);
+ -webkit-mask-composite:source-in;mask-composite:intersect}
+.spill-slot iframe{border:0;width:100%;height:100%;display:block;background:transparent}
+.spill-slot::after{content:"";position:absolute;inset:0;backdrop-filter:blur(1.1px);-webkit-backdrop-filter:blur(1.1px);
+ -webkit-mask-image:linear-gradient(90deg,#000 0,transparent 13%,transparent 87%,#000 100%),linear-gradient(180deg,#000 0,transparent 16%,transparent 84%,#000 100%);
+ mask-image:linear-gradient(90deg,#000 0,transparent 13%,transparent 87%,#000 100%),linear-gradient(180deg,#000 0,transparent 16%,transparent 84%,#000 100%)}
+.station{position:relative;z-index:1;flex:1;min-width:0;padding:0 6px 1px 6px;display:flex;flex-direction:column;justify-content:flex-end;align-items:flex-start;text-align:left;
+ background:linear-gradient(270deg,#04101c 0%,#04101c 58%,rgba(4,16,28,0.35) 100%)}
 .st-name{position:absolute;top:2px;right:6px;font-size:9.5px;font-weight:800;color:#8fe3ff;line-height:1.2;white-space:nowrap;letter-spacing:.2px;text-shadow:0 0 6px rgba(95,201,255,.55);border-bottom:1px solid rgba(95,201,255,.35);padding:0 2px 1px;z-index:2}
 .st-name.dim{color:#7f93a3}
 .st-numline{display:flex;align-items:baseline;gap:2px;margin:0;line-height:1}
@@ -77,11 +88,9 @@ code{background:#122b3e;border-radius:4px;padding:1px 5px;font-size:10.5px}
         <span class="time" id="clock-time">--:--</span>
         <span class="day" id="clock-day">—</span>
       </div>
-      <div class="sep" aria-hidden="true"></div>
-      <div class="spill-slot" aria-hidden="true" title="ประตูระบายน้ำจำลอง (SIMULATED) — ดูคำอธิบายใต้สไลด์">
-        <iframe id="spill-frame" src="./spillway-3d/?display=embed" title="ประตูระบายน้ำจำลอง 3D (SIMULATED) — ช่องไอคอนสไลด์"></iframe>
+      <div class="spill-slot" aria-hidden="true" title="ประตูระบายน้ำจำลอง 2.5 มิติสีสดใส (SIMULATED) — พื้นหลังเบลอขอบ ดูคำอธิบายใต้สไลด์">
+        <iframe id="spill-frame" src="./spillway-3d/?display=embed&style=vivid" title="ประตูระบายน้ำจำลอง 3D โทนสดใส (SIMULATED) — พื้นหลังสไลด์"></iframe>
       </div>
-      <div class="sep" aria-hidden="true"></div>
       <div class="station" id="st-a">
         <div class="st-name" id="a-name">S.5 สะพานปรีดี</div>
         <div class="st-numline">
