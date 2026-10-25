@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>UTH[AI] · ทดลอง Animation ประตูน้ำบน LED 432×40</title>
+<style>
+:root{color-scheme:dark;font-family:system-ui,"Noto Sans Thai",Tahoma,sans-serif;background:#06111e;color:#e5f5ff}
+*{box-sizing:border-box}
+body{max-width:1130px;margin:0 auto;padding:25px 15px 50px;background:radial-gradient(ellipse at 50% 0%,#134b71 0%,#081a30 43%,#06111e 75%)}
+h1{font-size:clamp(20px,3vw,30px);margin:5px 0 7px}
+.sub{font-size:13px;line-height:1.65;color:#aad3e9;margin:0 0 18px}
+.info{background:#102c45;border:1px solid #305b75;padding:10px 13px;border-radius:9px;font-size:12px;line-height:1.65;margin:14px 0;color:#c0ddea}
+.info strong{color:#70e2ff}
+.demo{border:1px solid #397ca0;border-radius:14px;background:#020b14;padding:15px 12px 20px;box-shadow:0 10px 35px #001019ac,0 0 20px #007ddc33}
+.demo h2{font-size:15px;font-weight:700;margin:0 0 12px;color:#b9f2ff}
+.buttons{display:flex;flex-wrap:wrap;gap:7px;align-items:center;margin:12px 0}
+.buttons button,.buttons a{border:1px solid #457b99;background:#102d49;color:#ccecff;border-radius:9px;padding:9px 13px;font-size:13px;cursor:pointer;font-weight:700;min-height:37px}
+.buttons button[aria-pressed=true]{background:linear-gradient(#65def7,#1797c6);color:#03192c;border-color:#85efff;box-shadow:0 0 12px #47cfff86}
+.buttons button:hover{border-color:#9dedff}
+.buttons button:focus-visible{outline:2px solid #fff;outline-offset:2px}
+.label{font-size:11px;color:#9bd2e8;margin:10px 0 3px;font-weight:750}
+.led-holder{max-width:100%;border-radius:9px;overflow:hidden;background:#000;min-height:44px;display:flex;justify-content:center;align-items:center}
+.led-size{width:432px;height:40px;flex:0 0 auto;transform-origin:top left}
+.led-size iframe{border:0;display:block;width:432px;height:40px;background:#000}
+.status{color:#94bdd1;font-size:11px;text-align:center;margin:8px 0 0}
+.legend{font-size:12px;color:#abd1e7;margin-top:12px;line-height:1.8}
+.gallery{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:11px;margin-top:14px}
+.gallery button{padding:0;display:block;border:1px solid #3b789b;background:#0c2235;border-radius:11px;overflow:hidden;color:#d4edff;text-align:left;cursor:pointer}
+.gallery button[aria-pressed=true]{border:2px solid #64ecff;box-shadow:0 0 13px #00bfff55}
+.gallery .uth-gallery-poster{width:100%;aspect-ratio:2/1;background-size:400% 100%;background-position:left top;background-repeat:no-repeat;display:block}
+.gallery button{position:relative}.gallery canvas.uth-animated-layer{position:absolute;inset:0 auto auto 0;width:100%;height:auto;aspect-ratio:2/1;pointer-events:none;display:block}
+.gallery span{padding:8px 10px;display:block;font-size:12px;font-weight:700}
+.gallery small{display:block;padding:0 10px 9px;color:#9fbcd1;font-size:10px}
+.foot{color:#809eb2;font-size:11px;margin-top:22px}
+@media(max-width:500px){body{padding:13px 9px 35px}.demo{padding:12px 7px}.buttons button{padding:7px 10px}.gallery{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<h1>ทดลองภาพประตูน้ำเคลื่อนไหวบน LED Widget</h1>
+<p class="sub">หน้าแสดงผลใช้เลย์เอาต์จริง 432×40 px ของ PM2.5 / Weather / Water Level ข้อมูลตัวเลขและกราฟอ่านจากระบบเดิม ส่วนแอนิเมชันการเปิดประตูเป็น <strong>ภาพจำลองเพื่อทดสอบดีไซน์</strong></p>
+<div class="demo">
+ <h2>หน้าจอ LED 432×40 px — โครงสร้างจากหน้าใช้งานจริง</h2>
+ <div class="label">หน้าที่แสดง</div>
+ <div class="buttons" id="slides" role="group" aria-label="เลือกหน้าบนจอ LED">
+  <button data-slide="pm" aria-pressed="false">PM2.5</button>
+  <button data-slide="weather" aria-pressed="false">Weather</button>
+  <button data-slide="water" aria-pressed="true">Water Level</button>
+ </div>
+ <div class="led-holder" id="led-holder"><div class="led-size" id="led-size"><iframe id="led" title="ทดลองวาง Animation บนหน้า LED Uthai โรงพยาบาล" src="../v2/index.html?display=led" loading="eager"></iframe></div></div>
+ <div class="status" id="display-status" role="status">กำลังโหลดหน้าจอจริงจาก v2…</div>
+ <div class="label">เลือกระดับภาพน้ำปล่อย (จำลอง)</div>
+ <div class="buttons" id="levels" role="group" aria-label="เลือกระดับการปล่อยน้ำ 5 ระดับ">
+   <button data-level="0" aria-pressed="false">0%</button>
+   <button data-level="1" aria-pressed="false">1–25%</button>
+   <button data-level="2" aria-pressed="false">26–50%</button>
+   <button data-level="3" aria-pressed="true">51–75%</button>
+   <button data-level="4" aria-pressed="false">76–100%</button>
+ </div>
+ <p class="legend">ภาพนี้เป็นการสื่อสารเชิงกราฟิกเท่านั้น: ไม่มีข้อมูลเซนเซอร์ยืนยันเปอร์เซ็นต์เปิดประตูจริง และระดับน้ำจาก HDA004 / S.5 ไม่สามารถนำมาคำนวณเปอร์เซ็นต์เปิดประตูได้โดยตรง</p>
+</div>
+<div class="info"><strong>การแยกข้อมูลกับภาพ:</strong> ภาพประตูน้ำทั้งสองสถานีจะเปลี่ยนตามปุ่ม 5 ระดับ แต่ <strong>ค่าระดับน้ำ เวลาวัด และเส้นกราฟจะไม่เปลี่ยนตามปุ่ม</strong> เพราะอ่านจาก API/Google Sheets/Apps Script เดิม หากข้อมูลยังไม่พร้อม จอจะแสดงสถานะเดิม ไม่ใส่ค่าตัวเลขสมมติ</div>
+<h2 style="font-size:16px;margin:26px 0 7px">เปรียบเทียบภาพเคลื่อนไหวทุกระดับ</h2>
+<p class="sub">คลิกที่ภาพเพื่อใช้ระดับนั้นกับหน้าจอ LED ด้านบน ภาพช่วง 51–75% และ 76–100% สลับการจับคู่ตามข้อสังเกตที่ให้ไว้ เพื่อให้ระดับสูงสุดมีมวลน้ำมากกว่า</p>
+<div class="gallery" id="gallery"></div>
+<p class="foot">เว็บทดลองแยกจาก Production • ไม่แก้หน้า <a href="../" style="color:#77dfff">LED ที่เปิดใช้งานจริง</a> • ใช้ Sprite Strip จากชุด Animation ที่ได้รับอนุมัติใน assets/water-gate/5-levels/; ไฟล์ Animated WebP/GIF ต้นฉบับยังเก็บอยู่ • รองรับ Reduced Motion</p>
+<script>
+(()=>{'use strict';
+ const root='../assets/water-gate/5-levels/';
+ const cases=[
+  {label:'0%',short:'0_0pct',desc:'ประตูปิด — กระเพื่อมเบา'},
+  {label:'1–25%',short:'1_1_25pct',desc:'มวลน้ำน้อย'},
+  {label:'26–50%',short:'2_26_50pct',desc:'มวลน้ำปานกลาง'},
+  {label:'51–75%',short:'4_76_100pct',desc:'มวลน้ำมาก'},
+  {label:'76–100%',short:'3_51_75pct',desc:'มวลน้ำมากที่สุด'}
+ ];
+ const $=id=>document.getElementById(id);
+ const reduced=matchMedia('(prefers-reduced-motion: reduce)').matches;
+ let current=3,slide='water',child=null;
+ const sprites=cases.map((c)=>{const im=new Image();im.decoding='async';im.src=root+'uth_led_water_'+c.short+'_spritestrip.png';return im;});
+ let lastFrame=-1;
+ function paint(canvas,im,index){
+   if(!canvas||!im.complete||!im.naturalWidth)return;
+   const ctx=canvas.getContext('2d',{alpha:false});if(!ctx)return;
+   const w=canvas.width,h=canvas.height,fw=im.naturalWidth/4,fh=im.naturalHeight;
+   const desired=w/h,srcW=Math.min(fw,fh*desired),sx=(fw-srcW)/2;
+   // Keep the dam, sky, railings and lighting locked to frame 0.
+   if(canvas.dataset.fixed!=='1'){ctx.drawImage(im,sx,0,srcW,fh,0,0,w,h);canvas.dataset.fixed='1';}
+   // Animate only the water curtain, foam, spray and foreground ripples.
+   if(index){ctx.save();ctx.beginPath();ctx.rect(0,h*.45,w,h*.55);ctx.clip();ctx.drawImage(im,fw*index+sx,0,srcW,fh,0,0,w,h);ctx.restore();}
+   canvas.dataset.ready='1';
+ }
+ function animate(now){
+  const frame=Math.floor(now/140)%4;
+  if(frame!==lastFrame){
+   lastFrame=frame;
+   document.querySelectorAll('canvas.uth-animated-layer').forEach(c=>paint(c,sprites[Number(c.dataset.level)],frame));
+   if(child)child.querySelectorAll('canvas.uth-demo-water-canvas').forEach(c=>paint(c,sprites[current],frame));
+  }
+  requestAnimationFrame(animate);
+ }
+ if(!reduced)requestAnimationFrame(animate);
+ function filename(c,ext){return root+'uth_led_water_'+c.short+'_animated.'+ext;}
+ function stripname(c){return root+'uth_led_water_'+c.short+'_spritestrip.png';}
+ function styleChild(){
+  if(!child)return;
+  let style=child.getElementById('uth-demo-water-style');
+  if(!style){style=child.createElement('style');style.id='uth-demo-water-style';child.head.appendChild(style);}
+  const idx={pm:1,weather:2,water:3}[slide];
+  style.textContent=`html.led-screen main>article{display:none!important}html.led-screen main>article:nth-of-type(${idx}){display:block!important}`+
+  `#water .water-station .gate{overflow:hidden!important;contain:paint!important;transform:none!important;scale:1!important;filter:none!important;border-radius:2px!important}`+
+  `#water .water-station .gate>*:not(.uth-demo-water-image):not(.uth-demo-water-poster):not(.uth-demo-water-canvas){display:none!important}`+
+  `#water .water-station .spill-sheet{display:none!important}`+
+  `#water .water-station .gate img.uth-demo-water-image{position:absolute!important;inset:0!important;width:100%!important;height:100%!important;object-fit:cover!important;object-position:center center!important;display:block!important;z-index:80!important;max-width:none!important;filter:saturate(1.13) contrast(1.02)}`+
+  `#water .water-station .gate .uth-demo-water-canvas{position:absolute!important;inset:0!important;width:100%!important;height:100%!important;display:block!important;z-index:85!important;pointer-events:none!important}`+
+  `#water .water-station .gate .uth-demo-water-poster{position:absolute!important;inset:0!important;width:100%!important;height:100%!important;display:block!important;background-size:400% 100%!important;background-position:0% 0%!important;background-repeat:no-repeat!important;z-index:80!important}`+
+  `#water .water-fig,#water .trend{z-index:82!important}`;
+ }
+ function updateAssets(){
+  if(!child)return;
+  styleChild();
+  child.querySelectorAll('#water .gate').forEach((gate)=>{
+   gate.querySelectorAll('.uth-demo-water-image,.uth-demo-water-poster,.uth-demo-water-canvas').forEach(x=>x.remove());
+   const c=cases[current];
+   if(reduced){const div=child.createElement('div');div.className='uth-demo-water-poster';div.setAttribute('aria-hidden','true');div.style.backgroundImage=`url("${stripname(c)}")`;gate.appendChild(div)}
+   else{const base=child.createElement('div');base.className='uth-demo-water-poster';base.setAttribute('aria-hidden','true');base.style.backgroundImage=`url(\"${stripname(c)}\")`;gate.appendChild(base);const canvas=child.createElement('canvas');canvas.className='uth-demo-water-canvas';canvas.setAttribute('aria-hidden','true');canvas.width=128;canvas.height=136;gate.appendChild(canvas);paint(canvas,sprites[current],Math.floor(performance.now()/140)%4);}
+  });
+  $('display-status').textContent=slide==='water'?'Water Level — ภาพการเปิดประตูเป็นแบบจำลอง; ตัวเลขและกราฟมาจากระบบข้อมูลเดิม':slide==='pm'?'PM2.5 — หน้าเดิม ไม่เปลี่ยนข้อมูลหรือดีไซน์':'Weather — หน้าเดิม ไม่เปลี่ยนข้อมูลหรือดีไซน์';
+ }
+ function chooseSlide(name){slide=name;document.querySelectorAll('[data-slide]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.slide===name)));styleChild();updateAssets()}
+ function chooseLevel(index){current=Number(index);document.querySelectorAll('[data-level]').forEach(b=>b.setAttribute('aria-pressed',String(Number(b.dataset.level)===current)));document.querySelectorAll('[data-card]').forEach(b=>b.setAttribute('aria-pressed',String(Number(b.dataset.card)===current)));updateAssets();}
+ function resize(){const holder=$('led-holder'),s=Math.min(2.5,Math.max(.48,(holder.clientWidth-2)/432));const box=$('led-size');box.style.transform=`scale(${s})`;box.style.width='432px';box.style.height='40px';holder.style.height=Math.ceil(40*s+8)+'px';box.parentElement.style.justifyContent='flex-start';box.style.marginLeft=Math.max(0,(holder.clientWidth-432*s)/2)+'px';}
+ const gallery=$('gallery');cases.forEach((c,i)=>{const b=document.createElement('button');b.type='button';b.dataset.card=i;b.setAttribute('aria-pressed',String(i===current));const img=document.createElement('div');img.className='uth-gallery-poster';img.style.backgroundImage=`url(\"${stripname(c)}\")`;img.setAttribute('aria-hidden','true');const span=document.createElement('span');span.textContent=c.label;const small=document.createElement('small');small.textContent=c.desc;b.append(img,span,small);b.addEventListener('click',()=>{chooseLevel(i);chooseSlide('water')});gallery.appendChild(b);if(!reduced){const canvas=document.createElement('canvas');canvas.className='uth-animated-layer';canvas.dataset.level=i;canvas.width=320;canvas.height=160;b.appendChild(canvas);sprites[i].addEventListener('load',()=>paint(canvas,sprites[i],Math.floor(performance.now()/140)%4));}});
+ document.querySelectorAll('[data-slide]').forEach(b=>b.addEventListener('click',()=>chooseSlide(b.dataset.slide)));
+ document.querySelectorAll('[data-level]').forEach(b=>b.addEventListener('click',()=>{chooseLevel(b.dataset.level);chooseSlide('water')}));
+ $('led').addEventListener('load',()=>{try{child=$('led').contentDocument;if(!child||!child.querySelector('#water .gate'))throw Error('LED DOM not ready');chooseSlide('water');chooseLevel(3);}catch(e){$('display-status').textContent='ไม่สามารถปรับรูปภายในหน้า LED ได้: '+e.message;}});
+ window.addEventListener('resize',resize);resize();
+ window.__uthWaterGateDemo={getState:()=>({current,slide,reduced,waterImages:child?.querySelectorAll('#water .uth-demo-water-image').length||0,waterCanvases:child?.querySelectorAll('#water .uth-demo-water-canvas').length||0,posters:child?.querySelectorAll('#water .uth-demo-water-poster').length||0})};
+})();
+</script>
+</body>
+</html>
