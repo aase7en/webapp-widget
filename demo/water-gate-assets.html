@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>UTH[AI] · Water Gate Asset Gallery (5 levels)</title>
+<style>
+:root{color-scheme:dark;font-family:system-ui,"Noto Sans Thai",sans-serif;background:#061423;color:#e2f7ff}
+*{box-sizing:border-box}body{margin:0;padding:20px;max-width:1020px;margin-inline:auto}
+h1{font-size:clamp(20px,3vw,30px);margin:0 0 8px}p{color:#abc8d7;line-height:1.65}
+.note{padding:10px 14px;background:#10293c;border:1px solid #28546b;border-radius:12px}
+.stage{background:#051d31;border:1px solid #2a7297;border-radius:15px;overflow:hidden;box-shadow:0 6px 32px #06aff02b}
+.stage picture,.stage img{display:block;width:100%;height:auto;aspect-ratio:2/1;object-fit:cover}
+.controls{display:flex;flex-wrap:wrap;gap:7px;margin:12px 0}
+button{font:inherit;border:1px solid #387796;border-radius:9px;padding:9px 15px;background:#14364a;color:#d8f4ff;cursor:pointer}
+button[aria-pressed=true]{background:#22bce7;color:#00202c;border-color:#83ecff;font-weight:700}
+button:focus-visible{outline:3px solid #fce19c;outline-offset:2px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(155px,1fr));gap:10px;margin-top:16px}
+.item{border:1px solid #245b79;border-radius:10px;padding:8px;background:#0a2337}
+.item img{width:100%;aspect-ratio:2/1;object-fit:cover;border-radius:6px}.item b{display:block;margin-top:6px}
+.small{font-size:12px;color:#8aafc1}a{color:#80e4ff}
+.still{display:none;background-size:400% 100%;background-position:0 0;aspect-ratio:2/1}
+@media(prefers-reduced-motion:reduce){.stage picture{display:none}.stage .still{display:block}.item img{display:none}.item .still{display:block}}
+</style>
+</head>
+<body>
+<h1>ประตูน้ำ 5 ระดับ · Animation Assets</h1>
+<p class="note"><strong>Visual demo / ข้อมูลจำลอง</strong> — ตัวเลขเปอร์เซ็นต์สื่อระดับประตูในภาพเท่านั้น ไม่ใช่ค่าจาก API ระดับน้ำหรืออุปกรณ์ประตูจริง เว็บไซต์นี้ไม่เปลี่ยนหน้า LED Production</p>
+<div class="controls" role="group" aria-label="เลือกระดับภาพ">
+<button data-level="0" aria-pressed="false">0%</button><button data-level="1" aria-pressed="false">1–25%</button><button data-level="2" aria-pressed="false">26–50%</button><button data-level="3" aria-pressed="true">51–75%</button><button data-level="4" aria-pressed="false">76–100%</button>
+</div>
+<div class="stage" aria-label="ภาพประตูน้ำแบบเคลื่อนไหวที่เลือก">
+<picture><source id="webp-source" type="image/webp" srcset="../assets/water-gate/5-levels/uth_led_water_3_51_75pct_animated.webp"><img id="active" alt="ภาพจำลองประตูน้ำระดับ 51–75% เคลื่อนไหว" src="../assets/water-gate/5-levels/uth_led_water_3_51_75pct_animated.gif"></picture>
+<div class="still" id="still-stage" role="img" aria-label="ภาพนิ่งประตูน้ำ"></div>
+</div>
+<p id="state" aria-live="polite">กำลังแสดงภาพจำลองระดับ 51–75%</p>
+<div class="grid" id="grid" aria-label="ภาพตัวอย่างทั้งห้าระดับ"></div>
+<p class="small">WebP ใช้งานบนเว็บเป็นหลัก; GIF เป็นทางเลือกสำรอง; PNG Sprite Strip เก็บเฟรมต้นฉบับ สามารถดูไฟล์ทั้งหมดใน <a href="../assets/water-gate/5-levels/README.md">Asset README</a>.</p>
+<script>
+(()=>{'use strict';
+const root='../assets/water-gate/5-levels/';
+const prefix=['0_0pct','1_1_25pct','2_26_50pct','3_51_75pct','4_76_100pct'];
+const labels=['0%','1–25%','26–50%','51–75%','76–100%'];
+const asset=(i,type)=>root+'uth_led_water_'+prefix[i]+'_'+type;
+const grid=document.querySelector('#grid');
+prefix.forEach((_,i)=>{
+ const el=document.createElement('div');el.className='item';
+ const img=document.createElement('img');img.loading='lazy';img.alt='Water gate visual '+labels[i];img.src=asset(i,'animated.webp');
+ const still=document.createElement('div');still.className='still';still.style.backgroundImage='url("'+asset(i,'spritestrip.png')+'")';
+ const label=document.createElement('b');label.textContent=labels[i];
+ el.append(img,still,label);grid.append(el);
+});
+function select(i){
+ if(!Number.isInteger(i)||i<0||i>=5)return;
+ document.querySelector('#webp-source').srcset=asset(i,'animated.webp');
+ const img=document.querySelector('#active');img.src=asset(i,'animated.gif');img.alt='ภาพจำลองประตูน้ำระดับ '+labels[i]+' เคลื่อนไหว';
+ const still=document.querySelector('#still-stage');
+ still.style.backgroundImage='url("'+asset(i,'spritestrip.png')+'")';
+ still.setAttribute('aria-label','ภาพนิ่งประตูน้ำระดับ '+labels[i]);
+ document.querySelector('#state').textContent='กำลังแสดงภาพจำลองระดับ '+labels[i];
+ document.querySelectorAll('[data-level]').forEach(btn=>btn.setAttribute('aria-pressed',String(Number(btn.dataset.level)===i)));
+}
+document.querySelectorAll('[data-level]').forEach(btn=>btn.addEventListener('click',()=>select(Number(btn.dataset.level))));
+select(3);
+})();
+</script>
+</body></html>
