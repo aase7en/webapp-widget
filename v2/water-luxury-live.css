@@ -1,0 +1,381 @@
+
+  :root{
+    --bg:#050d1f; --panel:#08182e; --line:rgba(96,210,255,.5); --glow:#55d7ff;
+    --text:#ecf7ff; --muted:#9cc9df; --good:#43ff89; --warn:#ffcf45; --danger:#ff4d68;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0; font-family: Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+    background: radial-gradient(circle at 20% 20%, #0d2345 0%, #071326 38%, #030812 100%);
+    color:var(--text); min-height:100vh; padding:22px;
+  }
+  .page{max-width:1440px; margin:0 auto}
+  h1{font-size:20px; margin:0 0 8px; font-weight:800}
+  .subtitle{color:#bfe9ff; margin:0 0 16px; line-height:1.45}
+  .controls{display:flex; gap:12px; flex-wrap:wrap; align-items:center; margin:14px 0 18px}
+  .control-group{background:rgba(8,24,46,.72); border:1px solid rgba(116,222,255,.26); border-radius:14px; padding:10px 12px; display:flex; gap:8px; align-items:center; box-shadow:0 0 26px rgba(23,156,255,.14) inset}
+  .control-group strong{font-size:13px; color:#c9f2ff}
+  .control-group button{border:1px solid rgba(146,234,255,.25); background:rgba(255,255,255,.05); color:#dff9ff; border-radius:999px; padding:6px 10px; cursor:pointer; font-size:12px}
+  .control-group button.active{background:linear-gradient(180deg,#2db7ff,#1186db); color:white; box-shadow:0 0 18px rgba(50,192,255,.46)}
+
+  .preview-wrap{background:linear-gradient(180deg, rgba(16,38,66,.95), rgba(5,16,32,.98)); border:1px solid rgba(109,223,255,.36); border-radius:24px; padding:18px; box-shadow:0 24px 80px rgba(0,0,0,.35), 0 0 0 1px rgba(116,222,255,.09) inset, 0 0 40px rgba(39,163,255,.18) inset}
+  .scale-note{font-size:12px; color:#9acde5; margin-bottom:10px}
+  .led-stage{overflow:hidden; padding-bottom:0; position:relative; width:100%; min-height:40px}
+  .widget{
+    transform-origin:top left; flex:none;
+    position:relative; width:1296px; height:120px; border-radius:24px; overflow:hidden;
+    background:
+      radial-gradient(circle at 12% 82%, rgba(31,149,255,.18), transparent 26%),
+      radial-gradient(circle at 82% 26%, rgba(73,215,255,.16), transparent 28%),
+      linear-gradient(180deg, rgba(14,32,54,.98), rgba(5,15,28,.98));
+    border:1px solid rgba(112,220,255,.42);
+    box-shadow:0 0 0 2px rgba(48,190,255,.08) inset, 0 0 30px rgba(45,185,255,.16), 0 0 22px rgba(16,112,255,.18) inset;
+    display:flex; gap:10px; padding:10px;
+  }
+  .widget::before{
+    content:""; position:absolute; inset:0; pointer-events:none;
+    background: linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,0) 25%), linear-gradient(90deg, rgba(63,216,255,.1), transparent 20%, transparent 80%, rgba(63,216,255,.08));
+    mix-blend-mode:screen;
+  }
+  .glass-card{
+    position:relative; overflow:hidden; border-radius:20px;
+    background:linear-gradient(180deg, rgba(8,20,34,.82), rgba(7,17,29,.62));
+    border:0;
+    box-shadow: 0 0 0 1px rgba(180,240,255,.06) inset, 0 0 24px rgba(43,195,255,.11) inset;
+  }
+  .glass-card::before{
+    content:""; position:absolute; inset:0; pointer-events:none;
+    background:linear-gradient(180deg, rgba(255,255,255,.1), rgba(255,255,255,0) 28%);
+  }
+
+  .clock{width:184px; padding:10px 14px; display:flex; flex-direction:column; justify-content:center; isolation:isolate}
+  .clock::after{content:""; position:absolute; inset:-15% -35% -15% -10%; background:radial-gradient(circle at 60% 55%, rgba(0,180,255,.18), transparent 38%); filter:blur(10px); z-index:-1}
+  .date{font-weight:800; font-size:19px; letter-spacing:.2px}
+  .time{font-size:50px; line-height:1; font-weight:900; letter-spacing:-1px; margin-top:3px; text-shadow:0 0 14px rgba(255,255,255,.18)}
+
+  .station{flex:1; display:flex; align-items:stretch; gap:10px; padding:8px 10px; min-width:0}
+  .station-card{display:flex; gap:12px; align-items:stretch; width:100%; min-width:0}
+  .art-zone{width:220px; min-width:220px; position:relative; display:flex; align-items:center; justify-content:center; overflow:hidden; border-radius:16px;
+    background:radial-gradient(circle at 30% 78%, rgba(39,175,255,.18), transparent 32%), linear-gradient(180deg, rgba(4,14,25,.15), rgba(4,14,25,.0));
+  }
+  .water-canvas{width:210px; height:105px; border-radius:14px; filter:drop-shadow(0 0 18px rgba(51,203,255,.12)); image-rendering:auto}
+  .info{flex:1; display:grid; grid-template-columns: 1fr auto; grid-template-rows:auto auto auto; gap:4px 12px; align-content:center; min-width:0}
+  .station-name{font-size:17px; font-weight:800; line-height:1.05; color:#eefcff}
+  .station-name small{display:block; font-size:13px; color:#b1d9ea; font-weight:700; margin-top:3px}
+  .big-level{font-size:56px; font-weight:1000; line-height:1; letter-spacing:-1.8px; white-space:nowrap;
+    background:linear-gradient(180deg, #f7ffff 0%, #9bf6ff 30%, #59d8ff 60%, #2af6a0 100%);
+    -webkit-background-clip:text; background-clip:text; color:transparent;
+    text-shadow:0 0 15px rgba(55,224,255,.22), 0 0 30px rgba(70,255,176,.08);
+  }
+  .big-level .unit{font-size:22px; letter-spacing:0; margin-left:4px}
+  .delta{align-self:end; text-align:right; font-size:18px; font-weight:900; white-space:nowrap}
+  .delta.up{color:#ff6d78; text-shadow:0 0 10px rgba(255,90,100,.2)}
+  .delta.down{color:#73ff89; text-shadow:0 0 10px rgba(30,255,117,.2)}
+  .delta small{display:block; font-size:12px; color:#cae8f2; font-weight:700}
+  .meta-row{display:flex; gap:10px; align-items:center; flex-wrap:wrap}
+  .percent{font-size:15px; color:#d8f8ff; font-weight:800; white-space:nowrap}
+  .percent span{color:#84f7ff}
+  .badge{display:inline-flex; align-items:center; justify-content:center; min-width:124px; padding:8px 18px; border-radius:999px; font-size:22px; font-weight:900; letter-spacing:.2px; color:white; box-shadow:0 0 14px rgba(255,255,255,.08) inset}
+  .badge.good{background:linear-gradient(180deg,#4cff9a,#15ba5b); box-shadow:0 0 20px rgba(59,255,132,.42),0 0 14px rgba(0,0,0,.25) inset}
+  .badge.warn{background:linear-gradient(180deg,#ffdd5d,#ff9e17); box-shadow:0 0 20px rgba(255,193,34,.45),0 0 14px rgba(0,0,0,.25) inset}
+  .badge.unavailable{background:linear-gradient(180deg,#32516a,#172e47); box-shadow:0 0 12px #2a9bb83b}
+  .badge.danger{background:linear-gradient(180deg,#ff6b8e,#f83d4a); box-shadow:0 0 20px rgba(255,72,99,.5),0 0 14px rgba(0,0,0,.25) inset}
+  .trend-wrap{display:flex; align-items:end; gap:8px; justify-self:end}
+  .trend-box{display:flex; flex-direction:column; align-items:flex-end; gap:3px}
+  .trend-title{font-size:13px; color:#b9e1ef; font-weight:800}
+  .spark{width:122px; height:42px; display:block}
+  .spark path.line{fill:none; stroke-width:3.2; filter:drop-shadow(0 0 6px rgba(110,240,255,.5))}
+  .spark path.fill{opacity:.22}
+  .unavailable-message{font-size:13px; color:#9cd9f1; white-space:nowrap; font-weight:700}
+  .legend-note{font-size:12px; color:#b7d7e7; margin-top:18px}
+
+  .backend{display:grid; grid-template-columns:1.2fr 1fr; gap:16px; margin-top:18px}
+  .panel{background:rgba(6,18,32,.78); border:1px solid rgba(107,221,255,.22); border-radius:18px; padding:16px; box-shadow:0 0 24px rgba(39,153,255,.09) inset}
+  .panel h2{font-size:17px; margin:0 0 10px}
+  .panel p{margin:0 0 10px; color:#c9e6f4; line-height:1.5}
+  table{width:100%; border-collapse:collapse; font-size:13px}
+  th,td{border-bottom:1px solid rgba(120,215,255,.12); padding:8px 6px; text-align:left; vertical-align:top}
+  th{color:#99ebff; font-size:12px; text-transform:uppercase; letter-spacing:.4px}
+  code{color:#9ef0ff}
+  .chip{display:inline-block; padding:3px 8px; border-radius:999px; background:rgba(74,188,255,.12); border:1px solid rgba(124,228,255,.24); color:#c9f6ff; font-size:12px; margin:2px 5px 2px 0}
+  @media (max-width: 1100px){ .backend{grid-template-columns:1fr} }
+  @media (prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;animation:none!important;transition:none!important}}
+
+/* LED readability: allocate the original 432 × 40 logical pixels at 3×,
+   preserve 2:1 water-art aspect ratio and keep labels outside the motion zone. */
+.page,.preview-wrap,.backend,.panel{min-width:0}
+.panel{overflow-x:auto}
+.backend{min-width:0}
+.control-group{max-width:100%;flex-wrap:wrap}
+.widget .station{overflow:hidden}
+.station-card{gap:7px}
+.art-zone{width:208px;min-width:208px}
+.info{display:grid;min-width:0;grid-template-columns:minmax(0,1fr) 118px;
+ grid-template-rows:17px 48px 28px;align-content:center;gap:0 5px}
+.station-name{grid-column:1;grid-row:1;font-size:13px;line-height:16px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.station-name small{display:none}
+.delta{grid-column:2;grid-row:1;font-size:12px;align-self:start;line-height:16px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.delta small{display:none}
+.big-level{grid-column:1;grid-row:2;font-size:43px;align-self:center;white-space:nowrap}
+.big-level .unit{font-size:18px}
+.trend-wrap{grid-column:2;grid-row:2/4;min-width:0;justify-self:center;align-self:center}
+.trend-box{max-width:118px;align-items:center;text-align:center}
+.trend-title{font-size:10px;line-height:11px}
+.spark{width:112px;height:38px}
+.trend-box .unavailable-message{white-space:normal;font-size:10px}
+.meta-row{grid-column:1;grid-row:3;flex-wrap:nowrap;gap:6px;align-self:start}
+.badge{font-size:12px;min-width:0;padding:4px 9px;white-space:nowrap}
+.percent{font-size:10px;white-space:nowrap}
+.panel td,.panel th{overflow-wrap:anywhere}
+@media(max-width:500px){body{padding:12px 8px}.preview-wrap{padding:10px}.panel{padding:12px}}
+
+/* Luxury V3: soft-edge inset architecture; water never becomes a stretched wallpaper. */
+.widget{gap:0;padding:8px;border-radius:22px;background:
+ radial-gradient(ellipse 42% 98% at 30% 95%,rgba(17,169,255,.13),transparent 96%),
+ linear-gradient(180deg,#0b2036,#040b16 87%)}
+.widget .glass-card{border:0;box-shadow:none;background:transparent;border-radius:0}
+.widget .clock{width:194px;flex:none;padding:11px 12px;z-index:3;
+ background:linear-gradient(90deg,rgba(0,2,7,.98) 0%,rgba(0,3,12,.94) 50%,rgba(1,12,24,.45) 90%,transparent 100%)}
+.widget .clock::after{background:linear-gradient(90deg,rgba(0,3,10,.7),transparent 78%);filter:blur(7px)}
+.widget .clock::before{display:none}
+.widget .date{font-size:18px;color:#d6f3ff}
+.widget .time{font-size:51px;filter:drop-shadow(0 0 8px rgba(166,243,255,.35))}
+.widget .station{flex:1; padding:5px 6px 4px 0;min-width:0;isolation:isolate}
+.widget .station::before{background:linear-gradient(90deg,transparent 0%,rgba(5,18,32,.1) 53%,rgba(0,8,16,.43) 100%)}
+.widget .station .art-zone{background:transparent;overflow:hidden;min-width:206px;width:206px;max-width:206px}
+.widget .station .water-canvas{width:204px;height:102px;filter:drop-shadow(0 0 12px #16a9ff5c);
+ -webkit-mask-image:linear-gradient(90deg,#000 0%,#000 80%,transparent 100%);
+ mask-image:linear-gradient(90deg,#000 0%,#000 80%,transparent 100%);
+}
+.widget .station-name{text-shadow:0 0 9px rgba(120,220,255,.25);color:#f1fbff}
+.widget .big-level{background:linear-gradient(180deg,#fff 0%,#c3ffff 22%,#6deaff 68%,#58fbbd 100%);
+ -webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 0 6px #1dcfff70)}
+.widget .badge.unavailable{background:linear-gradient(180deg,#304c65,#102a40);color:#c6e0ea}
+.widget .info{position:relative;z-index:1}
+.widget .trend-wrap{background:linear-gradient(90deg,transparent,rgba(0,8,19,.56) 35%,rgba(0,8,19,.72));border-radius:12px}
+.widget.layout-focus .station{flex:1}
+.widget.layout-focus .station.is-not-focus{display:none}
+.widget.layout-focus .station-card{gap:18px}
+.widget.layout-focus .art-zone{min-width:260px;width:260px;max-width:260px}
+.widget.layout-focus .water-canvas{width:246px;height:123px;max-width:none;flex:none}
+.widget.layout-focus .info{grid-template-columns:minmax(0,1fr) 198px;grid-template-rows:22px 55px 27px;gap:0 10px}
+.widget.layout-focus .station-name{font-size:18px;line-height:20px}
+.widget.layout-focus .delta{font-size:13px}
+.widget.layout-focus .big-level{font-size:60px}
+.widget.layout-focus .big-level .unit{font-size:24px}
+.widget.layout-focus .badge{font-size:16px;padding:4px 15px}
+.widget.layout-focus .percent{font-size:13px}
+.widget.layout-focus .spark{width:176px;height:54px}
+.widget.layout-focus .trend-box{max-width:190px}
+.widget.layout-focus .trend-title{font-size:13px}
+.widget.layout-focus .trend-box .unavailable-message{font-size:12px}
+.widget.layout-focus .trend-wrap{grid-row:1/4;align-self:center}
+#layoutControls button:focus-visible{outline:2px solid #75f3ff;outline-offset:2px}
+
+/* V3 APPROVED DEMO: one continuous cinematic scene, logical 432x40. */
+.widget.v3{
+  display:grid;grid-template-columns:165px minmax(0,1fr) minmax(0,1fr) 83px;
+  gap:0;padding:7px 9px 6px;position:relative;isolation:isolate;
+  border:2px solid rgba(99,220,255,.72);border-radius:24px;
+  background:radial-gradient(ellipse at 42% 104%,#093d66 0%,transparent 43%),linear-gradient(180deg,#07162d,#020814 84%);
+  box-shadow:0 0 0 2px rgba(1,42,83,.9) inset,0 0 0 4px rgba(6,121,222,.25) inset,0 0 13px rgba(63,204,255,.4) inset;
+}
+.widget.v3::before{z-index:7;opacity:.6;pointer-events:none;inset:2px;border-radius:23px;
+ background:linear-gradient(180deg,rgba(152,238,255,.4),transparent 12%,transparent 85%,rgba(12,188,255,.5)),
+ linear-gradient(90deg,rgba(52,201,255,.6),transparent 12%,transparent 88%,rgba(52,201,255,.5))}
+.widget.v3::after{content:"";pointer-events:none;position:absolute;z-index:7;inset:3px;border-radius:20px;
+ border:1px solid rgba(70,181,255,.38);box-shadow:0 0 12px #08b7ff5b inset}
+.widget.v3 .clock{
+  box-sizing:border-box;width:auto;height:100%;z-index:5;align-self:stretch;justify-content:center;
+  background:linear-gradient(90deg,rgba(0,3,13,.97) 0%,rgba(0,5,17,.95) 51%,rgba(0,8,18,.25) 94%,transparent);
+  padding:8px 6px 16px 9px;isolation:isolate;
+}
+.widget.v3 .clock::after{inset:0;background:linear-gradient(90deg,#000915,transparent 96%);filter:blur(9px);z-index:-1}
+.widget.v3 .date{font-size:16px;white-space:nowrap;letter-spacing:-.4px;color:#b5e3f9;text-shadow:0 0 8px #59d6ff7c}
+.widget.v3 .time{font-size:52px;margin-top:0;white-space:nowrap;color:#fff;text-shadow:0 0 7px #eaffffb5}
+.widget.v3 .station{position:relative;display:block;min-width:0;overflow:visible;padding:0 2px;isolation:isolate;background:transparent}
+.widget.v3 .station-card{position:relative;display:block;width:100%;height:100%}
+.widget.v3 .station .art-zone{
+  position:absolute;z-index:0;display:block;top:-9px;left:-10px;width:242px;min-width:242px;max-width:242px;
+  height:121px;border-radius:0;overflow:hidden;background:transparent;
+  -webkit-mask-image:linear-gradient(90deg,#000 0%,#000 72%,transparent 100%);
+  mask-image:linear-gradient(90deg,#000 0%,#000 72%,transparent 100%);
+}
+.widget.v3 .station .water-canvas{
+  display:block;position:absolute;left:-4px;top:-2px;width:242px;height:121px;border-radius:0;max-width:none;
+  -webkit-mask-image:none;mask-image:none;filter:brightness(1.19) saturate(1.48) contrast(1.08) drop-shadow(0 0 12px #23bfff6e);
+}
+.widget.v3 .station .info{
+  position:absolute;z-index:3;inset:0 0 0 154px;min-width:0;padding:4px 3px 4px 10px;
+  display:grid;grid-template-columns:minmax(0,1fr) 104px;grid-template-rows:22px 49px 29px;gap:0 4px;
+  background:linear-gradient(90deg,rgba(0,9,23,.62) 0%,rgba(0,9,24,.8) 30%,rgba(0,9,21,.86) 100%);
+  border-radius:15px;box-shadow:-14px 0 23px rgba(0,6,20,.3),0 0 16px rgba(15,112,174,.14) inset;
+  -webkit-backdrop-filter:blur(1.5px);backdrop-filter:blur(1.5px);
+}
+.widget.v3 .station-name{font-size:18px;line-height:20px;grid-column:1/3;grid-row:1;overflow:hidden;white-space:nowrap;font-weight:900;letter-spacing:-.5px;text-shadow:0 0 8px #73e2ff80}
+.widget.v3 .big-level{grid-column:1;grid-row:2;font-size:49px;line-height:1;font-weight:1000;letter-spacing:-1.6px;align-self:center;
+ background:linear-gradient(180deg,#fff 3%,#cbffff 27%,#4ce0ff 66%,#56ffcb 100%);
+ -webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 0 7px #12ccff87)}
+.widget.v3 .big-level .unit{font-size:18px;margin-left:3px}
+.widget.v3 .delta{grid-column:2;grid-row:1;font-size:11px!important;line-height:17px;text-align:right;align-self:start;color:#b9eaff!important;position:absolute;right:4px;top:23px}
+.widget.v3 .meta-row{grid-column:1;grid-row:3;align-self:center;gap:3px;white-space:nowrap;overflow:hidden}
+.widget.v3 .badge{font-size:13px;min-width:115px;padding:4px 10px;border-radius:25px;line-height:17px;font-weight:900;border:1px solid #8dcaff73}
+.widget.v3 .badge.unavailable{background:linear-gradient(180deg,#194e70,#092840);color:#dcf7ff;box-shadow:0 0 12px #3dbfff78,0 0 9px #143958 inset}
+.widget.v3 .badge.sample{background:linear-gradient(180deg,#fff47e 0%,#ffb510 55%,#d66b00 100%);color:#281309;text-shadow:0 1px 0 #ffffff55;border:1px solid #ffeda3;box-shadow:0 0 17px #ffc42f9c,0 0 7px #ffffff78 inset}
+.widget.v3 .percent{display:none}
+.widget.v3 .trend-wrap{grid-column:2;grid-row:2/4;min-width:0;align-self:center;justify-self:center;padding:2px 0;
+ background:linear-gradient(90deg,transparent,rgba(0,10,25,.5))}
+.widget.v3 .spark{width:102px;height:34px}
+.widget.v3 .trend-title{font-size:9px}
+.widget.v3 .trend-box .unavailable-message{font-size:10px}
+.widget.v3 .source-strip{position:relative;z-index:5;display:flex;flex-direction:column;align-items:center;justify-content:center;
+ padding:3px 4px 16px;border-left:1px solid rgba(107,228,255,.3);background:linear-gradient(90deg,rgba(2,16,34,.9),rgba(0,11,29,.98));
+ text-align:center;color:#ddf6ff;text-shadow:0 0 6px #70d5ff88;font-weight:800;font-size:12px;line-height:1.3}
+.widget.v3 .source-strip .source-icon{font-size:23px;line-height:27px;color:#85efff}
+.widget.v3 .source-strip b{font-size:14px;color:#a1fcff}
+.widget.v3 .source-strip small{font-size:9px;font-weight:700;opacity:.83}
+.widget.v3 .foam-front{position:absolute;z-index:6;left:3px;bottom:1px;width:calc(100% - 6px);height:29px;
+ pointer-events:none;opacity:.92;filter:drop-shadow(0 0 6px #18dfffad);
+ -webkit-mask-image:linear-gradient(90deg,#000 0%,#000 24%,transparent 30%,transparent 51%,#000 54%,#000 60%,transparent 65%,transparent 100%);
+ mask-image:linear-gradient(90deg,#000 0%,#000 24%,transparent 30%,transparent 51%,#000 54%,#000 60%,transparent 65%,transparent 100%); }
+.widget.v3 .clock,.widget.v3 .station .info,.widget.v3 .source-strip{pointer-events:none}
+.control-group button:focus-visible{outline:2px solid #b5f7ff;outline-offset:2px}
+.widget.v3 .station .info{pointer-events:auto}
+#statusSample:focus-visible{outline:2px solid #fff;outline-offset:2px}
+@media (prefers-reduced-motion:reduce){.widget.v3 .foam-front{filter:none}}
+
+.widget.v3 .sample-marker{font-size:11px;letter-spacing:.3px;display:inline-block;vertical-align:top;margin:0 3px;
+ -webkit-text-fill-color:#ffd65f;color:#ffd65f;text-shadow:0 0 5px #e3a62a}
+.widget.v3 .delta.down{color:#65ff97!important}
+.widget.v3 .delta.up{color:#ff6c83!important}
+
+/* V3.1 owner-requested demo polish. No production selectors or backend changes.
+   Stage stays 1296x120, rendered 3x above the real 432x40 LED. */
+.widget.v3{grid-template-columns:180px minmax(0,1fr) minmax(0,1fr);}
+.widget.v3 .clock{width:auto;z-index:5;position:relative;padding:8px 6px 14px 9px;
+ background:linear-gradient(90deg,rgba(0,3,13,.96) 0%,rgba(0,5,17,.89) 42%,rgba(0,6,17,.53) 74%,rgba(0,8,18,.13) 100%);}
+.widget.v3 .clock::after{inset:0 -35px 0 0;background:linear-gradient(90deg,rgba(0,5,16,.68),transparent);filter:blur(13px);}
+.widget.v3 .date{font-size:16px}.widget.v3 .time{font-size:53px}
+.widget.v3 .station{overflow:visible;isolation:isolate;padding:0 2px;}
+.widget.v3 #stationA{z-index:2}.widget.v3 #stationB{z-index:1}
+/* Both sides of the original dam sprite fade under the clock/reading overlays.
+   Keep image aspect 2:1; preserve architecture upper frames in canvas logic. */
+.widget.v3 .station .art-zone{
+ top:-22px;left:-83px;width:380px;min-width:380px;max-width:380px;height:176px;overflow:hidden;
+ -webkit-mask-image:linear-gradient(90deg,transparent 0%,#000 17%,#000 59%,rgba(0,0,0,.9) 76%,transparent 100%);
+ mask-image:linear-gradient(90deg,transparent 0%,#000 17%,#000 59%,rgba(0,0,0,.9) 76%,transparent 100%);}
+.widget.v3 .station .water-canvas{left:0;top:0;width:360px;height:180px;max-width:none;
+ -webkit-mask-image:none;mask-image:none;
+ filter:brightness(1.12) saturate(1.45) contrast(1.04) drop-shadow(0 0 9px #23bfff5a);}
+.widget.v3 #stationB .art-zone{left:-62px;top:-22px}
+/* Text sits on a continuous dark translucent gradient, never a hard-edged tile. */
+.widget.v3 .station .info{inset:0 1px 0 173px;padding:4px 5px 2px;
+ display:grid;grid-template-columns:minmax(0,1fr) 106px;grid-template-rows:23px 55px 27px;gap:0 5px;
+ background:linear-gradient(90deg,rgba(0,9,23,.23) 0%,rgba(0,9,24,.53) 20%,rgba(0,9,21,.8) 64%,rgba(0,9,21,.87) 100%);
+ border-radius:0;box-shadow:none;-webkit-backdrop-filter:blur(1px);backdrop-filter:blur(1px);}
+.widget.v3 .station-name{font-size:18px;line-height:20px;grid-column:1/3;grid-row:1;letter-spacing:-.35px;}
+.widget.v3 .reading-row{display:flex;align-items:center;gap:6px;grid-column:1/3;grid-row:2;min-width:0;white-space:nowrap;}
+.widget.v3 .big-level{display:inline-flex;align-items:baseline;flex:none;font-size:65px;line-height:.96;
+ letter-spacing:-1.8px;filter:drop-shadow(0 0 7px #12ccff87)}
+.widget.v3 .big-level .unit{font-size:19px;margin-left:2px}
+.widget.v3 .badge{display:inline-flex;align-items:center;flex:none;max-width:132px;min-width:0;
+ font-size:12px;padding:5px 8px;line-height:15px;border-radius:22px;
+ white-space:normal;overflow-wrap:anywhere;text-align:center;}
+.widget.v3 .sample-marker{font-size:10px;letter-spacing:0;margin:0 2px}
+.widget.v3 .delta{position:static;grid-column:1;grid-row:3;align-self:center;text-align:left;
+ font-size:11px!important;line-height:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+ color:#b9eaff!important;}
+.widget.v3 .delta.down{color:#65ff97!important}.widget.v3 .delta.up{color:#ff6c83!important}
+.widget.v3 .trend-wrap{grid-column:2;grid-row:3;justify-self:end;align-self:center;padding:0}
+.widget.v3 .trend-box{gap:0}.widget.v3 .spark{width:99px;height:24px}
+.widget.v3 .trend-title{font-size:8px;line-height:9px}
+.widget.v3 .trend-box .unavailable-message{font-size:9px}
+/* Water stays inside frame, and fades before the number/status reading zones. */
+.widget.v3 .foam-front{
+ -webkit-mask-image:linear-gradient(90deg,#000 0%,#000 25%,transparent 35%,transparent 54%,#000 59%,transparent 68%,transparent 100%);
+ mask-image:linear-gradient(90deg,#000 0%,#000 25%,transparent 35%,transparent 54%,#000 59%,transparent 68%,transparent 100%);}
+/* The pre-existing focus comparison must remain usable with only one visible station. */
+.widget.v3.layout-focus{grid-template-columns:180px minmax(0,1fr)}
+.widget.v3.layout-focus .station .art-zone{left:-85px;width:465px;min-width:465px;max-width:465px;height:224px;top:-38px}
+.widget.v3.layout-focus .station .water-canvas{width:450px;height:225px}
+.widget.v3.layout-focus .station .info{inset:0 0 0 290px;grid-template-columns:minmax(0,1fr) 180px}
+.widget.v3.layout-focus .big-level{font-size:74px}
+.widget.v3.layout-focus .badge{font-size:15px;padding:6px 15px}
+.widget.v3.layout-focus .spark{width:155px;height:27px}
+#numberSample:focus-visible,#statusSample:focus-visible,#layoutControls button:focus-visible{outline:2px solid #fff;outline-offset:2px}
+/* V3.2: use nearly all of the short LED height without sacrificing legibility. */
+.widget.v3 .clock{padding:2px 6px 7px 9px;justify-content:center}
+.widget.v3 .clock .date{font-size:17px;transform:translateY(-4px);position:relative;z-index:2}
+.widget.v3 .clock .time{font-size:64px;line-height:.96;letter-spacing:-2.2px;margin-top:-2px;position:relative;z-index:2}
+.widget.v3 .station .info{
+ grid-template-columns:minmax(0,1fr) 151px;
+ grid-template-rows:21px 59px 25px;
+ padding:2px 5px 1px;
+ background:transparent;box-shadow:none;backdrop-filter:none;-webkit-backdrop-filter:none;
+ isolation:isolate;
+}
+.widget.v3 .station .info::before{
+ content:"";position:absolute;inset:-6px -7px -4px -23px;z-index:-1;pointer-events:none;
+ background:linear-gradient(90deg,transparent 0%,rgba(0,6,19,.51) 17%,rgba(0,5,17,.9) 42%,rgba(0,5,17,.91) 88%,transparent 100%);
+ filter:blur(13px);
+}
+.widget.v3 .station-name{grid-column:1/3;grid-row:1;z-index:1;font-size:18px;align-self:start}
+.widget.v3 .reading-row{grid-column:1;grid-row:2;align-self:center;position:relative;z-index:1}
+.widget.v3 .big-level{font-size:66px;letter-spacing:-1.8px}
+.widget.v3 .reading-detail{grid-column:1;grid-row:3;display:flex;flex-direction:column;gap:1px;
+ justify-content:center;min-width:0;position:relative;z-index:1}
+.widget.v3 .reading-detail .delta{font-size:10px!important;line-height:11px;text-align:left;position:static;
+ min-width:0;max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.widget.v3 .bank-percent{font-size:9px;line-height:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+ color:#b6e1f5;text-shadow:0 0 5px rgba(0,6,18,.9)}
+.widget.v3 .bank-percent b{font-size:11px;color:#96f2ff}
+.widget.v3 .status-trend{grid-column:2;grid-row:2/4;display:grid;grid-template-rows:36px 39px;
+ align-items:center;justify-items:center;gap:0;min-width:0;z-index:2;}
+.widget.v3 .status-trend .badge{width:144px;max-width:144px;min-height:30px;max-height:35px;
+ padding:4px 8px;font-size:16px;line-height:19px;justify-content:center;text-align:center;
+ white-space:normal;box-shadow:0 0 16px rgba(64,197,255,.44),inset 0 0 9px rgba(75,183,250,.12);}
+.widget.v3 .status-trend .badge.sample{box-shadow:0 0 20px rgba(255,191,39,.78),inset 0 0 10px #fff6a7;}
+.widget.v3 .status-trend .trend-box{width:140px;align-items:center;justify-content:center;
+ background:linear-gradient(90deg,transparent,rgba(0,16,34,.47),transparent);
+ border-radius:10px;}
+.widget.v3 .status-trend .spark{width:126px;height:27px}
+.widget.v3 .status-trend .trend-title{font-size:9px;line-height:10px}
+.widget.v3 .status-trend .unavailable-message{font-size:10px;text-align:center}
+.widget.v3 .foam-front{height:35px;mix-blend-mode:screen;opacity:.81;
+ -webkit-mask-image:linear-gradient(180deg,transparent 0%,rgba(0,0,0,.36) 22%,#000 90%);
+ mask-image:linear-gradient(180deg,transparent 0%,rgba(0,0,0,.36) 22%,#000 90%);
+ filter:drop-shadow(0 0 5px rgba(28,211,255,.4));}
+.widget.v3.layout-focus .station .info{grid-template-columns:minmax(0,1fr) 173px}
+.widget.v3.layout-focus .status-trend .badge{width:160px;max-width:160px}
+.widget.v3.layout-focus .status-trend .spark{width:148px}
+
+
+/* V3.2b owner-requested micro-polish (PR #46): reveal right dam edges. */
+.widget.v3 .station .info{
+ left:203px; /* prior 173px; +12px without moving the dam or the station split */
+ grid-template-columns:minmax(0,1fr) 142px;
+}
+.widget.v3.layout-focus .station .info{left:320px} /* prior 290px */
+/* More visible foreground water JUST under the clock; remain soft and contained. */
+.widget.v3 .foam-front{
+ height:41px;opacity:.94;bottom:0;
+ -webkit-mask-image:linear-gradient(180deg,transparent 0%,rgba(0,0,0,.34) 14%,rgba(0,0,0,.96) 56%,#000 100%);
+ mask-image:linear-gradient(180deg,transparent 0%,rgba(0,0,0,.34) 14%,rgba(0,0,0,.96) 56%,#000 100%);
+}
+
+
+/* V3.2d: gently deepen ONLY the reading side, without drawing a hard panel edge.
+   The station still shows through both feathered ends; status/trend remain independent. */
+.widget.v3 .station .info::after{
+ content:"";position:absolute;left:-19px;right:140px;top:19px;bottom:-3px;z-index:0;
+ pointer-events:none;
+ background:linear-gradient(90deg,transparent 0%,rgba(0,6,20,.28) 22%,rgba(0,5,18,.49) 53%,rgba(0,6,21,.29) 83%,transparent 100%);
+ filter:blur(10px);
+}
+
+
+/* Physical LED: no Studio chrome, no horizontal scroll. */
+html,body{margin:0!important;padding:0!important;width:432px;height:40px;min-height:0!important;overflow:hidden!important;background:#020914!important}
+body{position:relative}
+.widget.v3{position:absolute;left:0;top:0;transform:scale(.3333333333)!important;transform-origin:top left!important;pointer-events:none}
+@media (prefers-reduced-motion:reduce){.widget.v3 .foam-front{filter:none}}

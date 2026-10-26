@@ -57,9 +57,8 @@ function revalidateWater(src,tnow){
  const out={source:src.source,stations:{}};
  for(const code of Object.keys(stations)){
   const s=src.stations[code];
-  if(s&&(s.status==='ok'||s.status==='historical')&&(!cache.waterStamps||tnow-cache.waterStamps[code]>(s.status==='historical'?48*3600000:STALE_KEEP_MS))){
-   const aged=missing(code);aged.bankM=s.bankM;aged.groundMsl=s.groundMsl;
-   out.stations[code]=aged;
+  if(s&&s.status==='ok'&&(!cache.waterStamps||tnow-cache.waterStamps[code]>STALE_KEEP_MS)){
+   out.stations[code]={...s,status:'historical',risk:'unassessed'};
   }else out.stations[code]=s;
  }
  return out;
@@ -165,8 +164,7 @@ function parsedStation(r,code,tnow){
  if(age>STALE_KEEP_MS||age<-(2*60000))return s;
  s.status='ok';s.levelMsl=level;s.observedTimeTH=obs.slice(8,10)+'/'+obs.slice(5,7)+' '+obs.slice(11);
  if(bank!==null){
-  s.risk=level>=bank?'critical':level>=bank-.50?'watch':'below_watch';
-  s.watchLevelMsl=Number((bank-.50).toFixed(2));s.criticalLevelMsl=bank;
+  s.risk='unassessed';
  }
  const samples=localHistory[code];
  const last=samples[samples.length-1];
@@ -211,7 +209,7 @@ function sheetWaterPayload(raw,tnow){
   if(!s||s.stationId!==stations[code]||!['ok','historical','missing'].includes(s.status))
    throw Error('invalid water station');
   const stamp=typeof s.observedAt==='string'?Date.parse(s.observedAt):NaN;
-  const validStamp=Number.isFinite(stamp)&&stamp<=tnow+120000&&tnow-stamp<=48*3600000;
+  const validStamp=Number.isFinite(stamp)&&stamp<=tnow+120000;
   const level=numeric(s.levelMsl,-50,200);
   const bank=numeric(s.bankM,-50,200),ground=numeric(s.groundMsl,-100,200);
   const good=validStamp&&level!==null&&bank!==null&&ground!==null&&bank>ground;

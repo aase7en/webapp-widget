@@ -50,13 +50,13 @@ test('PM stale/invalid channel is unavailable instead of zero',async()=>{
  assert.equal(old.pm25.status,'unavailable');assert.equal(old.weather.status,'unavailable');
  const bad=await boot({pm:null}).getLive();assert.equal(bad.pm25.status,'unavailable');
 });
-test('Water: station-specific min_bank drives 0.50 m watch and critical, not local hospital safety',async()=>{
+test('Water: physical reference bank metadata does not invent unapproved flood warning thresholds',async()=>{
  const res=await boot({levelA:2.87,levelB:3.15}).getWater();
- assert.equal(res.stations.HDA004.status,'ok');assert.equal(res.stations.HDA004.risk,'watch');
- assert.equal(res.stations.S5.status,'ok');assert.equal(res.stations.S5.risk,'below_watch');
- assert.equal(res.stations.HDA004.watchLevelMsl,2.53);
- const critical=await boot({levelA:3.03,levelB:4.7}).getWater();
- assert.equal(critical.stations.HDA004.risk,'critical');assert.equal(critical.stations.S5.risk,'critical');
+ assert.equal(res.stations.HDA004.status,'ok');assert.equal(res.stations.HDA004.risk,'unassessed');
+ assert.equal(res.stations.S5.status,'ok');assert.equal(res.stations.S5.risk,'unassessed');
+ assert.equal(res.stations.HDA004.watchLevelMsl,undefined);
+ const high=await boot({levelA:3.03,levelB:4.7}).getWater();
+ assert.equal(high.stations.HDA004.risk,'unassessed');assert.equal(high.stations.S5.risk,'unassessed');
 });
 test('Missing and stale water does not become level zero or safe',async()=>{
  const stale=await boot({ageMin:241}).getWater();
@@ -191,7 +191,7 @@ test('P1 first-load failure stays unavailable (no synthetic data) and recovers w
  assert.equal(ctl.calls.backend,2);
  assert.equal(recovered.pm25.status,'latest');assert.equal(recovered.pm25.value,23.1);
 });
-test('P1 water failure keeps last-known-good, then demotes to missing (not zero) once observations expire',async()=>{
+test('P1 water failure retains last-known-good with historical label, never reclassifies as current',async()=>{
  const ctl=bootCtl();
  const seeded=await ctl.api.getWater({now:ctl.now});
  assert.equal(seeded.stations.HDA004.status,'ok');
@@ -207,8 +207,8 @@ test('P1 water failure keeps last-known-good, then demotes to missing (not zero)
  ctl.advance((3*3600000)+(25*60000));
  const aged=await ctl.api.getWater({now:ctl.now});
  assert.equal(ctl.calls.water,3);                 // retry window long expired
- assert.equal(aged.stations.HDA004.status,'missing');
- assert.equal(aged.stations.HDA004.levelMsl,null); // never 0
+ assert.equal(aged.stations.HDA004.status,'historical');
+ assert.equal(aged.stations.HDA004.levelMsl,2.87); // preserves last real value
  assert.equal(aged.stations.HDA004.risk,'unassessed');
  assert.equal(aged.stations.HDA004.bankM,3.03);    // static station geometry retained
 });
@@ -270,10 +270,10 @@ test('P1 hot cache never serves a value that aged past observation freshness wit
  waterCtl.advance(120000);
  const w2=await waterCtl.api.getWater({now:waterCtl.now});
  assert.equal(waterCtl.calls.water,1);
- assert.equal(w2.stations.HDA004.status,'missing');
- assert.equal(w2.stations.HDA004.levelMsl,null);
+ assert.equal(w2.stations.HDA004.status,'historical');
+ assert.equal(w2.stations.HDA004.levelMsl,2.87);
  assert.equal(w2.stations.HDA004.risk,'unassessed');
- assert.equal(w2.stations.S5.status,'missing');
+ assert.equal(w2.stations.S5.status,'historical');
 });
 
 test('weather 432x40 copy distinguishes source/model from alarm and hides unpopulated FE/UV',()=>{

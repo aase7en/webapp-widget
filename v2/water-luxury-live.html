@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="th"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="dark"><title>ระดับน้ำ HII · ล่าสุดที่บันทึก · ไม่ใช่ LIVE</title>
+<link rel="stylesheet" href="./water-luxury-live.css">
+</head><body><main aria-label="ระดับน้ำสองสถานีอ้างอิงจาก ThaiWater/HII ข้อมูลล่าสุดที่มีพร้อมเวลาที่ตรวจวัดจริง">
+      <div class="widget v3">
+        <div class="glass-card clock">
+          <div class="date" id="clockDate">—</div>
+          <div class="time" id="clockTime">--:--</div>
+        </div>
+
+        <div class="glass-card station" id="stationA"></div>
+        <div class="glass-card station" id="stationB"></div>
+        <canvas class="foam-front" width="1290" height="29" aria-hidden="true"></canvas>
+      </div>
+</main>
+<div id="water-data-status" role="status" aria-live="polite" style="position:absolute;left:-10000px">รอข้อมูลสถานีอ้างอิง</div>
+<script src="../led-rotation.js"></script>
+<script src="./api-client.js"></script>
+<script src="./water-luxury-live.js"></script>
+</body></html>

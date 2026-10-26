@@ -524,6 +524,9 @@ html.led-screen .scale>div,html.led-screen .scale>iframe{transform:none!importan
 @media(prefers-reduced-motion:reduce){
  #water .water-station .gate,#pm .mascot{animation:none!important}
 }
+/* Production water slide visual override: keep old hidden DOM/data handlers intact for compatibility.
+   Full 432x40 live water frame is displayed over the previous water slide only. */
+#water + .water-live-frame{z-index:60;position:absolute;left:0;top:0;width:432px;height:40px;border:0;display:block;}
 </style>
 <!-- clear-gloss-outer-rim v1 -->
 </head>
@@ -585,7 +588,9 @@ html.led-screen .scale>div,html.led-screen .scale>iframe{transform:none!importan
 <div class="water-fig"><span class="name">S.5 สะพานปรีดี</span><span class="num"><span class="level">—</span><span class="unit"> ม.</span></span><span class="observed">รอข้อมูล</span></div>
 <div class="trend"><svg viewBox="0 0 44 16" role="img" aria-label="กราฟแนวโน้มยังไม่มีข้อมูล"><path class="axis" d="M0 13H44M0 7H44"/><path class="line" d=""/></svg><span class="caption">แนวโน้ม —</span></div></div>
 <div class="seg water-status"><b>เกณฑ์ระดับตลิ่ง</b><span id="water-tag">รอข้อมูล</span></div>
-</div></div></div>
+</div>
+<iframe class="ledframe water-luxury-live-frame" title="ระดับน้ำสถานีอ้างอิง HDA004 และ S.5 ล่าสุดที่บันทึก พร้อมเวลาวัดจริง" src="./water-luxury-live.html" loading="eager" referrerpolicy="strict-origin-when-cross-origin"></iframe>
+</div></div>
 <div class="controls">
 <button id="refresh-all">อัปเดตข้อมูลจริงทุกส่วน</button><button id="real">อัปเดตระดับน้ำ HII</button>
 </div>

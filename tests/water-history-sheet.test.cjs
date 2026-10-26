@@ -72,3 +72,51 @@ test('JSONP rejects injection; water schedule reuses existing BackendApiHistoryB
 test('cannot read unrelated sheet',()=>{const h=harness('another_sheet_id');
  assert.throws(()=>h.env.WaterHistory.read(TIME),/CANONICAL_SHEET_REQUIRED/);
 });
+
+
+test('typed Google Sheets DATE_TIME cells are parsed as observed-at Bangkok time without dropping latest rows',()=>{
+ const h=harness();
+ h.answers[PRIMARY]={data:data()};
+ h.env.WaterHistory.sync();
+ const original='2026-10-22 06:40';
+ // User-entered seed row stays text. Scheduled rows are auto-converted by
+ // Sheets to DATE_TIME effectiveValue, returned as Date by getValues().
+ h.values[1][8]=new Date('2026-10-21T23:40:00.000Z');
+ const out=h.env.WaterHistory.read(TIME).stations.HDA004;
+ assert.equal(out.levelMsl,2.93);
+ assert.equal(out.status,'ok');
+ assert.equal(out.observedTimeTH,'22/10 06:40');
+ assert.equal(out.observedAt,'2026-10-21T23:40:00.000Z');
+ assert.equal(out.trendPoints.length,1);
+ assert.equal(out.risk,'unassessed'); // Never invent a flood threshold.
+ assert.equal(h.env.WaterHistory.sync().stored,0,'Date typed row must dedupe on next schedule');
+ assert.equal(h.values.length,3);
+});
+
+test('mixed text and Date cells, invalid timestamps and unknown thresholds preserve history integrity',()=>{
+ const h=harness();
+ h.answers[PRIMARY]={data:data()};
+ h.env.WaterHistory.sync();
+ const older=['older','2026-10-22','morning','uthai','HDA004',471583,'name',2.81,
+   '2026-10-22 06:20','','LATEST','ThaiWater/HII',PRIMARY,3.03,.227,'MSL','reference',''];
+ const invalid=older.slice();invalid[8]=new Date(NaN);invalid[7]=0;
+ h.values.push(older,invalid);
+ // Sheets converts the latest timestamp to Date on the server.
+ h.values[1][8]=new Date('2026-10-21T23:40:00Z');
+ const out=h.env.WaterHistory.read(TIME).stations.HDA004;
+ assert.deepEqual(Array.from(out.trendPoints),[2.81,2.93]);
+ assert.equal(out.risk,'unassessed');
+ assert.equal(out.levelMsl,2.93);
+});
+
+test('latest stored value survives beyond 48h as historical; 7-day graph uses only recent real points',()=>{
+ const h=harness();h.answers[PRIMARY]={data:data()};
+ h.env.WaterHistory.sync();
+ const old=Date.parse('2026-12-02T00:00:00Z');
+ const got=h.env.WaterHistory.read(old).stations.HDA004;
+ assert.equal(got.status,'historical');
+ assert.equal(got.levelMsl,2.93);
+ assert.equal(got.observedAt,'2026-10-21T23:40:00.000Z');
+ assert.equal(got.risk,'unassessed');
+ assert.equal(got.trendPoints.length,0);
+});
