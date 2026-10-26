@@ -33,3 +33,6 @@ This is an **asset-only addition** in PR #49. KiloCode may inspect the manifest 
 4. Ensure 22-second slideshow/clock anchor stays stable, reduced motion works, historical/unknown PM readings are not misclassified, and no expensive atlas is loaded unnecessarily.
 
 This package does **not** change `v2/`, Apps Script, Water Luxury, Weather, Sheet or main.
+
+## New motion atlas package
+Each tier now has eight transparent haze frames under motion/{tier}-haze-atlas.png, 4 columns x 2 rows (648x112 per frame), with GIF review previews and a motion-manifest.json. These procedural layers need visual acceptance and should never be rendered over DOM values.

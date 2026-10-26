@@ -1,0 +1,98 @@
+{
+  "schema": 1,
+  "kind": "illustrative-transparent-atmospheric-motion",
+  "reviewOnly": true,
+  "frameSize": [
+    648,
+    112
+  ],
+  "frames": 8,
+  "atlasGrid": [
+    4,
+    2
+  ],
+  "trialFps": 8,
+  "tiers": {
+    "blue": {
+      "atlas": "blue-haze-atlas.png",
+      "atlasSha256": "6b45da2c880bacfab753cc0eedcec1dd2daff95e17e0dd86043db374f0dfe0ee",
+      "atlasBytes": 200168,
+      "previewGif": "blue-motion-preview.gif",
+      "gifSha256": "006e8823828d087f543bfa4dae1b9e2652e4f6d83a624325a50ad59edc1d3503",
+      "frameCount": 8,
+      "alpha": true,
+      "colorRGB": [
+        70,
+        211,
+        255
+      ],
+      "artisticIntensity": 0.25,
+      "maxAlphaFrameDelta": 0.224
+    },
+    "green": {
+      "atlas": "green-haze-atlas.png",
+      "atlasSha256": "ae489bef4d45fc4eaf9c13239aa46a94e49381daf9092bd992dd83968f1a2118",
+      "atlasBytes": 215920,
+      "previewGif": "green-motion-preview.gif",
+      "gifSha256": "02e255750d1ad37cb8f447ed785b437f4f76f35a1c8a517765e39fe61c676575",
+      "frameCount": 8,
+      "alpha": true,
+      "colorRGB": [
+        67,
+        238,
+        176
+      ],
+      "artisticIntensity": 0.39,
+      "maxAlphaFrameDelta": 0.326
+    },
+    "yellow": {
+      "atlas": "yellow-haze-atlas.png",
+      "atlasSha256": "5a9dfee41177f06f13e21fe635d993042022bd4b2926973e18fd5d5848efa819",
+      "atlasBytes": 244860,
+      "previewGif": "yellow-motion-preview.gif",
+      "gifSha256": "cf6f0c88c082df6810971d2a6bf716fe34a15403d2d1f7f405b125590405db13",
+      "frameCount": 8,
+      "alpha": true,
+      "colorRGB": [
+        253,
+        219,
+        114
+      ],
+      "artisticIntensity": 0.64,
+      "maxAlphaFrameDelta": 0.55
+    },
+    "orange": {
+      "atlas": "orange-haze-atlas.png",
+      "atlasSha256": "52642191ef4e86efad2497d0dac6e2e892b7e7676f904296dc11f6512543d1dc",
+      "atlasBytes": 239954,
+      "previewGif": "orange-motion-preview.gif",
+      "gifSha256": "822828f38c816c5327b6746c74394d7d01fee0c2f356ac009b1e334ab0ac7f79",
+      "frameCount": 8,
+      "alpha": true,
+      "colorRGB": [
+        255,
+        170,
+        86
+      ],
+      "artisticIntensity": 0.84,
+      "maxAlphaFrameDelta": 0.706
+    },
+    "red": {
+      "atlas": "red-haze-atlas.png",
+      "atlasSha256": "12e902bee22d73a0c7426adcde5f782ea9562cead903695d27240ef6bff9517b",
+      "atlasBytes": 237892,
+      "previewGif": "red-motion-preview.gif",
+      "gifSha256": "ced29e3f581f400c02fbd7da66ac29791773772912a27a27364fdbcabf0e30d9",
+      "frameCount": 8,
+      "alpha": true,
+      "colorRGB": [
+        230,
+        103,
+        84
+      ],
+      "artisticIntensity": 1.0,
+      "maxAlphaFrameDelta": 0.826
+    }
+  },
+  "notes": "Framing is the same for each tier; density and color are artistic abstractions, not measurements."
+}

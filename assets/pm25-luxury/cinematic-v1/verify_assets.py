@@ -23,4 +23,15 @@ for tier in TIERS:
  assert not d['containsText'] and not d['approved']
 assert sha(ROOT/m['preview']['file'])==m['preview']['sha256']
 assert Image.open(ROOT/m['preview']['file']).size==(1320,773)
+motion=json.loads((ROOT/'motion/motion-manifest.json').read_text())
+assert set(motion['tiers'])==set(TIERS) and motion['frames']==8
+for tier in TIERS:
+ rec=motion['tiers'][tier]
+ atlas=ROOT/'motion'/rec['atlas'];gif=ROOT/'motion'/rec['previewGif']
+ assert atlas.is_file() and gif.is_file()
+ assert Image.open(atlas).size==(2592,224)
+ assert Image.open(atlas).getchannel('A').getextrema()[0]==0
+ assert Image.open(atlas).getchannel('A').getextrema()[1]>0
+ assert Image.open(gif).n_frames==8
+ assert sha(atlas)==rec['atlasSha256'] and sha(gif)==rec['gifSha256']
 print(f'CINEMATIC_ASSET_QA_PASS: {len(TIERS)} original PNGs, {len(TIERS)} scene WebPs, {len(TIERS)} LED crops, manifest hashes valid, bytes={total}')
