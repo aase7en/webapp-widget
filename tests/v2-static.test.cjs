@@ -23,6 +23,13 @@ function boot({pm=23.1,levelA=2.87,levelB=3.15,ageMin=20,weather=true,apiFails=f
  ]}};
  const fetcher=async(url)=>({ok:!apiFails,json:async()=>url.includes('open-meteo')?forecast:water});
  const window={fetch:fetcher,UthaiLEDRotation:{requestBackendData:async()=>({ok:true,raw:weather?data:{...data,weather:{status:'missing'}}})}};
+ window.document={createElement:()=>({remove(){},src:''}),head:{appendChild(script){
+  const cb=new URL(script.src).searchParams.get('callback');
+  queueMicrotask(()=>{if(apiFails)script.onerror();else window[cb]({schema:1,kind:'LAST_OBSERVATION_NOT_LIVE',stations:{
+   HDA004:{stationId:471583,status:'ok',levelMsl:levelA,bankM:3.03,groundMsl:.227,observedAt:iso,trendPoints:[],trendObservedAt:[]},
+   S5:{stationId:2607,status:'ok',levelMsl:levelB,bankM:4.70,groundMsl:-8.59,observedAt:iso,trendPoints:[],trendObservedAt:[]}
+  }});});
+ }}};
  const context=vm.createContext({window,fetch:fetcher,Date,Math,Number,Set,URLSearchParams,AbortController,setTimeout,clearTimeout,Promise,Error,Intl});
  vm.runInContext(SOURCE,context,{filename:'api-client.js'});
  return window.UthApiClient;
@@ -60,7 +67,7 @@ test('Water: physical reference bank metadata does not invent unapproved flood w
 });
 test('Missing and stale water does not become level zero or safe',async()=>{
  const stale=await boot({ageMin:241}).getWater();
- assert.equal(stale.stations.HDA004.status,'missing');assert.equal(stale.stations.HDA004.levelMsl,null);
+ assert.equal(stale.stations.HDA004.status,'historical');assert.equal(stale.stations.HDA004.levelMsl,2.87);
  assert.equal(stale.stations.HDA004.risk,'unassessed');
  const offline=await boot({apiFails:true}).getWater();
  assert.equal(offline.stations.S5.levelMsl,null);
@@ -108,10 +115,10 @@ function bootCtl(){
  const dataFor=()=>({location:{id:'uthai',lat:14.36147,lon:100.64424},
   pm25:{status:'ok',unit:'µg/m³',value:state.pm,observedAt:iso(state.observationAgeMin),source:'GISTDA Uthai'},
   weather:{status:'ok',temperatureC:29,humidityPct:81,weatherCode:53,observedAt:iso(state.observationAgeMin),source:'Open-Meteo model'}});
- const waterFor=()=>({waterlevel_data:{result:'OK',data:[
-  {station:{id:471583,min_bank:3.03,ground_level:0.227},waterlevel_datetime:bangkokStamp(new Date(t-state.observationAgeMin*60000)),waterlevel_msl:2.87},
-  {station:{id:2607,min_bank:4.70,ground_level:-8.59},waterlevel_datetime:bangkokStamp(new Date(t-state.observationAgeMin*60000)),waterlevel_msl:3.15}
- ]}});
+ const waterFor=()=>({schema:1,kind:'LAST_OBSERVATION_NOT_LIVE',stations:{
+  HDA004:{stationId:471583,status:'ok',levelMsl:2.87,bankM:3.03,groundMsl:.227,observedAt:iso(state.observationAgeMin),trendPoints:[],trendObservedAt:[]},
+  S5:{stationId:2607,status:'ok',levelMsl:3.15,bankM:4.70,groundMsl:-8.59,observedAt:iso(state.observationAgeMin),trendPoints:[],trendObservedAt:[]}
+ }});
  const wait=ms=>new Promise(r=>setTimeout(r,ms));
  const window={fetch:async(url,init)=>{
    if(url.includes('open-meteo')){calls.openMeteoReferrer=init?.referrerPolicy||null;calls.openMeteo++;if(state.omFails)throw Error('net');return{ok:true,json:async()=>forecastFor()}}
@@ -122,6 +129,11 @@ function bootCtl(){
    if(state.backendFails)return{ok:false};
    return{ok:true,raw:dataFor()};
   }}};
+ window.document={createElement:()=>({remove(){},src:''}),head:{appendChild(script){
+  calls.water++;calls.waterUrl=script.src;
+  const cb=new URL(script.src).searchParams.get('callback');
+  queueMicrotask(()=>{if(state.waterFails)script.onerror();else window[cb](waterFor());});
+ }}};
  const context=vm.createContext({window,fetch:window.fetch,Date,Math,Number,Set,URLSearchParams,AbortController,setTimeout,clearTimeout,Promise,Error,Intl});
  vm.runInContext(SOURCE,context,{filename:'api-client.js'});
  return {api:window.UthApiClient,calls,state,advance:ms=>{t+=ms},now};
@@ -417,11 +429,11 @@ test('PM units avoid optical overlap with long numeric values after centering',(
  assert.match(pm,/#pm \.pm-core\{padding-left:11px!important/);
 });
 
-test('HII water client consumes centrally cached public station feed, not a direct rate-limited browser request',async()=>{
+test('Water client reads only owner-bound Google Sheet; failed Sheet call never leaks to direct HII/GitHub',async()=>{
  const c=bootCtl();const w=await c.api.getWater({now:c.now});
  assert.equal(w.stations.HDA004.status,'ok');
+ assert.match(c.calls.waterUrl,/script\.google\.com\/macros\/s\/.*action=water_history/);
  assert.equal(c.calls.waterReferrer,null);
- assert.equal(c.calls.waterUrl,'https://raw.githubusercontent.com/aase7en/webapp-widget/water-data/water.json');
  await c.api.getLive({now:c.now});
  assert.equal(c.calls.openMeteoReferrer,null);
  const bad=bootCtl();bad.state.waterFails=true;
@@ -429,4 +441,6 @@ test('HII water client consumes centrally cached public station feed, not a dire
  assert.equal(failed.stations.HDA004.status,'missing');
  assert.equal(failed.stations.HDA004.levelMsl,null);
  assert.equal(failed.stations.HDA004.risk,'unassessed');
+ assert.equal(bad.calls.water,1);
+ assert.equal(bad.calls.waterUrl.includes('water-data'),false);
 });

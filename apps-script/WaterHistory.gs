@@ -10,7 +10,6 @@ var WaterHistory = (function () {
   'use strict';
   var TAB='Water_Level_History';
   var URL='https://api-v3.thaiwater.net/api/v1/thaiwater30/public/waterlevel_load';
-  var BACKUP='https://raw.githubusercontent.com/aase7en/webapp-widget/water-data/water.json';
   var BKK=7*3600000, MAX_AGE=48*3600000, FRESH_AGE=3*3600000;
   var HII={HDA004:{id:471583,oldcode:'HDA004',name:'HDA004 ช่องสะเดา'},S5:{id:2607,oldcode:'S.5',name:'S.5 สะพานปรีดี-ธำรง'}};
   var HEAD=['batch_key','batch_date','slot','location_id','station_code','station_id','station_name_th','level_msl_m','observed_at_th','fetched_at_utc','reading_status','provider','source_url','bank_msl_m','ground_msl_m','datum','location_relation','saved_at_utc'];
@@ -89,15 +88,16 @@ var WaterHistory = (function () {
       var now=Date.now(),slot=slot_(now);
       if(!slot)throw Error('OUTSIDE_APPROVED_2_DAILY_SLOTS');
       var sh=sheet_(),found={},errors=[];
-      // This is the only upstream access. At most one request per source per scheduled run.
-      [URL,BACKUP].forEach(function(url){
+      // Fetch only canonical ThaiWater/HII. On API error, preserve already stored Sheet rows.
+      // Never introduce a second upstream source or write a cached replay as a new observation.
+      [URL].forEach(function(url){
         if(Object.keys(found).length===Object.keys(HII).length)return;
         try {
           var parsed=parse_(fetch_(url),now);
           Object.keys(parsed).forEach(function(code){
             if(!found[code]||parsed[code].stamp>found[code].stamp)found[code]=Object.assign({sourceUrl:url},parsed[code]);
           });
-        } catch(e){errors.push((url===URL?'HII':'CACHE')+':'+e.message);}
+        } catch(e){errors.push('HII:'+e.message);}
       });
       if(!Object.keys(found).length)throw Error('NO_VERIFIED_STATION: '+errors.join('; '));
       var date=Utilities.formatDate(new Date(now),'Asia/Bangkok','yyyy-MM-dd');

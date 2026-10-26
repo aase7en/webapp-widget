@@ -35,8 +35,9 @@ let api=client(),r=record('2026-10-22T09:50:00Z',2.9);r.stationId=2607;
 assert.throws(()=>api.validateWaterHistory(data(r),NOW),/invalid water station/);
 assert.throws(()=>api.validateWaterHistory({schema:0,stations:{}},NOW),/invalid Sheet water contract/);
 });
-test('the only upstream water URL in frontend is static GitHub fallback and Sheets public reader',()=>{
-assert.match(src,/water-data\/water\.json/);
-assert.match(src,/action=water_history/);
-assert.doesNotMatch(src,/api-v3\.thaiwater\.net\/api\/v1/);
+test('canonical Sheet is the only water source used by the production widget',()=>{
+ assert.match(src,/action=water_history/);
+ assert.doesNotMatch(src,/water-data\/water\.json/);
+ assert.doesNotMatch(src,/api-v3\.thaiwater\.net\/api\/v1/);
+ assert.doesNotMatch(src,/level>=bank\?'critical'/);
 });
