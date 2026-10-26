@@ -1,0 +1,42 @@
+<!doctype html><html lang="th"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>PM2.5 Luxury — ImageGen Storyboard Animation Review</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 50% -20%,#173450,#030913 65%);color:#e7f7ff;font:15px system-ui,-apple-system,"Noto Sans Thai",sans-serif;padding:clamp(12px,3vw,28px)}main{max-width:1150px;margin:0 auto}h1{font-size:clamp(20px,3vw,30px);margin:0 0 8px}p{color:#bacddb;line-height:1.6;max-width:900px}.row{display:flex;gap:8px;flex-wrap:wrap;margin:14px 0}button{cursor:pointer;background:#122b3c;border:1px solid #476c80;border-radius:10px;color:#f0fbff;min-height:42px;padding:9px 15px;font:inherit;font-weight:600}button[aria-pressed=true]{border-color:#59c9ea;outline:2px solid #59c9ea55;box-shadow:0 0 18px #3ad0ff44}button:focus-visible{outline:3px solid white;outline-offset:2px}.panel{padding:12px;border-radius:15px;border:1px solid #245f7f;background:#071526}canvas{display:block;width:100%;height:auto;border:1px solid #46bcec;border-radius:8px;background:#091b2b;max-height:520px;object-fit:contain}#status{color:#8ce4d2;font-variant-numeric:tabular-nums;margin:12px 0;min-height:24px}footer{color:#8ba5b6;font-size:12px;margin-top:25px}code{color:#abeaff}
+</style></head><body><main>
+<h1>PM2.5 Luxury · Storyboard Frame Review</h1>
+<p>ตัวอย่างภาพชุดล่าสุดที่สร้างด้วย ImageGen แยกเซลล์ Storyboard มาเล่นตามลำดับ <strong>นี่คือ Animated Storyboard Preview ไม่ใช่ Sprite Animation ที่ตรวจรับความลื่นไหลแล้ว</strong> ใช้สำหรับประเมินภาพและการเปลี่ยนแสง เมฆ หมอก และความชัดของเมือง</p>
+<div class="row" id="bands"><button type="button" data-tier="blue">ฟ้า</button><button type="button" data-tier="green">เขียว</button><button type="button" data-tier="yellow">เหลือง</button><button type="button" data-tier="orange">ส้ม</button><button type="button" data-tier="red">แดง</button></div>
+<div class="panel"><canvas id="canvas" width="960" height="280" aria-label="Animated storyboard source frames"></canvas>
+<div id="status" role="status">กำลังโหลดภาพ…</div>
+<div class="row"><button id="play" type="button">หยุด</button><button id="speed" type="button">ความเร็ว 1×</button><button id="blend" type="button" aria-pressed="true">Crossfade เปิด</button></div>
+</div>
+<p><small>ไฟล์แต่ละสีมีจำนวนช่องไม่เท่ากัน (ฟ้า 15, เขียว 12, เหลือง 10, ส้ม 12, แดง 16) ซึ่งนับตามตารางภาพที่ได้จริง ไม่ใช่จำนวนเฟรมสมมติ ภาพบางเฟรมต่างตำแหน่งกัน จึงยังต้องทำ Layer/Motion refinement ก่อนใช้กับจอ LED 432×40</small></p>
+<footer>Draft PR #49 · Original ImageGen sources + extracted cells · No production changes · No actual PM measurements</footer>
+<script>
+(()=>{'use strict';
+const tiers=['blue','green','yellow','orange','red'];
+const counts={blue:15,green:12,yellow:10,orange:12,red:16};
+const canvas=document.querySelector('#canvas'),ctx=canvas.getContext('2d',{alpha:false}),status=document.querySelector('#status');
+let frames=[],band='green',playing=!matchMedia('(prefers-reduced-motion: reduce)').matches,blend=true,speed=1,start=0,token=0,nowFrame=0;
+const dur=620;
+function controls(){document.querySelectorAll('[data-tier]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.tier===band)));document.querySelector('#play').textContent=playing?'หยุด':'เล่น';document.querySelector('#speed').textContent='ความเร็ว '+speed+'×';document.querySelector('#blend').setAttribute('aria-pressed',String(blend));document.querySelector('#blend').textContent='Crossfade '+(blend?'เปิด':'ปิด')}
+function load(src){return new Promise((resolve,reject)=>{const im=new Image();im.onload=()=>resolve(im);im.onerror=()=>reject(new Error('โหลดภาพไม่ได้: '+src));im.src=src;})}
+async function choose(tier){if(!tiers.includes(tier))return;band=tier;frames=[];start=0;nowFrame=0;const t=++token;controls();status.textContent='กำลังโหลด '+tier+'…';
+try{const prefix='./frames/'+tier+'/';const files=Array.from({length:counts[tier]},(_,i)=>prefix+'frame-'+String(i+1).padStart(2,'0')+'.webp');const loaded=await Promise.all(files.map(load));if(t!==token)return;frames=loaded;const f=loaded[0];canvas.width=960;canvas.height=Math.round(960*f.naturalHeight/f.naturalWidth);status.textContent='พร้อม · '+tier+' · '+frames.length+' ช่อง';draw(0); }catch(e){if(t===token)status.textContent=e.message;}}
+function draw(time){ctx.fillStyle='#06111f';ctx.fillRect(0,0,canvas.width,canvas.height);
+if(!frames.length)return;
+let index=0,progress=0;
+if(playing){if(!start)start=time;const step=(time-start)/(dur/speed);index=Math.floor(step)%frames.length;progress=step%1;nowFrame=index;}
+else{index=nowFrame;progress=0}
+ctx.globalAlpha=1;ctx.drawImage(frames[index],0,0,canvas.width,canvas.height);
+if(blend&&playing){ctx.globalAlpha=progress;ctx.drawImage(frames[(index+1)%frames.length],0,0,canvas.width,canvas.height);ctx.globalAlpha=1;}
+status.textContent=band.toUpperCase()+' · Frame '+(index+1)+'/'+frames.length+' · '+(playing?'Playing':'Paused')+' · '+speed+'×';
+}
+function render(t){if(!document.hidden)draw(t);requestAnimationFrame(render)}
+document.querySelectorAll('[data-tier]').forEach(b=>b.addEventListener('click',()=>choose(b.dataset.tier)));
+document.querySelector('#play').addEventListener('click',()=>{playing=!playing;start=0;controls()});
+document.querySelector('#speed').addEventListener('click',()=>{speed=speed===1?2:1;start=0;controls()});
+document.querySelector('#blend').addEventListener('click',()=>{blend=!blend;controls()});
+document.addEventListener('visibilitychange',()=>{start=0});
+controls();choose('green');requestAnimationFrame(render);
+})();
+</script></main></body></html>
