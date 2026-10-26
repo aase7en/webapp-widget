@@ -124,3 +124,17 @@ If Kilo route/quota or ownership is unavailable, stop the dependent lane with ty
 - No Sheets writes, trigger edits, script update, redeployment or operational threshold activation made during this task.
 
 **One safe next action:** publish isolated visual demo after GitHub PR+CI; keep production data release on hold for a separately reviewed deployment/data read-path fix and owner layout choice.
+
+
+## Post-merge checkpoint — 2026-10-26 (verified on public GitHub Pages)
+
+**Scope state:** Plans 1 and 3 completed for **isolated public visual demo**. Plan 2 completed only as a read-only contract/source audit; the actual production data-path discrepancy is **OPEN / BLOCKED**. The owner has not approved production cutover. Do not report the entire production launch as done.
+
+- **Merged PR:** https://github.com/aase7en/webapp-widget/pull/43 ; merged main SHA 1b6a604bf34d14c891755d1e74ae5470235d49cd. This adds only the new demo file, this Work Order and its test. Earlier Glass preview PR #42 is also on main.
+- **Public visual demo:** https://aase7en.github.io/webapp-widget/demo/water-led-luxury-v2.html — verified HTTP 200 (28183 bytes) against actual GitHub Pages; title matched. Pages workflow run 40247785547 completed **success** on the merge SHA.
+- **Current live URL still untouched:** https://aase7en.github.io/webapp-widget/ . Demo is NOT the PM2.5/Weather/Water production rotation.
+- **Browser verification on public URL (Mac Chrome headless):** both dual and focus layouts selectable; focus can switch HDA004 or S.5. Five buttons 0–4 select correct band and each animated Canvas changes its frame sample over ~450ms. Design-stage canvas 1296×120 at desktop; responsive iPhone-width 390px resulted document.scrollWidth === 390, no script errors or failed network requests. The actual 432×40 CSS LED arrangement was previously tested before PR #43; visible enlarged preview uses 3× scale. These are browser/runtime checks, not proof of physical LED panel readability.
+- **Data honesty:** browser readout reported both water levels null, and demo renders unavailable placeholders. No fake station readings, historical trend, percent-of-bank or green Normal status introduced. Seven-day chart / thresholds are **not production ready** until the existing canonical backend serves validated measurements and approved per-station thresholds.
+- **Independent readiness blocker:** source sheet contains newer actual history while existing published water_history endpoint was verified by prior source audit as returning missing station status / only two trend points. Current live source reader is not verified reconciled. Do not classify as provider 429 or mutate Apps Script/trigger based on unproven cause.
+- **Kilo continuation:** detailed zero-chat-history Kilo Code execution instructions remain above in this same Work Order. The CLI exists and cointh-glm/glm-5.3 appeared in the Mac model catalog; successful roll-call was observed earlier, but specific remaining quota was **not independently established**. Do not claim long-running Kilo execution occurred unless verified in its own task/session.
+- **NEXT SAFE ACTION:** read-only trace current bound Apps Script deployment vs canonical Water_Level_History, station filtering, timestamps and response fields; draft independent defect fix/release plan, no new Sheet/Script, no backend mutation or production cutover absent separate verification/authorization. Owner visual choice dual versus focus remains open before production release.
