@@ -111,3 +111,13 @@
  -webkit-mask-image:linear-gradient(180deg,transparent 0%,rgba(0,0,0,.34) 14%,rgba(0,0,0,.96) 56%,#000 100%);
  mask-image:linear-gradient(180deg,transparent 0%,rgba(0,0,0,.34) 14%,rgba(0,0,0,.96) 56%,#000 100%);
 }
+
+
+/* V3.2d: gently deepen ONLY the reading side, without drawing a hard panel edge.
+   The station still shows through both feathered ends; status/trend remain independent. */
+.widget.v3 .station .info::after{
+ content:"";position:absolute;left:-19px;right:140px;top:19px;bottom:-3px;z-index:0;
+ pointer-events:none;
+ background:linear-gradient(90deg,transparent 0%,rgba(0,6,20,.28) 22%,rgba(0,5,18,.49) 53%,rgba(0,6,21,.29) 83%,transparent 100%);
+ filter:blur(10px);
+}

@@ -67,3 +67,10 @@
 - Foreground water height 38 -> 41px, opacity .88 -> .94, anchored to LED bottom 0px; feather vertical ramp enhanced. Only HDA004 water patch extends 186 -> 202px leftward under the clock with alpha .88 -> .96. No extra sprite, provider requests, data fabrication or production code modifications.
 - Chrome CDP: both station names/levels shifted; badges and trend boxes contained; sprite architecture upper frame fixed while lower water animated; LED 432x40 geometry; mobile 390px no horizontal scroll; no uncaught JavaScript errors. Screenshot /tmp/uth-v32c-led.png, generated locally for QA.
 - Release: Draft PR demo-only, leave production/Apps Script/physical LED untouched and do not merge without independent approval.
+
+## Owner V3.2d subtle numeric panel contrast (2026-10-26)
+- Owner asked for slightly more opaque/darker background behind the water-level number information while keeping the layered dam visible, with no sharp card border.
+- Preflight: separate clean demo worktree feat/demo-water-luxury-v3-20261026, exact HEAD 07f641f1366a1bee035931807e19d96b34d6afe4, GitHub draft PR #46 same head, accepted demo Work Order and repo-local AGENTS checked. Other ownership not touched.
+- Only new CSS-only ::after layer on station .info, feathered horizontal gradient with center alpha .49, blur 10px, z-index 0 below content and above existing dark background. No numbers, layout, clock, water animation, status badge, data/backend, assets, Sheet or production changes.
+- Actual Chrome CDP check: both station layers computed blur(10px), status badges fit, 432x40 scaled LED, 390px mobile without horizontal overflow, zero JS exceptions; screenshot /tmp/uth-v32d-LED.png.
+- Leave PR draft; no merge or physical LED production deployment until independent review.

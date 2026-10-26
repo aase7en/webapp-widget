@@ -90,3 +90,14 @@ test('V3.2c moves all station text right and brightens contained clock whitewate
  assert.match(html,/st\.id==='stationA'\?202:135/);
  assert.match(html,/st\.id==='stationA'\?\.96:\.79/);
 });
+
+test('V3.2d darkens only the water-number backdrop with feathered edges',()=>{
+ const start=css.indexOf('/* V3.2d:');
+ const block=css.slice(start);
+ assert.match(block,/\.widget\.v3 \.station \.info::after\{/);
+ assert.match(block,/rgba\(0,5,18,\.49\)/);
+ assert.match(block,/transparent 0%/);
+ assert.match(block,/transparent 100%/);
+ assert.match(block,/filter:blur\(10px\)/);
+ assert.doesNotMatch(block,/border\s*:/);
+});
