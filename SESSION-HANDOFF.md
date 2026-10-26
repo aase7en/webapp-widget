@@ -72,3 +72,19 @@
 - GLM independent review found and corrected mismatch of evening expected schedule. Other prior review note about chart aria endpoint order was fixed. Re-review exact SHA after freeze.
 - Rollback requires Web App redeploy old V32 AND restoration of bound script HEAD trigger source, GitHub Pages revert; do not modify PM historical data.
 - Next action: review/stage/PR full candidate and verify source/CI, then safe owner GAS release and public Pages deployment, finally test real Sheet trends.
+
+---
+
+## 2026-10-26 PM2.5 Luxury 5-state Sprite Planning — PENDING DESIGN APPROVAL
+This is a *new* docs-only planning checkpoint; previous handoff entries describe historical work and must not be used as current branch authority.
+
+- Goal: prepare a staged PM Luxury visual/animation project (Thai 5 band scenes), preserve Water Luxury 3-slide live root and plan Weather later. User explicitly said **PLAN BEFORE MAKING SPRITES**.
+- Canonical repo: aase7en/webapp-widget, separate from ENV. Docs worktree: /Volumes/MAC_WORK/DevWorkspace/Github/webapp-widget-pm25-luxury-plan-20261026; branch docs/pm25-luxury-sprite-plan-20261026; verified base origin/main 82cb7fc06d501ce4482b6ad21fd33777ed018ffb. No UI, backend, asset or main mutation.
+- Work order: docs/work-orders/WO-PM25-LUXURY-SPRITES-20261026.md.
+- Spec and delivery steps: docs/design/pm25-luxury-animation/PLAN.md and ROADMAP.md.
+- Evidence: official March 2026 Thai Department of Health five PM2.5 concentration tiers (blue 0-15.0; green >15-25; yellow >25-37.5; orange >37.5-75; red >75 µg/m³). Existing v2/live-widgets.js still uses stale 26/38/51/91 health thresholds; source PM averaging window must be verified before real classification or live edits.
+- Research inputs: reviewed real A-Sunday Conductor docs on Windows read-only; AI Hero skills main flow /research /to-spec /to-tickets /prototype /code-review /handoff; OSS PixiJS, Pixelorama, sprite-gen, sharp. Prefer existing Water Canvas2D sprite renderer and no new dependencies until benchmark.
+- Owner proposal: five fixed-scene base images, five tier-specific transparent haze sprite loops (8-12 trial frames) and one or two shared airflow strips; consistent horizon/clock alignment; fallback / reduced motion.
+- Ownership: original root sol/native-led-frontend-20261017 has dirty Weather demo/PM/backend/handoff files belonging to another lane. Protect this state; do not change root. All five Sunday Workers presently bound to ENV, not this project, and were NOT reassigned.
+- Status: PLAN COMPLETE only; OWNER ART REVIEW PENDING. SAFE_TO_MUTATE_DOCS_ONLY=YES in isolated worktree; SAFE_TO_MUTATE_ASSETS/UI/LIVE=NO.
+- ONE NEXT SAFE ACTION: get owner's signoff on five-scene plan, then verify real PM field aggregation and create isolated five-static-art preview with one visual writer; do not create 40 motion frames or update production first.
