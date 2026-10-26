@@ -1,0 +1,350 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>UTH[AI] Water Level — Luxury V2 LED Studio</title>
+<style>
+  :root{
+    --bg:#050d1f; --panel:#08182e; --line:rgba(96,210,255,.5); --glow:#55d7ff;
+    --text:#ecf7ff; --muted:#9cc9df; --good:#43ff89; --warn:#ffcf45; --danger:#ff4d68;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0; font-family: Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+    background: radial-gradient(circle at 20% 20%, #0d2345 0%, #071326 38%, #030812 100%);
+    color:var(--text); min-height:100vh; padding:22px;
+  }
+  .page{max-width:1440px; margin:0 auto}
+  h1{font-size:20px; margin:0 0 8px; font-weight:800}
+  .subtitle{color:#bfe9ff; margin:0 0 16px; line-height:1.45}
+  .controls{display:flex; gap:12px; flex-wrap:wrap; align-items:center; margin:14px 0 18px}
+  .control-group{background:rgba(8,24,46,.72); border:1px solid rgba(116,222,255,.26); border-radius:14px; padding:10px 12px; display:flex; gap:8px; align-items:center; box-shadow:0 0 26px rgba(23,156,255,.14) inset}
+  .control-group strong{font-size:13px; color:#c9f2ff}
+  .control-group button{border:1px solid rgba(146,234,255,.25); background:rgba(255,255,255,.05); color:#dff9ff; border-radius:999px; padding:6px 10px; cursor:pointer; font-size:12px}
+  .control-group button.active{background:linear-gradient(180deg,#2db7ff,#1186db); color:white; box-shadow:0 0 18px rgba(50,192,255,.46)}
+
+  .preview-wrap{background:linear-gradient(180deg, rgba(16,38,66,.95), rgba(5,16,32,.98)); border:1px solid rgba(109,223,255,.36); border-radius:24px; padding:18px; box-shadow:0 24px 80px rgba(0,0,0,.35), 0 0 0 1px rgba(116,222,255,.09) inset, 0 0 40px rgba(39,163,255,.18) inset}
+  .scale-note{font-size:12px; color:#9acde5; margin-bottom:10px}
+  .led-stage{overflow:hidden; padding-bottom:0; position:relative; width:100%; min-height:40px}
+  .widget{
+    transform-origin:top left; flex:none;
+    position:relative; width:1296px; height:120px; border-radius:24px; overflow:hidden;
+    background:
+      radial-gradient(circle at 12% 82%, rgba(31,149,255,.18), transparent 26%),
+      radial-gradient(circle at 82% 26%, rgba(73,215,255,.16), transparent 28%),
+      linear-gradient(180deg, rgba(14,32,54,.98), rgba(5,15,28,.98));
+    border:1px solid rgba(112,220,255,.42);
+    box-shadow:0 0 0 2px rgba(48,190,255,.08) inset, 0 0 30px rgba(45,185,255,.16), 0 0 22px rgba(16,112,255,.18) inset;
+    display:flex; gap:10px; padding:10px;
+  }
+  .widget::before{
+    content:""; position:absolute; inset:0; pointer-events:none;
+    background: linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,0) 25%), linear-gradient(90deg, rgba(63,216,255,.1), transparent 20%, transparent 80%, rgba(63,216,255,.08));
+    mix-blend-mode:screen;
+  }
+  .glass-card{
+    position:relative; overflow:hidden; border-radius:20px;
+    background:linear-gradient(180deg, rgba(8,20,34,.82), rgba(7,17,29,.62));
+    border:0;
+    box-shadow: 0 0 0 1px rgba(180,240,255,.06) inset, 0 0 24px rgba(43,195,255,.11) inset;
+  }
+  .glass-card::before{
+    content:""; position:absolute; inset:0; pointer-events:none;
+    background:linear-gradient(180deg, rgba(255,255,255,.1), rgba(255,255,255,0) 28%);
+  }
+
+  .clock{width:184px; padding:10px 14px; display:flex; flex-direction:column; justify-content:center; isolation:isolate}
+  .clock::after{content:""; position:absolute; inset:-15% -35% -15% -10%; background:radial-gradient(circle at 60% 55%, rgba(0,180,255,.18), transparent 38%); filter:blur(10px); z-index:-1}
+  .date{font-weight:800; font-size:19px; letter-spacing:.2px}
+  .time{font-size:50px; line-height:1; font-weight:900; letter-spacing:-1px; margin-top:3px; text-shadow:0 0 14px rgba(255,255,255,.18)}
+
+  .station{flex:1; display:flex; align-items:stretch; gap:10px; padding:8px 10px; min-width:0}
+  .station-card{display:flex; gap:12px; align-items:stretch; width:100%; min-width:0}
+  .art-zone{width:220px; min-width:220px; position:relative; display:flex; align-items:center; justify-content:center; overflow:hidden; border-radius:16px;
+    background:radial-gradient(circle at 30% 78%, rgba(39,175,255,.18), transparent 32%), linear-gradient(180deg, rgba(4,14,25,.15), rgba(4,14,25,.0));
+  }
+  .water-canvas{width:210px; height:105px; border-radius:14px; filter:drop-shadow(0 0 18px rgba(51,203,255,.12)); image-rendering:auto}
+  .info{flex:1; display:grid; grid-template-columns: 1fr auto; grid-template-rows:auto auto auto; gap:4px 12px; align-content:center; min-width:0}
+  .station-name{font-size:17px; font-weight:800; line-height:1.05; color:#eefcff}
+  .station-name small{display:block; font-size:13px; color:#b1d9ea; font-weight:700; margin-top:3px}
+  .big-level{font-size:56px; font-weight:1000; line-height:1; letter-spacing:-1.8px; white-space:nowrap;
+    background:linear-gradient(180deg, #f7ffff 0%, #9bf6ff 30%, #59d8ff 60%, #2af6a0 100%);
+    -webkit-background-clip:text; background-clip:text; color:transparent;
+    text-shadow:0 0 15px rgba(55,224,255,.22), 0 0 30px rgba(70,255,176,.08);
+  }
+  .big-level .unit{font-size:22px; letter-spacing:0; margin-left:4px}
+  .delta{align-self:end; text-align:right; font-size:18px; font-weight:900; white-space:nowrap}
+  .delta.up{color:#ff6d78; text-shadow:0 0 10px rgba(255,90,100,.2)}
+  .delta.down{color:#73ff89; text-shadow:0 0 10px rgba(30,255,117,.2)}
+  .delta small{display:block; font-size:12px; color:#cae8f2; font-weight:700}
+  .meta-row{display:flex; gap:10px; align-items:center; flex-wrap:wrap}
+  .percent{font-size:15px; color:#d8f8ff; font-weight:800; white-space:nowrap}
+  .percent span{color:#84f7ff}
+  .badge{display:inline-flex; align-items:center; justify-content:center; min-width:124px; padding:8px 18px; border-radius:999px; font-size:22px; font-weight:900; letter-spacing:.2px; color:white; box-shadow:0 0 14px rgba(255,255,255,.08) inset}
+  .badge.good{background:linear-gradient(180deg,#4cff9a,#15ba5b); box-shadow:0 0 20px rgba(59,255,132,.42),0 0 14px rgba(0,0,0,.25) inset}
+  .badge.warn{background:linear-gradient(180deg,#ffdd5d,#ff9e17); box-shadow:0 0 20px rgba(255,193,34,.45),0 0 14px rgba(0,0,0,.25) inset}
+  .badge.unavailable{background:linear-gradient(180deg,#32516a,#172e47); box-shadow:0 0 12px #2a9bb83b}
+  .badge.danger{background:linear-gradient(180deg,#ff6b8e,#f83d4a); box-shadow:0 0 20px rgba(255,72,99,.5),0 0 14px rgba(0,0,0,.25) inset}
+  .trend-wrap{display:flex; align-items:end; gap:8px; justify-self:end}
+  .trend-box{display:flex; flex-direction:column; align-items:flex-end; gap:3px}
+  .trend-title{font-size:13px; color:#b9e1ef; font-weight:800}
+  .spark{width:122px; height:42px; display:block}
+  .spark path.line{fill:none; stroke-width:3.2; filter:drop-shadow(0 0 6px rgba(110,240,255,.5))}
+  .spark path.fill{opacity:.22}
+  .unavailable-message{font-size:13px; color:#9cd9f1; white-space:nowrap; font-weight:700}
+  .legend-note{font-size:12px; color:#b7d7e7; margin-top:18px}
+
+  .backend{display:grid; grid-template-columns:1.2fr 1fr; gap:16px; margin-top:18px}
+  .panel{background:rgba(6,18,32,.78); border:1px solid rgba(107,221,255,.22); border-radius:18px; padding:16px; box-shadow:0 0 24px rgba(39,153,255,.09) inset}
+  .panel h2{font-size:17px; margin:0 0 10px}
+  .panel p{margin:0 0 10px; color:#c9e6f4; line-height:1.5}
+  table{width:100%; border-collapse:collapse; font-size:13px}
+  th,td{border-bottom:1px solid rgba(120,215,255,.12); padding:8px 6px; text-align:left; vertical-align:top}
+  th{color:#99ebff; font-size:12px; text-transform:uppercase; letter-spacing:.4px}
+  code{color:#9ef0ff}
+  .chip{display:inline-block; padding:3px 8px; border-radius:999px; background:rgba(74,188,255,.12); border:1px solid rgba(124,228,255,.24); color:#c9f6ff; font-size:12px; margin:2px 5px 2px 0}
+  @media (max-width: 1100px){ .backend{grid-template-columns:1fr} }
+  @media (prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;animation:none!important;transition:none!important}}
+
+/* LED readability: allocate the original 432 × 40 logical pixels at 3×,
+   preserve 2:1 water-art aspect ratio and keep labels outside the motion zone. */
+.page,.preview-wrap,.backend,.panel{min-width:0}
+.panel{overflow-x:auto}
+.backend{min-width:0}
+.control-group{max-width:100%;flex-wrap:wrap}
+.widget .station{overflow:hidden}
+.station-card{gap:7px}
+.art-zone{width:208px;min-width:208px}
+.info{display:grid;min-width:0;grid-template-columns:minmax(0,1fr) 118px;
+ grid-template-rows:17px 48px 28px;align-content:center;gap:0 5px}
+.station-name{grid-column:1;grid-row:1;font-size:13px;line-height:16px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.station-name small{display:none}
+.delta{grid-column:2;grid-row:1;font-size:12px;align-self:start;line-height:16px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.delta small{display:none}
+.big-level{grid-column:1;grid-row:2;font-size:43px;align-self:center;white-space:nowrap}
+.big-level .unit{font-size:18px}
+.trend-wrap{grid-column:2;grid-row:2/4;min-width:0;justify-self:center;align-self:center}
+.trend-box{max-width:118px;align-items:center;text-align:center}
+.trend-title{font-size:10px;line-height:11px}
+.spark{width:112px;height:38px}
+.trend-box .unavailable-message{white-space:normal;font-size:10px}
+.meta-row{grid-column:1;grid-row:3;flex-wrap:nowrap;gap:6px;align-self:start}
+.badge{font-size:12px;min-width:0;padding:4px 9px;white-space:nowrap}
+.percent{font-size:10px;white-space:nowrap}
+.panel td,.panel th{overflow-wrap:anywhere}
+@media(max-width:500px){body{padding:12px 8px}.preview-wrap{padding:10px}.panel{padding:12px}}
+
+/* Luxury V2: soft-edge inset architecture; water never becomes a stretched wallpaper. */
+.widget{gap:0;padding:8px;border-radius:22px;background:
+ radial-gradient(ellipse 42% 98% at 30% 95%,rgba(17,169,255,.13),transparent 96%),
+ linear-gradient(180deg,#0b2036,#040b16 87%)}
+.widget .glass-card{border:0;box-shadow:none;background:transparent;border-radius:0}
+.widget .clock{width:194px;flex:none;padding:11px 12px;z-index:3;
+ background:linear-gradient(90deg,rgba(0,2,7,.98) 0%,rgba(0,3,12,.94) 50%,rgba(1,12,24,.45) 90%,transparent 100%)}
+.widget .clock::after{background:linear-gradient(90deg,rgba(0,3,10,.7),transparent 78%);filter:blur(7px)}
+.widget .clock::before{display:none}
+.widget .date{font-size:18px;color:#d6f3ff}
+.widget .time{font-size:51px;filter:drop-shadow(0 0 8px rgba(166,243,255,.35))}
+.widget .station{flex:1; padding:5px 6px 4px 0;min-width:0;isolation:isolate}
+.widget .station::before{background:linear-gradient(90deg,transparent 0%,rgba(5,18,32,.1) 53%,rgba(0,8,16,.43) 100%)}
+.widget .station .art-zone{background:transparent;overflow:hidden;min-width:206px;width:206px;max-width:206px}
+.widget .station .water-canvas{width:204px;height:102px;filter:drop-shadow(0 0 12px #16a9ff5c);
+ -webkit-mask-image:linear-gradient(90deg,#000 0%,#000 80%,transparent 100%);
+ mask-image:linear-gradient(90deg,#000 0%,#000 80%,transparent 100%);
+}
+.widget .station-name{text-shadow:0 0 9px rgba(120,220,255,.25);color:#f1fbff}
+.widget .big-level{background:linear-gradient(180deg,#fff 0%,#c3ffff 22%,#6deaff 68%,#58fbbd 100%);
+ -webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 0 6px #1dcfff70)}
+.widget .badge.unavailable{background:linear-gradient(180deg,#304c65,#102a40);color:#c6e0ea}
+.widget .info{position:relative;z-index:1}
+.widget .trend-wrap{background:linear-gradient(90deg,transparent,rgba(0,8,19,.56) 35%,rgba(0,8,19,.72));border-radius:12px}
+.widget.layout-focus .station{flex:1}
+.widget.layout-focus .station.is-not-focus{display:none}
+.widget.layout-focus .station-card{gap:18px}
+.widget.layout-focus .art-zone{min-width:260px;width:260px;max-width:260px}
+.widget.layout-focus .water-canvas{width:246px;height:123px;max-width:none;flex:none}
+.widget.layout-focus .info{grid-template-columns:minmax(0,1fr) 198px;grid-template-rows:22px 55px 27px;gap:0 10px}
+.widget.layout-focus .station-name{font-size:18px;line-height:20px}
+.widget.layout-focus .delta{font-size:13px}
+.widget.layout-focus .big-level{font-size:60px}
+.widget.layout-focus .big-level .unit{font-size:24px}
+.widget.layout-focus .badge{font-size:16px;padding:4px 15px}
+.widget.layout-focus .percent{font-size:13px}
+.widget.layout-focus .spark{width:176px;height:54px}
+.widget.layout-focus .trend-box{max-width:190px}
+.widget.layout-focus .trend-title{font-size:13px}
+.widget.layout-focus .trend-box .unavailable-message{font-size:12px}
+.widget.layout-focus .trend-wrap{grid-row:1/4;align-self:center}
+#layoutControls button:focus-visible{outline:2px solid #75f3ff;outline-offset:2px}
+</style>
+</head>
+<body>
+<div class="page">
+  <h1>UTH[AI] · Water Level — Luxury V2 (432×40 LED Studio)</h1>
+  <p class="subtitle">เปิดผ่าน GitHub Pages ได้โดยตรง · เดโมตามแผน 1, 2, 3: <strong>ดีไซน์ Water Slide ใหม่</strong> + <strong>โครงข้อมูล Google Sheet backend</strong> + <strong>หน้าเดโมเปิดดูได้จริง</strong><br>เงื่อนไขที่ใช้: animation อยู่เฉพาะโซนซ้ายของกล่องสถานี, ไม่ยืดเสียสัดส่วน, ไม่ใช้เป็นพื้นหลังเต็มกล่อง และไม่มีเส้นแบ่งกล่องชัดเจน</p>
+
+  <div class="controls">
+    <div class="control-group" id="levelControls"><strong>ระดับ animation:</strong></div>
+    <div class="control-group" id="layoutControls" role="group" aria-label="รูปแบบแสดง Water Level">
+      <strong>เลย์เอาต์ LED:</strong>
+      <button type="button" data-layout="dual">2 สถานี</button>
+      <button type="button" data-layout="focus">สถานีเด่น</button>
+      <button type="button" data-focus="s1">HDA004</button>
+      <button type="button" data-focus="s2">S.5</button>
+    </div>
+    <div class="control-group"><strong>ข้อมูล:</strong><span id="dataStatus" class="unavailable-message" role="status">กำลังอ่านหน้าจอข้อมูลเดิม…</span></div>
+  </div>
+
+  <div class="preview-wrap">
+    <div class="scale-note">ทดสอบ LED 432×40 จริง ขยาย 3× เป็น 1296×120 เพื่อดูรายละเอียด · โหมด 2 สถานี / โฟกัส 1 สถานี</div>
+    <div class="led-stage">
+      <div class="widget">
+        <div class="glass-card clock">
+          <div class="date" id="clockDate">—</div>
+          <div class="time" id="clockTime">--:--</div>
+        </div>
+
+        <div class="glass-card station" id="stationA"></div>
+        <div class="glass-card station" id="stationB"></div>
+      </div>
+    </div>
+    <div class="legend-note">Animation 5 ระดับเป็น <strong>ภาพสถานการณ์จำลองเพื่อเปรียบเทียบดีไซน์</strong> ไม่ใช่การวัดเปอร์เซ็นต์เปิดประตูจริง; ตัวเลขและเส้นกราฟจะใช้ข้อมูลจากหน้าจอปัจจุบันเฉพาะเมื่อโหลดได้ มิฉะนั้นแสดง —</div><iframe id="live-source" title="แหล่งข้อมูลปัจจุบันจากหน้า LED เดิม" src="../v2/index.html?display=led" aria-hidden="true" tabindex="-1" style="position:absolute;width:1px;height:1px;opacity:0;pointer-events:none;left:-10000px;top:0"></iframe>
+  </div>
+
+  <div class="backend">
+    <div class="panel">
+      <h2>แผน 2 — โครงข้อมูล Google Sheet Backend</h2>
+      <p>Backend เดียวที่ได้รับอนุมัติคือ Google Sheet <b>API Report_PM2.5</b> และ Apps Script ที่ผูกกับชีตนั้นอยู่แล้ว ตารางด้านล่างเป็นสเปก/แนวคิด ไม่ได้สร้างชีตใหม่หรือเปิด Trigger เพิ่ม</p>
+      <table>
+        <thead>
+          <tr><th>ชีต</th><th>ฟิลด์หลัก</th><th>ใช้ทำอะไร</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>Station Config (เสนอ)</code></td>
+            <td><code>station_id</code>, <code>name_th</code>, <code>label_short</code>, <code>bank_level_m</code>, <code>watch_level_m</code>, <code>critical_level_m</code>, <code>normal_label</code>, <code>watch_label</code>, <code>critical_label</code></td>
+            <td>เก็บ config ต่อสถานี เพื่อคำนวณ % ระดับตลิ่ง และตัดสินสถานะ ปกติ / เฝ้าระวัง / วิกฤต</td>
+          </tr>
+          <tr>
+            <td><code>Water_Level_History</code></td>
+            <td><code>observed_at</code>, <code>station_id</code>, <code>level_m</code>, <code>delta_m</code>, <code>source</code></td>
+            <td>ใช้วาดกราฟย้อนหลัง 7 วัน และแสดงการเปลี่ยนแปลงล่าสุด</td>
+          </tr>
+          <tr>
+            <td><code>Latest Snapshot (เสนอ)</code></td>
+            <td><code>station_id</code>, <code>level_m</code>, <code>delta_m</code>, <code>updated_at</code>, <code>status</code>, <code>percent_of_bank</code>, <code>animation_band</code></td>
+            <td>ค่าใช้งานเร็วสำหรับหน้า widget โดยไม่ต้องคำนวณซ้ำทุกครั้ง</td>
+          </tr>
+          <tr>
+            <td><code>Widget Config (เสนอ)</code></td>
+            <td><code>trend_days</code>, <code>clock_format</code>, <code>display_order</code>, <code>fallback_level_band</code></td>
+            <td>ตั้งค่าหน้า widget และค่า fallback</td>
+          </tr>
+        </tbody>
+      </table>
+      <p style="margin-top:10px">
+        <span class="chip">ใช้ Script/Trigger เดิมเท่านั้น — ตารางเวลาให้ตรวจจากระบบจริง</span>
+        <span class="chip">เก็บประวัติย้อนหลังเพื่อกราฟ 7 วัน</span>
+        <span class="chip">การจับคู่ % กับฉากเป็น DEMO เท่านั้น; ไม่ใช่ % เปิดประตูจริง</span>
+      </p>
+    </div>
+
+    <div class="panel">
+      <h2>แผน 1 & 3 — กติกา Visual + Demo Logic</h2>
+      <p><strong>Visual rules</strong></p>
+      <p>1) animation อยู่ทางซ้ายของกล่องสถานีเท่านั้น 2) ไม่มีเส้นแบ่งกล่องชัดเจน 3) glass overlay ด้านหน้าตัวเลข 4) ตัวเลขระดับน้ำเป็นจุดเด่นหลัก 5) ป้ายสถานะเป็น neon badge</p>
+      <p><strong>Animation mapping</strong></p>
+      <table>
+        <thead><tr><th>% ระดับตลิ่ง</th><th>band</th><th>asset</th></tr></thead>
+        <tbody>
+          <tr><td>0%</td><td>0</td><td><code>uth_led_water_0_0pct_spritestrip.png</code></td></tr>
+          <tr><td>1–25%</td><td>1</td><td><code>uth_led_water_1_1_25pct_spritestrip.png</code></td></tr>
+          <tr><td>26–50%</td><td>2</td><td><code>uth_led_water_2_26_50pct_spritestrip.png</code></td></tr>
+          <tr><td>51–75%</td><td>4</td><td><code>uth_led_water_4_76_100pct_spritestrip.png</code> <em>(สลับตามที่คุณขอ)</em></td></tr>
+          <tr><td>76–100%</td><td>3</td><td><code>uth_led_water_3_51_75pct_spritestrip.png</code> <em>(สลับตามที่คุณขอ)</em></td></tr>
+        </tbody>
+      </table>
+      <p style="margin-top:10px">สิ่งที่แสดงเป็นภาพจำลองที่ไม่ระบุค่าการเปิดประตูจริง — คำเรียกเทคนิคนี้คือ <strong>Sprite Sheet Animation</strong> หรือถ้าพูดละเอียดขึ้นคือ <strong>Layered Sprite Animation / Composited Motion Graphic</strong></p>
+    </div>
+  </div>
+</div>
+
+<script>
+(()=>{'use strict';
+const BANDS=[{label:'0%',file:'0_0pct'},{label:'1–25%',file:'1_1_25pct'},{label:'26–50%',file:'2_26_50pct'},{label:'51–75%',file:'4_76_100pct'},{label:'76–100%',file:'3_51_75pct'}];
+const ASSETS='../assets/water-gate/5-levels/';
+const $=id=>document.getElementById(id);
+const reduced=matchMedia('(prefers-reduced-motion:reduce)').matches;
+const state={band:3,frame:0};
+const figures=[
+ {el:'#stationA',id:'s1',name:'HDA004 ช่องสะเดา',subtitle:'สถานีอ้างอิงใกล้ รพ.อุทัย',value:null,observed:'รอข้อมูล',status:'unavailable',historyPath:''},
+ {el:'#stationB',id:'s2',name:'S.5 สะพานปรีดี',subtitle:'สถานีอ้างอิง',value:null,observed:'รอข้อมูล',status:'unavailable',historyPath:''}
+];
+const atlas=BANDS.map(b=>{const im=new Image();im.src=ASSETS+'uth_led_water_'+b.file+'_spritestrip.png';return im});
+let raf=0;
+function clock(){const now=new Date();$('clockDate').textContent=new Intl.DateTimeFormat('th-TH',{timeZone:'Asia/Bangkok',weekday:'short',day:'numeric',month:'short',year:'2-digit'}).format(now);$('clockTime').textContent=new Intl.DateTimeFormat('en-GB',{timeZone:'Asia/Bangkok',hour:'2-digit',minute:'2-digit',hour12:false}).format(now)}
+function sparkSvg(path){
+ if(!path||!/^[MmLlHhVvCcSsQqTtAaZz0-9.,+\-\seE]+$/.test(path))return '<span class="unavailable-message">รอประวัติ 7 วัน</span>';
+ return `<svg class="spark" viewBox="0 0 340 125" aria-label="แนวโน้มจากแหล่งข้อมูลเดิม"><path d="${path}" fill="none" stroke="#61ecff" stroke-width="3" stroke-linejoin="round" stroke-linecap="round" /></svg>`;
+}
+function renderStation(st){const target=document.querySelector(st.el);if(!target)return;
+ const value=Number.isFinite(st.value)?st.value.toFixed(2):'—';
+ const badge='unavailable';
+ target.innerHTML=`<div class="station-card">
+   <div class="art-zone"><canvas class="water-canvas" width="420" height="210" data-scene="${st.id}" aria-label="ภาพจำลองประตูน้ำเคลื่อนไหว"></canvas></div>
+   <div class="info">
+    <div class="station-name">${st.name}<small>${st.subtitle}</small></div>
+    <div class="delta" style="color:#b0d3e7;font-size:15px">${st.observed||'รอข้อมูล'}<small>เวลาของแหล่งข้อมูล</small></div>
+    <div class="big-level">${value}<span class="unit">ม.</span></div>
+    <div class="trend-wrap"><div class="trend-box"><div class="trend-title">ข้อมูลย้อนหลัง 7 วัน</div>${sparkSvg(st.historyPath)}</div></div>
+    <div class="meta-row"><span class="badge ${badge}">ไม่ทราบสถานะ</span><span class="percent">% เทียบตลิ่ง: <span>—</span></span></div>
+   </div></div>`;
+}
+function drawCanvas(canvas,frame){const image=atlas[state.band];if(!image.complete||!image.naturalWidth)return;const ctx=canvas.getContext('2d');if(!ctx)return;
+ const w=canvas.width,h=canvas.height;const frameW=image.naturalWidth/4;const frameH=image.naturalHeight;
+ const srcW=frameW;const destW=w,destH=h;
+ // Original aspect ratio: 640×320 = 2:1. We always draw to a 2:1 canvas.
+ if(canvas.dataset.locked!=='1'){ctx.clearRect(0,0,w,h);ctx.drawImage(image,0,0,srcW,frameH,0,0,destW,destH);canvas.dataset.locked='1'}
+ // Fixed architecture; update only water and foam in the lower half.
+ ctx.save();ctx.beginPath();ctx.rect(0,h*.43,w,h*.57);ctx.clip();ctx.drawImage(image,frame*frameW,0,srcW,frameH,0,0,destW,destH);ctx.restore()
+ canvas.dataset.frame=String(frame);
+}
+function animate(ts){const frame=Math.floor(ts/150)%4;if(frame!==state.frame){state.frame=frame;document.querySelectorAll('.water-canvas').forEach(el=>drawCanvas(el,frame));}raf=requestAnimationFrame(animate)}
+function chooseBand(band){state.band=band;document.querySelectorAll('#levelControls button').forEach(b=>b.classList.toggle('active',Number(b.dataset.level)===band));document.querySelectorAll('.water-canvas').forEach(c=>{c.dataset.locked='0';drawCanvas(c,reduced?0:state.frame)})}
+function resize(){const el=document.querySelector('.led-stage'),widget=el?.querySelector('.widget');if(!el||!widget)return;const scale=Math.min(1,(el.clientWidth-2)/1296);widget.style.transform=`scale(${scale})`;el.style.height=Math.ceil(120*scale)+2+'px';}
+function syncFromLive(){const iframe=$('live-source');let doc;try{doc=iframe?.contentDocument}catch(e){doc=null}if(!doc){$('dataStatus').textContent='ไม่สามารถอ่านข้อมูลเดิม';return}
+ let any=false;
+ figures.forEach(st=>{const source=doc.querySelector('#water #'+st.id);if(!source)return;const text=source.querySelector('.water-fig .level')?.textContent.trim()||'—';
+ const n=Number(text.replace(/,/g,''));st.value=text!=='—'&&Number.isFinite(n)?n:null;
+ st.observed=source.querySelector('.water-fig .observed')?.textContent.trim()||'รอข้อมูล';
+ const key=st.id==='s1'?'#history-hda':'#history-s5';const his=doc.querySelector(key+' .history-line');st.historyPath=his?.getAttribute('d')||'';
+ if(st.value!==null)any=true;renderStation(st);
+ });
+ $('dataStatus').textContent=any?'อ่านข้อมูลจริงจากหน้า LED เดิมแล้ว':'ยังไม่มีข้อมูลระดับน้ำที่พร้อมแสดง';
+ document.querySelectorAll('.water-canvas').forEach(c=>drawCanvas(c,reduced?0:state.frame));
+}
+BANDS.forEach((b,i)=>{const x=document.createElement('button');x.textContent=b.label;x.dataset.level=String(i);x.type='button';x.addEventListener('click',()=>chooseBand(i));$('levelControls').appendChild(x)});
+clock();setInterval(clock,15000);figures.forEach(renderStation);resize();window.addEventListener('resize',resize);chooseBand(3);
+$('live-source').addEventListener('load',()=>{syncFromLive()});setInterval(syncFromLive,12000);
+if(!reduced)raf=requestAnimationFrame(animate);
+// Two owner-review layouts; never silently rotate production water stations.
+const layout={mode:'dual',focus:'s1'};
+function applyLayout(){
+ const widget=document.querySelector('.widget');
+ widget.classList.toggle('layout-focus',layout.mode==='focus');
+ document.querySelectorAll('.station').forEach(el=>el.classList.toggle('is-not-focus',
+   layout.mode==='focus'&&el.id!==(layout.focus==='s1'?'stationA':'stationB')));
+ document.querySelectorAll('[data-layout]').forEach(btn=>{const on=btn.dataset.layout===layout.mode;btn.classList.toggle('active',on);btn.setAttribute('aria-pressed',String(on))});
+ document.querySelectorAll('[data-focus]').forEach(btn=>{const on=btn.dataset.focus===layout.focus;btn.classList.toggle('active',on);btn.setAttribute('aria-pressed',String(on))});
+ resize();
+}
+document.querySelectorAll('[data-layout]').forEach(btn=>btn.addEventListener('click',()=>{layout.mode=btn.dataset.layout;applyLayout()}));
+document.querySelectorAll('[data-focus]').forEach(btn=>btn.addEventListener('click',()=>{layout.mode='focus';layout.focus=btn.dataset.focus;applyLayout()}));
+applyLayout();
+window.__uthGlassDemo={getState:()=>({layout:layout.mode,focus:layout.focus,band:state.band,frame:state.frame,reduced,canvases:document.querySelectorAll('.water-canvas').length,values:figures.map(x=>x.value)})};
+})();
+
+</script>
+</body>
+</html>
