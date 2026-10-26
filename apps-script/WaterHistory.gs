@@ -29,6 +29,16 @@ var WaterHistory = (function () {
     return isFinite(n)&&n>=lo&&n<=hi?n:null;
   }
   function obs_(v){
+    // Existing Water_Level_History was written with text dates for verified
+    // seed rows, but Sheets turns scheduled rows into typed DATE_TIME cells.
+    // Apps Script getValues() returns JS Date for the latter, not string.
+    if(Object.prototype.toString.call(v)==='[object Date]'){
+      var stamp=v.getTime();
+      if(!isFinite(stamp))return null;
+      var th=new Date(stamp+BKK),pad=function(n){return n<10?'0'+n:String(n);};
+      v=th.getUTCFullYear()+'-'+pad(th.getUTCMonth()+1)+'-'+pad(th.getUTCDate())+
+        ' '+pad(th.getUTCHours())+':'+pad(th.getUTCMinutes());
+    }
     if(typeof v!=='string')return null;
     var m=/^(\d{4})-(\d\d)-(\d\d) (\d\d):(\d\d)$/.exec(v);
     if(!m)return null;
@@ -94,7 +104,10 @@ var WaterHistory = (function () {
       var batch=date+':'+slot, fetched=new Date(now).toISOString(),last=sh.getLastRow();
       var stored=last>1?sh.getRange(2,1,last-1,HEAD.length).getValues():[];
       var keys={};
-      stored.forEach(function(r){var cfg=HII[String(r[4])];if(cfg&&Number(r[5])===cfg.id&&r[8])keys[String(r[4])+'|'+String(r[8])]=true;});
+      stored.forEach(function(r){
+        var cfg=HII[String(r[4])],stamp=obs_(r[8]);
+        if(cfg&&Number(r[5])===cfg.id&&stamp)keys[String(r[4])+'|'+stamp.th]=true;
+      });
       var appended=0;
       Object.keys(HII).forEach(function(code){
         var x=found[code];if(!x)return;
@@ -120,7 +133,7 @@ var WaterHistory = (function () {
     Object.keys(HII).forEach(function(code){
       var cfg=HII[code],pts=[],seen={},current=null;
       rows.forEach(function(r){
-        if(r[4]!==code||Number(r[5])!==cfg.id||r[11]!=='ThaiWater/HII'||r[15]!=='MSL'||typeof r[8]!=='string')return;
+        if(r[4]!==code||Number(r[5])!==cfg.id||r[11]!=='ThaiWater/HII'||r[15]!=='MSL')return;
         var o=obs_(r[8]),level=num_(r[7],-50,200),bank=num_(r[13],-50,200),ground=num_(r[14],-100,200);
         if(!o||o.utcMs>now+120000||now-o.utcMs>14*86400000||level===null||bank===null||ground===null||ground>=bank)return;
         if(!seen[o.utcMs]){pts.push({time:o.utcMs,level:level});seen[o.utcMs]=true;}
@@ -138,8 +151,10 @@ var WaterHistory = (function () {
         trendObservedAt:recent.map(function(p){return new Date(p.time).toISOString();}),
         risk:'unassessed'
       };
-      if(result.stations[code].status==='ok'&&current)
-        result.stations[code].risk=current.level>=current.bank?'critical':current.level>=current.bank-.5?'watch':'below_watch';
+      // No station-specific, formally approved watch/critical thresholds
+      // are registered. Bank elevation alone does NOT authorize risk status.
+      // Until threshold and freshness contracts are approved, risk remains
+      // 'unassessed' even when the measured level is recent.
     });
     return result;
   }
