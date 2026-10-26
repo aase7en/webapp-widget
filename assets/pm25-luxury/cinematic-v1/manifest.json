@@ -1,0 +1,109 @@
+{
+  "schema": 1,
+  "type": "cinematic-art-direction",
+  "version": "v1-review",
+  "notForProductionUntilApproved": true,
+  "source": "ChatGPT Image Generation, user-approved aesthetic exploration",
+  "canvas": {
+    "liveLEDWidth": 432,
+    "liveLEDHeight": 40,
+    "logicalRatio": 10.8
+  },
+  "notes": [
+    "All 5 source images have visible neon LED border and white surrounding canvas; scenes crop those away.",
+    "City/skyline geometry varies between independently generated images. Do not hard-cut between tiers; use crossfade or refined common matte.",
+    "Art only, not actual PM2.5 measurements. Preserve observedAt, band thresholds and stale labels in DOM.",
+    "No motion frames are contained in this cinematic-v1 package. Transparent motion layers are an outstanding workstream."
+  ],
+  "tiers": {
+    "blue": {
+      "generationRefSuffix": "b01c8211af7c2ae77ae01810",
+      "sourceFile": "originals/blue.png",
+      "sourceSha256": "0223e379eae54120214d869543d7253c78c801c0d19579f655923cb41c49873e",
+      "sourceSizeBytes": 1986019,
+      "scenicFile": "scenes/blue.webp",
+      "scenicSha256": "aaa743b4232ad3c84d2023e4b60f9c6646d7107d1f4d43b187d652e64096fb22",
+      "scenicWidth": 1296,
+      "scenicHeight": 221,
+      "ledCropFile": "scenes/blue-led-crop.webp",
+      "ledCropSha256": "0f24accc7c506872b454e4cb42afc66f9b93ab7046d033981a612eb36bd1ea3a",
+      "ledCropWidth": 1296,
+      "ledCropHeight": 120,
+      "alpha": false,
+      "containsText": false,
+      "approved": false
+    },
+    "green": {
+      "generationRefSuffix": "59908211ba5c20ea06eac96a",
+      "sourceFile": "originals/green.png",
+      "sourceSha256": "d1614af9f942b22157cfb1c55081c46998c1297f0debe87290154dcaa612d2cc",
+      "sourceSizeBytes": 1878259,
+      "scenicFile": "scenes/green.webp",
+      "scenicSha256": "36c579d60ccf39b98c4041bdaa68f93c2f2616123c4a6afd5b5a675b8fdfd910",
+      "scenicWidth": 1296,
+      "scenicHeight": 221,
+      "ledCropFile": "scenes/green-led-crop.webp",
+      "ledCropSha256": "7dd44a3b50ff1c431cdfd300a3cc2191ea799984fb429ef13e7546b47a7af94e",
+      "ledCropWidth": 1296,
+      "ledCropHeight": 120,
+      "alpha": false,
+      "containsText": false,
+      "approved": false
+    },
+    "yellow": {
+      "generationRefSuffix": "523c8207ab99d850735c1bad",
+      "sourceFile": "originals/yellow.png",
+      "sourceSha256": "7df791151f200f6936c8d96762119f343b0b1dbb92dba15d1e70a70a2053d9c3",
+      "sourceSizeBytes": 1875499,
+      "scenicFile": "scenes/yellow.webp",
+      "scenicSha256": "ba8b8b47a00514df80cfd984a8d400599930d4e0d91cbee063d17eee31e9fe8d",
+      "scenicWidth": 1296,
+      "scenicHeight": 221,
+      "ledCropFile": "scenes/yellow-led-crop.webp",
+      "ledCropSha256": "e27c1074edc8bd03f174c2bf285ea933f91837204fe244659f60ac957b4f34f6",
+      "ledCropWidth": 1296,
+      "ledCropHeight": 120,
+      "alpha": false,
+      "containsText": false,
+      "approved": false
+    },
+    "orange": {
+      "generationRefSuffix": "7b448211a0bef4ac77b8479c",
+      "sourceFile": "originals/orange.png",
+      "sourceSha256": "3c472130181d49950898794055b3c2c178677fc9341b58a0d7baedfaece97dd1",
+      "sourceSizeBytes": 1821195,
+      "scenicFile": "scenes/orange.webp",
+      "scenicSha256": "ea4ddd824731b41cefba7951770e4870dabb54211a179762af2849e1f50f5f9f",
+      "scenicWidth": 1296,
+      "scenicHeight": 221,
+      "ledCropFile": "scenes/orange-led-crop.webp",
+      "ledCropSha256": "62fad6356c74a59b9fcbfbd32b70d93dabe6bd7b81d3ee51213546a0645dfced",
+      "ledCropWidth": 1296,
+      "ledCropHeight": 120,
+      "alpha": false,
+      "containsText": false,
+      "approved": false
+    },
+    "red": {
+      "generationRefSuffix": "94dc8207a561dffabdd30bad",
+      "sourceFile": "originals/red.png",
+      "sourceSha256": "db51e51f6266e8fbfb30cdcff0792f737fb2722014eb21ffc6d456c074a613ea",
+      "sourceSizeBytes": 1668688,
+      "scenicFile": "scenes/red.webp",
+      "scenicSha256": "b30f452680fb95dc166a5b5b3a76d24dfd81f924a8043eb569b51c9c46da740c",
+      "scenicWidth": 1296,
+      "scenicHeight": 221,
+      "ledCropFile": "scenes/red-led-crop.webp",
+      "ledCropSha256": "c76a0592a9176715248365b7527628168f488b301b1c7a87638b98e99a383196",
+      "ledCropWidth": 1296,
+      "ledCropHeight": 120,
+      "alpha": false,
+      "containsText": false,
+      "approved": false
+    }
+  },
+  "preview": {
+    "file": "review-five-tier.webp",
+    "sha256": "9092eb0daf9ebf64908008ad5ff561586b46ff3a2df6a3a784ae3516093e6b14"
+  }
+}
