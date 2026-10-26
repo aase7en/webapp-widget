@@ -31,3 +31,12 @@
 - Demo-only PR may merge only under current repo policy; Pages preview requires a successful deployment of approved DEMO file.
 - NEVER change production v2/index.html, root index.html, apps-script, any Sheet/Script/trigger, or physical LED without separate authorization.
 - One next safe action after PR: independent review of frozen V3 candidate plus Pages publication gate.
+
+## Owner-requested V3.1 refinement (26 Oct 2026 afternoon, Asia/Bangkok)
+- Preserve V3 demo only and re-use PR #46 in the isolated clean worktree. Explicit user direction: soften sharp visual break after clock, let dam architecture extend behind clock and station readings using dark translucent overlays, make water-level readings larger and badges adjacent, shift S.5 toward right by reclaiming the illegible source strip.
+- Change limited to NEW demo-only stylesheet `demo/water-led-luxury-v3-polish.css`, existing V3 HTML, these V3 tests and this Work Order. No source/water backend changed.
+- Frame stays 1296×120 design-space = 432×40 logical LED. Dam sprite retains source 2:1 aspect; architecture static and lower water animated. Added left-to-right mask fade for scenery, softened overlays; source credit moved below LED with explicit HII provenance, not removed from page.
+- DEMO numbers/status toggles stay OFF by default. Neutral `ยังไม่มีเกณฑ์` remains the only automatic badge while thresholds unapproved.
+- Chrome CDP measured: exact scaled element 432×40; both stations visible and S.5 farther right; adjacent badges contained in station info; source strip absent; Focus S.5 still works; mobile 390px no document overflow; 0 uncaught exceptions. Two different lower-water frame hashes with identical upper-dam hashes confirmed.
+- Captured local screenshot `/tmp/uth-v31-demo-led.png` using localhost HTTP served clean worktree; screenshot contains explicit example DEMO labels, NOT live observations. Review CSS + HTML + test diff before PR update.
+- Prod gate stays CLOSED: no merge/deploy to physical LED, no Apps Script changes, no flood-status claims without approved thresholds.

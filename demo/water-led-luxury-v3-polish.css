@@ -1,0 +1,54 @@
+/* V3.1 owner-requested demo polish. No production selectors or backend changes.
+   Stage stays 1296x120, rendered 3x above the real 432x40 LED. */
+.widget.v3{grid-template-columns:180px minmax(0,1fr) minmax(0,1fr);}
+.widget.v3 .clock{width:auto;z-index:5;position:relative;padding:8px 6px 14px 9px;
+ background:linear-gradient(90deg,rgba(0,3,13,.96) 0%,rgba(0,5,17,.89) 42%,rgba(0,6,17,.53) 74%,rgba(0,8,18,.13) 100%);}
+.widget.v3 .clock::after{inset:0 -35px 0 0;background:linear-gradient(90deg,rgba(0,5,16,.68),transparent);filter:blur(13px);}
+.widget.v3 .date{font-size:16px}.widget.v3 .time{font-size:53px}
+.widget.v3 .station{overflow:visible;isolation:isolate;padding:0 2px;}
+.widget.v3 #stationA{z-index:2}.widget.v3 #stationB{z-index:1}
+/* Both sides of the original dam sprite fade under the clock/reading overlays.
+   Keep image aspect 2:1; preserve architecture upper frames in canvas logic. */
+.widget.v3 .station .art-zone{
+ top:-22px;left:-83px;width:380px;min-width:380px;max-width:380px;height:176px;overflow:hidden;
+ -webkit-mask-image:linear-gradient(90deg,transparent 0%,#000 17%,#000 59%,rgba(0,0,0,.9) 76%,transparent 100%);
+ mask-image:linear-gradient(90deg,transparent 0%,#000 17%,#000 59%,rgba(0,0,0,.9) 76%,transparent 100%);}
+.widget.v3 .station .water-canvas{left:0;top:0;width:360px;height:180px;max-width:none;
+ -webkit-mask-image:none;mask-image:none;
+ filter:brightness(1.12) saturate(1.45) contrast(1.04) drop-shadow(0 0 9px #23bfff5a);}
+.widget.v3 #stationB .art-zone{left:-62px;top:-22px}
+/* Text sits on a continuous dark translucent gradient, never a hard-edged tile. */
+.widget.v3 .station .info{inset:0 1px 0 173px;padding:4px 5px 2px;
+ display:grid;grid-template-columns:minmax(0,1fr) 106px;grid-template-rows:23px 55px 27px;gap:0 5px;
+ background:linear-gradient(90deg,rgba(0,9,23,.23) 0%,rgba(0,9,24,.53) 20%,rgba(0,9,21,.8) 64%,rgba(0,9,21,.87) 100%);
+ border-radius:0;box-shadow:none;-webkit-backdrop-filter:blur(1px);backdrop-filter:blur(1px);}
+.widget.v3 .station-name{font-size:18px;line-height:20px;grid-column:1/3;grid-row:1;letter-spacing:-.35px;}
+.widget.v3 .reading-row{display:flex;align-items:center;gap:6px;grid-column:1/3;grid-row:2;min-width:0;white-space:nowrap;}
+.widget.v3 .big-level{display:inline-flex;align-items:baseline;flex:none;font-size:65px;line-height:.96;
+ letter-spacing:-1.8px;filter:drop-shadow(0 0 7px #12ccff87)}
+.widget.v3 .big-level .unit{font-size:19px;margin-left:2px}
+.widget.v3 .badge{display:inline-flex;align-items:center;flex:none;max-width:132px;min-width:0;
+ font-size:12px;padding:5px 8px;line-height:15px;border-radius:22px;
+ white-space:normal;overflow-wrap:anywhere;text-align:center;}
+.widget.v3 .sample-marker{font-size:10px;letter-spacing:0;margin:0 2px}
+.widget.v3 .delta{position:static;grid-column:1;grid-row:3;align-self:center;text-align:left;
+ font-size:11px!important;line-height:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+ color:#b9eaff!important;}
+.widget.v3 .delta.down{color:#65ff97!important}.widget.v3 .delta.up{color:#ff6c83!important}
+.widget.v3 .trend-wrap{grid-column:2;grid-row:3;justify-self:end;align-self:center;padding:0}
+.widget.v3 .trend-box{gap:0}.widget.v3 .spark{width:99px;height:24px}
+.widget.v3 .trend-title{font-size:8px;line-height:9px}
+.widget.v3 .trend-box .unavailable-message{font-size:9px}
+/* Water stays inside frame, and fades before the number/status reading zones. */
+.widget.v3 .foam-front{
+ -webkit-mask-image:linear-gradient(90deg,#000 0%,#000 25%,transparent 35%,transparent 54%,#000 59%,transparent 68%,transparent 100%);
+ mask-image:linear-gradient(90deg,#000 0%,#000 25%,transparent 35%,transparent 54%,#000 59%,transparent 68%,transparent 100%);}
+/* The pre-existing focus comparison must remain usable with only one visible station. */
+.widget.v3.layout-focus{grid-template-columns:180px minmax(0,1fr)}
+.widget.v3.layout-focus .station .art-zone{left:-85px;width:465px;min-width:465px;max-width:465px;height:224px;top:-38px}
+.widget.v3.layout-focus .station .water-canvas{width:450px;height:225px}
+.widget.v3.layout-focus .station .info{inset:0 0 0 290px;grid-template-columns:minmax(0,1fr) 180px}
+.widget.v3.layout-focus .big-level{font-size:74px}
+.widget.v3.layout-focus .badge{font-size:15px;padding:6px 15px}
+.widget.v3.layout-focus .spark{width:155px;height:27px}
+#numberSample:focus-visible,#statusSample:focus-visible,#layoutControls button:focus-visible{outline:2px solid #fff;outline-offset:2px}

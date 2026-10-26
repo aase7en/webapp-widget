@@ -255,11 +255,12 @@
 .widget.v3 .delta.down{color:#65ff97!important}
 .widget.v3 .delta.up{color:#ff6c83!important}
 </style>
+<link rel="stylesheet" href="water-led-luxury-v3-polish.css">
 </head>
 <body>
 <div class="page">
   <h1>UTH[AI] · Water Level — Luxury V3 (432×40 LED Studio)</h1>
-  <p class="subtitle">เปิดผ่าน GitHub Pages ได้โดยตรง · เดโมตามแผน 1, 2, 3: <strong>ดีไซน์ Water Slide ใหม่</strong> + <strong>โครงข้อมูล Google Sheet backend</strong> + <strong>หน้าเดโมเปิดดูได้จริง</strong><br>V3: สถานีสองแห่งในฉากเดียวกัน มี Layer ซ้อนตัวเลข/นาฬิกาเหนือน้ำตก น้ำฟุ้งเอ่อนองภายในกรอบ LED และป้ายเฝ้าระวังแบบจำลองที่ระบุ DEMO ชัดเจน</p>
+  <p class="subtitle">เปิดผ่าน GitHub Pages ได้โดยตรง · เดโมตามแผน 1, 2, 3: <strong>ดีไซน์ Water Slide ใหม่</strong> + <strong>โครงข้อมูล Google Sheet backend</strong> + <strong>หน้าเดโมเปิดดูได้จริง</strong><br>V3.1: ฉากเขื่อนขยายลอดใต้ Overlay นาฬิกาและข้อมูลสถานี ไม่มีเส้นตัดแข็ง; ตัวเลขระดับน้ำใหญ่ขึ้นและป้ายสถานะอยู่ข้างตัวเลข; สถานีที่สองมีพื้นที่มากขึ้นโดยตัดบล็อกขวาสุด</p>
 
   <div class="controls">
     <div class="control-group" id="levelControls"><strong>ระดับ animation:</strong></div>
@@ -286,11 +287,10 @@
 
         <div class="glass-card station" id="stationA"></div>
         <div class="glass-card station" id="stationB"></div>
-        <div class="source-strip" aria-label="แหล่งอ้างอิง ThaiWater HII"><span class="source-icon" aria-hidden="true">▤</span>ข้อมูลอ้างอิง<b>HII</b><small>ThaiWater/HII</small></div>
         <canvas class="foam-front" width="1290" height="29" aria-hidden="true"></canvas>
       </div>
     </div>
-    <div class="legend-note">ค่าตัวอย่างจากภาพอ้างอิง, Animation และสีป้ายสถานะในโหมด DEMO เป็น <strong>ภาพจำลองเพื่อประเมิน Layout ไม่ใช่ผลตรวจวัดจริงหรือสถานะเตือนภัย</strong> ไม่ใช่การวัดเปอร์เซ็นต์เปิดประตูจริง; ตัวเลขและเส้นกราฟจะใช้ข้อมูลจากหน้าจอปัจจุบันเฉพาะเมื่อโหลดได้ มิฉะนั้นแสดง —</div><iframe id="live-source" title="แหล่งข้อมูลปัจจุบันจากหน้า LED เดิม" src="../v2/index.html?display=led" aria-hidden="true" tabindex="-1" style="position:absolute;width:1px;height:1px;opacity:0;pointer-events:none;left:-10000px;top:0"></iframe>
+    <div class="legend-note">ที่มา: ThaiWater/HII (สถานีอ้างอิง ไม่ใช่เซนเซอร์โรงพยาบาล) · ค่าตัวอย่างจากภาพอ้างอิง, Animation และสีป้ายสถานะในโหมด DEMO เป็น <strong>ภาพจำลองเพื่อประเมิน Layout ไม่ใช่ผลตรวจวัดจริงหรือสถานะเตือนภัย</strong> ไม่ใช่การวัดเปอร์เซ็นต์เปิดประตูจริง; ตัวเลขและเส้นกราฟจะใช้ข้อมูลจากหน้าจอปัจจุบันเฉพาะเมื่อโหลดได้ มิฉะนั้นแสดง —</div><iframe id="live-source" title="แหล่งข้อมูลปัจจุบันจากหน้า LED เดิม" src="../v2/index.html?display=led" aria-hidden="true" tabindex="-1" style="position:absolute;width:1px;height:1px;opacity:0;pointer-events:none;left:-10000px;top:0"></iframe>
   </div>
 
   <div class="backend">
@@ -379,9 +379,8 @@ function renderStation(st){const target=document.querySelector(st.el);if(!target
    <div class="info">
     <div class="station-name">${st.name}<small>${st.subtitle}</small></div>
     <div class="delta ${state.numberSample?(st.id==='s1'?'down':'up'):''}" style="font-size:15px">${state.numberSample?(st.id==='s1'?'▼ -0.12 · DEMO':'▲ +0.28 · DEMO'):(st.observed||'รอข้อมูล')}<small>เวลาของแหล่งข้อมูล</small></div>
-    <div class="big-level">${value}<span class="unit">ม.</span>${state.numberSample?'<span class="sample-marker">DEMO</span>':''}</div>
+    <div class="reading-row"><div class="big-level">${value}<span class="unit">ม.</span>${state.numberSample?'<span class="sample-marker">DEMO</span>':''}</div><span class="badge ${badge}">${badgeText}</span></div>
     <div class="trend-wrap"><div class="trend-box"><div class="trend-title">ข้อมูลย้อนหลัง 7 วัน</div>${sparkSvg(visualTrend,state.numberSample)}</div></div>
-    <div class="meta-row"><span class="badge ${badge}">${badgeText}</span><span class="percent">% เทียบตลิ่ง: <span>—</span></span></div>
    </div></div>`;
 }
 function drawCanvas(canvas,frame){const image=atlas[state.band];if(!image.complete||!image.naturalWidth)return;const ctx=canvas.getContext('2d');if(!ctx)return;

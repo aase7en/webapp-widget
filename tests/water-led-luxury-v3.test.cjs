@@ -31,3 +31,22 @@ test('V3 uses current live source only for measured readings and leaves producti
  assert.match(html,/rอข้อมูล|รอข้อมูล/);
  assert.match(html,/aria-pressed="false"/);
 });
+
+const css=fs.readFileSync(path.join(root,'demo/water-led-luxury-v3-polish.css'),'utf8');
+test('V3.1 shares dam artwork behind clock and data using translucent gradients',()=>{
+ assert.match(html,/href="water-led-luxury-v3-polish.css"/);
+ assert.match(css,/\.widget\.v3 \.clock\{/);
+ assert.match(css,/rgba\(0,8,18,\.13\)/);
+ assert.match(css,/\.widget\.v3 \.station \.art-zone/);
+ assert.match(css,/left:-83px/);
+ assert.match(css,/mask-image:linear-gradient/);
+ assert.match(css,/width:360px;height:180px/); // preserve 2:1 source ratio
+});
+test('V3.1 reclaims right source strip for two large station readings and adjacent status',()=>{
+ assert.doesNotMatch(html,/<div class="source-strip"/);
+ assert.match(css,/grid-template-columns:180px minmax\(0,1fr\) minmax\(0,1fr\)/);
+ assert.match(html,/class="reading-row"/);
+ assert.match(html,/<span class="badge \$\{badge\}">\$\{badgeText\}<\/span>/);
+ assert.match(css,/\.widget\.v3 \.big-level\{[\s\S]*?font-size:65px/);
+ assert.match(css,/\.widget\.v3 \.foam-front\{/);
+});
