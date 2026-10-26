@@ -33,7 +33,7 @@ status.textContent=band.toUpperCase()+' · Frame '+(index+1)+'/'+frames.length+'
 }
 function render(t){if(!document.hidden)draw(t);requestAnimationFrame(render)}
 document.querySelectorAll('[data-tier]').forEach(b=>b.addEventListener('click',()=>choose(b.dataset.tier)));
-document.querySelector('#play').addEventListener('click',()=>{playing=!playing;start=0;controls()});
+document.querySelector('#play').addEventListener('click',()=>{playing=!playing;start=0;controls();draw(performance.now())});
 document.querySelector('#speed').addEventListener('click',()=>{speed=speed===1?2:1;start=0;controls()});
 document.querySelector('#blend').addEventListener('click',()=>{blend=!blend;controls()});
 document.addEventListener('visibilitychange',()=>{start=0});
