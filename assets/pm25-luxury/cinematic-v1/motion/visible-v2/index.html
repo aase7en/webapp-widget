@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>PM2.5 Luxury — Animation Preview v2</title>
+<style>
+*{box-sizing:border-box}body{background:radial-gradient(circle at 50% 0,#12334f,#020917 65%);color:#e9f9ff;font:16px system-ui,-apple-system,"Noto Sans Thai",sans-serif;margin:0;padding:clamp(12px,3vw,30px)}
+main{max-width:1200px;margin:auto}h1{font-size:clamp(22px,3vw,30px);margin:0 0 10px}
+p{color:#b5d7e6;line-height:1.5}.controls{display:flex;flex-wrap:wrap;gap:8px;margin:14px 0}
+button{border:1px solid #527b90;border-radius:10px;color:#e9faff;background:#132a40;cursor:pointer;padding:9px 15px;min-height:44px;font:inherit}
+button[aria-pressed=true]{border-color:#0af4c6;box-shadow:0 0 0 2px #19bca255,0 0 16px #13bfad44}
+button:focus-visible{outline:3px solid white;outline-offset:3px}
+.panel{padding:12px;border:1px solid #255c7a;border-radius:16px;background:#061b2c;margin:16px 0}
+h2{font-size:16px;font-weight:600;margin:0 0 10px}.view{display:block;width:100%;height:auto;border:1px solid #178eb4;border-radius:7px;box-shadow:0 0 15px #0c78b066}
+#mainCanvas{aspect-ratio:10.8}#detailCanvas{aspect-ratio:2.5}
+#liveStatus{color:#75fadd;font-variant-numeric:tabular-nums;margin-top:10px}
+small{color:#a0bac8}footer{margin-top:25px;color:#91b4c7;font-size:12px}
+</style></head><body><main>
+<h1>PM2.5 Luxury · Animation Preview v2</h1>
+<p>ตัวอย่างภาพพื้นหลัง 5 ระดับสำหรับจอ LED 432×40 พร้อม <strong>Airflow (เส้นลมเรืองแสง)</strong> และอนุภาคที่เคลื่อนที่ กดสลับระดับแล้วมองภาพขยายด้านล่างเพื่อดูการเปลี่ยนเฟรมได้ชัดเจน</p>
+<div class="controls" id="tiers">
+<button data-tier="blue">ฟ้า</button><button data-tier="green">เขียว</button><button data-tier="yellow">เหลือง</button><button data-tier="orange">ส้ม</button><button data-tier="red">แดง</button>
+</div>
+<section class="panel"><h2>ภาพรวม — อัตราส่วนจอ LED จริง (10.8:1)</h2>
+<canvas id="mainCanvas" class="view" width="1296" height="120" aria-label="ภาพตัวอย่าง LED พร้อมเคลื่อนไหว"></canvas></section>
+<section class="panel"><h2>Motion Detail — ขยายกระแสอากาศและอนุภาค</h2>
+<canvas id="detailCanvas" class="view" width="900" height="360" aria-label="ภาพขยายให้เห็นการเคลื่อนไหว"></canvas></section>
+<div class="controls"><button id="play">หยุดภาพ</button><button id="speed">ความเร็ว 1×</button><button id="toggle">ซ่อน Motion</button></div>
+<div id="liveStatus" role="status">กำลังโหลดภาพ…</div>
+<p><small>ภาพฉากเมืองเป็น Cinematic Asset จาก ImageGen ส่วนชั้น Animation เป็น Sprite Atlas แบบโปร่งใส 8 Frames/ระดับ ไม่ใช่ค่าฝุ่นที่วัดได้ และไม่ได้ใช้ข้อมูลตัวอย่างแทน API จริง</small></p>
+<footer>Demo only · PR #49 · ไม่แก้หน้า Production · ถ้าเปิดโหมดลดการเคลื่อนไหวของระบบ ภาพจะเริ่มต้นแบบหยุดนิ่ง</footer>
+</main>
+<script>
+(()=>{
+"use strict";
+const allowed=["blue","green","yellow","orange","red"];
+const main=document.querySelector("#mainCanvas").getContext("2d",{alpha:false});
+const detail=document.querySelector("#detailCanvas").getContext("2d",{alpha:false});
+const readout=document.querySelector("#liveStatus");
+const state={tier:"green",img:null,atlas:null,frame:0,playing:!matchMedia("(prefers-reduced-motion: reduce)").matches,speed:1,motion:true,last:0,token:0};
+function update(){
+ document.querySelectorAll("[data-tier]").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.tier===state.tier)));
+ document.querySelector("#play").textContent=state.playing?"หยุดภาพ":"เล่น Animation";
+ document.querySelector("#speed").textContent="ความเร็ว "+state.speed+"×";
+ document.querySelector("#toggle").textContent=state.motion?"ซ่อน Motion":"แสดง Motion";
+}
+function render(){
+ const{img,atlas,frame,motion}=state;
+ main.fillStyle="#071528";main.fillRect(0,0,1296,120);
+ if(img)main.drawImage(img,0,0,1296,120);
+ if(img&&atlas&&motion)main.drawImage(atlas,frame%4*1296,Math.floor(frame/4)*120,1296,120,0,0,1296,120);
+ detail.fillStyle="#071528";detail.fillRect(0,0,900,360);
+ if(img){detail.drawImage(img,260,30,750,90,0,0,900,360);
+   if(atlas&&motion)detail.drawImage(atlas,(frame%4)*1296+260,Math.floor(frame/4)*120+30,750,90,0,0,900,360);}
+ readout.textContent="ระดับ "+state.tier.toUpperCase()+" · เฟรม "+(frame+1)+"/8 · "+(state.playing?"กำลังเล่น":"หยุดภาพ")+" · "+state.speed+"×";
+}
+function load(url){return new Promise((resolve,reject)=>{const image=new Image();image.onload=()=>resolve(image);image.onerror=()=>reject(new Error("โหลดไม่ได้: "+url));image.src=url;});}
+async function choose(tier){
+ if(!allowed.includes(tier))return;
+ state.tier=tier;state.img=null;state.atlas=null;state.frame=0;state.last=0;const token=++state.token;update();render();
+ readout.textContent="กำลังโหลด "+tier+"…";
+ try{
+  const [img,atlas]=await Promise.all([load("../../scenes/"+tier+"-led-crop.webp"),load("./"+tier+"-haze-visible-atlas.png")]);
+  if(token!==state.token)return;state.img=img;state.atlas=atlas;render();
+ }catch(e){if(token===state.token)readout.textContent=e.message;}
+}
+function animate(now){
+ if(state.playing&&state.img&&state.atlas&&state.motion){
+   if(!state.last)state.last=now;
+   const duration=125/state.speed;
+   if(now-state.last>=duration){state.frame=(state.frame+Math.floor((now-state.last)/duration))%8;state.last=now;render();}
+ }else state.last=0;
+ requestAnimationFrame(animate);
+}
+document.querySelectorAll("[data-tier]").forEach(b=>b.addEventListener("click",()=>choose(b.dataset.tier)));
+document.querySelector("#play").addEventListener("click",()=>{state.playing=!state.playing;state.last=0;update();render();});
+document.querySelector("#speed").addEventListener("click",()=>{state.speed=state.speed===1?2:1;state.last=0;update();});
+document.querySelector("#toggle").addEventListener("click",()=>{state.motion=!state.motion;state.last=0;update();render();});
+document.addEventListener("visibilitychange",()=>{state.last=0;});
+update();choose("green");requestAnimationFrame(animate);
+})();
+</script></body></html>
