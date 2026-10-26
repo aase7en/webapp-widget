@@ -50,3 +50,12 @@
 - No invented threshold statuses: badge stays neutral except a clearly marked DEMO-only watch example. Provider `situation_level` is not silently mapped to hospital flood safety thresholds. All non-provider readings remain null/unavailable.
 - Browser CDP V3.2 checked: badge above chart, 64px clock, 2 stations, 5-band controls, upper dam hash stable while lower water hash changes, example derived % values and DEMO labels, focus S5, exact 432×40 scaled geometry, mobile 390px no horizontal overflow, zero JS runtime exceptions. Evidence: local /tmp/uth-v32-led-demo.png and browser logs from isolated Chrome; no screenshot uploaded to repository.
 - Risk gate: release only isolated demo branch for owner review, independent PR review still needed for merge; production LED and backend remain **NOT APPROVED**.
+
+## Owner V3.2b micro-polish (2026-10-26)
+- User requested a very small rightward shift of the water-level and station-name overlay, to reveal more of the dam's right edge, and slightly clearer overflow directly beneath the clock at the LED bottom.
+- Owner/writer unchanged: isolated `feat/demo-water-luxury-v3-20261026` PR #46, demo CSS/HTML/test/this WO only. Started clean at SHA `2bf7fe59c3c4800b556fe064125675cd3b09b203`, matching remote PR HEAD; root production and backend untouched.
+- Moved dual station overlay left inset 173->185 design px (+12), focus 290->302; width saved with second grid column 151->148. Dam architecture and split unchanged.
+- Foam foreground height 35->38, opacity .81->.88; station A sprite patch offset 172->186 px (14px more under the clock) and alpha .79->.88; retained horizontal/vertical feather mask, screen blending and internal LED containment.
+- Real Chrome CDP measured both overlay positions, status/chart fit, 38px foam/0.88 opacity, 432x40 scale, 390px mobile with no horizontal overflow and zero uncaught exceptions; screenshot `/tmp/uth-v32b-LED-1296x120.png` in Mac temporary folder.
+- Data contract unaffected; DEMO numbers remain labeled and actual unknown values remain unavailable; no additional provider API requests.
+- Production/merge gate remains closed awaiting independent review. NO deploy to physical LED.

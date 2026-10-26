@@ -429,8 +429,9 @@ function drawFoam(frame){
   wave.addColorStop(1,'#000');
   p.fillStyle=wave;p.fillRect(0,0,465,h);
   p.globalCompositeOperation='source-over';
-  const start=st.offsetLeft-(st.id==='stationA'?172:135);
-  ctx.globalAlpha=.79;ctx.drawImage(patch,start,0);
+  // A little more visible under the clock; feathered edges remain inside the LED.
+  const start=st.offsetLeft-(st.id==='stationA'?186:135);
+  ctx.globalAlpha=st.id==='stationA'?.88:.79;ctx.drawImage(patch,start,0);
  });
  ctx.restore();canvas.dataset.frame=String(frame);
 }

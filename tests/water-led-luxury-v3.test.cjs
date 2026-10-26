@@ -81,3 +81,12 @@ test('V3.2 bank interval percent is strictly same-datum, reference-only when sim
  assert.match(html,/api\.getWater\(\)/); // reuse approved existing cached client
  assert.doesNotMatch(html,/fetch\(['"]https:\/\/api-v3\.thaiwater\.net/);
 });
+
+test('V3.2b keeps dam edges visible and strengthens contained clock whitewater',()=>{
+ assert.match(css,/\.widget\.v3 \.station \.info\{\s*left:185px;/);
+ assert.match(css,/\.widget\.v3\.layout-focus \.station \.info\{left:302px\}/);
+ assert.match(css,/height:38px;opacity:\.88;bottom:1px/);
+ assert.match(css,/mask-image:linear-gradient\(180deg,transparent/);
+ assert.match(html,/st\.id==='stationA'\?186:135/);
+ assert.match(html,/st\.id==='stationA'\?\.88:\.79/);
+});

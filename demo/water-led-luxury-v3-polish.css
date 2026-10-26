@@ -97,3 +97,17 @@
 .widget.v3.layout-focus .station .info{grid-template-columns:minmax(0,1fr) 173px}
 .widget.v3.layout-focus .status-trend .badge{width:160px;max-width:160px}
 .widget.v3.layout-focus .status-trend .spark{width:148px}
+
+
+/* V3.2b owner-requested micro-polish (PR #46): reveal right dam edges. */
+.widget.v3 .station .info{
+ left:185px; /* prior 173px; +12px without moving the dam or the station split */
+ grid-template-columns:minmax(0,1fr) 148px;
+}
+.widget.v3.layout-focus .station .info{left:302px} /* prior 290px */
+/* More visible foreground water JUST under the clock; remain soft and contained. */
+.widget.v3 .foam-front{
+ height:38px;opacity:.88;bottom:1px;
+ -webkit-mask-image:linear-gradient(180deg,transparent 0%,rgba(0,0,0,.40) 18%,rgba(0,0,0,.92) 60%,#000 96%);
+ mask-image:linear-gradient(180deg,transparent 0%,rgba(0,0,0,.40) 18%,rgba(0,0,0,.92) 60%,#000 96%);
+}
