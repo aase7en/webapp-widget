@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>UTH[AI] Water Level — Luxury V3 LED Studio</title>
+<title>UTH[AI] Water Level — Luxury V3.2 LED Studio</title>
 <style>
   :root{
     --bg:#050d1f; --panel:#08182e; --line:rgba(96,210,255,.5); --glow:#55d7ff;
@@ -259,8 +259,8 @@
 </head>
 <body>
 <div class="page">
-  <h1>UTH[AI] · Water Level — Luxury V3 (432×40 LED Studio)</h1>
-  <p class="subtitle">เปิดผ่าน GitHub Pages ได้โดยตรง · เดโมตามแผน 1, 2, 3: <strong>ดีไซน์ Water Slide ใหม่</strong> + <strong>โครงข้อมูล Google Sheet backend</strong> + <strong>หน้าเดโมเปิดดูได้จริง</strong><br>V3.1: ฉากเขื่อนขยายลอดใต้ Overlay นาฬิกาและข้อมูลสถานี ไม่มีเส้นตัดแข็ง; ตัวเลขระดับน้ำใหญ่ขึ้นและป้ายสถานะอยู่ข้างตัวเลข; สถานีที่สองมีพื้นที่มากขึ้นโดยตัดบล็อกขวาสุด</p>
+  <h1>UTH[AI] · Water Level — Luxury V3.2 (432×40 LED Studio)</h1>
+  <p class="subtitle">เปิดผ่าน GitHub Pages ได้โดยตรง · เดโมตามแผน 1, 2, 3: <strong>ดีไซน์ Water Slide ใหม่</strong> + <strong>โครงข้อมูล Google Sheet backend</strong> + <strong>หน้าเดโมเปิดดูได้จริง</strong><br>V3.2: น้ำและฟองภาพต้นทางเชื่อมแบบ Feather ไม่เห็นขอบ Strip · ป้ายสถานะใหญ่เหนือกราฟ · เวลาใหญ่ขึ้น · พื้นหลังตัวเลขเบลอ · % ช่วงพื้นอ้างอิงถึงตลิ่งมี Data Gate</p>
 
   <div class="controls">
     <div class="control-group" id="levelControls"><strong>ระดับ animation:</strong></div>
@@ -290,7 +290,7 @@
         <canvas class="foam-front" width="1290" height="29" aria-hidden="true"></canvas>
       </div>
     </div>
-    <div class="legend-note">ที่มา: ThaiWater/HII (สถานีอ้างอิง ไม่ใช่เซนเซอร์โรงพยาบาล) · ค่าตัวอย่างจากภาพอ้างอิง, Animation และสีป้ายสถานะในโหมด DEMO เป็น <strong>ภาพจำลองเพื่อประเมิน Layout ไม่ใช่ผลตรวจวัดจริงหรือสถานะเตือนภัย</strong> ไม่ใช่การวัดเปอร์เซ็นต์เปิดประตูจริง; ตัวเลขและเส้นกราฟจะใช้ข้อมูลจากหน้าจอปัจจุบันเฉพาะเมื่อโหลดได้ มิฉะนั้นแสดง —</div><iframe id="live-source" title="แหล่งข้อมูลปัจจุบันจากหน้า LED เดิม" src="../v2/index.html?display=led" aria-hidden="true" tabindex="-1" style="position:absolute;width:1px;height:1px;opacity:0;pointer-events:none;left:-10000px;top:0"></iframe>
+    <div class="legend-note">ที่มา: ThaiWater/HII (สถานีอ้างอิง ไม่ใช่เซนเซอร์โรงพยาบาล) · ค่าตัวอย่างจากภาพอ้างอิง, Animation และสีป้ายสถานะในโหมด DEMO เป็น <strong>ภาพจำลองเพื่อประเมิน Layout ไม่ใช่ผลตรวจวัดจริงหรือสถานะเตือนภัย</strong> เปอร์เซ็นต์คือสัดส่วนของช่วงระดับพื้นอ้างอิงถึงตลิ่งต่ำสุด (DERIVED), ไม่ใช่ % ความจุน้ำ/การเปิดประตู/เกณฑ์ปลอดภัย; ข้อมูลจริงต้องมีระดับน้ำ พื้น และตลิ่งใน MSL ตรงกัน ถ้าขาดให้แสดง —%; ตัวเลขและเส้นกราฟจะใช้ข้อมูลจากหน้าจอปัจจุบันเฉพาะเมื่อโหลดได้ มิฉะนั้นแสดง —</div><iframe id="live-source" title="แหล่งข้อมูลปัจจุบันจากหน้า LED เดิม" src="../v2/index.html?display=led" aria-hidden="true" tabindex="-1" style="position:absolute;width:1px;height:1px;opacity:0;pointer-events:none;left:-10000px;top:0"></iframe>
   </div>
 
   <div class="backend">
@@ -359,8 +359,8 @@ const $=id=>document.getElementById(id);
 const reduced=matchMedia('(prefers-reduced-motion:reduce)').matches;
 const state={band:3,frame:0,badgeSample:false,numberSample:false};
 const figures=[
- {el:'#stationA',id:'s1',name:'HDA004 ช่องสะเดา',subtitle:'สถานีอ้างอิงใกล้ รพ.อุทัย',value:null,observed:'รอข้อมูล',status:'unavailable',historyPath:''},
- {el:'#stationB',id:'s2',name:'S.5 สะพานปรีดี',subtitle:'สถานีอ้างอิง',value:null,observed:'รอข้อมูล',status:'unavailable',historyPath:''}
+ {el:'#stationA',id:'s1',name:'HDA004 ช่องสะเดา',subtitle:'สถานีอ้างอิงใกล้ รพ.อุทัย',value:null,bankM:null,groundMsl:null,datum:null,observed:'รอข้อมูล',status:'unavailable',historyPath:''},
+ {el:'#stationB',id:'s2',name:'S.5 สะพานปรีดี',subtitle:'สถานีอ้างอิง',value:null,bankM:null,groundMsl:null,datum:null,observed:'รอข้อมูล',status:'unavailable',historyPath:''}
 ];
 const atlas=BANDS.map(b=>{const im=new Image();im.src=ASSETS+'uth_led_water_'+b.file+'_spritestrip.png';return im});
 let raf=0;
@@ -369,18 +369,29 @@ function sparkSvg(path,isDemo){
  if(!path||!/^[MmLlHhVvCcSsQqTtAaZz0-9.,+\-\seE]+$/.test(path))return '<span class="unavailable-message">รอประวัติ 7 วัน</span>';
  return `<svg class="spark" viewBox="0 0 340 125" aria-label="${isDemo?'กราฟตัวอย่าง DEMO ไม่ใช่ประวัติจริง':'แนวโน้มจากแหล่งข้อมูลเดิม'}"><path d="${path}" fill="none" stroke="#61ecff" stroke-width="3" stroke-linejoin="round" stroke-linecap="round" /></svg>`;
 }
+// Only a dimensionless fraction of the ground-to-lowest-bank interval;
+ // not flood risk, reservoir capacity, or sluice-gate opening percentage.
+function bankIntervalPercent(level,ground,bank,datum){
+ if(datum!=='MSL'||![level,ground,bank].every(Number.isFinite)||bank<=ground||level<ground)return null;
+ return Math.round(((level-ground)/(bank-ground))*1000)/10;
+}
 function renderStation(st){const target=document.querySelector(st.el);if(!target)return;
  const value=state.numberSample?(st.id==='s1'?'2.87':'3.17'):Number.isFinite(st.value)?st.value.toFixed(2):'—';
  const visualTrend=state.numberSample?(st.id==='s1'?'M5 110 L45 76 L90 55 L135 69 L180 28 L225 43 L270 65 L332 80':'M5 104 L45 73 L90 46 L135 35 L180 44 L225 65 L270 72 L332 68'):st.historyPath;
- const badge=state.badgeSample&&st.id==='s2'?'sample':'unavailable';
- const badgeText=badge==='sample'?'เฝ้าระวัง · DEMO':'ยังไม่มีเกณฑ์';
+ const badge=state.badgeSample&&st.id==='s2'?'sample':'unavailable',badgeText=badge==='sample'?'เฝ้าระวัง · DEMO':'ยังไม่มีเกณฑ์';
+ // Known source elevations are used ONLY with the explicitly SIMULATED reference values.
+ // Current operational percentage stays unavailable until the client carries validated same-datum ground/bank fields.
+ const reference=st.id==='s1'?{level:2.87,ground:.227,bank:3.03}:{level:3.17,ground:-8.59,bank:4.7};
+ const ratio=state.numberSample?bankIntervalPercent(reference.level,reference.ground,reference.bank,'MSL'):bankIntervalPercent(st.value,st.groundMsl,st.bankM,st.datum);
+ const percentage=ratio===null?'—%':' '+ratio.toFixed(1)+'%';
+ const percentLabel=state.numberSample?'สัดส่วนพื้น–ตลิ่ง · DEMO':ratio===null?'สัดส่วนพื้น–ตลิ่ง: รอยืนยัน':'สัดส่วนพื้น–ตลิ่ง · คำนวณ';
  target.innerHTML=`<div class="station-card">
    <div class="art-zone"><canvas class="water-canvas" width="420" height="210" data-scene="${st.id}" aria-label="ภาพจำลองประตูน้ำเคลื่อนไหว"></canvas></div>
    <div class="info">
     <div class="station-name">${st.name}<small>${st.subtitle}</small></div>
-    <div class="delta ${state.numberSample?(st.id==='s1'?'down':'up'):''}" style="font-size:15px">${state.numberSample?(st.id==='s1'?'▼ -0.12 · DEMO':'▲ +0.28 · DEMO'):(st.observed||'รอข้อมูล')}<small>เวลาของแหล่งข้อมูล</small></div>
-    <div class="reading-row"><div class="big-level">${value}<span class="unit">ม.</span>${state.numberSample?'<span class="sample-marker">DEMO</span>':''}</div><span class="badge ${badge}">${badgeText}</span></div>
-    <div class="trend-wrap"><div class="trend-box"><div class="trend-title">ข้อมูลย้อนหลัง 7 วัน</div>${sparkSvg(visualTrend,state.numberSample)}</div></div>
+    <div class="reading-row"><div class="big-level">${value}<span class="unit">ม.</span>${state.numberSample?'<span class="sample-marker">DEMO</span>':''}</div></div>
+    <div class="status-trend"><span class="badge ${badge}">${badgeText}</span><div class="trend-box"><div class="trend-title">ย้อนหลัง 7 วัน</div>${sparkSvg(visualTrend,state.numberSample)}</div></div>
+    <div class="reading-detail"><div class="delta ${state.numberSample?(st.id==='s1'?'down':'up'):''}">${state.numberSample?(st.id==='s1'?'▼ -0.12 · DEMO':'▲ +0.28 · DEMO'):(st.observed||'รอข้อมูล')}</div><div class="bank-percent" aria-label="${percentLabel}: ${percentage}">${percentLabel} <b>${percentage}</b></div></div>
    </div></div>`;
 }
 function drawCanvas(canvas,frame){const image=atlas[state.band];if(!image.complete||!image.naturalWidth)return;const ctx=canvas.getContext('2d');if(!ctx)return;
@@ -394,32 +405,73 @@ function drawCanvas(canvas,frame){const image=atlas[state.band];if(!image.comple
 }
 
 function drawFoam(frame){
- const image=atlas[state.band],canvas=document.querySelector('.foam-front');if(!canvas||!image.complete||!image.naturalWidth)return;
+ const image=atlas[state.band],canvas=document.querySelector('.foam-front');
+ if(!canvas||!image.complete||!image.naturalWidth)return;
  const ctx=canvas.getContext('2d');if(!ctx)return;
  const fw=image.naturalWidth/4,fh=image.naturalHeight,w=canvas.width,h=canvas.height;
  ctx.clearRect(0,0,w,h);ctx.save();
- // Source-only whitewater: no independent invented readings, and no dam movement.
- // Repeated native-proportion foam segments stay inside LED outer clipping.
- for(let x=-65;x<w;x+=209){
-  let opacity=x<125?.78:x>1130?.65:.92;
-  ctx.globalAlpha=opacity;
-  ctx.drawImage(image,frame*fw,fh*.73,fw,fh*.24,x,h-27,215,27);
- }
+ // Compose two native sprite whitewater patches instead of tiled horizontal strip.
+ // Each patch fades on ALL sides so falling-water edges blend into low ripples.
+ document.querySelectorAll('.station:not(.is-not-focus)').forEach(st=>{
+  const patch=document.createElement('canvas');patch.width=465;patch.height=h;
+  const p=patch.getContext('2d');if(!p)return;
+  p.drawImage(image,frame*fw,fh*.67,fw,fh*.31,0,0,465,h);
+  p.globalCompositeOperation='destination-in';
+  const feather=p.createLinearGradient(0,0,465,0);
+  feather.addColorStop(0,'rgba(0,0,0,0)');
+  feather.addColorStop(.13,'rgba(0,0,0,.6)');
+  feather.addColorStop(.38,'#000');feather.addColorStop(.58,'#000');
+  feather.addColorStop(.85,'rgba(0,0,0,.55)');feather.addColorStop(1,'rgba(0,0,0,0)');
+  p.fillStyle=feather;p.fillRect(0,0,465,h);
+  const wave=p.createLinearGradient(0,0,0,h);
+  wave.addColorStop(0,'rgba(0,0,0,0)');
+  wave.addColorStop(.34,'rgba(0,0,0,.75)');
+  wave.addColorStop(1,'#000');
+  p.fillStyle=wave;p.fillRect(0,0,465,h);
+  p.globalCompositeOperation='source-over';
+  const start=st.offsetLeft-(st.id==='stationA'?172:135);
+  ctx.globalAlpha=.79;ctx.drawImage(patch,start,0);
+ });
  ctx.restore();canvas.dataset.frame=String(frame);
 }
 function animate(ts){const frame=Math.floor(ts/150)%4;if(frame!==state.frame){state.frame=frame;document.querySelectorAll('.water-canvas').forEach(el=>drawCanvas(el,frame));drawFoam(frame)}raf=requestAnimationFrame(animate)}
 function chooseBand(band){state.band=band;document.querySelectorAll('#levelControls button').forEach(b=>b.classList.toggle('active',Number(b.dataset.level)===band));document.querySelectorAll('.water-canvas').forEach(c=>{c.dataset.locked='0';drawCanvas(c,reduced?0:state.frame)});drawFoam(reduced?0:state.frame)}
 function resize(){const el=document.querySelector('.led-stage'),widget=el?.querySelector('.widget');if(!el||!widget)return;const scale=Math.min(1,(el.clientWidth-2)/1296);widget.style.transform=`scale(${scale})`;el.style.height=Math.ceil(120*scale)+2+'px';}
+// Reuse the EXISTING embedded v2 client/cache. Never fetch HII directly from each DEMO view.
+let waterReadPending=false;
+async function syncVerifiedWaterFields(){
+ if(waterReadPending)return;
+ let api;try{api=$('live-source').contentWindow?.UthApiClient}catch(e){return}
+ if(!api||typeof api.getWater!=='function')return;
+ waterReadPending=true;
+ try{
+  const payload=await api.getWater(),stations=payload?.stations||{};
+  let validStationCount=0;
+  for(const st of figures){
+   const raw=stations[st.id==='s1'?'HDA004':'S5'];
+   if(!raw||!['ok','historical'].includes(raw.status))continue;
+   const observed=Date.parse(raw.observedAt),now=Date.now();
+   const valid=Number.isFinite(observed)&&observed<=now+120000&&now-observed<=48*3600000;
+   if(!valid||![raw.levelMsl,raw.bankM,raw.groundMsl].every(Number.isFinite)||raw.bankM<=raw.groundMsl)continue;
+   st.value=raw.levelMsl;st.bankM=raw.bankM;st.groundMsl=raw.groundMsl;st.datum='MSL';validStationCount++;
+   st.observed=(raw.status==='historical'?'ย้อนหลัง ':'วัดเมื่อ ')+(raw.observedTimeTH||new Date(observed).toLocaleString('th-TH',{timeZone:'Asia/Bangkok'}));
+   renderStation(st);
+  }
+  if(validStationCount)$('dataStatus').textContent='อ่านระดับน้ำอ้างอิงจาก HII '+validStationCount+' สถานี (ไม่ใช่เซนเซอร์โรงพยาบาล)';
+ }catch(e){ /* Keep DOM view or explicit unavailable; never fabricate */ }
+ finally{waterReadPending=false}
+}
 function syncFromLive(){const iframe=$('live-source');let doc;try{doc=iframe?.contentDocument}catch(e){doc=null}if(!doc){$('dataStatus').textContent='ไม่สามารถอ่านข้อมูลเดิม';return}
  let any=false;
  figures.forEach(st=>{const source=doc.querySelector('#water #'+st.id);if(!source)return;const text=source.querySelector('.water-fig .level')?.textContent.trim()||'—';
- const n=Number(text.replace(/,/g,''));st.value=text!=='—'&&Number.isFinite(n)?n:null;
+ const n=Number(text.replace(/,/g,''));st.value=text!=='—'&&Number.isFinite(n)?n:null;st.bankM=null;st.groundMsl=null;st.datum=null;
  st.observed=source.querySelector('.water-fig .observed')?.textContent.trim()||'รอข้อมูล';
  const key=st.id==='s1'?'#history-hda':'#history-s5';const his=doc.querySelector(key+' .history-line');st.historyPath=his?.getAttribute('d')||'';
  if(st.value!==null)any=true;renderStation(st);
  });
  $('dataStatus').textContent=any?'อ่านข้อมูลจริงจากหน้า LED เดิมแล้ว':'ยังไม่มีข้อมูลระดับน้ำที่พร้อมแสดง';
  document.querySelectorAll('.water-canvas').forEach(c=>drawCanvas(c,reduced?0:state.frame));
+ void syncVerifiedWaterFields();
 }
 BANDS.forEach((b,i)=>{const x=document.createElement('button');x.textContent=b.label;x.dataset.level=String(i);x.type='button';x.addEventListener('click',()=>chooseBand(i));$('levelControls').appendChild(x)});
 clock();setInterval(clock,15000);figures.forEach(renderStation);resize();window.addEventListener('resize',resize);chooseBand(3);

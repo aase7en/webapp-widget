@@ -52,3 +52,48 @@
 .widget.v3.layout-focus .badge{font-size:15px;padding:6px 15px}
 .widget.v3.layout-focus .spark{width:155px;height:27px}
 #numberSample:focus-visible,#statusSample:focus-visible,#layoutControls button:focus-visible{outline:2px solid #fff;outline-offset:2px}
+/* V3.2: use nearly all of the short LED height without sacrificing legibility. */
+.widget.v3 .clock{padding:2px 6px 7px 9px;justify-content:center}
+.widget.v3 .clock .date{font-size:17px;transform:translateY(-4px);position:relative;z-index:2}
+.widget.v3 .clock .time{font-size:64px;line-height:.96;letter-spacing:-2.2px;margin-top:-2px;position:relative;z-index:2}
+.widget.v3 .station .info{
+ grid-template-columns:minmax(0,1fr) 151px;
+ grid-template-rows:21px 59px 25px;
+ padding:2px 5px 1px;
+ background:transparent;box-shadow:none;backdrop-filter:none;-webkit-backdrop-filter:none;
+ isolation:isolate;
+}
+.widget.v3 .station .info::before{
+ content:"";position:absolute;inset:-6px -7px -4px -23px;z-index:-1;pointer-events:none;
+ background:linear-gradient(90deg,transparent 0%,rgba(0,6,19,.51) 17%,rgba(0,5,17,.9) 42%,rgba(0,5,17,.91) 88%,transparent 100%);
+ filter:blur(13px);
+}
+.widget.v3 .station-name{grid-column:1/3;grid-row:1;z-index:1;font-size:18px;align-self:start}
+.widget.v3 .reading-row{grid-column:1;grid-row:2;align-self:center;position:relative;z-index:1}
+.widget.v3 .big-level{font-size:66px;letter-spacing:-1.8px}
+.widget.v3 .reading-detail{grid-column:1;grid-row:3;display:flex;flex-direction:column;gap:1px;
+ justify-content:center;min-width:0;position:relative;z-index:1}
+.widget.v3 .reading-detail .delta{font-size:10px!important;line-height:11px;text-align:left;position:static;
+ min-width:0;max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.widget.v3 .bank-percent{font-size:9px;line-height:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+ color:#b6e1f5;text-shadow:0 0 5px rgba(0,6,18,.9)}
+.widget.v3 .bank-percent b{font-size:11px;color:#96f2ff}
+.widget.v3 .status-trend{grid-column:2;grid-row:2/4;display:grid;grid-template-rows:36px 39px;
+ align-items:center;justify-items:center;gap:0;min-width:0;z-index:2;}
+.widget.v3 .status-trend .badge{width:144px;max-width:144px;min-height:30px;max-height:35px;
+ padding:4px 8px;font-size:16px;line-height:19px;justify-content:center;text-align:center;
+ white-space:normal;box-shadow:0 0 16px rgba(64,197,255,.44),inset 0 0 9px rgba(75,183,250,.12);}
+.widget.v3 .status-trend .badge.sample{box-shadow:0 0 20px rgba(255,191,39,.78),inset 0 0 10px #fff6a7;}
+.widget.v3 .status-trend .trend-box{width:140px;align-items:center;justify-content:center;
+ background:linear-gradient(90deg,transparent,rgba(0,16,34,.47),transparent);
+ border-radius:10px;}
+.widget.v3 .status-trend .spark{width:126px;height:27px}
+.widget.v3 .status-trend .trend-title{font-size:9px;line-height:10px}
+.widget.v3 .status-trend .unavailable-message{font-size:10px;text-align:center}
+.widget.v3 .foam-front{height:35px;mix-blend-mode:screen;opacity:.81;
+ -webkit-mask-image:linear-gradient(180deg,transparent 0%,rgba(0,0,0,.36) 22%,#000 90%);
+ mask-image:linear-gradient(180deg,transparent 0%,rgba(0,0,0,.36) 22%,#000 90%);
+ filter:drop-shadow(0 0 5px rgba(28,211,255,.4));}
+.widget.v3.layout-focus .station .info{grid-template-columns:minmax(0,1fr) 173px}
+.widget.v3.layout-focus .status-trend .badge{width:160px;max-width:160px}
+.widget.v3.layout-focus .status-trend .spark{width:148px}
