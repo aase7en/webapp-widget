@@ -430,8 +430,8 @@ function drawFoam(frame){
   p.fillStyle=wave;p.fillRect(0,0,465,h);
   p.globalCompositeOperation='source-over';
   // A little more visible under the clock; feathered edges remain inside the LED.
-  const start=st.offsetLeft-(st.id==='stationA'?186:135);
-  ctx.globalAlpha=st.id==='stationA'?.88:.79;ctx.drawImage(patch,start,0);
+  const start=st.offsetLeft-(st.id==='stationA'?202:135);
+  ctx.globalAlpha=st.id==='stationA'?.96:.79;ctx.drawImage(patch,start,0);
  });
  ctx.restore();canvas.dataset.frame=String(frame);
 }

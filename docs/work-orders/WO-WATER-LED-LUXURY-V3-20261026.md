@@ -59,3 +59,11 @@
 - Real Chrome CDP measured both overlay positions, status/chart fit, 38px foam/0.88 opacity, 432x40 scale, 390px mobile with no horizontal overflow and zero uncaught exceptions; screenshot `/tmp/uth-v32b-LED-1296x120.png` in Mac temporary folder.
 - Data contract unaffected; DEMO numbers remain labeled and actual unknown values remain unavailable; no additional provider API requests.
 - Production/merge gate remains closed awaiting independent review. NO deploy to physical LED.
+
+## Owner V3.2c fine-tuning — 26 Oct 2026
+- Explicit request: move the entire station-information columns three Thai-keyboard spaces right and strengthen only foreground water spilling below the clock.
+- Preflight: SundayMCP Mac connected; isolated worktree clean and remote PR #46 head SHA a22953b15e97a7bd3dc1d879545e0d59a62dcef1 match, base main 9bf39bc4d0230a947e05eaf765b1ac3911268030; repo AGENTS.md reviewed; one writer within demo-owned paths.
+- Shift dual station overlay left inset 185 -> 203px (+18 design px), focus inset 302 -> 320px; status-trend grid second column 148 -> 142px to retain readable room. No station artwork positioning or layout split modified.
+- Foreground water height 38 -> 41px, opacity .88 -> .94, anchored to LED bottom 0px; feather vertical ramp enhanced. Only HDA004 water patch extends 186 -> 202px leftward under the clock with alpha .88 -> .96. No extra sprite, provider requests, data fabrication or production code modifications.
+- Chrome CDP: both station names/levels shifted; badges and trend boxes contained; sprite architecture upper frame fixed while lower water animated; LED 432x40 geometry; mobile 390px no horizontal scroll; no uncaught JavaScript errors. Screenshot /tmp/uth-v32c-led.png, generated locally for QA.
+- Release: Draft PR demo-only, leave production/Apps Script/physical LED untouched and do not merge without independent approval.
