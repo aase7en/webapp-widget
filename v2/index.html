@@ -524,9 +524,8 @@ html.led-screen .scale>div,html.led-screen .scale>iframe{transform:none!importan
 @media(prefers-reduced-motion:reduce){
  #water .water-station .gate,#pm .mascot{animation:none!important}
 }
-/* Production water slide visual override: keep old hidden DOM/data handlers intact for compatibility.
-   Full 432x40 live water frame is displayed over the previous water slide only. */
-#water + .water-live-frame{z-index:60;position:absolute;left:0;top:0;width:432px;height:40px;border:0;display:block;}
+/* Single, replacement Water Slide: iframe is sole water visual, no legacy DOM beneath. */
+.water-luxury-live-frame{display:block;width:432px;height:40px;border:0;background:#020914}
 </style>
 <!-- clear-gloss-outer-rim v1 -->
 </head>
@@ -556,59 +555,17 @@ html.led-screen .scale>div,html.led-screen .scale>iframe{transform:none!importan
 <article><h2>2. Weather — ใช้ดีไซน์ 8124 พร้อม 3D cloud / rain / lightning เดิม</h2>
 <div class="stage-wrap"><div class="scale"><iframe class="ledframe" title="Weather Luxury Design 432 by 40" src="./weather.html"></iframe></div></div>
 <small id="weather-source">รอดึงพยากรณ์ Open-Meteo · MODEL FORECAST</small></article>
-<article><h2>3. Water — ใช้ฉากกั้นน้ำ Animation เดิม 2 สถานี และเพิ่มกราฟแนวโน้ม</h2>
-<div class="stage-wrap"><div class="scale"><div class="stage" id="water">
-<div class="clock"><div class="d">พ. 21 ต.ค. 69</div><div class="t">07:45</div></div>
-<div class="seg water-station" id="s1"><div class="gate">
-<img class="liquid" src="../assets/icons3d/rig/water/liquid-normal.png" alt="">
-<img src="../assets/icons3d/rig/water/wall.png" alt=""><span class="uth-gate-specular" aria-hidden="true"></span><span class="ripple"></span><span class="mini-crest"></span><span class="wall-seep" aria-hidden="true"></span><span class="water-tail" aria-hidden="true"></span></div><svg class="spill-sheet" viewBox="0 0 36 42" aria-hidden="true" focusable="false">
-<defs><linearGradient id="spill-crest-tone-hda" x1="0" y1="0" x2="1" y2=".6">
-<stop offset="0" stop-color="#e4ffff" stop-opacity=".75"/>
-<stop offset=".24" stop-color="#93f2ff" stop-opacity=".88"/>
-<stop offset=".59" stop-color="#1ba7dc" stop-opacity=".58"/>
-<stop offset="1" stop-color="#4ac9ef" stop-opacity=".18"/></linearGradient></defs>
-<path class="spill-body" fill="url(#spill-crest-tone-hda)" d="M0 12 Q5 7 10 10 T20 10 Q27 14 31 12 C25 17 34 22 29 29 Q34 35 28 42 L4 42 Q1 36 7 31 C0 26 10 22 4 18 Q1 15 0 12 Z"/>
-<path class="spill-foam" d="M0 12 Q6 7 11 10 T23 10 Q27 13 31 12 M8 22 Q14 18 18 22 T29 22"/>
-<path class="spill-curl" d="M6 16 Q1 22 9 27 T6 41 M17 17 Q25 21 18 27 T24 41 M28 17 Q32 23 25 29 T30 41"/>
-</svg>
-<div class="water-fig"><span class="name">HDA004 ช่องสะเดา</span><span class="num"><span class="level">—</span><span class="unit"> ม.</span></span><span class="observed">รอข้อมูล</span></div>
-<div class="trend"><svg viewBox="0 0 44 16" role="img" aria-label="กราฟแนวโน้มยังไม่มีข้อมูล"><path class="axis" d="M0 13H44M0 7H44"/><path class="line" d=""/></svg><span class="caption">แนวโน้ม —</span></div></div>
-<div class="seg water-station" id="s2"><div class="gate">
-<img class="liquid" src="../assets/icons3d/rig/water/liquid-normal.png" alt="">
-<img src="../assets/icons3d/rig/water/wall.png" alt=""><span class="uth-gate-specular" aria-hidden="true"></span><span class="ripple"></span><span class="mini-crest"></span><span class="wall-seep" aria-hidden="true"></span><span class="water-tail" aria-hidden="true"></span></div><svg class="spill-sheet" viewBox="0 0 36 42" aria-hidden="true" focusable="false">
-<defs><linearGradient id="spill-crest-tone-s5" x1="0" y1="0" x2="1" y2=".6">
-<stop offset="0" stop-color="#e4ffff" stop-opacity=".75"/>
-<stop offset=".24" stop-color="#93f2ff" stop-opacity=".88"/>
-<stop offset=".59" stop-color="#1ba7dc" stop-opacity=".58"/>
-<stop offset="1" stop-color="#4ac9ef" stop-opacity=".18"/></linearGradient></defs>
-<path class="spill-body" fill="url(#spill-crest-tone-s5)" d="M0 12 Q5 7 10 10 T20 10 Q27 14 31 12 C25 17 34 22 29 29 Q34 35 28 42 L4 42 Q1 36 7 31 C0 26 10 22 4 18 Q1 15 0 12 Z"/>
-<path class="spill-foam" d="M0 12 Q6 7 11 10 T23 10 Q27 13 31 12 M8 22 Q14 18 18 22 T29 22"/>
-<path class="spill-curl" d="M6 16 Q1 22 9 27 T6 41 M17 17 Q25 21 18 27 T24 41 M28 17 Q32 23 25 29 T30 41"/>
-</svg>
-<div class="water-fig"><span class="name">S.5 สะพานปรีดี</span><span class="num"><span class="level">—</span><span class="unit"> ม.</span></span><span class="observed">รอข้อมูล</span></div>
-<div class="trend"><svg viewBox="0 0 44 16" role="img" aria-label="กราฟแนวโน้มยังไม่มีข้อมูล"><path class="axis" d="M0 13H44M0 7H44"/><path class="line" d=""/></svg><span class="caption">แนวโน้ม —</span></div></div>
-<div class="seg water-status"><b>เกณฑ์ระดับตลิ่ง</b><span id="water-tag">รอข้อมูล</span></div>
-</div>
-<iframe class="ledframe water-luxury-live-frame" title="ระดับน้ำสถานีอ้างอิง HDA004 และ S.5 ล่าสุดที่บันทึก พร้อมเวลาวัดจริง" src="./water-luxury-live.html" loading="eager" referrerpolicy="strict-origin-when-cross-origin"></iframe>
+<article><h2>3. Water — Luxury V3.2 · HII/Google Sheet</h2>
+<div class="stage-wrap"><div class="scale">
+<iframe class="ledframe water-luxury-live-frame" title="ระดับน้ำ HDA004 และ S.5 จาก Google Sheet พร้อมเวลาที่วัดจริง" src="./water-luxury-live.html" loading="eager" referrerpolicy="strict-origin-when-cross-origin"></iframe>
 </div></div>
-<div class="controls">
-<button id="refresh-all">อัปเดตข้อมูลจริงทุกส่วน</button><button id="real">อัปเดตระดับน้ำ HII</button>
-</div>
-<div class="notice" id="explain">
-HDA004 และ S.5 เป็นสถานีอ้างอิง ไม่ใช่จุดวัดคลองข้าวเม่าหลังโรงพยาบาล · ม.รทก. · REAL/LATEST จาก ThaiWater/HII; ยังไม่มีเกณฑ์เตือนน้ำท่วมของ รพ.ที่อนุมัติ: จะไม่ติดป้ายปกติ/ปลอดภัยและไม่ใส่สีเตือนภัยโดยคาดเดา · ภาพน้ำและการไหลเป็นเอฟเฟกต์กราฟิก ไม่ได้ยืนยันว่าประตูระบายน้ำกำลังเปิด
-</div>
-<section class="water-history-panel" aria-label="กราฟแนวโน้มระดับน้ำย้อนหลังจาก Google Sheets">
- <h3>แนวโน้มระดับน้ำจริงย้อนหลัง · Google Sheets</h3>
- <p>ข้อมูลตรวจวัดจากสถานีอ้างอิง HDA004 และ S.5 ในชีต API Report_PM2.5 · วัดวันละ 2 รอบโดยประมาณ · ไม่ใช่สัญญาณเตือนน้ำท่วม Real-time</p>
- <div class="water-history-cards">
-  <div class="water-history-card" id="history-hda"><b>HDA004 ช่องสะเดา</b><div class="history-note">รอข้อมูลประวัติที่ตรวจสอบได้</div><svg viewBox="0 0 340 125" role="img" aria-label="ยังไม่มีจุดข้อมูลอย่างน้อยสองจุด"><path stroke="#365b71" stroke-width="1" d="M30 30H330 M30 63H330 M30 96H330" fill="none"/><path class="history-line" d="" stroke="#65e8ff" stroke-width="2.5" fill="none"/></svg><div class="history-foot">ระดับน้ำ ม.รทก. · ไม่มีการสร้างค่าระหว่างจุดวัด</div></div>
-  <div class="water-history-card" id="history-s5"><b>S.5 สะพานปรีดี</b><div class="history-note">รอข้อมูลประวัติที่ตรวจสอบได้</div><svg viewBox="0 0 340 125" role="img" aria-label="ยังไม่มีจุดข้อมูลอย่างน้อยสองจุด"><path stroke="#365b71" stroke-width="1" d="M30 30H330 M30 63H330 M30 96H330" fill="none"/><path class="history-line" d="" stroke="#ffd88c" stroke-width="2.5" fill="none"/></svg><div class="history-foot">ระดับน้ำ ม.รทก. · ไม่มีการสร้างค่าระหว่างจุดวัด</div></div>
- </div>
-</section></article>
+<div class="controls"><button id="refresh-all">อัปเดตข้อมูลจริงทุกส่วน</button><button id="real">อัปเดตระดับน้ำจาก Google Sheet</button></div>
+<div class="notice" id="explain">HDA004 และ S.5 เป็นสถานีอ้างอิง ThaiWater/HII ไม่ใช่เครื่องวัดของโรงพยาบาล · ตัวเลขล่าสุดที่บันทึกอาจเป็นข้อมูลย้อนหลัง และภาพการไหลเป็น Animation เพื่อประกอบข้อมูล ไม่ใช่การเปิดประตูจริง</div>
+</article>
 </main>
 <script>
 (()=>{
-const clocks=[...document.querySelectorAll('#pm .clock, #water .clock')];
+const clocks=[...document.querySelectorAll('#pm .clock')];
 function updateClocks(){
   const dt=new Date();
   const hh=new Intl.DateTimeFormat('en-GB',{timeZone:'Asia/Bangkok',hour:'2-digit',minute:'2-digit',hour12:false}).format(dt);
@@ -616,86 +573,11 @@ function updateClocks(){
   for(const el of clocks){el.querySelector('.t').textContent=hh;el.querySelector('.d').textContent=date}
 }
 updateClocks();setInterval(updateClocks,60000);
-const tag=document.getElementById('water-tag');
-const explain=document.getElementById('explain');
-function renderMeasuredHistory(id,station){
- const panel=document.getElementById(id==='s1'?'history-hda':'history-s5');
- const vals=Array.isArray(station?.trendPoints)?station.trendPoints:[];
- const dates=Array.isArray(station?.trendObservedAt)?station.trendObservedAt:[];
- const path=panel.querySelector('.history-line'),note=panel.querySelector('.history-note'),svg=panel.querySelector('svg');
- if(vals.length<2||vals.length!==dates.length){
-  path.setAttribute('d','');svg.setAttribute('aria-label','ยังไม่มีประวัติจริงอย่างน้อยสองช่วงเวลา');
-  note.textContent='ยังไม่มีข้อมูลย้อนหลังอย่างน้อย 2 รอบจาก Google Sheets';return;
- }
- const series=vals.map((v,i)=>({level:v,time:Date.parse(dates[i])}))
-  .filter(v=>typeof v.level==='number'&&Number.isFinite(v.level)&&Number.isFinite(v.time))
-  .sort((a,b)=>a.time-b.time);
- if(series.length<2||series[0].time===series[series.length-1].time){
-  path.setAttribute('d','');note.textContent='ยังไม่พอข้อมูลสำหรับกราฟ';return;
- }
- const low=Math.min(...series.map(v=>v.level)),high=Math.max(...series.map(v=>v.level));
- const gap=Math.max(.15,high-low),t0=series[0].time,t1=series[series.length-1].time;
- path.setAttribute('d',series.map((v,i)=>(i?'L':'M')+
-  (30+(v.time-t0)/(t1-t0)*300).toFixed(2)+' '+
-  (106-(v.level-low)/gap*84).toFixed(2)).join(' '));
- svg.setAttribute('aria-label','ค่าระดับน้ำที่วัดจริง '+series.length+' จุด ตั้งแต่ '+new Date(series[0].time).toISOString()+' ถึง '+new Date(series[series.length-1].time).toISOString());
- const delta=series[series.length-1].level-series[series.length-2].level;
- note.textContent=series.length+' จุด • ล่าสุด '+series[series.length-1].level.toFixed(2)+' ม.รทก. • เปลี่ยน '+(delta>=0?'+':'')+delta.toFixed(2)+' ม.';
- const fmt=new Intl.DateTimeFormat('th-TH',{timeZone:'Asia/Bangkok',day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'});
- panel.querySelector('.history-foot').textContent=
-  'ตั้งแต่ '+fmt.format(new Date(t0))+' ถึง '+fmt.format(new Date(t1))+
-  ' • ต่ำสุด '+low.toFixed(2)+' / สูงสุด '+high.toFixed(2)+' ม.รทก.';
-}
-function set(id,value,observed,points,bank,ground,risk){
- const box=document.getElementById(id),v=box.querySelector('.level'),t=box.querySelector('.observed'),chart=box.querySelector('.line'),cap=box.querySelector('.caption');
- box.dataset.trend='unknown';
- const validReading=typeof value==='number'&&Number.isFinite(value);
- const validBank=typeof bank==='number'&&Number.isFinite(bank);
- const colorRisk=(validReading&&validBank&&['below_watch','watch','critical'].includes(risk))?risk:'unassessed';
- box.dataset.risk=colorRisk;box.dataset.water=validReading?'ok':'missing';
- const riskDesc={below_watch:'ต่ำกว่าเกณฑ์เฝ้าระวังตลิ่ง',watch:'เฝ้าระวังน้ำล้นตลิ่ง',critical:'เสมอ/เกินระดับตลิ่ง',unassessed:'ยังประเมินไม่ได้'};
- box.setAttribute('aria-label',id+' ระดับน้ำ '+(validReading?value.toFixed(2)+' เมตร รทก.':'ไม่มีข้อมูล')+' '+riskDesc[colorRisk]);
- box.title='ภาพน้ำล้นเป็นเอฟเฟกต์ตามระดับตลิ่งสถานีอ้างอิง ไม่ใช่ภาพน้ำจริง | '+riskDesc[colorRisk]+(validBank?' | เฝ้าระวัง ≥'+(bank-.5).toFixed(2)+' ม.รทก. | ถึงตลิ่ง ≥'+bank.toFixed(2)+' ม.รทก.':' | ไม่พบระดับตลิ่งยืนยัน');
- const fill=typeof value==='number'&&Number.isFinite(value)&&typeof bank==='number'&&Number.isFinite(bank)&&typeof ground==='number'&&Number.isFinite(ground)&&bank>ground?Math.min(1,Math.max(0,(value-ground)/(bank-ground))):0;
- box.querySelector('.gate').style.setProperty('--fill',fill.toFixed(3));
- box.querySelector('.gate').style.setProperty('--surface-top',(30.7*(1-fill)+.2).toFixed(2)+'px');
- box.querySelector('.gate').style.setProperty('--surface-visible',fill>0?'1':'0');
- v.textContent=typeof value==='number'&&Number.isFinite(value)?value.toFixed(2):'—';
- t.textContent=observed||'รอข้อมูล';
- if(Array.isArray(points)&&points.length>=2){
-  const mn=Math.min(...points),mx=Math.max(...points),span=Math.max(.1,mx-mn);
-  chart.setAttribute('d',points.map((n,i)=>(i?'L':'M')+(2+i*40/(points.length-1)).toFixed(1)+' '+(13-(n-mn)/span*11).toFixed(1)).join(' '));
-  const last=points[points.length-1],prev=points[points.length-2],delta=last-prev;
-  cap.textContent='Δ '+(delta>=0?'+':'')+delta.toFixed(2)+' ม.';
-  box.dataset.trend=delta>0?'rising':delta<0?'falling':'stable';
- }else{chart.setAttribute('d','');cap.textContent='Δ —'}
-}
-document.getElementById('real').onclick=async()=>{
- tag.textContent='กำลังอ่าน API';explain.textContent='กำลังอ่านข้อมูลจริงจาก ThaiWater/HII ...';
- try{
-  const data=await window.UthApiClient.getWater();
-  for(const [id,key] of [['s1','HDA004'],['s2','S5']]){
-   let x=data.stations[key];
-   set(id,['ok','historical'].includes(x.status)?x.levelMsl:null,
-      x.status==='ok'?'วัด '+x.observedTimeTH:x.status==='historical'?'ย้อนหลัง '+x.observedTimeTH:'รอข้อมูล',
-      Array.isArray(x.trendPoints)?x.trendPoints:null,
-      x.status==='ok'?x.bankM:null,x.status==='ok'?x.groundMsl:null,
-      x.status==='ok'?x.risk:'unassessed');
-   renderMeasuredHistory(id,x);
-  }
-  const risks=[document.getElementById('s1').dataset.risk,document.getElementById('s2').dataset.risk];
-  tag.textContent=Object.values(data.stations).some(x=>x.status==='historical')?'ข้อมูลย้อนหลัง':risks.includes('critical')?'ถึงระดับตลิ่ง':
-                  risks.includes('watch')?'เฝ้าระวัง':
-                  risks.every(r=>r==='below_watch')?'ต่ำกว่าเกณฑ์':'ข้อมูลไม่ครบ';
-  document.getElementById('water').dataset.overbankAlert=
-    risks.includes('critical')?'critical':risks.includes('watch')?'watch':
-    risks.every(r=>r==='below_watch')?'below_watch':'unassessed';
-  const hasHistorical=Object.values(data.stations).some(x=>x.status==='historical');
-  explain.textContent=hasHistorical?
-   'HISTORICAL • ตัวเลขเป็นค่าตรวจวัดย้อนหลังจากสถานีอ้างอิง ไม่ใช่สถานการณ์น้ำปัจจุบัน และไม่ใช้ยืนยันความปลอดภัยของ รพ.อุทัย':
-   'REAL/LATEST • เกณฑ์ระดับตลิ่งสถานีอ้างอิง (ไม่ใช่คำเตือนของโรงพยาบาล): เฝ้าระวังใกล้ตลิ่งไม่เกิน 0.50 ม. • HDA004 '+(data.stations.HDA004?.bankM??'—')+' / S.5 '+(data.stations.S5?.bankM??'—')+' ม.รทก.';
- }catch(e){set('s1',null,null,null);set('s2',null,null,null);tag.textContent='API ไม่พร้อม';explain.textContent='UNAVAILABLE • ไม่สามารถอ่านระดับน้ำจาก API ได้ ('+e.message+'). ไม่ใช้ค่าจำลองแทนค่าจริง';}
-};
+const waterRefresh=document.getElementById('real');
+if(waterRefresh)waterRefresh.addEventListener('click',()=>{
+ const frame=document.querySelector('.water-luxury-live-frame');
+ if(frame?.contentWindow)frame.contentWindow.dispatchEvent(new Event('online'));
+});
 })();
 </script>
 

@@ -38,9 +38,9 @@ function historyPath(st){
  const vals=st?.trendPoints,times=st?.trendObservedAt;
  if(!Array.isArray(vals)||!Array.isArray(times)||vals.length<2||vals.length!==times.length)return '';
  const points=vals.map((level,i)=>({level,ms:Date.parse(times[i])})).filter(x=>Number.isFinite(x.level)&&Number.isFinite(x.ms)).sort((a,b)=>a.ms-b.ms);
- if(points.length<2||points.at(-1).ms===points[0].ms)return '';
+ if(points.length<2||points[points.length-1].ms===points[0].ms)return '';
  const min=Math.min(...points.map(x=>x.level)),max=Math.max(...points.map(x=>x.level));
- const extent=Math.max(.15,max-min),span=points.at(-1).ms-points[0].ms;
+ const extent=Math.max(.15,max-min),span=points[points.length-1].ms-points[0].ms;
  return points.map((v,i)=>(i?'L':'M')+(5+327*(v.ms-points[0].ms)/span).toFixed(1)+' '+(110-82*(v.level-min)/extent).toFixed(1)).join(' ');
 }
 function apply(st,reading,now){
@@ -48,6 +48,14 @@ function apply(st,reading,now){
  const valid=Number.isFinite(obs)&&obs<=now+120000&&
   typeof reading?.levelMsl==='number'&&Number.isFinite(reading.levelMsl)&&
   ['ok','historical'].includes(reading.status);
+ // Failed/stale transport must not erase the last VERIFIED reading in this
+ // page session. Never regress to an older measurement from a fallback feed.
+ const prior=Date.parse(st.observedAt);
+ if((!valid || (Number.isFinite(prior)&&obs<prior))&&
+     Number.isFinite(prior)&&prior<=now+120000){
+  st.status=now-prior<=3*3600000?'ok':'historical';
+  renderStation(st);return;
+ }
  st.value=valid?reading.levelMsl:null;
  st.observedAt=valid?reading.observedAt:null;
  st.bankM=valid&&Number.isFinite(reading.bankM)?reading.bankM:null;

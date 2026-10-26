@@ -2,10 +2,10 @@ const test=require('node:test'),assert=require('node:assert/strict'),fs=require(
 const root=path.join(__dirname,'..');
 const read=p=>fs.readFileSync(path.join(root,p),'utf8');
 const ui=read('v2/water-luxury-live.html'),js=read('v2/water-luxury-live.js'),css=read('v2/water-luxury-live.css'),rot=read('v2/index.html');
-test('only water slide is overlaid; PM and weather still coexist in original rotation',()=>{
+test('new Water Slide replaces old DOM entirely; PM and Weather remain in three-slide rotation',()=>{
  assert.match(rot,/id="pm"/);assert.match(rot,/src="\.\/weather\.html"/);
- assert.match(rot,/src="\.\/water-luxury-live\.html"/);assert.match(rot,/id="water"/);
- assert.match(rot,/main>article/);
+ assert.match(rot,/src="\.\/water-luxury-live\.html"/);assert.doesNotMatch(rot,/id="water"|id="s1"|id="s2"|class="spill-sheet"|class="water-station"/);
+ assert.match(rot,/main>article/);assert.equal((rot.match(/class="ledframe water-luxury-live-frame"/g)||[]).length,1);
 });
 test('physical 432x40 water-only view contains two reference stations with no fixture controls',()=>{
  assert.match(css,/width:432px;height:40px/);
@@ -27,4 +27,23 @@ test('source script preserves typed dates and last stored result without interpr
  assert.match(gas,/risk:'unassessed'/);
  assert.doesNotMatch(gas,/status:!current\|\|age>MAX_AGE/);
  assert.match(api,/const validStamp=Number\.isFinite\(stamp\)&&stamp<=tnow\+120000;/);
+});
+test('verified latest station survives missing and older responses without fake current status',()=>{
+ const begin=js.indexOf('function apply(st,reading,now){');
+ const end=js.indexOf('\nlet reading=false;',begin);
+ assert.ok(begin>0&&end>begin);
+ const applied=[];
+ const apply=Function('renderStation','historyPath',js.slice(begin,end)+';return apply;')(
+   st=>applied.push([st.value,st.status,st.observedAt]),()=>'' );
+ const now=Date.parse('2026-10-26T12:00:00.000Z');
+ const st={value:null,observedAt:null,observed:'รอข้อมูล',status:'missing'};
+ const reading={status:'ok',levelMsl:2.81,bankM:3.03,groundMsl:.227,observedAt:'2026-10-26T11:00:00.000Z',trendPoints:[]};
+ apply(st,reading,now);
+ assert.equal(st.value,2.81);assert.equal(st.status,'ok');
+ apply(st,{status:'missing',levelMsl:null,observedAt:null},now+20*60*1000);
+ assert.equal(st.value,2.81);assert.equal(st.observedAt,reading.observedAt);
+ apply(st,{...reading,levelMsl:1.11,observedAt:'2026-10-26T10:00:00.000Z'},now+5*3600000);
+ assert.equal(st.value,2.81);assert.equal(st.status,'historical');
+ assert.match(st.observed,/วัด /);
+ assert.equal(applied.length,3);
 });

@@ -29,3 +29,11 @@
 
 ## Current next action
 - Complete isolated candidate tests and PR, then obtain AUTHORIZED bound-Script runtime/deployment/trigger inventory, arrange independent review and verified backup. Do not merge or claim LIVE until all gates pass.
+
+## Owner correction — replace old Water Slide, never overlay (2026-10-26 evening TH)
+- The user inspected candidate PR #47 and reported both old and new Water UI visible at once. Root cause confirmed in v2/index.html: old Water station DOM, graphs and render handler were retained, with new iframe inserted as a sibling overlay. This approach was incorrect for Production.
+- **Repair:** remove the ENTIRE legacy Water article content and old Water-only JS handlers; replace article #3 with ONE iframe Water Luxury V3.2. Preserve existing PM and Weather article, their sources, and three-item 22s rotation. Inactive legacy CSS selector declarations remain temporarily inert pending separate safe cleanup, but NO legacy Water DOM or handlers remain. The parent button now forwards refresh to the single new iframe; no duplicated data rendering.
+- Browser DOM verification: three slide articles, one child Water iframe 432×40, exactly two source stations, old station/gate/spill and old history elements count=0, no test/demo switches, PM/Weather present, zero JS errors.
+- In child water-luxury-live.js, preserve a previously VERIFIED in-memory measured reading and original timestamp if a later transport response becomes missing or older. Keep it historical when it ages, never relabel fetched time as observed time; reload still depends on the canonical Apps Script endpoint.
+- Data blocker reconfirmed against actual source: existing Water_Level_History shows 26 Oct 2026 evening HDA004 2.81 m MSL observed 16:10 and S5 2.48 m MSL observed 15:00; deployed public ?action=water_history returns missing/null both as of ~19:55 local TH. Correcting the HTML does not remedy deployed Apps Script. It is unsafe to merge production UI before the existing GAS reader is updated with verified backup/runtime review.
+- Correctness decision: no backend deployment, no main merge, no Sheet writes, no fabricated values until the pre-existing runtime/deployment verification gate is satisfied.

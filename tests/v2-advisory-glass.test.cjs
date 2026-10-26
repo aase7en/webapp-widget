@@ -51,15 +51,17 @@ test('glass rim is translucent, behind labels, narrow and reduced highlights',()
  assert.match(w,/\.led \.clock,\.led \.current,\.led \.hour,\.led \.warning\{position:relative;z-index:2\}/);
  assert.match(h,/\.stage \.clock,\.stage \.seg\{position:relative;z-index:2\}/);
 });
-test('risk-gated overflow is a broad irregular water sheet instead of straight pipe',()=>{
- const h=fs.readFileSync(path.join(root,'v2/index.html'),'utf8');
- assert.equal((h.match(/class="spill-sheet"/g)||[]).length,2);
- assert.match(h,/\.wall-seep,[\s\S]*\.water-tail\{display:none!important\}/);
- assert.match(h,/class="spill-body"/);
- assert.match(h,/class="spill-foam"/);
- assert.match(h,/class="spill-curl"/);
- assert.match(h,/@media\(prefers-reduced-motion:reduce\)/);
- assert.match(h,/ภาพน้ำล้นเป็นเอฟเฟกต์ตามระดับตลิ่งสถานีอ้างอิง/);
+test('replacement Water Luxury is the sole scene; old spillway station DOM is absent',()=>{
+ const parent=fs.readFileSync(path.join(root,'v2/index.html'),'utf8');
+ const child=fs.readFileSync(path.join(root,'v2/water-luxury-live.html'),'utf8');
+ const css=fs.readFileSync(path.join(root,'v2/water-luxury-live.css'),'utf8');
+ assert.equal((parent.match(/class="spill-sheet"/g)||[]).length,0);
+ assert.doesNotMatch(parent,/id="water"|id="s1"|id="s2"|class="water-station"/);
+ assert.match(parent,/src="\.\/water-luxury-live\.html"/);
+ assert.equal((parent.match(/class="ledframe water-luxury-live-frame"/g)||[]).length,1);
+ assert.match(child,/class="foam-front"/);
+ assert.match(css,/foam-front/);
+ assert.match(css,/@media \(prefers-reduced-motion:reduce\)/);
 });
 test('caution copy stays educational and does not falsely claim official alert',()=>{
  const w=fs.readFileSync(path.join(root,'v2/weather.html'),'utf8');
