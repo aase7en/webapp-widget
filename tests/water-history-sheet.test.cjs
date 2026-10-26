@@ -27,7 +27,6 @@ function harness(sheetId='1kBUKdezfAxIziq167e-RJV1nNZkeiaz6YQcpVAMja9w'){
  return {env,values,answers,triggers,calls:()=>called};
 }
 const PRIMARY='https://api-v3.thaiwater.net/api/v1/thaiwater30/public/waterlevel_load';
-const CACHE='https://raw.githubusercontent.com/aase7en/webapp-widget/water-data/water.json';
 test('source ID and date validation; null is not 0',()=>{const x=harness().env.WaterHistory;
  assert.equal(Object.keys(x.parse(data(),TIME)).length,2);
  const bad=data('2026-02-30 06:40');assert.equal(Object.keys(x.parse(bad,TIME)).length,0);
@@ -41,11 +40,17 @@ test('twice daily sync writes two true station rows; deduplicates reruns',()=>{c
  assert.equal(h.values[1][8],'2026-10-22 06:40');assert.equal(h.values[1][10],'LATEST');
  assert.equal(h.env.WaterHistory.sync().stored,0);assert.equal(h.values.length,3);
 });
-test('HTTP 429 on primary falls back to verified cache without inventing data',()=>{const h=harness();h.answers[CACHE]={data:data('2026-10-22 06:00')};
- const r=h.env.WaterHistory.sync();assert.equal(r.stored,2);assert.equal(r.sourceErrors,1);
- assert.equal(h.values[1][12],CACHE);
+test('HII API HTTP 429 preserves the previous stored Sheet reading, makes no new rows and never fetches a second source',()=>{
+ const h=harness();
+ h.values.push(['old','2026-10-21','evening','uthai','HDA004',471583,'name',2.7,'2026-10-21 17:00','','HISTORICAL','ThaiWater/HII',PRIMARY,3.03,.227,'MSL','reference','']);
+ assert.throws(()=>h.env.WaterHistory.sync(),/NO_VERIFIED_STATION/);
+ assert.equal(h.calls(),1);
+ assert.equal(h.values.length,2);
+ assert.equal(h.values[1][7],2.7);
+ const r=h.env.WaterHistory.read(TIME).stations.HDA004;
+ assert.equal(r.levelMsl,2.7);assert.equal(r.status,'historical');
 });
-test('both sources fail and history never replaced by zero',()=>{const h=harness();
+test('provider failure keeps stored history and does not replace it with zero',()=>{const h=harness();
  h.values.push(['old','2026-10-21','evening','uthai','S5',2607,'name',2.7,'2026-10-21 17:00']);
  assert.throws(()=>h.env.WaterHistory.sync(),/NO_VERIFIED_STATION/);
  assert.equal(h.values.length,2);assert.equal(h.values[1][7],2.7);
@@ -71,4 +76,57 @@ test('JSONP rejects injection; water schedule reuses existing BackendApiHistoryB
 });
 test('cannot read unrelated sheet',()=>{const h=harness('another_sheet_id');
  assert.throws(()=>h.env.WaterHistory.read(TIME),/CANONICAL_SHEET_REQUIRED/);
+});
+
+
+test('typed Google Sheets DATE_TIME cells are parsed as observed-at Bangkok time without dropping latest rows',()=>{
+ const h=harness();
+ h.answers[PRIMARY]={data:data()};
+ h.env.WaterHistory.sync();
+ const original='2026-10-22 06:40';
+ // User-entered seed row stays text. Scheduled rows are auto-converted by
+ // Sheets to DATE_TIME effectiveValue, returned as Date by getValues().
+ h.values[1][8]=new Date('2026-10-21T23:40:00.000Z');
+ const out=h.env.WaterHistory.read(TIME).stations.HDA004;
+ assert.equal(out.levelMsl,2.93);
+ assert.equal(out.status,'ok');
+ assert.equal(out.observedTimeTH,'22/10 06:40');
+ assert.equal(out.observedAt,'2026-10-21T23:40:00.000Z');
+ assert.equal(out.trendPoints.length,1);
+ assert.equal(out.risk,'unassessed'); // Never invent a flood threshold.
+ assert.equal(h.env.WaterHistory.sync().stored,0,'Date typed row must dedupe on next schedule');
+ assert.equal(h.values.length,3);
+});
+
+test('mixed text and Date cells, invalid timestamps and unknown thresholds preserve history integrity',()=>{
+ const h=harness();
+ h.answers[PRIMARY]={data:data()};
+ h.env.WaterHistory.sync();
+ const older=['older','2026-10-22','morning','uthai','HDA004',471583,'name',2.81,
+   '2026-10-22 06:20','','LATEST','ThaiWater/HII',PRIMARY,3.03,.227,'MSL','reference',''];
+ const invalid=older.slice();invalid[8]=new Date(NaN);invalid[7]=0;
+ h.values.push(older,invalid);
+ // Sheets converts the latest timestamp to Date on the server.
+ h.values[1][8]=new Date('2026-10-21T23:40:00Z');
+ const out=h.env.WaterHistory.read(TIME).stations.HDA004;
+ assert.deepEqual(Array.from(out.trendPoints),[2.81,2.93]);
+ assert.equal(out.risk,'unassessed');
+ assert.equal(out.levelMsl,2.93);
+});
+
+test('latest stored value survives beyond 48h as historical; 7-day graph uses only recent real points',()=>{
+ const h=harness();h.answers[PRIMARY]={data:data()};
+ h.env.WaterHistory.sync();
+ const old=Date.parse('2026-12-02T00:00:00Z');
+ const got=h.env.WaterHistory.read(old).stations.HDA004;
+ assert.equal(got.status,'historical');
+ assert.equal(got.levelMsl,2.93);
+ assert.equal(got.observedAt,'2026-10-21T23:40:00.000Z');
+ assert.equal(got.risk,'unassessed');
+ assert.equal(got.trendPoints.length,0);
+});
+
+test('only scheduled HII API is queried and loss of API cannot switch to shadow transport',()=>{
+ assert.doesNotMatch(text,/water-data\/water\.json|\[URL,BACKUP\]/);
+ assert.match(text,/\[URL\]\.forEach/);
 });

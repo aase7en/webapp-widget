@@ -17,18 +17,27 @@ let api=client(),r=record('2026-10-22T06:00:00Z',2.9);
 let x=api.validateWaterHistory(data(r),NOW).out.stations.HDA004;
 assert.equal(x.status,'historical');assert.equal(x.risk,'unassessed');assert.equal(x.levelMsl,2.9);
 });
-test('48h-old source data returns missing/null, not stale number or fake 0',()=>{
-let api=client(),r=record('2026-10-15T06:00:00Z',0);
-let x=api.validateWaterHistory(data(r),NOW).out.stations.HDA004;
-assert.equal(x.status,'missing');assert.equal(x.levelMsl,null);
+test('last saved measurement older than 48h remains historical with the original observation time',()=>{
+ let api=client(),r=record('2026-10-15T06:00:00Z',0);
+ let x=api.validateWaterHistory(data(r),NOW).out.stations.HDA004;
+ assert.equal(x.status,'historical');assert.equal(x.levelMsl,0);
+ assert.equal(x.observedAt,'2026-10-15T06:00:00Z');
+ assert.equal(x.risk,'unassessed');
 });
+test('missing or future observation time cannot become latest-available value',()=>{
+ let api=client(),r=record('2099-10-15T06:00:00Z',2.1);
+ let x=api.validateWaterHistory(data(r),NOW).out.stations.HDA004;
+ assert.equal(x.status,'missing');assert.equal(x.levelMsl,null);
+});
+
 test('station mismatch and invalid payload fail closed',()=>{
 let api=client(),r=record('2026-10-22T09:50:00Z',2.9);r.stationId=2607;
 assert.throws(()=>api.validateWaterHistory(data(r),NOW),/invalid water station/);
 assert.throws(()=>api.validateWaterHistory({schema:0,stations:{}},NOW),/invalid Sheet water contract/);
 });
-test('the only upstream water URL in frontend is static GitHub fallback and Sheets public reader',()=>{
-assert.match(src,/water-data\/water\.json/);
-assert.match(src,/action=water_history/);
-assert.doesNotMatch(src,/api-v3\.thaiwater\.net\/api\/v1/);
+test('canonical Sheet is the only water source used by the production widget',()=>{
+ assert.match(src,/action=water_history/);
+ assert.doesNotMatch(src,/water-data\/water\.json/);
+ assert.doesNotMatch(src,/api-v3\.thaiwater\.net\/api\/v1/);
+ assert.doesNotMatch(src,/level>=bank\?'critical'/);
 });

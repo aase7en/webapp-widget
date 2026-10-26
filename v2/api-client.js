@@ -12,12 +12,10 @@
      de-duplicated in both directions. */
 (function(root){
 'use strict';
-const API='https://raw.githubusercontent.com/aase7en/webapp-widget/water-data/water.json';
 const SHEET_WATER='https://script.google.com/macros/s/AKfycbwwUQCeJoz4N0P9UuRJF39pt17mBjPz0_yMDDxTO7BoiUiTQaO7Yay0UKq80EvE6dk/exec?action=water_history';
 const FORECAST='https://api.open-meteo.com/v1/forecast';
 const BKK_MS=7*60*60*1000;
 const stations={HDA004:471583,S5:2607};
-const localHistory={HDA004:[],S5:[]};
 const LIVE_TTL_MS=180000,WATER_TTL_MS=15*60000,RETRY_AFTER_FAIL_MS=45000,STALE_KEEP_MS=3*3600000;
 const cache={live:null,water:null,liveAt:0,waterAt:0,
  liveFail:null,waterFail:null,liveFailAt:0,waterFailAt:0,
@@ -57,9 +55,8 @@ function revalidateWater(src,tnow){
  const out={source:src.source,stations:{}};
  for(const code of Object.keys(stations)){
   const s=src.stations[code];
-  if(s&&(s.status==='ok'||s.status==='historical')&&(!cache.waterStamps||tnow-cache.waterStamps[code]>(s.status==='historical'?48*3600000:STALE_KEEP_MS))){
-   const aged=missing(code);aged.bankM=s.bankM;aged.groundMsl=s.groundMsl;
-   out.stations[code]=aged;
+  if(s&&s.status==='ok'&&(!cache.waterStamps||tnow-cache.waterStamps[code]>STALE_KEEP_MS)){
+   out.stations[code]={...s,status:'historical',risk:'unassessed'};
   }else out.stations[code]=s;
  }
  return out;
@@ -149,37 +146,6 @@ function numeric(raw,lo,hi){
  const n=typeof raw==='number'?raw:typeof raw==='string'&&/^[-+]?\d+(\.\d+)?$/.test(raw.trim())?Number(raw):NaN;
  return finite(n,lo,hi)?n:null;
 }
-function parsedStation(r,code,tnow){
- const s=missing(code);
- const rst=r?r.station:null;
- if(!r||!rst||rst.id!==stations[code])return s;
- const level=numeric(r.waterlevel_msl,-50,200);
- const bank=numeric(rst.min_bank,-50,200);
- const ground=numeric(rst.ground_level,-100,200);
- const obs=r.waterlevel_datetime;
- if(bank!==null&&ground!==null&&ground<bank){s.bankM=bank;s.groundMsl=ground;}
- if(level===null||typeof obs!=='string'||!/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}$/.test(obs))return s;
- const stamp=Date.parse(obs.replace(' ','T')+ '+07:00');
- if(!Number.isFinite(stamp))return s;
- const age=tnow-stamp;
- if(age>STALE_KEEP_MS||age<-(2*60000))return s;
- s.status='ok';s.levelMsl=level;s.observedTimeTH=obs.slice(8,10)+'/'+obs.slice(5,7)+' '+obs.slice(11);
- if(bank!==null){
-  s.risk=level>=bank?'critical':level>=bank-.50?'watch':'below_watch';
-  s.watchLevelMsl=Number((bank-.50).toFixed(2));s.criticalLevelMsl=bank;
- }
- const samples=localHistory[code];
- const last=samples[samples.length-1];
- if(!samples.length||last.timestamp!==stamp){
-  samples.push({timestamp:stamp,level});if(samples.length>30)samples.shift();
- }
- if(samples.length>=2){
-  const a=samples[samples.length-1],b=samples[samples.length-2];
-  s.deltaM=Number((a.level-b.level).toFixed(2));
-  s.trendPoints=samples.map(v=>v.level);
- }
- return s;
-}
 /* Read-only bound Apps Script route. This NEVER contacts HII: the upstream
    provider is fetched only by Google Apps Script's twice-daily trigger.
    JSONP handles ContentService redirects/CORS; callback id is generated here,
@@ -211,7 +177,7 @@ function sheetWaterPayload(raw,tnow){
   if(!s||s.stationId!==stations[code]||!['ok','historical','missing'].includes(s.status))
    throw Error('invalid water station');
   const stamp=typeof s.observedAt==='string'?Date.parse(s.observedAt):NaN;
-  const validStamp=Number.isFinite(stamp)&&stamp<=tnow+120000&&tnow-stamp<=48*3600000;
+  const validStamp=Number.isFinite(stamp)&&stamp<=tnow+120000;
   const level=numeric(s.levelMsl,-50,200);
   const bank=numeric(s.bankM,-50,200),ground=numeric(s.groundMsl,-100,200);
   const good=validStamp&&level!==null&&bank!==null&&ground!==null&&bank>ground;
@@ -223,7 +189,7 @@ function sheetWaterPayload(raw,tnow){
    base.levelMsl=level;
    base.observedTimeTH=typeof s.observedTimeTH==='string'?s.observedTimeTH.slice(0,24):null;
    base.observedAt=s.observedAt;
-   base.risk=status==='ok'?level>=bank?'critical':level>=bank-.5?'watch':'below_watch':'unassessed';
+   base.risk='unassessed'; // no formally approved flood thresholds
    stamps[code]=stamp;
   }
   const ts=Array.isArray(s.trendObservedAt)?s.trendObservedAt:[];
@@ -251,7 +217,7 @@ async function water(opts){
  if(cache.waterFailAt&&tnow-cache.waterFailAt<RETRY_AFTER_FAIL_MS&&tnow-cache.waterAt>=WATER_TTL_MS)
   return cache.water?revalidateWater(cache.water,tnow):cache.waterFail;
  cache.waterPending=(async()=>{
-  const result={source:'ThaiWater/HII waterlevel_load · station references, not Uthai Hospital gauge',
+  const result={source:'ThaiWater/HII via canonical Google Sheet · unavailable',
    stations:{HDA004:missing('HDA004'),S5:missing('S5')}};
   const stamps={HDA004:0,S5:0};
   try{
@@ -260,30 +226,12 @@ async function water(opts){
    cache.water=sheet.out;cache.waterAt=tnow;cache.waterStamps=sheet.stamps;
    cache.waterFailAt=0;cache.waterFail=null;
    return sheet.out;
-  }catch(_sheetError){ /* Existing low-rate static GitHub snapshot remains fallback during cutover. */ }
-  try{
-   // One central, time-validated low-rate ThaiWater snapshot. GitHub raw CORS *;
-   // source waterlevel_datetime (not commit time) controls freshness.
-   const data=await fetchJson(API,15000,tnow);
-   const wd=data?data.waterlevel_data:null;
-   if(!wd||wd.result!=='OK'||!Array.isArray(wd.data))throw Error('bad data');
-   const ids=new Set(Object.values(stations));
-   const rows=wd.data.filter(function(r){const st=r?r.station:null;return st&&ids.has(st.id)});
-   for(const pair of Object.entries(stations)){
-    const code=pair[0],id=pair[1];
-    const hit=rows.find(function(r){const st=r?r.station:null;return st&&st.id===id});
-    const parsed=parsedStation(hit,code,tnow);
-    if(parsed.status==='ok'){
-     const obs=hit.waterlevel_datetime;
-     stamps[code]=Date.parse(obs.replace(' ','T')+'+07:00');
-    }
-    result.stations[code]=parsed;
-   }
-   cache.water=result;cache.waterAt=tnow;cache.waterStamps=stamps;
-   cache.waterFailAt=0;cache.waterFail=null;
-   return result;
-  }catch{
-   /* Unavailable must never be treated as zero, safe or flood. */
+  }catch(_sheetError){
+   /* Canonical Sheet is the ONLY operational water source.
+      A provider API failure does not erase the last verified Sheet reading.
+      If the Sheet endpoint itself is unreachable, preserve the verified
+      in-memory snapshot with original observedAt and historical badge.
+      Do NOT substitute a direct HII/GitHub feed or fabricate a new value. */
    cache.waterFailAt=tnow;cache.waterFail=result;
    return cache.water?revalidateWater(cache.water,tnow):result;
   }
