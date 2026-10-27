@@ -1,0 +1,220 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="icon" href="data:,">
+<title>PM2.5 frame-first BLUE proof (frame-first-v1)</title>
+<style>
+  :root { color-scheme: light; }
+  body { font-family: system-ui, sans-serif; margin: 16px; background: #f4f4f5; color: #1c1c1e; }
+  h1 { font-size: 18px; margin: 0 0 4px; }
+  .note { font-size: 12px; color: #666; margin: 2px 0 12px; }
+  .stage { position: relative; width: 1296px; height: 120px; background: #111; overflow: hidden; }
+  .stage img { position: absolute; inset: 0; width: 1296px; height: 120px; display: block; }
+  .stage.small { width: 432px; height: 40px; margin-top: 10px; }
+  .stage.small img { width: 432px; height: 40px; }
+  .label { font-size: 11px; color: #444; margin: 8px 0 2px; }
+  .controls { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin: 14px 0; font-size: 13px; }
+  .controls button, .controls select { font-size: 13px; padding: 3px 8px; }
+  #frameNum { font-variant-numeric: tabular-nums; min-width: 9ch; display: inline-block; }
+  a { font-size: 12px; }
+</style>
+</head>
+<body>
+<h1>PM2.5 frame-first — BLUE 12-frame loop proof</h1>
+<p class="note">frame-first prototype — decorative overlays intentionally disabled
+(no birds/leaves/particles/smoke or any sprite layers in this phase).</p>
+
+<div class="label">Full physical frame — 1296&times;120</div>
+<div class="stage" id="stage-full">
+  <img id="img-a-full" alt="blue frame layer A">
+  <img id="img-b-full" alt="blue frame layer B">
+</div>
+
+<div class="label">Logical LED viewport — 432&times;40 (scale &#8531;)</div>
+<div class="stage small" id="stage-box">
+  <img id="img-a-box" alt="blue frame layer A (scaled)">
+  <img id="img-b-box" alt="blue frame layer B (scaled)">
+</div>
+
+<div class="controls">
+  <label>approach
+    <select id="approach">
+      <option value="step">step (hard cut)</option>
+      <option value="xfade">xfade250 (250ms crossfade)</option>
+      <option value="pingpong">pingpong (1&#8594;12&#8594;1)</option>
+    </select>
+  </label>
+  <label>fps <input id="fps" type="range" min="4" max="16" step="1" value="10">
+    <span id="fpsVal">10</span></label>
+  <button id="playPause">&#9654; Play</button>
+  <button id="prev">&#9664; prev</button>
+  <button id="next">next &#9654;</button>
+  <span id="frameNum">frame 01 / 12</span>
+  <span id="state" class="note"></span>
+</div>
+
+<p class="note"><a href="../blue/contact-sheet.webp">contact-sheet.webp (all 12 normalized frames)</a>
+ &middot; native frames only in step/pingpong; xfade adds derived blend intermediates.</p>
+
+<script>
+(() => {
+  const N = 12;
+  const params = new URLSearchParams(location.search);
+  const approachSel = document.getElementById('approach');
+  const fpsInput = document.getElementById('fps');
+  const fpsVal = document.getElementById('fpsVal');
+  const playBtn = document.getElementById('playPause');
+  const prevBtn = document.getElementById('prev');
+  const nextBtn = document.getElementById('next');
+  const frameNum = document.getElementById('frameNum');
+  const stateEl = document.getElementById('state');
+  const imgs = {
+    a: [document.getElementById('img-a-full'), document.getElementById('img-a-box')],
+    b: [document.getElementById('img-b-full'), document.getElementById('img-b-box')],
+  };
+
+  const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  let approach = params.get('approach') || 'step';
+  if (!['step', 'xfade', 'pingpong'].includes(approach)) approach = 'step';
+  let fps = Math.min(16, Math.max(4, parseInt(params.get('fps') || '10', 10) || 10));
+  let frame = 0;            // 0-based index into frames[]
+  let paused = true;
+  let advanceCount = 0;
+  let pingDir = 1;
+  let ready = false;
+  let timer = null;
+  let fadeRaf = null;
+
+  const frames = [];
+  for (let i = 1; i <= N; i++) {
+    const im = new Image();
+    im.src = `../blue/frames/frame-${String(i).padStart(2, '0')}.webp`;
+    frames.push(im);
+  }
+
+  function showStatic(alpha) {
+    // alpha = opacity of layer B (the incoming/next frame); layer A is current
+    for (const im of imgs.a) { im.src = frames[frame % N].src; im.style.opacity = String(1 - alpha); }
+    const next = (frame + 1) % N;
+    for (const im of imgs.b) { im.src = frames[next].src; im.style.opacity = String(alpha); }
+  }
+
+  function render() {
+    approachSel.value = approach;
+    fpsInput.value = String(fps);
+    fpsVal.textContent = String(fps);
+    frameNum.textContent = `frame ${String(frame % N + 1).padStart(2, '0')} / ${N}`;
+    playBtn.textContent = paused ? '\u25B6 Play' : '\u23F8 Pause';
+    stateEl.textContent = paused ? 'paused' : 'playing';
+    if (paused) showStatic(0);
+  }
+
+  function publish() {
+    window.__state = {
+      ready, paused, approach, fps, frame: frame % N, framesTotal: N,
+      reducedMotion: reduced, advanceCount,
+    };
+  }
+
+  function stopLoops() {
+    if (timer) { clearInterval(timer); timer = null; }
+    if (fadeRaf) { cancelAnimationFrame(fadeRaf); fadeRaf = null; }
+  }
+
+  function advance() {
+    if (approach === 'pingpong') {
+      if (frame + pingDir < 0 || frame + pingDir > N - 1) pingDir = -pingDir;
+      frame += pingDir;
+    } else {
+      frame = (frame + 1) % N;
+    }
+    advanceCount++;
+  }
+
+  function playStepCycle() {
+    const ms = 1000 / fps;
+    showStatic(0);
+    timer = setInterval(() => { advance(); showStatic(0); publish(); }, ms);
+  }
+
+  function playPingpongCycle() {
+    pingDir = 1;
+    playStepCycle(); // identical stepping; order handled in advance()
+  }
+
+  function playXfadeCycle() {
+    const dwell = 1000 / fps;
+    const fadeMs = 250;
+    let phaseStart = performance.now();
+    let fading = false;
+    showStatic(0);
+    function tick(now) {
+      const t = now - phaseStart;
+      if (!fading) {
+        if (t >= dwell) { fading = true; phaseStart = now; }
+      } else {
+        const p = Math.min(1, t / fadeMs);
+        showStatic(p);
+        if (p >= 1) { fading = false; phaseStart = now; advance(); showStatic(0); publish(); }
+      }
+      fadeRaf = requestAnimationFrame(tick);
+    }
+    fadeRaf = requestAnimationFrame(tick);
+  }
+
+  function play() {
+    stopLoops();
+    paused = false;
+    if (approach === 'xfade') playXfadeCycle();
+    else if (approach === 'pingpong') playPingpongCycle();
+    else playStepCycle();
+    render(); publish();
+  }
+
+  function pause() {
+    stopLoops();
+    paused = true;
+    render(); publish();
+  }
+
+  playBtn.addEventListener('click', () => (paused ? play() : pause()));
+  prevBtn.addEventListener('click', () => { stopLoops(); paused = true; frame = (frame + N - 1) % N; render(); publish(); });
+  nextBtn.addEventListener('click', () => { stopLoops(); paused = true; frame = (frame + 1) % N; render(); publish(); });
+  approachSel.addEventListener('change', () => { approach = approachSel.value; if (!paused) play(); else { render(); publish(); } });
+  fpsInput.addEventListener('input', () => {
+    fps = parseInt(fpsInput.value, 10); fpsVal.textContent = String(fps);
+    if (!paused) play(); else publish();
+  });
+
+  Promise.all(frames.map(im => im.decode ? im.decode().catch(() => {}) : Promise.resolve())).then(() => {
+    ready = true;
+    // query-param control (used by qa + humans): frame=N (1-based, paused), hold=N[.f]
+    const hold = params.get('hold');
+    const frameParam = params.get('frame');
+    const autoplay = params.get('autoplay');
+    if (hold !== null) {
+      paused = true;
+      const hv = parseFloat(hold);
+      const base = Math.floor(hv);
+      const frac = hv - base;
+      frame = (base - 1 + N) % N;                 // hold=3 -> frame-03; hold=3.5 -> blend 03->04 at 50%
+      showStatic(frac);
+    } else if (frameParam !== null) {
+      paused = true;
+      frame = (parseInt(frameParam, 10) - 1 + N) % N;
+      showStatic(0);
+    } else if (reduced || autoplay === '0') {
+      paused = true;                               // respect prefers-reduced-motion: static frame 01
+    } else {
+      play();
+      return;
+    }
+    render(); publish();
+  });
+  render(); publish();
+})();
+</script>
+</body>
+</html>
