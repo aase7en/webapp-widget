@@ -1,0 +1,90 @@
+{
+  "schema_version": 1,
+  "purpose": "owner_selected_design_references",
+  "repository": "aase7en/webapp-widget",
+  "date": "2026-10-27",
+  "art_direction": "luxury / premium LED like live Water Level, not sensor photo",
+  "canonical_collages": [
+    {
+      "tier": "blue",
+      "role": "canonical_source_collage",
+      "path": "assets/pm25-luxury/locked-scene-v3/originals/11D8EEE5-F7BA-433C-B47C-8226E57F61B6.jpeg",
+      "sha256": "cc3cb9a79f012d203d70f3c48c2e5d6e0b606156b549193ded62e10309c592c2",
+      "native_cells": 12,
+      "no_duplicate_copy": true
+    },
+    {
+      "tier": "green",
+      "role": "canonical_source_collage",
+      "path": "assets/pm25-luxury/locked-scene-v3/originals/B813DE0D-2580-4812-82D3-B56625221C3A.jpeg",
+      "sha256": "bf713bdbb98f3b68958b55b295220e1a223a415bc59f1b53c0e6bdb0ac396956",
+      "native_cells": 10,
+      "no_duplicate_copy": true
+    },
+    {
+      "tier": "yellow",
+      "role": "canonical_source_collage",
+      "path": "assets/pm25-luxury/locked-scene-v3/originals/6E2935B0-DEE8-433E-A3A0-2F248755024E.jpeg",
+      "sha256": "a638bc381db44300081e428bd038b0787e41d112cab08341339737e94c878d44",
+      "native_cells": 10,
+      "no_duplicate_copy": true
+    },
+    {
+      "tier": "orange",
+      "role": "canonical_source_collage",
+      "path": "assets/pm25-luxury/locked-scene-v3/originals/D28AAB6C-51CB-4CC9-9D20-FDA23E0CF092.jpeg",
+      "sha256": "3dd2d58d113a157102460e64cca24114c9ae7f1a15fcd5c1be303a276907d194",
+      "native_cells": 10,
+      "no_duplicate_copy": true
+    },
+    {
+      "tier": "red",
+      "role": "canonical_source_collage",
+      "path": "assets/pm25-luxury/locked-scene-v3/originals/EB284AA1-DC81-4739-956B-912142A5CFBC.jpeg",
+      "sha256": "7a4ec740f213aa427f5df04b182f04a83505d154d500b3afebfa32555617ba2f",
+      "native_cells": 10,
+      "no_duplicate_copy": true
+    }
+  ],
+  "layout_moodboard_previews": [
+    {
+      "role": "pm25_layout_reference",
+      "path": "assets/pm25-luxury/references/pm25-layout-preview.jpg",
+      "kind": "thumbnail_only",
+      "source_original": {
+        "file_id": "file_00000000b8888207952fe6161079ae3d",
+        "sha256": "dfc5f0809601c4151d97fe07ccb2356b5b09c5b0a940a5ac8c7fac259de1d423",
+        "pixels": [
+          1536,
+          512
+        ]
+      },
+      "canva_media_id": "MAHZNJW_ajY",
+      "stored_sha256": "cf2e222e6e6da9d4dfe13b2b3f47df7a653a5730289a41fadf1fcd1b234b78d5",
+      "stored_bytes": 7154
+    },
+    {
+      "role": "weather_layout_reference",
+      "path": "assets/pm25-luxury/references/weather-layout-preview.jpg",
+      "kind": "thumbnail_only",
+      "source_original": {
+        "file_id": "file_0000000092a08211af5e49bde817b29f",
+        "sha256": "f64e161728a34c01b925c5743994d703f286e58688bb606ab493919be7882980",
+        "pixels": [
+          1536,
+          512
+        ]
+      },
+      "canva_media_id": "MAHZNPcUjJQ",
+      "stored_sha256": "8773e18b3bf0de5b5f752106f9a639520d9451e4270548879e05cf888d23f0fa",
+      "stored_bytes": 7399
+    }
+  ],
+  "rules": [
+    "Use original collages at locked-scene-v3/originals without copying them into another directory.",
+    "Use extracted genuine cells in locked-scene-v3/source_frames and frame-first-v1 as source proof.",
+    "PM and Weather layout previews here are THUMBNAILS ONLY. Refer to the full owner originals (ChatGPT/Canva asset IDs) for typography precision.",
+    "Do not delete source collage files or legacy effects still referenced by historical demos/manifests.",
+    "No production runtime/data changes in this reference-index branch."
+  ]
+}
