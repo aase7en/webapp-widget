@@ -88,20 +88,28 @@ def layer_sunshafts(tier,k):
  bright=bright.filter(ImageFilter.GaussianBlur(14));return over(out,bright)
 
 def layer_clouds(tier,k):
- c=CONFIG[tier];phase=k*math.tau/N
- img=transparent();d=ImageDraw.Draw(img,'RGBA')
- seed=random.Random(24027)
- color=(239,244,254) if tier in ('blue','green') else ((204,196,175) if tier=='yellow' else (117,103,94))
- # Clouds stay in upper 40% of panorama, drifting cyclically while buildings stay fixed.
- for cluster in range(13):
-  cx=275+cluster*95+14*math.sin(phase+cluster*.37)
-  cy=22+12*math.sin(cluster*1.3)
-  r=20+seed.randint(0,15)
-  alpha=(12+22*c['cloud'])*(0.8+.2*math.cos(phase+cluster*.9))
-  for q in range(5):
-   ox=(q-2)*r*.51;oy=math.sin(q*1.2+cluster)*6
-   d.ellipse((cx+ox-r*.7,cy+oy-r*.3,cx+ox+r*.7,cy+oy+r*.3),fill=c_alpha(color,alpha))
- return img.filter(ImageFilter.GaussianBlur(9))
+ """Recognizable, moving cumulus banks: 50-75px sweep, soft edges, cyclic end pose.
+
+ Geometry stays locked in master; clouds alone drift and reshape slightly.
+ """
+ cfg=CONFIG[tier];phase=k*math.tau/N
+ haze=transparent();soft=ImageDraw.Draw(haze,'RGBA')
+ crisp=transparent();sharp=ImageDraw.Draw(crisp,'RGBA')
+ light=(245,251,255) if tier in ('blue','green') else ((227,211,179) if tier=='yellow' else (173,147,131))
+ shade=(65,97,126) if tier in ('blue','green') else ((116,101,92) if tier=='yellow' else (83,66,66))
+ positions=((260,24,40),(472,35,47),(688,17,35),(925,24,45),(1114,32,37))
+ opacity=0.80 if tier in ('blue','green') else min(0.94,.70+cfg['cloud']*.21)
+ for ix,(base_x,base_y,sz) in enumerate(positions):
+  drift=62*math.sin(phase+ix*.65) + 13*math.sin(2*phase+ix*.31)
+  cx=base_x+drift
+  cy=base_y+2.8*math.cos(phase+ix*.43)
+  puff=((-.92,.13,.80,.47),(-.46,-.23,1.02,.57),(.03,-.34,1.01,.68),(.57,-.12,.86,.49),(.95,.16,.61,.37))
+  for offsetx,offsety,rx,ry in puff:
+   x=cx+offsetx*sz;y=cy+offsety*sz
+   soft.ellipse((x-rx*sz*1.18,y-ry*sz*1.3,x+rx*sz*1.18,y+ry*sz*1.3),fill=c_alpha(shade,53*opacity))
+   sharp.ellipse((x-rx*sz,y-ry*sz,x+rx*sz,y+ry*sz),fill=c_alpha(light,102*opacity))
+ # Defined contours survive a downscale to 432x40 while cloud banks feather naturally.
+ return over(haze.filter(ImageFilter.GaussianBlur(6)),crisp.filter(ImageFilter.GaussianBlur(2.9)))
 
 def layer_fog(tier,k):
  cfg=CONFIG[tier];phase=k*math.tau/N
@@ -174,46 +182,100 @@ def leaf_polygon(cx,cy,rotation,sz):
  (cx+(-sz*.4*math.cos(rotation)+sz*.45*math.sin(rotation)),cy+(-sz*.4*math.sin(rotation)-sz*.45*math.cos(rotation)))]
 
 def layer_leaves(tier,k):
+ """Foreground foliage anchored to visibly bending twigs; no whole-scene translation."""
  phase=k*math.tau/N
- cfg=CONFIG[tier];img=transparent();d=ImageDraw.Draw(img,'RGBA')
- # Vary only foliage overlay; no long rigid translation of the shoreline.
- rng=random.Random(61721)
- for i in range(42):
-  side=i%2
-  x0=rng.uniform(0,138) if side==0 else rng.uniform(W-112,W)
-  y0=rng.uniform(0,26) if i%3 else rng.uniform(96,H)
-  theta=(i*.37)+.27*math.sin(phase+i*.52)
-  sz=rng.uniform(2.2,6.5)
-  alpha=80 if tier in ('blue','green') else 55
-  color=(31,121,67) if tier in ('blue','green') else ((111,99,48) if tier=='yellow' else (74,68,50))
-  d.polygon(leaf_polygon(x0+1.6*math.sin(phase+i),y0,theta,sz),fill=c_alpha(color,alpha),outline=c_alpha((173,207,96),40))
- return img
+ img=transparent();d=ImageDraw.Draw(img,'RGBA')
+ bark=(49,79,43) if tier in ('blue','green') else (85,70,47)
+ leaf=(38,122,64) if tier in ('blue','green') else ((139,114,52) if tier=='yellow' else (92,72,50))
+ edge=(137,221,117) if tier in ('blue','green') else (191,149,87)
+ # Nearby vegetation already exists in master at top-left and bottom corners.
+ clusters=((8,6,1,1.0),(83,3,1,.75),(32,117,-1,.97),(1220,114,-1,-.85),(1289,12,1,-.95))
+ for group,(ax,ay,direction,scale) in enumerate(clusters):
+  wave=math.sin(phase+group*.61)
+  sway=9.5*wave*abs(scale)+3*math.sin(2*phase+group*.33)
+  for branch in range(6):
+   angle=(branch-2.5)*.43
+   length=18+branch%3*7
+   ex=ax+scale*(length*math.sin(angle)+sway*(.65+branch*.08))
+   ey=ay+direction*(length*.85+3.5*math.sin(phase+branch*.7+group))
+   d.line((ax,ay,ax+scale*7,ay+direction*9,ex,ey),fill=c_alpha(bark,170),width=2)
+   for side in (-1,1):
+    off=8*side+4*math.sin(phase+branch*.52+side)
+    lx=ex+off
+    ly=ey+direction*side*5
+    theta=angle+side*.8+.35*wave
+    size=8+branch%3*2.4
+    poly=leaf_polygon(lx,ly,theta,size)
+    d.polygon(poly,fill=c_alpha(leaf,165),outline=c_alpha(edge,130))
+ return img.filter(ImageFilter.GaussianBlur(.26))
 
 def layer_birds(tier,k):
- c=CONFIG[tier];strength=c['birds'];phase=k*math.tau/N
- im=transparent();d=ImageDraw.Draw(im,'RGBA')
- if strength<.05:return im
- for bird in range(5):
-  x=520+bird*63+12*math.sin(phase+bird*.8)
-  y=27+bird%3*4+2*math.cos(phase+bird*.7)
-  span=3.3+bird%3
-  wing=2.2*math.sin(phase*2+bird*.8)
-  color=c_alpha((14,36,47) if tier in ('blue','green') else (53,50,43),100*strength)
-  d.arc((x-span,y-wing,x,y+span),205,355,fill=color,width=1)
-  d.arc((x,y-wing,x+span,y+span),185,340,fill=color,width=1)
- return im.filter(ImageFilter.GaussianBlur(.25))
+ """Birds fly THROUGH, flap visibly, and fade at loop seam; never 'mosquito' arcs."""
+ cfg=CONFIG[tier];im=transparent();d=ImageDraw.Draw(im,'RGBA')
+ # Even smoky states may contain a distant bird; keep illustration independent of PM safety.
+ strength=max(.54,cfg['birds'])
+ t=k/N
+ # One larger near bird plus one smaller distant follower. Large silhouette survives 3x->LED.
+ for which in range(2):
+  progress=(t+(.21 if which else 0))%1
+  envelope=min(1,progress*9,(1-progress)*9)
+  alpha=int(245*envelope*strength*(1 if which==0 else .8))
+  if alpha<=2:continue
+  x=(278 if which==0 else 210)+progress*(680 if which==0 else 590)
+  y=(30 if which==0 else 17)+4.5*math.sin(progress*math.tau+which*.64)
+  scale=1 if which==0 else .66
+  # 2 full wing cycles in 16 authored frames. Wing tips move about 23px,
+  # not sub-pixel arcs which previously resembled mosquitoes at LED size.
+  flap=math.sin(4*math.pi*progress+which*.45)
+  span=33*scale
+  lift=(15+16*flap)*scale
+  ink=(16,35,45,alpha) if tier in ('blue','green') else (38,35,37,alpha)
+  rim=(223,238,233,int(alpha*.44)) if tier in ('blue','green') else (227,187,146,int(alpha*.38))
+  left=[(x-3*scale,y),(x-11*scale,y-5*scale),
+        (x-span*.84,y-lift*.79),(x-span,y-lift),
+        (x-span*.82,y-lift+6*scale),(x-12*scale,y+2*scale)]
+  right=[(x+3*scale,y),(x+11*scale,y-5*scale),
+         (x+span*.84,y-lift*.79),(x+span,y-lift),
+         (x+span*.82,y-lift+6*scale),(x+12*scale,y+2*scale)]
+  d.polygon(left,fill=ink);d.polygon(right,fill=ink)
+  d.line(left[2:5],fill=rim,width=max(1,round(1.5*scale)))
+  d.line(right[2:5],fill=rim,width=max(1,round(1.5*scale)))
+  d.ellipse((x-8*scale,y-3.8*scale,x+8*scale,y+4.6*scale),fill=ink)
+  # small head, pointed tail and beak reinforce an actual bird silhouette
+  d.ellipse((x+6*scale,y-3.8*scale,x+11*scale,y+1.2*scale),fill=ink)
+  d.polygon([(x+11*scale,y-2*scale),(x+17*scale,y),(x+10*scale,y+1*scale)],fill=ink)
+  d.polygon([(x-6*scale,y),(x-19*scale,y-6*scale),(x-13*scale,y+3*scale),
+             (x-18*scale,y+8*scale)],fill=ink)
+ return im
 
 def layer_water_reflections(tier,k):
- c=CONFIG[tier];phase=k*math.tau/N
- im=transparent();d=ImageDraw.Draw(im,'RGBA')
- rgb=(111,225,248) if tier in ('blue','green') else ((248,192,112) if tier=='yellow' else (204,137,100))
+ """Specular streaks and ripples tracked to the master image's lower 25px water."""
+ phase=k*math.tau/N
+ rgb=(185,244,255) if tier in ('blue','green') else ((255,218,149) if tier=='yellow' else (242,177,139))
+ glow=transparent();g=ImageDraw.Draw(glow,'RGBA')
+ lines=transparent();d=ImageDraw.Draw(lines,'RGBA')
  rng=random.Random(2145)
- for i in range(58):
-  x=rng.uniform(20,W-20);y=rng.uniform(94,119)
-  width=rng.uniform(5,45)
-  alpha=(10+18*math.sin(phase+i*.45)**2)
-  d.line((x,y,x+width,y),fill=c_alpha(rgb,alpha),width=1)
- return im.filter(ImageFilter.GaussianBlur(.4))
+ # Repeated horizontal light bands are anchored in water y>=93 rather than sky.
+ for patch,origin in enumerate((160,485,805,1095)):
+  intensity=.88 if tier in ('blue','green') else .64
+  wobble=19*math.sin(phase+patch*.72)
+  for j in range(15):
+   cx=origin+rng.uniform(-118,118)+wobble
+   y=96+(j*7+patch*4)%23+1.8*math.sin(phase*2+j*.57)
+   wide=13+rng.uniform(0,64)
+   bright=(.45+.55*math.sin(phase+j*.68+patch*.4)**2)*intensity
+   d.line((cx-wide*.5,y,cx+wide*.5,y),fill=c_alpha(rgb,70+110*bright),width=2 if j%3 else 3)
+   if j%4==0:
+    g.ellipse((cx-35,y-4,cx+35,y+4),fill=c_alpha(rgb,32+70*bright))
+    d.line((cx-7,y-2,cx+9,y-2),fill=c_alpha((248,255,255),115*bright),width=2)
+ # Subtle coherent long blue shimmer runs along shoreline at bottom of frame.
+ for i in range(7):
+  y=103+i*2.2
+  for j in range(5):
+   x=70+j*254+23*math.sin(phase+i*.6+j)
+   wide=46+17*math.sin(phase+j*.8+i*.2)**2
+   d.line((x,y,x+wide,y),fill=c_alpha(rgb,45+50*math.sin(phase+i+j)**2),width=1)
+ return over(glow.filter(ImageFilter.GaussianBlur(5)),lines.filter(ImageFilter.GaussianBlur(.35)))
 
 def layer_light_rain(tier,k):
  # WEATHER-ONLY. Do not activate from PM severity or model-fabricated data.

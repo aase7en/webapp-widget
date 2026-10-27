@@ -72,3 +72,9 @@
 - GLM independent review found and corrected mismatch of evening expected schedule. Other prior review note about chart aria endpoint order was fixed. Re-review exact SHA after freeze.
 - Rollback requires Web App redeploy old V32 AND restoration of bound script HEAD trigger source, GitHub Pages revert; do not modify PM historical data.
 - Next action: review/stage/PR full candidate and verify source/CI, then safe owner GAS release and public Pages deployment, finally test real Sheet trends.
+
+## 2026-10-27 PM2.5 Luxury V4 motion proof (DEMO ONLY)
+- Latest owner feedback: V3's moving cloud/leaf/reflection almost invisible and birds look like insects; 16f provenance questioned. Owner authorized complete demo repair.
+- Source branch assets/pm25-luxury-scene-proposals-20261026 SHA 34cebfa9bcf81316d67742452d6158368c3d7b0f. Dedicated branch fix/pm25-locked-scene-motion-v4-20261027 in worktree /Volumes/MAC_WORK/DevWorkspace/Github/webapp-widget-pm25-motion-fix-20261027.
+- Task contract: docs/work-orders/WO-PM25-LOCKED-SCENE-MOTION-V4-20261027.md. Demo-only assets, master still locked; stronger layers; 16 frames verified with contact sheets and tests.
+- Original collages 12/10 image cells, not 16. No backend, production, PM threshold or Weather/Water code changed. Do not merge before independent review and owner motion assessment.

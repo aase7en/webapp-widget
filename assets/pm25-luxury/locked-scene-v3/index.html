@@ -28,6 +28,8 @@ footer{font-size:.81rem;color:#88aaba;margin-top:20px}a{color:#8ceaff}
 <button type="button" data-tier="yellow">เหลือง · ปานกลาง</button>
 <button type="button" data-tier="orange">ส้ม · เริ่มมีผลกระทบ</button>
 <button type="button" data-tier="red">แดง · มีผลกระทบ</button></div>
+<p><strong>Motion V4 Proof:</strong> เมฆเคลื่อนเป็นกลุ่ม, ใบไม้บนกิ่งแกว่ง, นกปีกกางบินผ่าน และแสงสะท้อนน้ำเป็นริ้วชัดขึ้น โดยล็อกตำแหน่งอาคารไว้เหมือนเดิม</p>
+<p>ตรวจ 16 เฟรมจริง: <a id="contactLink" href="qa/blue-contact-16f.webp" target="_blank" rel="noopener">Contact Sheet 4×4 ของระดับที่เลือก</a> · <a href="qa/all-tiers-motion-proof.webp" target="_blank" rel="noopener">เปรียบเทียบ 5 ระดับ × 4 ช่วง</a> · เฟรมเหล่านี้สร้างจากภาพต้นฉบับ 1 ภาพและเอฟเฟกต์ ไม่ใช่ 16 ภาพสถานที่จริง</p>
 <div class="canvas-card"><h2>ภาพรวม · 432 × 40 LED (ขยาย 3×)</h2><canvas width="1296" height="120" id="mainCanvas" aria-label="ภาพสาธิตอากาศและภาพเคลื่อนไหว"></canvas></div>
 <div class="canvas-card"><h2>Motion Detail · ขยายเมฆ แสง ฝุ่น ลม และเงาน้ำ</h2><canvas width="990" height="300" id="detailCanvas" aria-label="ขยายดูชั้นเอฟเฟกต์"></canvas></div>
 <div class="tools"><button type="button" id="play">หยุด Animation</button><button type="button" id="speed">ความเร็ว 1×</button><button type="button" id="rain" aria-pressed="false">ทดสอบฝน Weather: ปิด</button><button type="button" id="all">เปิดเอฟเฟกต์ทั้งหมด</button></div>
@@ -75,13 +77,15 @@ function draw(){ctx.fillStyle='#041120';ctx.fillRect(0,0,1296,120);
  dctx.drawImage(cvs,210,23,950,91,0,0,990,300);
  status.textContent='ระดับ '+state.tier.toUpperCase()+' | เฟรม '+(Math.floor(state.frame)%16+1)+' /16 | '+(state.playing?'เล่น':'หยุด')+' | '+state.rate+'× | ฝน '+(state.showRain?'เปิด (ทดสอบ)':'ปิด');}
 async function changeTier(tier){if(!tiers.includes(tier))return;
- const token=++state.token;state.tier=tier;state.layers={};state.master=null;state.frame=0;state.last=null;status.textContent='กำลังโหลด '+tier+'…';buttonLabels();draw();
+ const token=++state.token;state.tier=tier;state.layers={};state.master=null;state.frame=0;state.last=null;status.textContent='กำลังโหลด '+tier+'…';
+ document.getElementById('contactLink').href='qa/'+tier+'-contact-16f.webp';
+ buttonLabels();draw();
  const dir='effects/';let requests=[fileImage('master/'+tier+'.webp')];
  for(const name of fx)requests.push(fileImage(dir+name+'/'+tier+'-16f.webp'));
  requests.push(fileImage(dir+'light_rain/'+tier+'-weather-16f.webp'));
  try{let imgs=await Promise.all(requests);if(token!==state.token)return;state.master=imgs[0];[...fx,'light_rain'].forEach((name,i)=>{state.layers[name]=imgs[i+1]});draw();}
  catch(err){if(token===state.token)status.textContent=err.message}}
-function tick(now){if(state.playing&&state.master){if(state.last!=null){state.frame=(state.frame+(now-state.last)/100*state.rate)%16;draw()}state.last=now}else state.last=null;requestAnimationFrame(tick)}
+function tick(now){if(state.playing&&state.master&&!document.hidden){if(state.last!=null){state.frame=(state.frame+(now-state.last)/100*state.rate)%16;draw()}state.last=now}else state.last=null;requestAnimationFrame(tick)}
 document.querySelectorAll('[data-tier]').forEach(b=>b.addEventListener('click',()=>changeTier(b.dataset.tier)));
 document.getElementById('play').addEventListener('click',()=>{state.playing=!state.playing;state.last=null;buttonLabels();draw()});
 document.getElementById('speed').addEventListener('click',()=>{state.rate=state.rate===1?2:1;state.last=null;buttonLabels();draw()});
