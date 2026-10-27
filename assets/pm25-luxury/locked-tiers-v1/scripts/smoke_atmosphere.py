@@ -12,7 +12,7 @@ STACKS = {
  'orange': ((771,30), (792,32), (810,31), (881,17)),
  'red': ((762,26), (792,33), (806,34), (886,20)),
 }
-PALETTE = {'orange': (81,64,56), 'red': (65,52,51)}
+PALETTE = {'orange': (147,111,86), 'red': (118,79,66)}  # warm smoke tones sampled against owner master art
 DIAMETER = {'orange': 0.88, 'red': 1.26}
 
 def packet_state(tier, stack_index, birth, frame):
@@ -24,11 +24,11 @@ def packet_state(tier, stack_index, birth, frame):
     drift = (0.83 + stack_index * .07) * age
     x = outlet_x - drift + 1.5*math.sin(age*.21 + stack_index)
     y = outlet_y - (.76 + stack_index*.06)*age
-    radius_x = 3.5 + .52*age
-    radius_y = 2.9 + .40*age
+    radius_x = 3.5 + .39*age
+    radius_y = 2.9 + .30*age
     fade_in = min(1.0, age / 5.0)
     fade_out = min(1.0, max(0, (42-age)/10.0))
-    alpha = fade_in * fade_out * DIAMETER[tier]
+    alpha = fade_in * fade_out * DIAMETER[tier] * .73  # prevent opaque diagonal slabs at LED scale
     return {'x':x,'y':y,'rx':radius_x,'ry':radius_y,'alpha':alpha,'age':age}
 
 def protected_structure(tier, w=1296, h=120):
