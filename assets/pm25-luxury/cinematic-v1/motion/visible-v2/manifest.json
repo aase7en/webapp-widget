@@ -1,0 +1,67 @@
+{
+  "schema": 2,
+  "kind": "visible-luxury-haze-loop",
+  "reviewOnly": true,
+  "canvas": {
+    "width": 1296,
+    "height": 120,
+    "LEDLogicalWidth": 432,
+    "LEDLogicalHeight": 40
+  },
+  "frames": 8,
+  "frameMs": 125,
+  "columns": 4,
+  "tiers": {
+    "blue": {
+      "atlas": "blue-haze-visible-atlas.png",
+      "gif": "blue-visible-motion.gif",
+      "atlasSHA256": "ff3d504497aa3db2d64b33e58c1980c4bf972d81b9fe6d68db406618bbe90187",
+      "gifSHA256": "267a7722ddf8caa6fb859ce2446c8edf0532fdeb376a1ccb39cdc8f802eedf34",
+      "frameCount": 8,
+      "maxFrameRGBDelta": 14.48,
+      "loopRGBDelta": 13.3,
+      "atlasBytes": 552458
+    },
+    "green": {
+      "atlas": "green-haze-visible-atlas.png",
+      "gif": "green-visible-motion.gif",
+      "atlasSHA256": "e50ae49f846866f533e5cce4f4a12f821c4eac953a5488cc08ebf760efb661e8",
+      "gifSHA256": "acf458bdb93ac60e53c71e65d60e4fd52f7db1f43e2525fc32600188c42a4eb0",
+      "frameCount": 8,
+      "maxFrameRGBDelta": 14.07,
+      "loopRGBDelta": 12.92,
+      "atlasBytes": 556100
+    },
+    "yellow": {
+      "atlas": "yellow-haze-visible-atlas.png",
+      "gif": "yellow-visible-motion.gif",
+      "atlasSHA256": "2a394f7ff14ccce6cebe4e8f47504f7eb4459b045de4d34d9f8fd2cc5265f3a3",
+      "gifSHA256": "ba17cf69f91ecd2e8d001e953b24f77faabc56b14dd4900fd0599bd492690677",
+      "frameCount": 8,
+      "maxFrameRGBDelta": 14.99,
+      "loopRGBDelta": 13.94,
+      "atlasBytes": 571777
+    },
+    "orange": {
+      "atlas": "orange-haze-visible-atlas.png",
+      "gif": "orange-visible-motion.gif",
+      "atlasSHA256": "99755ba5c5a605a18b5b3b77b765801a9dc6a7880be091e6a55fa8f027a1f966",
+      "gifSHA256": "8dc8aa2f96d09c74db4f797a22bae6059b7ced7c9d796a64497ab70c2995ec9f",
+      "frameCount": 8,
+      "maxFrameRGBDelta": 13.6,
+      "loopRGBDelta": 13.01,
+      "atlasBytes": 563662
+    },
+    "red": {
+      "atlas": "red-haze-visible-atlas.png",
+      "gif": "red-visible-motion.gif",
+      "atlasSHA256": "8be144acbf06045257e7700dbfcd6714833215ea31c66203291c0115ec426f2d",
+      "gifSHA256": "d4e2f9ed2885fd9aec555decf8059bf86bb878650af4a495f09e08f9577f1eb7",
+      "frameCount": 8,
+      "maxFrameRGBDelta": 12.9,
+      "loopRGBDelta": 12.56,
+      "atlasBytes": 565075
+    }
+  },
+  "warning": "Art-only; text/status/time must be DOM; not a PM measurement"
+}

@@ -1,0 +1,64 @@
+{
+  "schema": 1,
+  "artifactStatus": "DRAFT_PROPOSAL_NOT_LIVE",
+  "productionCompatible": false,
+  "source": "deterministic procedural design study; reviewed source of PM data still required",
+  "baseSize": {
+    "width": 1296,
+    "height": 160
+  },
+  "tiers": {
+    "blue": {
+      "file": "master-blue.webp",
+      "width": 1296,
+      "height": 160,
+      "sha256": "d831345b8b4ce167795c76a597a19edc82906d4c025556ee86647f4a3514b65c",
+      "bytes": 21278
+    },
+    "green": {
+      "file": "master-green.webp",
+      "width": 1296,
+      "height": 160,
+      "sha256": "d796714cf0fa04b25967a11a395775a188ef45c162abe0aa3041a5c516eb5172",
+      "bytes": 19842
+    },
+    "yellow": {
+      "file": "master-yellow.webp",
+      "width": 1296,
+      "height": 160,
+      "sha256": "bcf1128f869281f3727c9af5ddb22ffe03bd98fbd7be39f1bd93fc26eb2a4c8a",
+      "bytes": 19302
+    },
+    "orange": {
+      "file": "master-orange.webp",
+      "width": 1296,
+      "height": 160,
+      "sha256": "482b90f28c312049c5af6860dbe57248e22fbfd633136d022be58ee19ff9afb4",
+      "bytes": 18628
+    },
+    "red": {
+      "file": "master-red.webp",
+      "width": 1296,
+      "height": 160,
+      "sha256": "a0ae42f051fc2266d0069ce1f603a18537783c29cd5418c25cba19b20adfb5ce",
+      "bytes": 16922
+    }
+  },
+  "animationProof": {
+    "tier": "green",
+    "file": "green-haze-8f.png",
+    "frames": 8,
+    "columns": 4,
+    "frameWidth": 648,
+    "frameHeight": 80,
+    "fpsTrial": 8,
+    "alpha": true,
+    "sha256": "f42aab04bc8f7b6019a8dc718b8fe3f652b7f137b7bcabddc9553a98e3212bf8"
+  },
+  "animatedReview": {
+    "file": "green-motion-preview.gif",
+    "frames": 8,
+    "previewOnly": true
+  },
+  "semantics": "Environmental scene is stylized illustration, NEVER a measured sky or PM sensor visualization; no text or fake PM numbers baked into artwork."
+}

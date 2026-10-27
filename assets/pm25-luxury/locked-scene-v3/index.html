@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="th"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="dark"><title>UTH PM2.5 Luxury | 16-Frame Environmental Motion Studio</title>
+<style>
+:root{color-scheme:dark;font:15px/1.5 system-ui,-apple-system,'Noto Sans Thai',sans-serif;background:#020817;color:#e9f9ff}
+*{box-sizing:border-box}body{margin:0;padding:clamp(12px,3vw,28px);background:radial-gradient(ellipse at 55% 0%,#0c2b4d 0%,#030914 65%);min-height:100vh}
+main{max-width:1320px;margin:auto}h1{font-size:clamp(1.3rem,3vw,2rem);margin:0 0 6px;letter-spacing:.015em}
+p{color:#b7d2e1;max-width:1050px}small,.muted{color:#8eafbd}.tabs,.tools{display:flex;flex-wrap:wrap;gap:9px;align-items:center;margin:14px 0}
+button{font:inherit;font-weight:650;background:#11273c;color:#e3faff;border:1px solid #417494;border-radius:10px;padding:9px 14px;min-height:42px;cursor:pointer}
+button[aria-pressed="true"]{border-color:#40e8f6;background:#164057;box-shadow:0 0 16px #39cfff55}button:focus-visible,input:focus-visible{outline:3px solid #fff;outline-offset:2px}
+.canvas-card{background:linear-gradient(115deg,#071c33,#060e1c);border:1px solid #245879;border-radius:15px;padding:12px;margin:15px 0}
+h2{font-size:1rem;margin:0 0 10px;font-weight:600;color:#d3faff}
+canvas{display:block;width:100%;height:auto;background:#061628;border-radius:6px;border:1px solid #3bc5ff;box-shadow:0 0 12px #06bdff77, inset 0 0 12px #08caff44}
+#mainCanvas{aspect-ratio:10.8 / 1}#detailCanvas{aspect-ratio:3.3/1;max-height:240px;object-fit:fill}
+.controls{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:8px;margin:15px 0}
+label{display:flex;align-items:center;gap:9px;background:#0b1e2e;border:1px solid #244962;border-radius:10px;padding:9px 10px;cursor:pointer;min-height:43px}
+label input{accent-color:#38dde9;width:18px;height:18px}#status{color:#7feace;font-variant-numeric:tabular-nums;min-height:25px}
+.details{border-top:1px solid #24425a;margin-top:20px;padding-top:12px}
+footer{font-size:.81rem;color:#88aaba;margin-top:20px}a{color:#8ceaff}
+</style></head>
+<body><main>
+<h1>UTH · PM2.5 Luxury Motion Studio</h1>
+<p>16 authored frames ต่อระดับ • อัตราส่วนจอ LED จริง <strong>432 × 40</strong> • ฉากที่ล็อกตำแหน่ง + เอฟเฟกต์โปร่งใสแยกชั้น • ภาพอุทัย/โรจนะ/วัดสะแกเป็นภาพสื่อบรรยากาศจาก AI ไม่ใช่ภาพสถานที่จริง</p>
+<div class="tabs" id="tiers" role="group" aria-label="เลือกระดับสี PM2.5">
+<button type="button" data-tier="blue" aria-pressed="true">ฟ้า · ดีมาก</button>
+<button type="button" data-tier="green">เขียว · ดี</button>
+<button type="button" data-tier="yellow">เหลือง · ปานกลาง</button>
+<button type="button" data-tier="orange">ส้ม · เริ่มมีผลกระทบ</button>
+<button type="button" data-tier="red">แดง · มีผลกระทบ</button></div>
+<div class="canvas-card"><h2>ภาพรวม · 432 × 40 LED (ขยาย 3×)</h2><canvas width="1296" height="120" id="mainCanvas" aria-label="ภาพสาธิตอากาศและภาพเคลื่อนไหว"></canvas></div>
+<div class="canvas-card"><h2>Motion Detail · ขยายเมฆ แสง ฝุ่น ลม และเงาน้ำ</h2><canvas width="990" height="300" id="detailCanvas" aria-label="ขยายดูชั้นเอฟเฟกต์"></canvas></div>
+<div class="tools"><button type="button" id="play">หยุด Animation</button><button type="button" id="speed">ความเร็ว 1×</button><button type="button" id="rain" aria-pressed="false">ทดสอบฝน Weather: ปิด</button><button type="button" id="all">เปิดเอฟเฟกต์ทั้งหมด</button></div>
+<div class="controls" id="layerControls" aria-label="ตัวเลือกเอฟเฟกต์">
+<label><input type="checkbox" value="sunshafts" checked>รังสีแสงแดด</label>
+<label><input type="checkbox" value="clouds" checked>เมฆเคลื่อนตัว</label>
+<label><input type="checkbox" value="fog" checked>หมอกลอย</label>
+<label><input type="checkbox" value="smoke" checked>หมอกควัน</label>
+<label><input type="checkbox" value="dust" checked>ละอองฝุ่นลอย</label>
+<label><input type="checkbox" value="airflow" checked>สายลมเรืองแสง</label>
+<label><input type="checkbox" value="leaves" checked>ใบไม้พัด</label>
+<label><input type="checkbox" value="birds" checked>นกบิน</label>
+<label><input type="checkbox" value="water_reflections" checked>แสงสะท้อนผิวน้ำ</label>
+</div>
+<div id="status" role="status" aria-live="off">กำลังโหลด Asset...</div>
+<div class="details"><p><strong>Data Integrity:</strong> Demo นี้ไม่เชื่อม API ไม่แสดงค่าฝุ่นจริง และเอฟเฟกต์ฝนจะไม่เปิดอัตโนมัติจากระดับ PM2.5 ต้องผูกกับข้อมูล Weather จริงในขั้น Integration หากระบบตั้งค่า Reduced Motion จะเริ่มแบบหยุดภาพ</p>
+<p><small>แหล่งภาพ: Storyboard 5 ภาพจากผู้ใช้ (ต้นฉบับมี 12/10 ช่อง) → ครอบภาพตรง → ล็อกฉากพื้นหลังหนึ่งเฟรม → สร้างรอบเคลื่อนไหวใหม่ 16 เฟรมจากชั้นเอฟเฟกต์ โดยไม่ได้อ้างว่าเป็น 16 เฟรมจากภาพต้นฉบับ</small></p></div>
+<footer>Asset Work Order only • ไฟล์ PNG/WebP เดิมไม่ถูกเขียนทับ • ไม่มีการเปลี่ยน Production</footer>
+</main>
+<script>
+(()=>{
+'use strict';
+const tiers=['blue','green','yellow','orange','red'];
+const fx=['sunshafts','clouds','fog','smoke','dust','airflow','leaves','birds','water_reflections'];
+const cvs=document.getElementById('mainCanvas'),ctx=cvs.getContext('2d',{alpha:false});
+const detail=document.getElementById('detailCanvas'),dctx=detail.getContext('2d',{alpha:false});
+const state={tier:'blue',layers:{},master:null,showRain:false,playing:!matchMedia('(prefers-reduced-motion: reduce)').matches,rate:1,frame:0,last:null,token:0};
+const status=document.getElementById('status');
+function buttonLabels(){document.querySelectorAll('[data-tier]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.tier===state.tier)));
+ document.getElementById('play').textContent=state.playing?'หยุด Animation':'เล่น Animation';
+ document.getElementById('speed').textContent='ความเร็ว '+state.rate+'×';
+ const r=document.getElementById('rain');r.setAttribute('aria-pressed',String(state.showRain));r.textContent='ทดสอบฝน Weather: '+(state.showRain?'เปิด':'ปิด');}
+function fileImage(url){return new Promise((ok,no)=>{const im=new Image();im.onload=()=>ok(im);im.onerror=()=>no(new Error('ไม่พบไฟล์: '+url));im.src=url;})}
+function drawAtlas(im,frame,opacity){if(!im||opacity<=0)return;
+ const i=Math.floor(frame)%16,alpha=frame-i,j=(i+1)%16;
+ ctx.save();ctx.globalAlpha=opacity*(1-alpha);ctx.drawImage(im,(i%4)*1296,Math.floor(i/4)*120,1296,120,0,0,1296,120);
+ if(alpha>0){ctx.globalAlpha=opacity*alpha;ctx.drawImage(im,(j%4)*1296,Math.floor(j/4)*120,1296,120,0,0,1296,120)}ctx.restore();}
+function draw(){ctx.fillStyle='#041120';ctx.fillRect(0,0,1296,120);
+ if(state.master)ctx.drawImage(state.master,0,0,1296,120);
+ const enabled=new Set([...document.querySelectorAll('#layerControls input:checked')].map(i=>i.value));
+ for(const layer of fx){if(enabled.has(layer))drawAtlas(state.layers[layer],state.frame,1)}
+ if(state.showRain)drawAtlas(state.layers.light_rain,state.frame,1);
+ dctx.fillStyle='#041120';dctx.fillRect(0,0,990,300);
+ // crop 900x78 from composite full canvas; repeat zoom smoothly.
+ dctx.drawImage(cvs,210,23,950,91,0,0,990,300);
+ status.textContent='ระดับ '+state.tier.toUpperCase()+' | เฟรม '+(Math.floor(state.frame)%16+1)+' /16 | '+(state.playing?'เล่น':'หยุด')+' | '+state.rate+'× | ฝน '+(state.showRain?'เปิด (ทดสอบ)':'ปิด');}
+async function changeTier(tier){if(!tiers.includes(tier))return;
+ const token=++state.token;state.tier=tier;state.layers={};state.master=null;state.frame=0;state.last=null;status.textContent='กำลังโหลด '+tier+'…';buttonLabels();draw();
+ const dir='effects/';let requests=[fileImage('master/'+tier+'.webp')];
+ for(const name of fx)requests.push(fileImage(dir+name+'/'+tier+'-16f.webp'));
+ requests.push(fileImage(dir+'light_rain/'+tier+'-weather-16f.webp'));
+ try{let imgs=await Promise.all(requests);if(token!==state.token)return;state.master=imgs[0];[...fx,'light_rain'].forEach((name,i)=>{state.layers[name]=imgs[i+1]});draw();}
+ catch(err){if(token===state.token)status.textContent=err.message}}
+function tick(now){if(state.playing&&state.master){if(state.last!=null){state.frame=(state.frame+(now-state.last)/100*state.rate)%16;draw()}state.last=now}else state.last=null;requestAnimationFrame(tick)}
+document.querySelectorAll('[data-tier]').forEach(b=>b.addEventListener('click',()=>changeTier(b.dataset.tier)));
+document.getElementById('play').addEventListener('click',()=>{state.playing=!state.playing;state.last=null;buttonLabels();draw()});
+document.getElementById('speed').addEventListener('click',()=>{state.rate=state.rate===1?2:1;state.last=null;buttonLabels();draw()});
+document.getElementById('rain').addEventListener('click',()=>{state.showRain=!state.showRain;buttonLabels();draw()});
+document.getElementById('all').addEventListener('click',()=>{const inputs=[...document.querySelectorAll('#layerControls input')];const target=!inputs.every(x=>x.checked);inputs.forEach(x=>x.checked=target);document.getElementById('all').textContent=target?'ปิดเอฟเฟกต์ทั้งหมด':'เปิดเอฟเฟกต์ทั้งหมด';draw()});
+document.querySelectorAll('#layerControls input').forEach(x=>x.addEventListener('change',draw));
+document.addEventListener('visibilitychange',()=>{state.last=null});
+buttonLabels();changeTier('blue');requestAnimationFrame(tick);
+})();
+</script></body></html>
