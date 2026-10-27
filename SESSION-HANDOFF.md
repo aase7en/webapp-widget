@@ -72,3 +72,10 @@
 - GLM independent review found and corrected mismatch of evening expected schedule. Other prior review note about chart aria endpoint order was fixed. Re-review exact SHA after freeze.
 - Rollback requires Web App redeploy old V32 AND restoration of bound script HEAD trigger source, GitHub Pages revert; do not modify PM historical data.
 - Next action: review/stage/PR full candidate and verify source/CI, then safe owner GAS release and public Pages deployment, finally test real Sheet trends.
+
+## 2026-10-27 PM2.5 / Weather visual source catalog (docs-only)
+- Separate owner-reference branch `docs/pm25-weather-owner-reference-20261027` from frame-first b07680d; WO `docs/work-orders/WO-PM25-WEATHER-OWNER-REFERENCES-20261027.md`.
+- Canonical pointers and SHA: `assets/pm25-luxury/references/README.md`, `reference-manifest.json`.
+- Latest uploaded BLUE/GREEN/YELLOW/ORANGE JPEGs byte-identical to existing originals, RED already present. No collage copy added or deleted.
+- Two layout mockups: 198×66 repo thumbnails plus SHA/Canva media IDs for 1536×512 originals; full-res originals not yet stored as Git blob. Future visual review should obtain full-resolution original when needed.
+- Some old overlay effect atlases byte-duplicate but remain referenced by historical prototype manifests; no unsafe deletions. Live main, data and all other worktrees untouched.
