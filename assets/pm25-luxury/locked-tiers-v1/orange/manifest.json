@@ -1,0 +1,67 @@
+{
+  "tier": "orange",
+  "nativeSourceFrames": 10,
+  "derivedFrames": 54,
+  "sourceFrameSize": [
+    1296,
+    120
+  ],
+  "masterFrame": 3,
+  "ownerSourceFrameHashes": [
+    "e02386d3666e56a41c790397ae4b0d2e20bcbf55fb0cfa2e2edd9944ca948c8d",
+    "01ac60ff3ce59e3882972437e266a022ae0626ccd6352669988bc99046f33a05",
+    "4454fea9719a94c5177f2551c63313abcd5a494ed9e952dcfd9f707eac5f0f01",
+    "8fe04dda3886803bd2fe97739d408969083131296753000ca2404178686b6070",
+    "2ce455ebe2eed03058a7ba38034999a80252a409147446f043dd479604158e99",
+    "3e4f88e78ba68d368b43386b1a98a3df16d32517adb36b8a3462cff048e165bc",
+    "69fcffea0b762284bd1319a4163dc9964cb30b4ed658b8dc0f28c9affcdb911b",
+    "546c08607528ba4685cb0847c708a0b5283bbbcc072a6df518657dcd11595520",
+    "7fd8d64576d0b1ca025d8a1ddb5f08063904441416ed275052d5030bf1406fde",
+    "9554f549d584284b4e6bbfaf42dd2810a1cf625d7297f5b39a5af60583e1472e"
+  ],
+  "masterPath": "assets/pm25-luxury/frame-first-v1/orange/frames/frame-03.webp",
+  "stage": "DEMO_ONLY_NOT_LIVE",
+  "staticLandmarkBoxes": {
+    "hospital": [
+      130,
+      0,
+      400,
+      90
+    ],
+    "bridge": [
+      476,
+      74,
+      722,
+      98
+    ],
+    "skyline": [
+      680,
+      12,
+      977,
+      94
+    ],
+    "temple": [
+      1018,
+      0,
+      1260,
+      97
+    ]
+  },
+  "lockedPixels": 93354,
+  "staticPixelLockVerified": true,
+  "cloudMaxSourcePx": 20.3,
+  "waterPrimaryRipplePx": 2.05,
+  "waterSecondaryRipplePx": 0.84,
+  "waterRippleVerticalPx": 0.5,
+  "skyMotionHalfLoop": 3.226,
+  "waterMotionHalfLoop": 5.327,
+  "seamMeanRgb": 1.292,
+  "averageFrameDifferenceRgb": 0.623,
+  "frameDurationMs": 110,
+  "renderedSource": "same-tier original 10 native owner cells; masked source-derived textures; no invented objects",
+  "smoke": "limited existing-cloud motion within skyline sky mask",
+  "foreground": "foliage light shimmer, no leaf silhouette displacement",
+  "exportedMp4Bytes": 249640,
+  "mp4FramesDecoded": 54,
+  "mp4Fps": 9
+}
