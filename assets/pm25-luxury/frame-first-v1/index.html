@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="icon" href="data:,">
+<title>PM2.5 Frame-First v1 — BLUE gate review</title>
+<style>
+  :root { color-scheme: dark; }
+  body {
+    margin: 0 auto; padding: 2rem 1.25rem 4rem; max-width: 62rem;
+    background: #0d1117; color: #e6edf3;
+    font-family: -apple-system, "Segoe UI", "Noto Sans Thai", Tahoma, sans-serif;
+    line-height: 1.55;
+  }
+  h1 { font-size: 1.5rem; border-bottom: 2px solid #1f6feb; padding-bottom: .5rem; }
+  h2 { font-size: 1.15rem; color: #58a6ff; margin-top: 2.25rem; }
+  a { color: #58a6ff; }
+  .cta {
+    display: inline-block; margin: .75rem 0 0; padding: .75rem 1.25rem;
+    background: #1f6feb; color: #fff; border-radius: .5rem;
+    text-decoration: none; font-weight: 600;
+  }
+  .cta:hover { background: #388bfd; }
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-top: 1rem; }
+  figure { margin: 0; }
+  figure img { width: 100%; height: auto; border-radius: .375rem; border: 1px solid #30363d; }
+  figcaption { font-size: .85rem; color: #8b949e; margin-top: .35rem; }
+  .links li { margin: .3rem 0; }
+  .provenance {
+    margin-top: 1rem; padding: 1rem 1.25rem;
+    background: #161b22; border: 1px solid #30363d; border-left: 4px solid #1f6feb;
+    border-radius: .375rem; font-size: .92rem;
+  }
+  .provenance code { background: #21262d; padding: .1rem .35rem; border-radius: .25rem; font-size: .85em; }
+  .badge {
+    display: inline-block; padding: .15rem .6rem; border-radius: 999px;
+    background: #21262d; border: 1px solid #30363d; color: #8b949e; font-size: .78rem;
+  }
+  .badge.warn { border-color: #9e6a03; color: #d29922; }
+</style>
+</head>
+<body>
+
+<h1>PM2.5 Frame-First v1 — BLUE gate review</h1>
+<p class="badge">BLUE gate</p>
+<p class="badge warn">DEMO_ONLY_NOT_PRODUCTION</p>
+<p>ทบทวนงาน frame-first ชุด BLUE (gate review) — 12 เฟรมจาก owner cells แท้ พร้อมเปรียบเทียบ 3 โหมด<br>
+Review page for the frame-first BLUE gate — native 12-frame loop with STEP / XFADE250 / PINGPONG comparisons.</p>
+
+<h2>Player · เครื่องเล่นแบบโต้ตอบ</h2>
+<p><a class="cta" href="qa/blue-player.html">Interactive player (STEP / XFADE250 / PINGPONG)</a></p>
+<p>เปลี่ยนโหมดเปรียบเทียบและปรับ fps ได้ในหน้า player · Switch approach &amp; fps inside the player.</p>
+
+<h2>Contact sheets · ภาพรวมทุกเฟรม</h2>
+<div class="grid">
+  <figure>
+    <img src="blue/contact-sheet.webp" alt="BLUE contact sheet — 12 frames">
+    <figcaption>blue/contact-sheet.webp — 12 เฟรม owner cells (BLUE)</figcaption>
+  </figure>
+  <figure>
+    <img src="all-levels-contact-overview.webp" alt="All levels contact overview — BLUE, GREEN, ORANGE, RED, YELLOW">
+    <figcaption>all-levels-contact-overview.webp — ภาพรวมทุกระดับ · all levels overview (BLUE approved; GREEN/ORANGE/RED/YELLOW pending gate)</figcaption>
+  </figure>
+</div>
+
+<h2>Mode previews · ตัวอย่างแต่ละโหมด</h2>
+<ul class="links">
+  <li><a href="blue/preview-step.webp">blue/preview-step.webp</a> — STEP (ตัดตรง ไม่ผสมเฟรม)</li>
+  <li><a href="blue/preview-xfade250.webp">blue/preview-xfade250.webp</a> — XFADE250 (เฟด 250 มิลลิวินาที)</li>
+  <li><a href="blue/preview-pingpong.webp">blue/preview-pingpong.webp</a> — PINGPONG (เล่นไป–กลับ)</li>
+</ul>
+
+<h2>Provenance · ที่มาของงาน</h2>
+<div class="provenance">
+  <ul>
+    <li>BLUE: <strong>12 genuine owner cells</strong> — ใช้เซลล์จริงจากเจ้าของงาน ทั้ง 12 เฟรม · แต่ละระดับอื่น (GREEN/ORANGE/RED/YELLOW) มี 10 cells รอผ่าน gate ก่อนนำมาใช้ (each other level: 10 cells, pending gate).</li>
+    <li>Native counts <strong>not fabricated</strong> — จำนวนเฟรมมาจากข้อมูลจริง ไม่มีการกุข้อมูล · frame counts come from real data only.</li>
+    <li>No overlay assets by policy — ไม่ฝัง asset overlay ตามนโยบาย.</li>
+    <li>Base commit: <code>34cebfa</code> (assets(pm25): add geometry-locked 5x16 loops and nature weather layers).</li>
+    <li><code>DEMO_ONLY_NOT_PRODUCTION</code> — เพื่อทบทวนเท่านั้น ห้ามใช้งานจริง · review artifact, not production.</li>
+  </ul>
+</div>
+
+</body>
+</html>
