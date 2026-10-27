@@ -3,6 +3,7 @@
 from pathlib import Path
 from PIL import Image,ImageChops,ImageStat
 import hashlib,json,numpy as np
+from smoke_atmosphere import protected_structure
 ROOT=Path(__file__).resolve().parents[1]
 SOURCE=ROOT.parent/'frame-first-v1'
 tiers=('green','yellow','orange','red')
@@ -19,7 +20,16 @@ for t in tiers:
  first=np.asarray(Image.open(folder/'qa/first-lossless.png'))
  middle=np.asarray(Image.open(folder/'qa/mid-lossless.png'))
  for name,(l,u,r,b) in m['staticLandmarkBoxes'].items():
-  assert np.array_equal(first[u:b,l:r],middle[u:b,l:r]),('ROI_CHANGED',t,name)
+  if t in ('orange','red') and name=='skyline':
+   # Smoke is permitted in the SKY above chimney mouths only, not skyline geometry.
+   assert np.array_equal(first[36:b,l:r],middle[36:b,l:r]),('SKYLINE_CHANGED',t)
+  else:
+   assert np.array_equal(first[u:b,l:r],middle[u:b,l:r]),('ROI_CHANGED',t,name)
+ if t in ('orange','red'):
+  structure=protected_structure(t)
+  assert np.array_equal(first[structure],middle[structure]),('STRUCTURE_CHANGED',t)
+  assert m['smokeAllowedPixels']>250
+  assert m['smoke'].startswith('forward-only staggered')
  assert m['staticPixelLockVerified'] and m['lockedPixels']>40000
  assert m['skyMotionHalfLoop']>2.5 and m['waterMotionHalfLoop']>3.0
  im=Image.open(folder/f'{t}-locked-54f.webp')

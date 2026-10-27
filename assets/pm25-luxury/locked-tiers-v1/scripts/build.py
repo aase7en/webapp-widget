@@ -9,6 +9,7 @@ from pathlib import Path
 from PIL import Image, ImageDraw, ImageFilter, ImageChops, ImageStat
 from scipy.ndimage import map_coordinates
 import numpy as np, json, hashlib, math, argparse
+from smoke_atmosphere import apply as apply_emissions, protected_structure, stack_field, red_haze, red_suspended_dust
 
 HERE=Path(__file__).resolve().parents[1]
 SOURCE=HERE.parent/'frame-first-v1'
@@ -73,18 +74,26 @@ def run(tier):
  # On hazier scenes diffuse EXISTING smoky cloud textures above stacks;
  # never animate the physical smokestacks themselves.
  smoke=np.zeros((H,W),dtype=np.float32)
- if cfg['smoke']:
-  smoke=.31*bell(xx,yy,812,12,92,29)*sky
  for l,t,r,b in box.values():
   for mask in (sky,river,haze,sun,canopy,smoke):
    mask[t:b,l:r]=0
  # Restrict all water to water polygon below shoreline.
  river[yy<cfg['bank']]=0
  active=np.maximum.reduce([sky,river,haze,sun,canopy,smoke])>0
+ smoke_allowed=np.zeros((H,W),dtype=bool)
+ if cfg['smoke']:
+  # The union is a conservative TEST mask; physical landmarks remain protected.
+  for step in range(54):
+   smoke_allowed|=(stack_field(tier,step)>.0001)
+   if tier=='red':
+    smoke_allowed|=(red_haze(step)>.0001)
+    smoke_allowed|=(red_suspended_dust(step)>.0001)
+  active|=smoke_allowed
  assert active.any() and (~active).any()
  for name,mask in [('sky',sky),('river',river),('sun',sun)]:
   assert mask.max()>.2,name
- frames=[];source_path=list(range(10))+list(range(8,0,-1))
+ frames=[];first_background=None
+ source_path=list(range(10))+list(range(8,0,-1))
  assert len(source_path)==18
  total=54
  for i in range(total):
@@ -106,14 +115,14 @@ def run(tier):
   output+=diff[:,:,None]*haze[:,:,None]*.42
   output+=sun[:,:,None]*(math.sin(phase-.5)+1)*.5*cfg['sun']
   output+=canopy[:,:,None]*(.8*math.sin(phase*1.0+.65)+.6*math.sin(2*phase+.15))
-  if cfg['smoke']:
-   plume=warp(derived,-.5*cloud_dx,-.25*cloud_dy,xx,yy)
-   output=output*(1-smoke[:,:,None])+plume*smoke[:,:,None]
+  if i==0: first_background=output.copy()
   if i>=48:
-   # Exact source-space final frame=first frame, avoids the abrupt MP4 cycle seam.
+   # The BACKGROUND scene returns to frame zero, but emitted smoke never rewinds.
    u=min(1.,(i-47)/6)
    f=u*u*(3-2*u)
-   output=output*(1-f)+np.asarray(frames[0],dtype=np.float32)*f
+   output=output*(1-f)+first_background*f
+  if cfg['smoke']:
+   output,_=apply_emissions(tier,i,output)
   image=Image.fromarray(np.uint8(np.clip(np.rint(output),0,255)),'RGB')
   frames.append(image)
  # Locked-master check on all UNCOMPRESSED frames, not lossy video.
@@ -121,7 +130,14 @@ def run(tier):
  for image in frames[1:]:
   arr=np.asarray(image)
   for name,(l,t,r,b) in box.items():
-   assert np.array_equal(arr[t:b,l:r],reference[t:b,l:r]),('STATIC_JITTER',tier,name)
+   if cfg['smoke'] and name=='skyline':
+    # Existing skyline must stay fixed; only sky above chimney mouths unlocks.
+    assert np.array_equal(arr[36:b,l:r],reference[36:b,l:r]),('SKYLINE_JITTER',tier)
+   else:
+    assert np.array_equal(arr[t:b,l:r],reference[t:b,l:r]),('STATIC_JITTER',tier,name)
+  if cfg['smoke']:
+   protected=protected_structure(tier)
+   assert np.array_equal(arr[protected],reference[protected]),('STRUCTURE_JITTER',tier)
   assert np.array_equal(arr[~active],reference[~active]),('UNMASKED_MOTION',tier)
  # Export 54 derived frames; 10 genuine source frames remain immutable.
  still=dest/f'{tier}-still.webp'
@@ -182,8 +198,15 @@ def run(tier):
              seamMeanRgb=round(float(differences[-1]),3),
              averageFrameDifferenceRgb=round(float(np.mean(differences)),3),
              frameDurationMs=110,
-             renderedSource='same-tier original 10 native owner cells; masked source-derived textures; no invented objects',
-             smoke='limited existing-cloud motion within skyline sky mask' if cfg['smoke'] else 'none',
+             renderedSource=('10 owner native cells + locked architecture +'
+               ' illustrative procedurally simulated stack smoke and red airborne haze/dust'
+               if cfg['smoke'] else 'same-tier original 10 native owner cells; masked source-derived textures'),
+             smoke=('forward-only staggered stack emissions, no ping-pong or reversed plume ages'
+                    if cfg['smoke'] else 'none'),
+             plumeModel=('forward-lifetime=42f; birth-interval=6f; 4 physical chimney mouths'
+                          if cfg['smoke'] else 'none'),
+             smokeAllowedPixels=int(smoke_allowed.sum()),
+             ambientDust=('170 tiny staggered forward-drifting aerosols + moving volumetric haze' if tier=='red' else 'none'),
              foreground='foliage light shimmer, no leaf silhouette displacement')
  (dest/'manifest.json').write_text(json.dumps(values,ensure_ascii=False,indent=2)+'\n')
  print('LOCKED_TIER_PASS',tier,'native',len(files),'derived',total,'sky_half',values['skyMotionHalfLoop'],

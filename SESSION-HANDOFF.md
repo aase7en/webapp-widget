@@ -93,3 +93,9 @@
 - New path assets/pm25-luxury/locked-tiers-v1/. Per tier 54 DERIVED frames, 9fps MP4 + 54f WebP, still fallback, original 10-frame contact links, 6-phase contact, motion mask and real Chrome browser screenshot. Masters GREEN05/YELLOW04/ORANGE03/RED04, structures exact locked before encode. Shared player selects four tiers and supports pause/speed/reduced-motion.
 - Task contract docs/work-orders/WO-PM25-GREEN-RED-LOCKED-20261027.md. Engineering source/loop and real Chrome 4-tier test pass; no real data, threshold, Water, Weather, production or backend edits.
 - Next action: verify full repo tests, isolate allowed paths, commit/push Draft PR, recheck immutable hosted preview, get owner visual approval. Do not publish live widget without separate release authorization.
+
+## 2026-10-27 PM2.5 Orange/Red chimney motion demo candidate
+- User assigned current visual assistant via SundayMCP Mac; source SHA 521a3d8 from original sol/pm25-green-red-locked-visual-20261027. Owner requested continuous rising chimney smoke for Orange/Red, dense suspended dust in Red, no reverse smoke playback, luxury palette.
+- Isolated branch: fix/pm25-orange-red-smoke-v2-20261027, worktree /Volumes/MAC_WORK/DevWorkspace/Github/webapp-widget-pm25-stack-plume-v2-20261027. Task details: docs/work-orders/WO-PM25-ORANGE-RED-FORWARD-SMOKE-20261027.md.
+- Implemented dedicated smoke_atmosphere.py with forward-only packet age/trajectory and periodic upward/downwind texture movement; source-matched red atmospheric volumetric haze and fine dust. The 54-frame export loops but chimney smoke does not ping-pong. All original images and GREEN/YELLOW outputs unchanged.
+- Engineering verified deterministic forward direction, protected architecture, real Chrome playback/pause/reduced-motion, 313/313 root tests. Must still obtain owner review on physical LED before merging or production integration. No deployment authority.
