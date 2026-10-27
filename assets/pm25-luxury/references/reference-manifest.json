@@ -1,5 +1,5 @@
 {
-  "schema_version": 1,
+  "schema_version": 2,
   "purpose": "owner_selected_design_references",
   "repository": "aase7en/webapp-widget",
   "date": "2026-10-27",
@@ -46,11 +46,17 @@
       "no_duplicate_copy": true
     }
   ],
-  "layout_moodboard_previews": [
+  "rules": [
+    "Reference the 5 existing canonical collages by path/hash. Never duplicate them.",
+    "Full-size PM and Weather visuals are re-encoded references (1536x512); do not claim exact original binary fidelity.",
+    "Historic overlay effects may have identical hashes but may be used by older scripts and manifests: do not delete without dependency audit.",
+    "No live backend, sensor, PM threshold, or production changes in this asset-reference lane."
+  ],
+  "layout_moodboard_references": [
     {
       "role": "pm25_layout_reference",
       "path": "assets/pm25-luxury/references/pm25-layout-preview.jpg",
-      "kind": "thumbnail_only",
+      "kind": "full_resolution_reencoded_reference",
       "source_original": {
         "file_id": "file_00000000b8888207952fe6161079ae3d",
         "sha256": "dfc5f0809601c4151d97fe07ccb2356b5b09c5b0a940a5ac8c7fac259de1d423",
@@ -60,13 +66,19 @@
         ]
       },
       "canva_media_id": "MAHZNJW_ajY",
-      "stored_sha256": "cf2e222e6e6da9d4dfe13b2b3f47df7a653a5730289a41fadf1fcd1b234b78d5",
-      "stored_bytes": 7154
+      "stored_sha256": "4d76217193bee620387a7bfcaab70ce008a5a6488dc37e320ad889295ed40d48",
+      "stored_bytes": 106786,
+      "stored_pixels": [
+        1536,
+        512
+      ],
+      "provenance_note": "Full 1536x512 pixels returned via connected asset export; re-encoded JPEG, not byte-identical to original owner attachment.",
+      "transfer_asset_id": "0e9285c104414f66a652160cbdcca1ef"
     },
     {
       "role": "weather_layout_reference",
       "path": "assets/pm25-luxury/references/weather-layout-preview.jpg",
-      "kind": "thumbnail_only",
+      "kind": "full_resolution_reencoded_reference",
       "source_original": {
         "file_id": "file_0000000092a08211af5e49bde817b29f",
         "sha256": "f64e161728a34c01b925c5743994d703f286e58688bb606ab493919be7882980",
@@ -76,15 +88,14 @@
         ]
       },
       "canva_media_id": "MAHZNPcUjJQ",
-      "stored_sha256": "8773e18b3bf0de5b5f752106f9a639520d9451e4270548879e05cf888d23f0fa",
-      "stored_bytes": 7399
+      "stored_sha256": "341bd2bbec98e6a84a9d00ac0bb0066772b7a00c0889cc9dbe5019e2200e97f3",
+      "stored_bytes": 108483,
+      "stored_pixels": [
+        1536,
+        512
+      ],
+      "provenance_note": "Full 1536x512 pixels returned via connected asset export; re-encoded JPEG, not byte-identical to original owner attachment.",
+      "transfer_asset_id": "a48f060a759e4a5790fecbd0e19d697c"
     }
-  ],
-  "rules": [
-    "Use original collages at locked-scene-v3/originals without copying them into another directory.",
-    "Use extracted genuine cells in locked-scene-v3/source_frames and frame-first-v1 as source proof.",
-    "PM and Weather layout previews here are THUMBNAILS ONLY. Refer to the full owner originals (ChatGPT/Canva asset IDs) for typography precision.",
-    "Do not delete source collage files or legacy effects still referenced by historical demos/manifests.",
-    "No production runtime/data changes in this reference-index branch."
   ]
 }

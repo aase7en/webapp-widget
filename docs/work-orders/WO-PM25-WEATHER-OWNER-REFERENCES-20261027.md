@@ -19,3 +19,12 @@
 
 ## Verification and release boundary
 Validate all reference file paths, hashes and image dimensions deterministically; inspect Git staged scope, no accidental changes outside allowed. Push separate branch; Draft PR with base `feat/pm25-frame-first-v1-20261027`, do not merge or touch main without owner coordination. The original full-resolution mockups would require a separate lossless transfer into repo to make the reference package fully self-contained.
+
+## Follow-on completion — full-size in-repository references
+- Separate verified worktree and branch: `/Volumes/MAC_WORK/DevWorkspace/Github/webapp-widget-owner-fullres-20261027`, `docs/pm25-weather-owner-fullres-20261027`, based on the catalog commit `1b3003129063ef47fce511d111df969f31755208`.
+- Replaced both thumbnail file CONTENTS in place at `assets/pm25-luxury/references/pm25-layout-preview.jpg` and `weather-layout-preview.jpg`, preserving their stable relative links. Both now contain full 1536×512 pixels rather than 198×66. There are still only two reference JPEG files — no duplicate thumbnail or source collage was introduced.
+- Transfer was through the owner's two already-attached assets and an authorized connected high-resolution image export, which re-encoded each JPEG. The exact owner-upload originals have different SHA-256 checksums; the catalog now records `source_original.sha256`, `stored_sha256`, both pixel sizes, file size, transfer asset IDs, and a prominent provenance disclaimer. Do not conflate visual full resolution with byte-for-byte fidelity.
+- Original BLUE/GREEN/YELLOW/ORANGE files from this message SHA-match existing `locked-scene-v3/originals` files; RED is already canonical in the same directory. Reuse only, no duplicate import.
+- Historic exact-duplicate procedural overlay files are still used by legacy scripts/manifests and have NOT been deleted. Deleting them would break unrelated historical Demo paths and is not authorized by reference cleanup.
+- `verify_catalog.py` now fails for wrong reference bytes, non-1536×512 resolution, duplicate references, incorrect frame counts, extra .jpg copies or missing canonical originals. Review docs + references only. No source code that drives the LED was touched, no production deployment authorized.
+- Gate for this follow-on: SAFE_TO_MUTATE_REFERENCES_ONLY=YES after isolated worktree+HEAD+remote match; SAFE_TO_DELETE_HISTORICAL_ASSETS=NO; SAFE_TO_MERGE_PRODUCTION=NO. Suggested PR base `feat/pm25-frame-first-v1-20261027`; no overwrite of its .tmp artifacts or Agent-owned work.

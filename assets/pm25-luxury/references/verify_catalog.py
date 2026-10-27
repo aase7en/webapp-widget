@@ -8,7 +8,7 @@ from PIL import Image
 BASE = Path(__file__).resolve().parent
 ROOT = BASE.parents[2]  # project root from assets/pm25-luxury/references/
 CATALOG = json.loads((BASE / 'reference-manifest.json').read_text())
-assert CATALOG['schema_version'] == 1
+assert CATALOG['schema_version'] == 2
 
 seen = set()
 assert [x['tier'] for x in CATALOG['canonical_collages']] == [
@@ -24,14 +24,26 @@ for entry in CATALOG['canonical_collages']:
     seen.add(digest)
     print('SOURCE_OK', entry['tier'], digest[:12])
 
-for entry in CATALOG['layout_moodboard_previews']:
+ref_hashes = set()
+for entry in CATALOG['layout_moodboard_references']:
     path = ROOT / entry['path']
-    assert path.exists(), path
-    assert hashlib.sha256(path.read_bytes()).hexdigest() == entry['stored_sha256']
+    assert path.is_file(), path
+    digest = hashlib.sha256(path.read_bytes()).hexdigest()
+    assert digest == entry['stored_sha256'], path
+    assert digest not in seen and digest not in ref_hashes, ('reference duplicate', path)
+    ref_hashes.add(digest)
     with Image.open(path) as image:
-        assert image.size == (198, 66)
+        assert image.size == (1536, 512), (path, image.size)
+        image.verify()
+    assert entry['stored_pixels'] == [1536, 512]
     assert entry['source_original']['pixels'] == [1536, 512]
-    assert entry['kind'] == 'thumbnail_only'
-    print('THUMB_OK', entry['role'], path.stat().st_size)
+    assert digest != entry['source_original']['sha256'], 'transfer is declared re-encoded'
+    assert entry['stored_bytes'] == path.stat().st_size
+    assert entry['kind'] == 'full_resolution_reencoded_reference'
+    print('FULL_RES_OK', entry['role'], digest[:12], path.stat().st_size)
 
-print('OWNER_REFERENCE_CATALOG_PASS', len(seen), 'unique source collages + 2 distinct layout previews')
+# Exactly two reference JPEGs; zero extra thumbnails, zero duplicate content.
+assert {x.name for x in BASE.glob('*.jpg')} == {
+    'pm25-layout-preview.jpg','weather-layout-preview.jpg'}
+print('OWNER_REFERENCE_CATALOG_PASS', len(seen),
+      'canonical source collages +', len(ref_hashes), 'full-resolution visual references')

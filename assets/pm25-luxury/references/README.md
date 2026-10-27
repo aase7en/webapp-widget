@@ -19,10 +19,10 @@ Frame-first V1 derived preview and provenance: `../frame-first-v1/`.
 
 ## Two layout concepts — owner visual guide
 
-- [PM2.5 Luxury thumbnail](./pm25-layout-preview.jpg): clock on left, huge central PM value, semi-background city, small trend card on right.
-- [Weather Luxury thumbnail](./weather-layout-preview.jpg): exactly aligned clock, huge central temperature, atmospheric scene, legible forecast section.
+- [PM2.5 Luxury full-resolution reference](./pm25-layout-preview.jpg) (1536×512): clock left, very large reading, semi-background city, compact trend on right.
+- [Weather Luxury full-resolution reference](./weather-layout-preview.jpg) (1536×512): same clock anchor, very large temperature, cinematic clouds, readable forecast.
 
-**Important fidelity limitation:** these repository thumbnail previews are 198×66 only. The owner originals are 1536×512 images, still available as the user's uploaded images and in connected Canva assets `MAHZNJW_ajY` (PM2.5) and `MAHZNPcUjJQ` (Weather). SHA-256 checksums of the 1536×512 originals are in the manifest. Never mistake the thumbnails for full-resolution references or upscale them to claim pixel-accurate dimensions. For exact typography, consult full-resolution originals from their source.
+**Fidelity and provenance:** the two repository references now have the owner composition’s full 1536×512 pixel dimensions, not the old 198×66 thumbnails. These JPEGs were exported via the owner-authorized connected asset transfer and **re-encoded** by the transfer service, so their file SHA-256 is *different* from the exact user-uploaded binary. The original attachment SHA-256 and the stored JPEG SHA-256 are recorded separately in the manifest. Original owner attachments are still the byte-exact source; these repository images are high-resolution review references, not a claim of bit-for-bit source identity.
 
 Mockup numbers are not operational data. In the illustrative PM2.5 image, 22 µg/m³ labelled “ดีมาก” is not correct under the intended Thai 2026 five-tier concentration scheme: if a verified 24h PM2.5 value, 22 belongs to GREEN/ดี. Weather sample forecast is also illustrative only.
 
@@ -35,4 +35,4 @@ Mockup numbers are not operational data. In the illustrative PM2.5 image, 22 µg
 
 Do not re-introduce the rejected bird/leaf/small-particle procedural overlays. Historic `../locked-scene-v3/effects/` outputs contain some exact duplicate atlases but are referenced by old manifest/tests; do NOT delete them in a reference-only task. Delete only unnecessary *new* copies or separately audit every downstream dependency before pruning historical files.
 
-**Future agent rule:** look here FIRST; compare original SHA-256 before importing. Identical bytes -> reuse canonical path rather than duplicate. No source collage files were deleted or replicated by this reference catalog.
+**Future agent rule:** look here FIRST; compare original SHA-256 before importing. Identical bytes -> reuse canonical path rather than duplicate. Do not create thumbnail copies of the full-size references. Historical sprite atlases were NOT deleted, as they are referenced by previous manifests/tests.
