@@ -33,3 +33,17 @@ The 16-frame animated output for each tier uses a **fixed master** cropped from 
 ## Limitations / next QA
 
 Technical frame-count and hash tests must pass; owner visual approval and hardware LED 432×40 contrast/animation performance testing are still required. Prototype transparency may require polish before production; do not merge this branch into `main` without explicit owner release decision and independent review.
+
+## V4 motion quality correction — 27 Oct 2026
+
+Owner rejected V3 as too static; bird silhouettes looked like insects. V4 is still an isolated Demo and does not update production PM2.5, Weather or Water.
+
+- Clouds now drift in five soft-edged textured-looking banks rather than nearly transparent +/-14px haze. Base skyline stays pixel-locked.
+- Foreground leaf clusters animate attached to the scene's existing trees with larger leaves and coherent visible stem sway.
+- Birds have large silhouette wing/body/head/tail profiles, flap across the scene and fade at the 16-to-1 loop boundary. Bird motion is illustrative, NOT a biological observation.
+- Lower water contains distinct moving reflected glints and horizontal ripples; no fake water-sensor readings.
+- The UI links to qa/{tier}-contact-16f.webp to inspect **every authored composite frame** and qa/all-tiers-motion-proof.webp for 5×4 comparison. At 432×40, watch the live preview itself for perceptual acceptance.
+- Full 16-frame loops and atlases regenerated for all five tiers, composite atlases refreshed and five MP4 proof videos re-exported. The WebP loops are 16 distinct authored frames. The MP4 exports encode 192 blended frames (four cycles at 30fps), not 192 separately authored poses.
+- Quantitative adjacent composite RGB differences rose for GREEN 1.62->6.90 and BLUE 1.90->7.43, with all five verified via verify_motion.py. These metrics are not a substitute for human visual approval.
+- Reproduction: python3 build_pack.py; python3 composite_atlas.py; python3 create_contact_proof.py; python3 verify_pack.py; python3 verify_motion.py; python3 export_mp4.py.
+- Existing master and original art remain stable; the current 5-tier visual scheme is a mockup, not a promise about the aggregation or status of live PM measurements.

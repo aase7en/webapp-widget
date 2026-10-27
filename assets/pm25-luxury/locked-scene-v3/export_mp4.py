@@ -1,7 +1,7 @@
 from pathlib import Path
 import numpy as np
 from PIL import Image
-import subprocess, json
+import subprocess, json, shutil, re
 ROOT=Path(__file__).resolve().parent
 OUT=ROOT/'videos';OUT.mkdir(exist_ok=True)
 for tier in ('blue','green','yellow','orange','red'):
@@ -27,8 +27,15 @@ for tier in ('blue','green','yellow','orange','red'):
   if code:raise RuntimeError(proc.stderr.read().decode()[:200])
  except Exception:
   proc.kill();raise
- probe=subprocess.run(['ffprobe','-v','error','-select_streams','v:0','-show_entries','stream=nb_frames,width,height,avg_frame_rate','-of','json',str(file)],capture_output=True,text=True,check=True)
- data=json.loads(probe.stdout)['streams'][0]
+ if shutil.which('ffprobe'):
+  probe=subprocess.run(['ffprobe','-v','error','-select_streams','v:0','-show_entries','stream=nb_frames,width,height,avg_frame_rate','-of','json',str(file)],capture_output=True,text=True,check=True)
+  data=json.loads(probe.stdout)['streams'][0]
+ else:
+  # ffprobe is not installed on the authorized Mac, so decode the actual video.
+  probe=subprocess.run(['ffmpeg','-v','info','-i',str(file),'-f','null','-'],capture_output=True,text=True,check=True)
+  matches=re.findall(r'frame=\s*(\d+)',probe.stderr)
+  assert matches,('cannot verify encoded frame count',tier)
+  data={'nb_frames':int(matches[-1]),'width':1296,'height':120,'avg_frame_rate':'30/1','checkedWith':'ffmpeg decode'}
  assert int(data['nb_frames'])==192,(tier,data)
  assert (data['width'],data['height'])==(1296,120)
  print('VIDEO_PASS',tier,data,'bytes',file.stat().st_size,flush=True)

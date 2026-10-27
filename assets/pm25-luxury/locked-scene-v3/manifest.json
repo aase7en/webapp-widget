@@ -183,7 +183,7 @@
         },
         "clouds": {
           "path": "effects/clouds/blue-16f.webp",
-          "sha256": "4f5fe2572094c728fcd3c3d23b8330d6eaccaf09047a980dceb2e94f8653333c",
+          "sha256": "3001031c9278d157039718297a4bb0c2208696823f55e7816ec3652f1027bc86",
           "pixels": [
             5184,
             480
@@ -197,7 +197,7 @@
             4
           ],
           "frameCount": 16,
-          "bytes": 162768
+          "bytes": 227764
         },
         "fog": {
           "path": "effects/fog/blue-16f.webp",
@@ -273,7 +273,7 @@
         },
         "leaves": {
           "path": "effects/leaves/blue-16f.webp",
-          "sha256": "1e80bf3e382b259acd87a4ee79ee9659fd57d1276f8da2fab397f35964754de4",
+          "sha256": "bf4f8c42fb71a84a3a28ce789f613144c33e12e399073ec6328bee18f82f9883",
           "pixels": [
             5184,
             480
@@ -287,11 +287,11 @@
             4
           ],
           "frameCount": 16,
-          "bytes": 42242
+          "bytes": 159754
         },
         "birds": {
           "path": "effects/birds/blue-16f.webp",
-          "sha256": "88dcdc7bc3ed719be55b9e64f982e8421b9c62504b0e49911fcf5bbfe74727dd",
+          "sha256": "9dfa9f111a8e03cfcfeb38e795daa57b77be9d644898dfa618345f5c5777c546",
           "pixels": [
             5184,
             480
@@ -305,11 +305,11 @@
             4
           ],
           "frameCount": 16,
-          "bytes": 9670
+          "bytes": 13546
         },
         "water_reflections": {
           "path": "effects/water_reflections/blue-16f.webp",
-          "sha256": "e7fe89862eb49ab9e1437bafb3b07e6c9ef67107b6151008a7aa7573ffec409f",
+          "sha256": "ad42f623316f113359003e0298643afa2b425dcab90666084e68d5efc6b152d7",
           "pixels": [
             5184,
             480
@@ -323,7 +323,7 @@
             4
           ],
           "frameCount": 16,
-          "bytes": 58900
+          "bytes": 239812
         },
         "light_rain": {
           "path": "effects/light_rain/blue-weather-16f.webp",
@@ -346,14 +346,14 @@
       },
       "loop": {
         "path": "loops/blue-16f.webp",
-        "sha256": "6f25d647a10b8eabfa78480f2a7ff5b5b243146a2605a31cb7b4515c9a93fa42",
+        "sha256": "f87dbccdd337fc0544f5d0a1bfefb58e25a2c0b421a9a0aae86e55a21c1dd3e5",
         "frameCount": 16,
         "durationMs": 100,
         "pixels": [
           1296,
           120
         ],
-        "bytes": 255318
+        "bytes": 410390
       },
       "riskArtParameters": {
         "sun": 1.0,
@@ -366,7 +366,7 @@
       },
       "compositeAtlas": {
         "path": "atlases/blue-composite-16f.webp",
-        "sha256": "b4708b98d1382630b273a0389ef2577a83b345fdb739c36a21d4ce73a0c2ab40",
+        "sha256": "b9f8bd211d52cb9d6f04f137b7036eae78c6e452bcb4ac0d502b2f2f77e44e02",
         "dimensions": [
           5184,
           480
@@ -517,7 +517,7 @@
         },
         "clouds": {
           "path": "effects/clouds/green-16f.webp",
-          "sha256": "3556674cc82b4972869c3ea928ecc4d9ff7ab1cf0ca6110bd286e36104d6ef82",
+          "sha256": "3001031c9278d157039718297a4bb0c2208696823f55e7816ec3652f1027bc86",
           "pixels": [
             5184,
             480
@@ -531,7 +531,7 @@
             4
           ],
           "frameCount": 16,
-          "bytes": 163754
+          "bytes": 227764
         },
         "fog": {
           "path": "effects/fog/green-16f.webp",
@@ -607,7 +607,7 @@
         },
         "leaves": {
           "path": "effects/leaves/green-16f.webp",
-          "sha256": "1e80bf3e382b259acd87a4ee79ee9659fd57d1276f8da2fab397f35964754de4",
+          "sha256": "bf4f8c42fb71a84a3a28ce789f613144c33e12e399073ec6328bee18f82f9883",
           "pixels": [
             5184,
             480
@@ -621,11 +621,11 @@
             4
           ],
           "frameCount": 16,
-          "bytes": 42242
+          "bytes": 159754
         },
         "birds": {
           "path": "effects/birds/green-16f.webp",
-          "sha256": "08ea4db73b3441638ebc160aab47229e3f64775c47dc0904ec44f037b2f590b5",
+          "sha256": "0a6d1d0994731ab1158ca5f5d59afda69c7070eb6b23d911bfbd8686938d9290",
           "pixels": [
             5184,
             480
@@ -639,11 +639,11 @@
             4
           ],
           "frameCount": 16,
-          "bytes": 9686
+          "bytes": 13546
         },
         "water_reflections": {
           "path": "effects/water_reflections/green-16f.webp",
-          "sha256": "e7fe89862eb49ab9e1437bafb3b07e6c9ef67107b6151008a7aa7573ffec409f",
+          "sha256": "ad42f623316f113359003e0298643afa2b425dcab90666084e68d5efc6b152d7",
           "pixels": [
             5184,
             480
@@ -657,7 +657,7 @@
             4
           ],
           "frameCount": 16,
-          "bytes": 58900
+          "bytes": 239812
         },
         "light_rain": {
           "path": "effects/light_rain/green-weather-16f.webp",
@@ -680,14 +680,14 @@
       },
       "loop": {
         "path": "loops/green-16f.webp",
-        "sha256": "3fd9e144da2ff7ad451314f1d96c23c689b0fab706b73b25878ffd199e19fb21",
+        "sha256": "57b2fc79328ec7a0a72e8b72ebc4732a15ed7004be3fc51f27d4a05c3030badf",
         "frameCount": 16,
         "durationMs": 100,
         "pixels": [
           1296,
           120
         ],
-        "bytes": 226938
+        "bytes": 367880
       },
       "riskArtParameters": {
         "sun": 0.87,
@@ -700,7 +700,7 @@
       },
       "compositeAtlas": {
         "path": "atlases/green-composite-16f.webp",
-        "sha256": "a0d434668cef95cbb06539c88c35da8a0f6f570960805eef86810fa01c103cb5",
+        "sha256": "29a582126263c5dd974f344a581e0b7991358e545d4aca3d49a5b099e2d27f05",
         "dimensions": [
           5184,
           480
@@ -851,7 +851,7 @@
         },
         "clouds": {
           "path": "effects/clouds/yellow-16f.webp",
-          "sha256": "3e93cc1db4d428bf4b711324dae549a587d77dfe88c26686dc154ff4ba3960f5",
+          "sha256": "1f766adf25b3a3f9bdd2a9a70f5565871c2cd6a779bec747c5fc2452f7daa7f0",
           "pixels": [
             5184,
             480
@@ -865,7 +865,7 @@
             4
           ],
           "frameCount": 16,
-          "bytes": 163436
+          "bytes": 230602
         },
         "fog": {
           "path": "effects/fog/yellow-16f.webp",
@@ -941,7 +941,7 @@
         },
         "leaves": {
           "path": "effects/leaves/yellow-16f.webp",
-          "sha256": "0b6435e2ba46f8f44579053c5c7a1a040a6731ea21227f51772709239ee31255",
+          "sha256": "9d8a2390e254e3fef373507681e8d41ea6a9deeb13ddacf301248e73a6764f2c",
           "pixels": [
             5184,
             480
@@ -955,11 +955,11 @@
             4
           ],
           "frameCount": 16,
-          "bytes": 40012
+          "bytes": 153264
         },
         "birds": {
           "path": "effects/birds/yellow-16f.webp",
-          "sha256": "5cab0d8eb535aedd9357936ce2610c075a6d8875cfccacb32402bbae894f4c88",
+          "sha256": "fa399537e62f5962ad2e6a1ae29d3acd43f03a00e4f86c519c30282492132474",
           "pixels": [
             5184,
             480
@@ -973,11 +973,11 @@
             4
           ],
           "frameCount": 16,
-          "bytes": 9412
+          "bytes": 13174
         },
         "water_reflections": {
           "path": "effects/water_reflections/yellow-16f.webp",
-          "sha256": "e2fdc0758da6cea1f629b8b8fbca670e0d7a9469fdd675a6ecd21ddaaacad8c2",
+          "sha256": "257723d36831006c0122de78ae382c130b6674977d25a06fc07010f49209399e",
           "pixels": [
             5184,
             480
@@ -991,7 +991,7 @@
             4
           ],
           "frameCount": 16,
-          "bytes": 58810
+          "bytes": 243420
         },
         "light_rain": {
           "path": "effects/light_rain/yellow-weather-16f.webp",
@@ -1014,14 +1014,14 @@
       },
       "loop": {
         "path": "loops/yellow-16f.webp",
-        "sha256": "a77dfee51659774aed6640a360c504f5dc7c8bf2a0af961bdc614931d0a934bd",
+        "sha256": "0ca8b8032dc09d5fd210e0843e4ddc90639186884142061264d5f30f1b6ff676",
         "frameCount": 16,
         "durationMs": 100,
         "pixels": [
           1296,
           120
         ],
-        "bytes": 192332
+        "bytes": 298242
       },
       "riskArtParameters": {
         "sun": 0.59,
@@ -1034,7 +1034,7 @@
       },
       "compositeAtlas": {
         "path": "atlases/yellow-composite-16f.webp",
-        "sha256": "c6bd2ce2a30af5d65820bbb135e685f27024b9176a6e9edc1297f78ec19f7163",
+        "sha256": "c62965e1393b0a4619b2a33302fcba484ea9456f532ef69dd186b250eaf6b0be",
         "dimensions": [
           5184,
           480
@@ -1185,7 +1185,7 @@
         },
         "clouds": {
           "path": "effects/clouds/orange-16f.webp",
-          "sha256": "afbad471642473cafacafa1c856a3b2a2871c2c3adaa261daf26b69c73ad3510",
+          "sha256": "0390999fe89683f53e0365b7f2c5c4ea61828d433dcbdce14f432ef7d1875d67",
           "pixels": [
             5184,
             480
@@ -1199,7 +1199,7 @@
             4
           ],
           "frameCount": 16,
-          "bytes": 154490
+          "bytes": 224106
         },
         "fog": {
           "path": "effects/fog/orange-16f.webp",
@@ -1275,7 +1275,7 @@
         },
         "leaves": {
           "path": "effects/leaves/orange-16f.webp",
-          "sha256": "da88c3b22888e460c5f5095c461a1b6d6e1e94579dc09db13cb40841fe62efde",
+          "sha256": "d27788e111b75b2a0ce4752b19a5e85ed26b4f5d923a93b825887d2681acfb63",
           "pixels": [
             5184,
             480
@@ -1289,11 +1289,11 @@
             4
           ],
           "frameCount": 16,
-          "bytes": 41416
+          "bytes": 153002
         },
         "birds": {
           "path": "effects/birds/orange-16f.webp",
-          "sha256": "8be0920a6761c3141b7a0d1ce0fed3aff3191b70eaf5e888e7bbbb8b2f2c4f40",
+          "sha256": "fa399537e62f5962ad2e6a1ae29d3acd43f03a00e4f86c519c30282492132474",
           "pixels": [
             5184,
             480
@@ -1307,11 +1307,11 @@
             4
           ],
           "frameCount": 16,
-          "bytes": 6582
+          "bytes": 13174
         },
         "water_reflections": {
           "path": "effects/water_reflections/orange-16f.webp",
-          "sha256": "ba0ea2d71b15417a5fc2cd37caf319a97c3ff6dad2c5727e1823d2b9bfe1dd10",
+          "sha256": "4045ced44e823f6fccf1f1bd724745c088e5df379cccb73814399aef20d0acc3",
           "pixels": [
             5184,
             480
@@ -1325,7 +1325,7 @@
             4
           ],
           "frameCount": 16,
-          "bytes": 53830
+          "bytes": 239988
         },
         "light_rain": {
           "path": "effects/light_rain/orange-weather-16f.webp",
@@ -1348,14 +1348,14 @@
       },
       "loop": {
         "path": "loops/orange-16f.webp",
-        "sha256": "8d8e096eb551fa1cd0c870bdb1c64982758c115ae32321471743a6ada1e01ed9",
+        "sha256": "e7ba5f7c955d07efc1ac01ad118927c6f076398ab4bc3fd505fa5d399f38ae94",
         "frameCount": 16,
         "durationMs": 100,
         "pixels": [
           1296,
           120
         ],
-        "bytes": 201804
+        "bytes": 312494
       },
       "riskArtParameters": {
         "sun": 0.34,
@@ -1368,7 +1368,7 @@
       },
       "compositeAtlas": {
         "path": "atlases/orange-composite-16f.webp",
-        "sha256": "a1ed2f3b1193e28164a270f4cad3bfb6e66b319401df8cd2e297acad911866cb",
+        "sha256": "5a3812e8d3e3bd3263410377b3205acd524fa2329550e35cb477c5f4d787b8d2",
         "dimensions": [
           5184,
           480
@@ -1519,7 +1519,7 @@
         },
         "clouds": {
           "path": "effects/clouds/red-16f.webp",
-          "sha256": "fa2bfa807b1a4f6a0f04c4460d73c85ae4316ff65fa39f8ac9dd65c943498a7c",
+          "sha256": "af46d8f96953885c8b515a09a8b9b1315148c469209051d14c0d0fcf69750737",
           "pixels": [
             5184,
             480
@@ -1533,7 +1533,7 @@
             4
           ],
           "frameCount": 16,
-          "bytes": 155232
+          "bytes": 223836
         },
         "fog": {
           "path": "effects/fog/red-16f.webp",
@@ -1609,7 +1609,7 @@
         },
         "leaves": {
           "path": "effects/leaves/red-16f.webp",
-          "sha256": "da88c3b22888e460c5f5095c461a1b6d6e1e94579dc09db13cb40841fe62efde",
+          "sha256": "d27788e111b75b2a0ce4752b19a5e85ed26b4f5d923a93b825887d2681acfb63",
           "pixels": [
             5184,
             480
@@ -1623,11 +1623,11 @@
             4
           ],
           "frameCount": 16,
-          "bytes": 41416
+          "bytes": 153002
         },
         "birds": {
           "path": "effects/birds/red-16f.webp",
-          "sha256": "e21332a31717efebb6a5eac7ca7661a8c2605fc6f2adc721e6bee247fa0c08a2",
+          "sha256": "fa399537e62f5962ad2e6a1ae29d3acd43f03a00e4f86c519c30282492132474",
           "pixels": [
             5184,
             480
@@ -1641,11 +1641,11 @@
             4
           ],
           "frameCount": 16,
-          "bytes": 5178
+          "bytes": 13174
         },
         "water_reflections": {
           "path": "effects/water_reflections/red-16f.webp",
-          "sha256": "ba0ea2d71b15417a5fc2cd37caf319a97c3ff6dad2c5727e1823d2b9bfe1dd10",
+          "sha256": "4045ced44e823f6fccf1f1bd724745c088e5df379cccb73814399aef20d0acc3",
           "pixels": [
             5184,
             480
@@ -1659,7 +1659,7 @@
             4
           ],
           "frameCount": 16,
-          "bytes": 53830
+          "bytes": 239988
         },
         "light_rain": {
           "path": "effects/light_rain/red-weather-16f.webp",
@@ -1682,14 +1682,14 @@
       },
       "loop": {
         "path": "loops/red-16f.webp",
-        "sha256": "1a3e901a855063f54fb1710eb302631b2abcbeadc5770b9a10054a3db9bb4a63",
+        "sha256": "a7e65175c0ff1989e1af1c19b6b5ac2818ebfbd25b56e7bfed497649a95ffd30",
         "frameCount": 16,
         "durationMs": 100,
         "pixels": [
           1296,
           120
         ],
-        "bytes": 173112
+        "bytes": 272768
       },
       "riskArtParameters": {
         "sun": 0.13,
@@ -1702,7 +1702,7 @@
       },
       "compositeAtlas": {
         "path": "atlases/red-composite-16f.webp",
-        "sha256": "fb8f2b2a8e723790a60973a751d5c788389fad6aa487bb34de67042002c48c40",
+        "sha256": "35d10bf245e50252e20382e25bbacea492469a70569f1a8f1cf1219309a43859",
         "dimensions": [
           5184,
           480
@@ -1721,6 +1721,6 @@
   },
   "contactSheet": {
     "path": "review-contact.webp",
-    "sha256": "aeade4fdbbca85567941f8f695b48edbdc1c9cae0154d79f7c9b35c8334b3890"
+    "sha256": "ae4ee2cd19500a760b9dabfc62caa0dd85569f9e7c5f911f7488f50a7f27507a"
   }
 }
