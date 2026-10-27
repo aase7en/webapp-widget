@@ -1,0 +1,67 @@
+{
+  "tier": "yellow",
+  "nativeSourceFrames": 10,
+  "derivedFrames": 54,
+  "sourceFrameSize": [
+    1296,
+    120
+  ],
+  "masterFrame": 4,
+  "ownerSourceFrameHashes": [
+    "73bb59012fc5e28a9f47bb30c960ffd6e7803c2ea1bcbeafb10cb51376bf8883",
+    "10075898294aa9b39f89b2bc1d8400c09fc0c06fcbec9508698356dd8a14f5e0",
+    "706e94d40a6620ca30e236761c047478655a5a06ff4b32f21db70e772c3ffb29",
+    "0a6130935bd503506b477d39e47c03dfba7a9c7982e3d6f2e176733111125760",
+    "14a037b2cbca07bde80ad739e775d917539d3c066b1114bb4c79619efd6896a0",
+    "3cc84c1f04c6d489199575fb67a65ef356f853c5ad36901b35b504183229cbfc",
+    "f210db6f50e2a16f64be29b6dc8330075900df13b7393b43d1d497facb421b7c",
+    "785aa641abf820c5f69fa761eba429e8fd14440b805016ebd0d7934ef1e01dcd",
+    "31b51259fa07a6084d689119d63cd678caeff700efafd5384c9712bcc3fcfda9",
+    "1c93ab45fe39cad036ed16a3eb8db9f7ff51bb448e9667be4f02a60a8f6410e2"
+  ],
+  "masterPath": "assets/pm25-luxury/frame-first-v1/yellow/frames/frame-04.webp",
+  "stage": "DEMO_ONLY_NOT_LIVE",
+  "staticLandmarkBoxes": {
+    "hospital": [
+      130,
+      0,
+      400,
+      91
+    ],
+    "bridge": [
+      475,
+      73,
+      724,
+      98
+    ],
+    "skyline": [
+      682,
+      11,
+      975,
+      94
+    ],
+    "temple": [
+      1020,
+      0,
+      1259,
+      97
+    ]
+  },
+  "lockedPixels": 91909,
+  "staticPixelLockVerified": true,
+  "cloudMaxSourcePx": 22.3,
+  "waterPrimaryRipplePx": 2.12,
+  "waterSecondaryRipplePx": 0.84,
+  "waterRippleVerticalPx": 0.55,
+  "skyMotionHalfLoop": 3.986,
+  "waterMotionHalfLoop": 6.169,
+  "seamMeanRgb": 1.64,
+  "averageFrameDifferenceRgb": 0.736,
+  "frameDurationMs": 110,
+  "renderedSource": "same-tier original 10 native owner cells; masked source-derived textures; no invented objects",
+  "smoke": "none",
+  "foreground": "foliage light shimmer, no leaf silhouette displacement",
+  "exportedMp4Bytes": 284029,
+  "mp4FramesDecoded": 54,
+  "mp4Fps": 9
+}

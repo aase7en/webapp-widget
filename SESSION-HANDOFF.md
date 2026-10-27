@@ -85,3 +85,11 @@
 - New source-derived asset pipeline assets/pm25-luxury/blue-locked-visual-v11/ with 66-frame WebP, MP4, still fallback, same-scene V1 vs V1.1 HTML compare, mask and QA screenshots. Uses original 12 BLUE tiles, source frame 04 as locked master; protected architecture + riverbank remain stable.
 - Wind-driven sky drift up to ~31 source pixels (sky mask only), low-amplitude broad water refraction and changing existing source reflections. Rejected an initial digital-looking zigzag water warp in visual review and repaired it before checkpoint.
 - Work order docs/work-orders/WO-PM25-BLUE-LOCKED-V11-20261027.md. No live/backend/Weather/Water/tier changes. Check exact current SHA and browser QA before claiming production readiness; human owner visual gate still required.
+
+## 2026-10-27 — GREEN/YELLOW/ORANGE/RED Luxury Locked Scenes (assistant visual owner, DEMO)
+- Owner explicitly assigned visual production of the four remaining PM2.5 tier scenes to the image-capable assistant via SundayMCP Mac; Kilo/GLM is for independent nonvisual engineering only.
+- Repo aase7en/webapp-widget. Isolated writer branch sol/pm25-green-red-locked-visual-20261027 from accepted BLUE V1.1 demo SHA 0e6c24ec6cf82a8d51ab715b157bfaf08c53e88b. Worktree /Volumes/MAC_WORK/DevWorkspace/Github/webapp-widget-pm25-tiers-locked-20261027. Original owner frame assets/other worktrees protected.
+- Owner original counts VERIFIED: 10 frames each for GREEN, YELLOW, ORANGE and RED, already normalized 1296x120. BLUE has 12. No invented 12 native green/red frames.
+- New path assets/pm25-luxury/locked-tiers-v1/. Per tier 54 DERIVED frames, 9fps MP4 + 54f WebP, still fallback, original 10-frame contact links, 6-phase contact, motion mask and real Chrome browser screenshot. Masters GREEN05/YELLOW04/ORANGE03/RED04, structures exact locked before encode. Shared player selects four tiers and supports pause/speed/reduced-motion.
+- Task contract docs/work-orders/WO-PM25-GREEN-RED-LOCKED-20261027.md. Engineering source/loop and real Chrome 4-tier test pass; no real data, threshold, Water, Weather, production or backend edits.
+- Next action: verify full repo tests, isolate allowed paths, commit/push Draft PR, recheck immutable hosted preview, get owner visual approval. Do not publish live widget without separate release authorization.
