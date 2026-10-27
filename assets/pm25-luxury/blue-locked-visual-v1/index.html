@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>BLUE · Locked Scene Visual Review | PM2.5 Luxury</title>
+<style>
+:root{color-scheme:dark;font-family:system-ui,"Noto Sans Thai",sans-serif;background:#06111e;color:#e0f5ff}
+*{box-sizing:border-box}body{max-width:1440px;margin:auto;padding:20px}
+h1{font-size:clamp(20px,3vw,29px);font-weight:750;letter-spacing:.3px;margin:8px 0}
+p{line-height:1.55;color:#b6cfdc}
+section{background:linear-gradient(140deg,#0b2337,#071523);border:1px solid #28718c;border-radius:16px;margin:18px 0;padding:16px;box-shadow:inset 0 0 18px #15557149,0 10px 22px #0005}
+h2{font-size:17px;margin:5px 0 12px;color:#a9ecff}
+.tags{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0}
+.tag{font-size:12px;border-radius:100px;background:#174658;color:#baf6ff;padding:6px 12px;border:1px solid #236c87}
+.scene{position:relative;overflow:hidden;border-radius:9px;border:2px solid #2ea4d4;box-shadow:inset 0 0 20px #18b4ff7e,0 0 10px #10baff52;background:#031726;line-height:0}
+.scene video,.scene img{display:block;width:100%;height:auto;aspect-ratio:10.8/1;object-fit:fill}
+.scene.small{max-width:432px;margin:12px auto}
+.controls{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:14px 0 2px}
+button,select{background:#124760;color:#e3faff;border:1px solid #3499bb;padding:9px 14px;border-radius:9px;font-size:14px;cursor:pointer}
+button:hover{background:#216b86}
+a{color:#78e6ff}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media(max-width:800px){.grid{grid-template-columns:1fr}}
+.note{font-size:12px;color:#a8c8d7}
+.proof{max-width:100%;height:auto;display:block;border-radius:7px;border:1px solid #3b829d}
+</style>
+</head>
+<body>
+<h1>PM2.5 Luxury · BLUE — Scene Lock Proof</h1>
+<p>ตัวอย่างภาพเคลื่อนไหวที่ปรับจากภาพต้นฉบับ: <strong>อาคาร วัด สะพาน และขอบฟ้าอยู่นิ่ง</strong> ให้เคลื่อนไหวเฉพาะแสงแดด เมฆ และผิวน้ำ ไม่มี Overlay นก ใบไม้ หรืออนุภาคที่สร้างขึ้นใหม่</p>
+<div class="tags"><span class="tag">Demo Only</span><span class="tag">Locked Master: Blue Frame 04</span><span class="tag">66 Frames · 1296×120</span><span class="tag">LED Target: 432×40</span><span class="tag">No Production Change</span></div>
+<section>
+<h2>V1: Locked Scene — ดูการเคลื่อนไหวจริง</h2>
+<div class="scene"><video id="previewVideo" muted autoplay loop playsinline preload="auto" poster="blue-still.webp"><source src="blue-locked-66f.mp4" type="video/mp4"></video><img id="still" src="blue-still.webp" alt="Blue fixed master" style="display:none"></div>
+<div class="controls">
+<button id="toggle" type="button">Pause</button>
+<label for="speed">Speed</label>
+<select id="speed"><option value=".5">0.5×</option><option value="1" selected>1×</option><option value="1.5">1.5×</option></select>
+<span id="state" aria-live="polite">Loading preview…</span>
+</div>
+<p class="note">ถ้าตั้งค่า Reduced Motion ระบบจะหยุด Animation เป็นภาพนิ่งโดยอัตโนมัติ · วิดีโอใช้ภาพจากต้นฉบับที่บันทึกอยู่ใน Repository</p>
+<h2>จำลองขนาดจอ LED จริง 432×40</h2>
+<div class="scene small"><video id="smallVideo" muted autoplay loop playsinline preload="metadata" poster="blue-still.webp"><source src="blue-locked-66f.mp4" type="video/mp4"></video><img id="smallStill" src="blue-still.webp" alt="Blue fixed master at LED viewport" style="display:none"></div>
+</section>
+<div class="grid">
+<section>
+<h2>ก่อนแก้: เล่นภาพทั้งเฟรม (ต้นเหตุที่ทำให้อาคารกระโดด)</h2>
+<div class="scene"><img src="../frame-first-v1/blue/preview-step.webp" alt="Original blue STEP full frame motion"></div>
+<p>อ้างอิงเพื่อเปรียบเทียบเท่านั้น ไม่ใช่สิ่งที่จะนำไปใช้ในเวอร์ชันใหม่</p>
+</section>
+<section>
+<h2>หลังแก้: ภาพฐานคงที่ (Frame 04)</h2>
+<div class="scene"><img src="blue-still.webp" alt="Blue pixel-locked master background"></div>
+<p>โครงสร้างสำคัญทั้งหมดใช้ภาพเดียว จึงไม่ย่อ/ขยายหรือย้ายตำแหน่งระหว่าง Frame</p>
+</section>
+</div>
+<section>
+<h2>Mask Proof — จุดที่อนุญาตให้เปลี่ยนภาพ</h2>
+<img class="proof" src="qa/blue-locked-mask-proof.webp" alt="Blue sky, water, sun masks, with protected building, bridge, skyline and temple boxes">
+<p class="note">ฟ้า = ท้องฟ้า, เขียวน้ำทะเล = ผิวน้ำ, เหลือง = แสงอาทิตย์, กรอบชมพู = โครงสร้างที่ล็อกพิกเซล</p>
+<h2>6 จังหวะจาก Animation 66 เฟรม</h2>
+<a href="qa/blue-locked-contact-6views.webp" target="_blank" rel="noopener"><img class="proof" src="qa/blue-locked-contact-6views.webp" alt="Six key moments of locked blue visual proof"></a>
+</section>
+<p>ความแตกต่างระหว่างเฟรมมาจากเฟรมต้นฉบับทั้ง 12 เฟรมผ่าน Region Masks ไม่ใช่ภาพที่ AI สร้างอาคารใหม่ทุกเฟรม ข้อมูล PM2.5 จริงและตัวเลขยังไม่ถูกผูกกับ Demo นี้</p>
+<script>
+const video=document.getElementById('previewVideo');
+const small=document.getElementById('smallVideo');
+const still=document.getElementById('still');
+const smallStill=document.getElementById('smallStill');
+const btn=document.getElementById('toggle');
+const status=document.getElementById('state');
+const media=window.matchMedia('(prefers-reduced-motion: reduce)');
+let stopped=false;
+function sync(){
+ const stop=stopped||media.matches;
+ for(const v of [video,small]){
+  if(stop){v.pause();v.style.display='none';}
+  else{v.style.display='block';v.play().catch(()=>{status.textContent='กด Play หาก Browser ไม่อนุญาตให้เล่นอัตโนมัติ';});}
+ }
+ still.style.display=stop?'block':'none';
+ smallStill.style.display=stop?'block':'none';
+ btn.textContent=stop?'Play':'Pause';
+ status.textContent=stop?'Static / Paused':'Playing';
+}
+btn.addEventListener('click',()=>{stopped=!stopped;sync();});
+document.getElementById('speed').addEventListener('change',e=>{video.playbackRate=Number(e.target.value);small.playbackRate=Number(e.target.value);});
+media.addEventListener?.('change',sync);
+video.addEventListener('error',()=>{stopped=true;sync();status.textContent='ภาพนิ่งสำรอง (วิดีโอโหลดไม่ได้)';});
+sync();
+</script>
+</body>
+</html>

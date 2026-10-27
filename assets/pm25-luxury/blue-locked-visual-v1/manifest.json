@@ -1,0 +1,61 @@
+{
+  "sourceFrames": 12,
+  "renderedFrames": 66,
+  "fpsNominal": 11.11,
+  "masterIndex": 4,
+  "masterFile": "/Volumes/MAC_WORK/DevWorkspace/Github/webapp-widget-pm25-blue-locked-visual-20261027/assets/pm25-luxury/frame-first-v1/blue/frames/frame-04.webp",
+  "sourceFrameSha256": [
+    "8ef7767c1f9fc81a7dc130f11a2614135bbea9c84c15c3fa15b3c3c89be26109",
+    "09c410009d32b7df4c72105ca7a47e8501de59bc81e0a4e188fe6b0b3b2007c0",
+    "2d256dabcf3bd9f270fde50cca980106429176d0599f4b1292e4a0857a4ab56d",
+    "990e2ae6236093c1a313897932a6a6c6ca3d59aa7c6ca415992034b9e83870dc",
+    "db97f926624790cf12417b5793dbc8c8a8f1f5693483ced86258997e20f79e14",
+    "6538bed697f96fde4f2cefd2fbe55641ade3ff69a71c4d47d383c291bd6e1e83",
+    "bf78667f614c312a0f9d9a08c77ac18f1f1144079c540033f201e2d6d209312d",
+    "840a97eaf4862c62d17b50eb92ab23772571be77db0da3275c6dde6e1888b88a",
+    "5c114ccb0bc8ccc807adc146c629749e60d3594fb32d27dbdd2788b9d8bbbab3",
+    "6567fc17cc6a71b4e8ed9f67742d4821f528111eecb83c7b8b6e866299a049cf",
+    "70debd6afa89c0de3cf0250b51a4f6107220452794694f0b324d29d3c5fde678",
+    "a1bcd115f1f1eed1fff26e00d88514dffc3594801534ae56b6e21bc7f328c51e"
+  ],
+  "colorMode": "owner-source-derived-region-blends",
+  "geometry": "pixel-locked",
+  "motionMasks": {
+    "sky": 0.521,
+    "water": 0.52
+  },
+  "protectedPixelCount": 66773,
+  "pixelTotal": 155520,
+  "landmarkBoxes": {
+    "hospital": [
+      182,
+      17,
+      389,
+      87
+    ],
+    "bridge": [
+      474,
+      71,
+      718,
+      93
+    ],
+    "skyline": [
+      768,
+      12,
+      917,
+      88
+    ],
+    "temple": [
+      1072,
+      13,
+      1256,
+      89
+    ]
+  },
+  "nonstaticSkyMeanDiff": 18.239,
+  "nonstaticWaterMeanDiff": 13.599,
+  "staticRegionExact": true,
+  "outputWebPBytes": 1102548,
+  "provenance": "locked-scene-v3 original owner collage -> native cells -> frame-first-v1 blue frames",
+  "mode": "DEMO ONLY. No production write, no added birds/leaves/particles."
+}

@@ -72,3 +72,9 @@
 - GLM independent review found and corrected mismatch of evening expected schedule. Other prior review note about chart aria endpoint order was fixed. Re-review exact SHA after freeze.
 - Rollback requires Web App redeploy old V32 AND restoration of bound script HEAD trigger source, GitHub Pages revert; do not modify PM historical data.
 - Next action: review/stage/PR full candidate and verify source/CI, then safe owner GAS release and public Pages deployment, finally test real Sheet trends.
+
+## 2026-10-27 — BLUE locked-master visual proof (assistant visual owner; DEMO ONLY)
+- User rejected earlier BLUE frame-first full-frame playback as earthquake-like and dizzying, asked image-capable assistant to do visual work directly.
+- New isolated worktree branch sol/pm25-blue-locked-master-proof-20261027 based on Kilo's frame-first b07680dc8797af3ad96f7b649158751eb2e357b2, original worktree protected.
+- Source BLUE frame 04 locked as master. Only sky/cloud, sun brightness, lower water/reflection and local haze are changed using source-derived masks from 12 existing BLUE frames. No birds, moving leaves or fake particles. 66 derived frames / ~6s at 11fps.
+- Work order docs/work-orders/WO-PM25-BLUE-LOCKED-VISUAL-20261027.md. New demo assets assets/pm25-luxury/blue-locked-visual-v1/. Visual owner review and actual hardware approval pending. Production and canonical PM data unchanged.
