@@ -72,3 +72,16 @@
 - GLM independent review found and corrected mismatch of evening expected schedule. Other prior review note about chart aria endpoint order was fixed. Re-review exact SHA after freeze.
 - Rollback requires Web App redeploy old V32 AND restoration of bound script HEAD trigger source, GitHub Pages revert; do not modify PM historical data.
 - Next action: review/stage/PR full candidate and verify source/CI, then safe owner GAS release and public Pages deployment, finally test real Sheet trends.
+
+## 2026-10-27 PM2.5 / Weather visual source catalog (docs-only)
+- Separate owner-reference branch `docs/pm25-weather-owner-reference-20261027` from frame-first b07680d; WO `docs/work-orders/WO-PM25-WEATHER-OWNER-REFERENCES-20261027.md`.
+- Canonical pointers and SHA: `assets/pm25-luxury/references/README.md`, `reference-manifest.json`.
+- Latest uploaded BLUE/GREEN/YELLOW/ORANGE JPEGs byte-identical to existing originals, RED already present. No collage copy added or deleted.
+- Two layout mockups: 198×66 repo thumbnails plus SHA/Canva media IDs for 1536×512 originals; full-res originals not yet stored as Git blob. Future visual review should obtain full-resolution original when needed.
+- Some old overlay effect atlases byte-duplicate but remain referenced by historical prototype manifests; no unsafe deletions. Live main, data and all other worktrees untouched.
+
+## 2026-10-27 owner visual references full-resolution upgrade (supplements prior thumbnail checkpoint)
+- The earlier 198×66 thumbnails at `assets/pm25-luxury/references/{pm25,weather}-layout-preview.jpg` are now replaced in a NEW isolated docs branch with 1536×512 re-encoded full-size reference images, with no second copies or changed paths.
+- Reference manifest schema v2 retains exact uploaded-file SHA-256 as source_original and actual stored SHA-256 as separate re-encoded export hashes; `verify_catalog.py` enforces paths, unique checksums and image dimensions.
+- Canonical FIVE source collages were NOT duplicated: BLUE=12 source cells, GREEN/YELLOW/ORANGE/RED=10 each. Existing historical identical atlases not deleted because of use in old manifests.
+- Worktree: `/Volumes/MAC_WORK/DevWorkspace/Github/webapp-widget-owner-fullres-20261027`, branch `docs/pm25-weather-owner-fullres-20261027`, based on docs catalog commit 1b30031; protected live and Kilo's .tmp unchanged. Work Order same as above with full-size completion addendum. Next safe action: review exact SHA/CI and Draft PR into existing frame-first branch, no live merge.

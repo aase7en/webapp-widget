@@ -1,0 +1,101 @@
+{
+  "schema_version": 2,
+  "purpose": "owner_selected_design_references",
+  "repository": "aase7en/webapp-widget",
+  "date": "2026-10-27",
+  "art_direction": "luxury / premium LED like live Water Level, not sensor photo",
+  "canonical_collages": [
+    {
+      "tier": "blue",
+      "role": "canonical_source_collage",
+      "path": "assets/pm25-luxury/locked-scene-v3/originals/11D8EEE5-F7BA-433C-B47C-8226E57F61B6.jpeg",
+      "sha256": "cc3cb9a79f012d203d70f3c48c2e5d6e0b606156b549193ded62e10309c592c2",
+      "native_cells": 12,
+      "no_duplicate_copy": true
+    },
+    {
+      "tier": "green",
+      "role": "canonical_source_collage",
+      "path": "assets/pm25-luxury/locked-scene-v3/originals/B813DE0D-2580-4812-82D3-B56625221C3A.jpeg",
+      "sha256": "bf713bdbb98f3b68958b55b295220e1a223a415bc59f1b53c0e6bdb0ac396956",
+      "native_cells": 10,
+      "no_duplicate_copy": true
+    },
+    {
+      "tier": "yellow",
+      "role": "canonical_source_collage",
+      "path": "assets/pm25-luxury/locked-scene-v3/originals/6E2935B0-DEE8-433E-A3A0-2F248755024E.jpeg",
+      "sha256": "a638bc381db44300081e428bd038b0787e41d112cab08341339737e94c878d44",
+      "native_cells": 10,
+      "no_duplicate_copy": true
+    },
+    {
+      "tier": "orange",
+      "role": "canonical_source_collage",
+      "path": "assets/pm25-luxury/locked-scene-v3/originals/D28AAB6C-51CB-4CC9-9D20-FDA23E0CF092.jpeg",
+      "sha256": "3dd2d58d113a157102460e64cca24114c9ae7f1a15fcd5c1be303a276907d194",
+      "native_cells": 10,
+      "no_duplicate_copy": true
+    },
+    {
+      "tier": "red",
+      "role": "canonical_source_collage",
+      "path": "assets/pm25-luxury/locked-scene-v3/originals/EB284AA1-DC81-4739-956B-912142A5CFBC.jpeg",
+      "sha256": "7a4ec740f213aa427f5df04b182f04a83505d154d500b3afebfa32555617ba2f",
+      "native_cells": 10,
+      "no_duplicate_copy": true
+    }
+  ],
+  "rules": [
+    "Reference the 5 existing canonical collages by path/hash. Never duplicate them.",
+    "Full-size PM and Weather visuals are re-encoded references (1536x512); do not claim exact original binary fidelity.",
+    "Historic overlay effects may have identical hashes but may be used by older scripts and manifests: do not delete without dependency audit.",
+    "No live backend, sensor, PM threshold, or production changes in this asset-reference lane."
+  ],
+  "layout_moodboard_references": [
+    {
+      "role": "pm25_layout_reference",
+      "path": "assets/pm25-luxury/references/pm25-layout-preview.jpg",
+      "kind": "full_resolution_reencoded_reference",
+      "source_original": {
+        "file_id": "file_00000000b8888207952fe6161079ae3d",
+        "sha256": "dfc5f0809601c4151d97fe07ccb2356b5b09c5b0a940a5ac8c7fac259de1d423",
+        "pixels": [
+          1536,
+          512
+        ]
+      },
+      "canva_media_id": "MAHZNJW_ajY",
+      "stored_sha256": "4d76217193bee620387a7bfcaab70ce008a5a6488dc37e320ad889295ed40d48",
+      "stored_bytes": 106786,
+      "stored_pixels": [
+        1536,
+        512
+      ],
+      "provenance_note": "Full 1536x512 pixels returned via connected asset export; re-encoded JPEG, not byte-identical to original owner attachment.",
+      "transfer_asset_id": "0e9285c104414f66a652160cbdcca1ef"
+    },
+    {
+      "role": "weather_layout_reference",
+      "path": "assets/pm25-luxury/references/weather-layout-preview.jpg",
+      "kind": "full_resolution_reencoded_reference",
+      "source_original": {
+        "file_id": "file_0000000092a08211af5e49bde817b29f",
+        "sha256": "f64e161728a34c01b925c5743994d703f286e58688bb606ab493919be7882980",
+        "pixels": [
+          1536,
+          512
+        ]
+      },
+      "canva_media_id": "MAHZNPcUjJQ",
+      "stored_sha256": "341bd2bbec98e6a84a9d00ac0bb0066772b7a00c0889cc9dbe5019e2200e97f3",
+      "stored_bytes": 108483,
+      "stored_pixels": [
+        1536,
+        512
+      ],
+      "provenance_note": "Full 1536x512 pixels returned via connected asset export; re-encoded JPEG, not byte-identical to original owner attachment.",
+      "transfer_asset_id": "a48f060a759e4a5790fecbd0e19d697c"
+    }
+  ]
+}
