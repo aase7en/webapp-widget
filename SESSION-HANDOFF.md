@@ -78,3 +78,10 @@
 - New isolated worktree branch sol/pm25-blue-locked-master-proof-20261027 based on Kilo's frame-first b07680dc8797af3ad96f7b649158751eb2e357b2, original worktree protected.
 - Source BLUE frame 04 locked as master. Only sky/cloud, sun brightness, lower water/reflection and local haze are changed using source-derived masks from 12 existing BLUE frames. No birds, moving leaves or fake particles. 66 derived frames / ~6s at 11fps.
 - Work order docs/work-orders/WO-PM25-BLUE-LOCKED-VISUAL-20261027.md. New demo assets assets/pm25-luxury/blue-locked-visual-v1/. Visual owner review and actual hardware approval pending. Production and canonical PM data unchanged.
+
+## 2026-10-27 — PM2.5 BLUE Locked Scene V1.1 (SundayMCP Mac, owner-authorized demo only)
+- Owner requested assistant take direct visual ownership and increase BLUE cloud drift and gentle wind-driven water/reflection motion; Kilo not needed for aesthetics.
+- Working branch sol/pm25-blue-locked-motion-v11-20261027 from V1 exact SHA 0fd4c3eb0a7911653967e010b9d2e2975d447439. Separate worktree /Volumes/MAC_WORK/DevWorkspace/Github/webapp-widget-pm25-blue-v11-20261027.
+- New source-derived asset pipeline assets/pm25-luxury/blue-locked-visual-v11/ with 66-frame WebP, MP4, still fallback, same-scene V1 vs V1.1 HTML compare, mask and QA screenshots. Uses original 12 BLUE tiles, source frame 04 as locked master; protected architecture + riverbank remain stable.
+- Wind-driven sky drift up to ~31 source pixels (sky mask only), low-amplitude broad water refraction and changing existing source reflections. Rejected an initial digital-looking zigzag water warp in visual review and repaired it before checkpoint.
+- Work order docs/work-orders/WO-PM25-BLUE-LOCKED-V11-20261027.md. No live/backend/Weather/Water/tier changes. Check exact current SHA and browser QA before claiming production readiness; human owner visual gate still required.
