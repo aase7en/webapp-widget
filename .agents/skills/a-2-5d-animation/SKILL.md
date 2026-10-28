@@ -1,6 +1,6 @@
 ---
 name: a-2-5d-animation
-description: "Create or review vivid luxury game-like 2.5D animated backgrounds from a locked master scene, with independent clouds, sunlight, water, flowers, foliage and crop-safe API overlays. Invoke on 'A-2.5DAnimation', layered animation, multi-frame scenic loops, or environment-status scenes; use GrillMe for unresolved artistic decisions before rendering."
+description: "Create or review vivid luxury game-like 2.5D animated backgrounds from a locked master scene, with independent clouds, sunlight, water, flowers, foliage and crop-safe API overlays. Invoke on 'A-2.5DAnimation', layered animation, multi-frame scenic loops, or environment-status scenes; offer image-backed A/B/C/D visual style choices and GrillMe for unresolved artistic decisions before rendering."
 ---
 
 # A-2.5DAnimation
@@ -13,6 +13,20 @@ description: "Create or review vivid luxury game-like 2.5D animated backgrounds 
 2. If the *art direction or output target is unresolved*, invite or invoke the installed **@GrillMe** plugin (its `entry-grill-me` → `grill-with-docs` in a repo or `grill-me` otherwise). This is an interview/design decision workflow, **not** a renderer. If the plugin is unavailable, conduct the same bounded questions conversationally and state that the plugin itself was not run.
 3. Ask only for unresolved decisions, in dependency order: (a) scene subject / faithful-real vs stylized illustration; (b) final display and visual composition / UI safe area; (c) mood/palette and intensity; (d) allowed movements vs locked objects; (e) deliverables (image, alpha layers, GIF, MP4, HTML, loop length). Present a recommended default for each round; do not ask tool-retrievable facts. Record explicit owner decisions and stop after agreement; if user already approved the style, proceed without another interview.
 4. Default when not specified: **vivid, elegant, luxury Japanese-game-like illustration**, fixed camera, landscape master, static architecture, 24 FPS / 6-second loop, iPhone-compatible MP4 + GIF, full-width and target-display proofs; no production deployment.
+
+
+## Visual-style selection — image-first GrillMe (v0.2.0)
+
+**Before generating new artwork, check whether the user has already approved a style.** Reuse the existing approval without repeating questions. If undecided, show the **four visually referenced options A/B/C/D** from [the style gallery](references/style-gallery.md) using the four bundled thumbnail images. Use the installed @GrillMe interview when the user explicitly invokes it, choosing `entry-grill-me → grill-with-docs` for work in a repository and `entry-grill-me → grill-me` in standalone creative work. If unavailable, ask the same bounded questions conversationally and do not imply that the GrillMe plugin was invoked.
+
+- **A / Anime Japanese Game Luxury 2.5D**: painterly anime linework, cel-shaded soft clouds, peach/cream/lilac puff smoke, vibrant luminous water, stylized foliage. **Current PM2.5 orange owner preference — select by default here.**
+- **B / Pastoral Storybook 2.5D**: cozy stylized farming, rice and flowers with delicate motion.
+- **C / Cinematic Painterly 2.5D**: atmospheric golden-hour depth, brush textures, subdued linework.
+- **D / Semi-realistic CGI 2.5D**: near-realistic materials, only when requested (not the selected orange style).
+
+Show a thumbnail for each option; do **not** make four versions of a scene just to ask a style question. In ChatGPT a selection UI is optional, but present the four image-backed choices by default when style is unknown. Ask at most **one unresolved style question at a time**, then motion strength, target crop, and export format only as needed. The visual decision is recorded as `style_id`, `style_ref`, `approved_by_user`, `locked_objects`, `moving_layers`, `target_viewport`, `motion_intensity`.
+
+Style selection does not constitute production release approval. **12 generated images being present does not establish motion success.** Render deterministic independent-layer frames, measure meaningful motion in the relevant regions, inspect actual MP4/GIF on mobile, and request owner visual sign-off.
 
 ## Scene and source contract
 
@@ -32,6 +46,29 @@ description: "Create or review vivid luxury game-like 2.5D animated backgrounds 
 8. `readability-overlay` + `api-ui`: darkening gradient/glass/labels remain separate. Respect contrast, semantics and reduced-motion.
 
 Store **transparent alpha layers**, alpha/structure masks and source metadata when creating a reusable/editable master. Prefer one reproducible deterministic compositor (`Pillow+NumPy`, Canvas2D, or WebGL with fallback) over asking AI to generate 12 fully independent pictures. 12 images may be reference *key moments*, not guaranteed pixel-consistent render frames.
+
+## Natural Motion Taxonomy — mandatory for all animated scenes (v0.3.0)
+
+**Pipeline clarification:** A 2.5D scene is an *editable deterministic compositor*. It generates a **Frame Sequence** (individual complete images sampled at times `t_i`), then encodes those frames to **MP4/GIF**. A collection of 12 independently generated AI stills or a single MP4 is **not** proof of valid 2.5D animation. Show the user the actual frame sequence AND encoded playable video when requested.
+
+Choose movement mode by the object’s physical behavior rather than animating everything with a sine wave:
+
+| Entity / layer | Motion class | Physics / looping policy | Prohibited artifact |
+|---|---|---|---|
+| clouds, windborne smoke/haze | **Directional / through-frame** | cloud layer translates right→left (or owner-specified prevailing wind) using monotone coordinates; starts outside visible frame; exits the opposite edge. Use independent alpha sprites/tiles with seamless **spatial wrapping**, never reverse direction to fake a temporal loop. Smoke puffs are generated at each stack mouth, move UP + prevailing wind, expand/fade by age, and leave the top before recycling. | boomerang/bouncing clouds, reverse smoke, seam jump, cutting the sky into sliding slabs |
+| birds / flying vehicles | **Directional / through-frame** | Spawn outside stage, move continuously until entirely offscreen, optionally repeat after a natural gap. Separate wing flapping (oscillation) from body travel (unidirectional). | birds reversing midair, teleporting inside visible viewport |
+| flowing river or traveling water waves | **Traveling Wave / advection** | spatial wavefront propagates downstream using monotone phase; tile seamlessly or use an integer number of phase cycles over the clip. Distort only water-masked pixels, with soft, non-rectangular boundaries. | reversing river flow, sheared waterfront, water distortions on roofs/grass |
+| foliage, rice stalks, flowers | **Bounded Oscillation** | pivot/elastic sway about stems or joints using phase-offset periodic motion; mask background holes; trunks and hard geometry remain still. | whole-frame wobble, growing/shrinking buildings |
+| localized water glints, sunlight strength / light shafts | **Bounded Oscillation / modulation** | brighten/dim, rotate subtly or sweep within limited area, following cloud occlusion. Use **integer periodic temporal harmonics** if exporting exact seamless loops; rays must not slide across rigid source pixels. | abrupt flicker, temporal phase mismatch at seam |
+| architecture, statue, smokestack, bridge, dashboard API labels | **Static Lock** | 0 pixel displacement before video encoding; overlays remain separate from scene. | camera drift, distortion, random redraw between frames |
+
+**Loop algorithm for directional layers:** define deterministic tile positions `x_i(t) = x_i(0) - v*t - period*k` across enough repeated offscreen copies. If requiring an exactly 6-second loop, choose spatial period `P = v*6s` and ensure all moving sprites have sufficient padding: the same tile reappears only **outside** the visible viewport. Distinguish *wrapped texture motion* from resetting an individual sprite on screen. For standalone birds and smoke packets, keep age/lifetime and entrance/exit visibility; a live animation need not visibly loop after 6 seconds if preserving credible one-way motion matters more than the clip seam.
+
+**Source-asset integrity:** never apply global `remap` / `warp` to a sky, image, or MP4 whose clouds or smoke are baked into a static master; fading in a shifted copy produces **sheared/doubled structures**. First create a clean plate, or keep the source untouched and overlay **transparent cloud/smoke sprites**. If baked cloud/smoke remains, disclose it as a quality limitation and do not claim complete layer isolation. Correct alpha/crop edges to avoid rectangular sprite boundaries.
+
+**QA mandatory tests:** (1) sample 12 distinct key moments and inspect motion at actual target size; (2) track every directional object’s world-space centroid to assert monotonically increasing travel toward its exit (allow small turbulent eddies without reversing overall travel); (3) prove at least one cloud/bird/smoke packet crosses an edge and exits without bouncing; (4) measure per-region nontrivial movement separate from static geometry; (5) evaluate final→first seam against nearby frame pairs, including water and cloud regions; (6) reject temporal harmonics with non-integer cycle counts for looping oscillations, and reject visible discontinuities; (7) verify locked architecture pixel count over all raw frames and UI readability. An MP4 that decodes 144 frames is **not** an animation acceptance test. If visible artifacts remain, mark **REJECTED / visual approval pending**; do not claim PASS solely from synthetic metrics.
+
+Reference: [Natural Motion Patterns](references/natural-motion-patterns.md).
 
 ## Motion and timing
 
