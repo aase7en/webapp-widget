@@ -17,14 +17,14 @@ description: "Create or review vivid luxury game-like 2.5D animated backgrounds 
 
 ## Visual-style selection — image-first GrillMe (v0.2.0)
 
-**Before generating new artwork, check whether the user has already approved a style.** Reuse the existing approval without repeating questions. If undecided, show the **four visually referenced options A/B/C/D** from [the style gallery](references/style-gallery.md) using the four bundled thumbnail images. Use the installed @GrillMe interview when the user explicitly invokes it, choosing `entry-grill-me → grill-with-docs` for work in a repository and `entry-grill-me → grill-me` in standalone creative work. If unavailable, ask the same bounded questions conversationally and do not imply that the GrillMe plugin was invoked.
+**Before generating new artwork, check whether the user has already approved a style.** Reuse the existing approval without repeating questions. If undecided, show the **four visually referenced options A/B/C/D** from the image-backed A/B/C/D gallery in the connected private ChatGPT plugin when available; repository-only copies provide the named text options using images from the connected ChatGPT plugin when available. Use the installed @GrillMe interview when the user explicitly invokes it, choosing `entry-grill-me → grill-with-docs` for work in a repository and `entry-grill-me → grill-me` in standalone creative work. If unavailable, ask the same bounded questions conversationally and do not imply that the GrillMe plugin was invoked.
 
 - **A / Anime Japanese Game Luxury 2.5D**: painterly anime linework, cel-shaded soft clouds, peach/cream/lilac puff smoke, vibrant luminous water, stylized foliage. **Current PM2.5 orange owner preference — select by default here.**
 - **B / Pastoral Storybook 2.5D**: cozy stylized farming, rice and flowers with delicate motion.
 - **C / Cinematic Painterly 2.5D**: atmospheric golden-hour depth, brush textures, subdued linework.
 - **D / Semi-realistic CGI 2.5D**: near-realistic materials, only when requested (not the selected orange style).
 
-Show a thumbnail for each option; do **not** make four versions of a scene just to ask a style question. In ChatGPT a selection UI is optional, but present the four image-backed choices by default when style is unknown. Ask at most **one unresolved style question at a time**, then motion strength, target crop, and export format only as needed. The visual decision is recorded as `style_id`, `style_ref`, `approved_by_user`, `locked_objects`, `moving_layers`, `target_viewport`, `motion_intensity`.
+Show a thumbnail for each option if a corresponding image asset is accessible; otherwise state that previews are unavailable and present labeled textual choices; do **not** make four versions of a scene just to ask a style question. In ChatGPT a selection UI is optional, but present the four image-backed choices by default when style is unknown. Ask at most **one unresolved style question at a time**, then motion strength, target crop, and export format only as needed. The visual decision is recorded as `style_id`, `style_ref`, `approved_by_user`, `locked_objects`, `moving_layers`, `target_viewport`, `motion_intensity`.
 
 Style selection does not constitute production release approval. **12 generated images being present does not establish motion success.** Render deterministic independent-layer frames, measure meaningful motion in the relevant regions, inspect actual MP4/GIF on mobile, and request owner visual sign-off.
 
@@ -68,7 +68,7 @@ Choose movement mode by the object’s physical behavior rather than animating e
 
 **QA mandatory tests:** (1) sample 12 distinct key moments and inspect motion at actual target size; (2) track every directional object’s world-space centroid to assert monotonically increasing travel toward its exit (allow small turbulent eddies without reversing overall travel); (3) prove at least one cloud/bird/smoke packet crosses an edge and exits without bouncing; (4) measure per-region nontrivial movement separate from static geometry; (5) evaluate final→first seam against nearby frame pairs, including water and cloud regions; (6) reject temporal harmonics with non-integer cycle counts for looping oscillations, and reject visible discontinuities; (7) verify locked architecture pixel count over all raw frames and UI readability. An MP4 that decodes 144 frames is **not** an animation acceptance test. If visible artifacts remain, mark **REJECTED / visual approval pending**; do not claim PASS solely from synthetic metrics.
 
-Reference: [Natural Motion Patterns](references/natural-motion-patterns.md).
+Reference: the motion patterns and algorithms above are self-contained in this SKILL.md; no relative asset is required.
 
 ## Motion and timing
 
