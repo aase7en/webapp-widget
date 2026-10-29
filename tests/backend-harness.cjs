@@ -216,13 +216,13 @@ function makeContext(opts = {}) {
   function builder(fn) {
     const t = { handler: fn, hour: null, days: null };
     const b = {
-      timeBased() { return b; }, atHour(h) { t.hour = h; return b; }, everyDays(d) { t.days = d; return b; },
+      timeBased() { return b; }, atHour(h) { t.hour = h; return b; }, everyDays(d) { t.days = d; return b; }, everyHours(h) { t.hours = h; return b; },
       create() { calls.triggerCreates.push(t); triggers.push(t); return t; },
     };
     return b;
   }
   const scriptApp = {
-    getProjectTriggers: () => triggers.map(t => ({ getHandlerFunction: () => t.handler, _t: t })),
+    getProjectTriggers: () => triggers.map(t => ({ getHandlerFunction: () => t.handler, getUniqueId: () => t.id || 'test-trigger-id', _t: t })),
     getScriptTrigger: () => (scriptTriggerHandler ? { getHandlerFunction: () => scriptTriggerHandler } : null),
     newTrigger: fn => builder(fn),
     deleteTrigger: (trig) => { calls.triggerDeletes.push(trig.getHandlerFunction()); triggers = triggers.filter(t => t !== trig._t); },

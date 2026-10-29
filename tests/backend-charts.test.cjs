@@ -65,7 +65,7 @@ test('exports chart constants: Charts tab, 30-day window, channel palette', () =
   const B = h.ctx.BackendApi;
   assert.equal(B.TABS.charts, 'Charts');
   assert.equal(B.CHART_WINDOW_DAYS, 30);
-  assert.equal(B.PM_TTL_S, 1800, 'prior wave exports intact');
+  assert.equal(B.PM_TTL_S, 3600, 'PM refresh is hourly');
 });
 
 test('refreshLedCharts is a visible no-arg wrapper with the strict owner guard', () => {

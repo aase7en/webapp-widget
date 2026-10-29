@@ -75,6 +75,10 @@ function include(filename) {
 
 /** เพิ่ม retry mechanism */
 function fetchWithRetry(url, options = {}, maxRetries = 3) {
+  if (/^https:\/\/pm25\.gistda\.or\.th\//.test(String(url))) {
+    const payload = BackendApi.gistdaPayload(url, false);
+    return { getContentText: () => JSON.stringify(payload), getResponseCode: () => 200, getHeaders: () => ({}) };
+  }
   for (let i = 0; i < maxRetries; i++) {
     try {
       return UrlFetchApp.fetch(url, options);
@@ -94,13 +98,7 @@ function optionalPM25_(raw) {
 }
 
 function gistdaForMain_() {
-  const response = UrlFetchApp.fetch(CONFIG.API_ENDPOINTS.GISTDA_AIR, {
-    muteHttpExceptions: true
-  });
-  if (response.getResponseCode() !== 200) {
-    throw new Error('GISTDA HTTP ' + response.getResponseCode());
-  }
-  const payload = JSON.parse(response.getContentText());
+  const payload = BackendApi.gistdaPayload(CONFIG.API_ENDPOINTS.GISTDA_AIR, false);
   if (payload?.status !== undefined && Number(payload.status) !== 200) {
     throw new Error('GISTDA response status not OK');
   }
@@ -120,7 +118,8 @@ function gistdaForMain_() {
       pm25: pm25,
       pm25Avg24hr: avg24,
       tambon: uthai.tb_tn,
-      datetime: payload.datetimeThai || null
+      datetime: payload.datetimeThai || null,
+      observedMs: BackendApi.gistdaObservedMs(uthai, payload)
     }
   };
 }
@@ -165,12 +164,11 @@ function fetchAirQualityData() {
     const globalResponse = fetchWithRetry(CONFIG.API_ENDPOINTS.GLOBAL_AIR);
     Logger.log('Global API Response:', globalResponse.getContentText());
     
-    const gistdaResponse = fetchWithRetry(CONFIG.API_ENDPOINTS.GISTDA_AIR);
-    Logger.log('GISTDA API Response:', gistdaResponse.getContentText());
+    const gistdaData = BackendApi.gistdaPayload(CONFIG.API_ENDPOINTS.GISTDA_AIR, false);
     
     const thaiData = JSON.parse(thaiResponse.getContentText());
     const globalData = JSON.parse(globalResponse.getContentText());
-    const gistdaData = JSON.parse(gistdaResponse.getContentText());
+
     
     // Validate API responses
     if (!thaiData) throw new Error('Invalid Thai API response');
@@ -201,6 +199,7 @@ function fetchAirQualityData() {
         pm25: uthai.pm25,
         pm25Avg24hr: uthai.pm25Avg24hr,
         datetime: gistdaData.datetimeThai,
+        observedMs: BackendApi.gistdaObservedMs(uthai, gistdaData),
         tambon: uthai.tb_tn
       }
     };
@@ -409,6 +408,10 @@ function importDataToSpreadsheet_(airData) {
     throw new Error('Missing GISTDA PM2.5 concentration');
   }
 
+  const fallback = BackendApi.parseThaiDateTime(gistda.datetime);
+  const observedMs = typeof gistda.observedMs === 'number' && Number.isFinite(gistda.observedMs) ? gistda.observedMs : (fallback ? fallback.ms : null);
+  if (observedMs === null) throw new Error('Missing GISTDA observation time');
+
   // Initialise the header BEFORE appending: on a blank sheet the first
   // appendRow() would occupy row 1 and hide the absence of a header.
   const header = sheet.getRange(1, 1, 1, 5).getValues()[0];
@@ -421,7 +424,7 @@ function importDataToSpreadsheet_(airData) {
 
   // WAQI's PM10 subindex is not PM10 mass in µg/m³.
   // Never fabricate zero, a measurement or NaN in AQI/PM10 columns.
-  const newRow = [formatThaiDateTime(new Date()), '', '', pm25 === null ? '' : pm25,
+  const newRow = [formatThaiDateTime(new Date(observedMs)), '', '', pm25 === null ? '' : pm25,
     avg24 === null ? '' : avg24];
   sheet.appendRow(newRow);
   sheet.getRange(sheet.getLastRow(), 2, 1, 4).setNumberFormat('0.00');
@@ -473,8 +476,7 @@ function doGet(e) {
 
 function getWidgetData() {
   try {
-    const response = UrlFetchApp.fetch(CONFIG.API_ENDPOINTS.GISTDA_AIR);
-    const gistdaData = JSON.parse(response.getContentText());
+    const gistdaData = BackendApi.gistdaPayload(CONFIG.API_ENDPOINTS.GISTDA_AIR, false);
     
     // ค้นหาข้อมูลตำบลอุทัย
     const uthaiData = gistdaData.data.find(item => item.tb_tn === "อุทัย");
@@ -506,6 +508,11 @@ function getWidgetData() {
 /** ฟังก์ชันสำหรับบันทึกข้อมูล PM2.5 ลงใน 'ชีต2' */
 function logPm25ToSheet2_(airData) {
   try {
+    const gistda = airData && airData.gistda;
+    if (!gistda || !gistda.tambon) throw new Error('Invalid GISTDA data structure or missing tambon name');
+    const fallback = BackendApi.parseThaiDateTime(gistda.datetime);
+    const observedMs = typeof gistda.observedMs === 'number' && Number.isFinite(gistda.observedMs) ? gistda.observedMs : (fallback ? fallback.ms : null);
+    if (observedMs === null) throw new Error('Missing GISTDA observation time');
     const spreadsheet = SpreadsheetApp.openById(CONFIG.SPREADSHEET_ID);
     let sheet = spreadsheet.getSheetByName("ชีต2");
 
@@ -516,14 +523,8 @@ function logPm25ToSheet2_(airData) {
       sheet.appendRow(['วันที่-เวลา', 'ตำบล', 'ค่าเฉลี่ย PM2.5 (24 ชม.)']);
     }
 
-    const { gistda } = airData;
-    if (!gistda || !gistda.tambon) { // ตรวจสอบว่ามีข้อมูลตำบลด้วย
-      throw new Error('Invalid GISTDA data structure or missing tambon name');
-    }
-    
-    // ใช้เวลาปัจจุบันในการบันทึกข้อมูล
-    const now = new Date();
-    const formattedTimestamp = Utilities.formatDate(now, "Asia/Bangkok", "dd/MM/yyyy HH:mm:ss");
+    // Preserve the source observation time, including when last-good is reused.
+    const formattedTimestamp = Utilities.formatDate(new Date(observedMs), "Asia/Bangkok", "dd/MM/yyyy HH:mm:ss");
     
     // ดึงข้อมูลชื่อตำบล และค่าเฉลี่ย 24 ชม.
     const tambonName = gistda.tambon;
