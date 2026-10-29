@@ -26,7 +26,7 @@ const openMeteoFetches = h => h.calls.fetches.filter(f => f.includes('open-meteo
 test('exports per-channel TTL + cooldown constants', () => {
   const h = makeContext({ loadCodeGs: false, fetchQueue: [] });
   const B = h.ctx.BackendApi;
-  assert.equal(B.PM_TTL_S, 1800, 'PM upstream refresh 30 min');
+  assert.equal(B.PM_TTL_S, 3600, 'PM upstream refresh at most hourly');
   assert.equal(B.WX_TTL_S, 600, 'weather upstream refresh 10 min');
   assert.equal(B.LASTGOOD_TTL_S, 21600, 'last-good capped at CacheService max 6 h');
   assert.equal(B.COOLDOWN_DEFAULT_S, 300, 'passive failure cooldown default 5 min');
@@ -58,14 +58,14 @@ test('t+5min: zero upstream calls (both channels cached)', () => {
   assert.equal(h.calls.fetches.length, 2);
 });
 
-test('t+35min: both channels refetch independently', () => {
-  const h = makeContext({ fetchQueue: [...defaultFetchQueue(), { body: gistdaBody({ pm25: 30.1 }) }, { body: om('2026-10-17T06:50') }] });
+test('t+35min: weather refetches while PM stays inside hourly gate', () => {
+  const h = makeContext({ fetchQueue: [...defaultFetchQueue(), { body: om('2026-10-17T06:50') }] });
   data(h);
   h.setNow(NOW_MS + 35 * MIN);
   h.outputsReset();
   const body = data(h);
-  assert.equal(h.calls.fetches.length, 4);
-  assert.equal(body.pm25.value, 30.1);
+  assert.equal(h.calls.fetches.length, 3);
+  assert.equal(body.pm25.value, 20.9);
   assert.equal(body.weather.observedAt, '2026-10-17T06:50+07:00');
 });
 
@@ -144,7 +144,7 @@ test('cooldown is scoped per location (one location outage never blocks another)
   const h = makeContext({ tabs, fetchQueue: [
     { body: gistdaBody() }, { body: om('2026-10-17T06:30') },
     { code: 429 }, /* uthai weather 429 at +20min */
-    { body: gistdaBody() }, { body: om('2026-10-17T07:10') }, /* uthai2 fresh */
+    { body: om('2026-10-17T07:10') }, /* uthai2: PM shares district payload */
   ] });
   data(h);
   h.setNow(NOW_MS + 20 * MIN);
@@ -237,7 +237,8 @@ test('label edit without version bump invalidates cache (label is in the fingerp
   h.tabs.get('Locations')[1][1] = 'ต.อุทัย อ.อุทัย จ.อยุธยา (ทดสอบ)';
   h.outputsReset();
   data(h);
-  assert.equal(h.calls.fetches.length, 4, 'label change must never serve the old label from cache');
+  assert.equal(h.calls.fetches.length, 3, 'weather refreshed and district PM reused');
+  assert.equal(JSON.parse(h.outputs()[0].text).location.label, 'ต.อุทัย อ.อุทัย จ.อยุธยา (ทดสอบ)');
 });
 
 test('fresh setup seeds the CANONICAL label', () => {
@@ -276,13 +277,13 @@ test('history at t+20min refreshes ONLY the expired weather channel', () => {
 
 /* ---------- write safety under cooldown paths ---------- */
 
-test('doGet under all-429 writes no Sheets/properties (CacheService-only cooldown)', () => {
+test('doGet under all-429 persists only the PM attempt, no Sheets or triggers', () => {
   const h = makeContext({ fetchQueue: [{ code: 429 }, { code: 503 }] });
   const body = data(h);
   assert.equal(body.pm25.status, 'missing');
   assert.equal(body.weather.status, 'missing');
   assert.equal(h.calls.rangeSets.length, 0);
   assert.equal(h.calls.appends.length, 0);
-  assert.equal(h.calls.propSets.length, 0);
+  assert.deepEqual(h.calls.propSets, ['pm25_gistda_last_attempt_ms']);
   assert.equal(h.calls.triggerCreates.length + h.calls.triggerDeletes.length, 0);
 });

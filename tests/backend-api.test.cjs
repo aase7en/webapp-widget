@@ -235,13 +235,13 @@ test('second poll served from cache; generatedAt refreshed, observedAt preserved
   assert.notEqual(second.generatedAt, first.generatedAt);
 });
 
-test('cache fingerprint: coords edit WITHOUT version bump must refetch', () => {
+test('cache fingerprint refreshes weather while GISTDA obeys hourly gate', () => {
   const h = makeContext({ fetchQueue: [...defaultFetchQueue(), ...defaultFetchQueue()] });
   doGet(h, { action: 'data', v: '1' });
   h.tabs.get('Locations')[1][3] = 15.12345; /* lat changed, config_version still 1 */
   h.outputsReset();
   doGet(h, { action: 'data', v: '1' });
-  assert.equal(h.calls.fetches.length, 4, 'fingerprint change invalidates cache');
+  assert.equal(h.calls.fetches.length, 3, 'weather refetched; same GISTDA area reused within one hour');
 });
 
 test('cache fingerprint: pm area id edit also invalidates', () => {
@@ -266,7 +266,7 @@ test('cache isolation per location id + version', () => {
   assert.equal(h.calls.fetches.length, 3, 'new key refetches weather; uthai2 lacks tambon -> PM missing not faked');
 });
 
-test('corrupted cache entry degrades gracefully (refetch, no crash)', () => {
+test('corrupted cache degrades gracefully without violating hourly gate', () => {
   const h = makeContext({ fetchQueue: [...defaultFetchQueue(), ...defaultFetchQueue()] });
   doGet(h, { action: 'data', v: '1' });
   for (const [k, e] of h.cacheStore) h.cacheStore.set(k, { v: '{{{not json', exp: e.exp });
@@ -275,7 +275,7 @@ test('corrupted cache entry degrades gracefully (refetch, no crash)', () => {
   try { out = doGet(h, { action: 'data', v: '1' }); } catch (e) { assert.fail('must not crash: ' + e.message); }
   const body = JSON.parse(h.outputs()[0].text);
   assert.equal(body.schema, 1);
-  assert.equal(body.pm25.status, 'ok', 'recovered via fresh fetch');
+  assert.equal(body.pm25.status, 'missing', 'corrupt cache cannot trigger an early fetch');
 });
 
 test('stale-while-error: last-good served (as stale) when upstream dies', () => {
@@ -291,7 +291,7 @@ test('stale-while-error: last-good served (as stale) when upstream dies', () => 
 
 /* ---------- read path write-safety ---------- */
 
-test('data route never writes Sheets/triggers/properties', () => {
+test('data route only records hourly attempt property, without Sheet or trigger writes', () => {
   const h = makeContext({ fetchQueue: [...defaultFetchQueue(), ...defaultFetchQueue()] });
   doGet(h, { action: 'data', v: '1' });
   doGet(h, { action: 'data', v: '1' });
@@ -300,7 +300,7 @@ test('data route never writes Sheets/triggers/properties', () => {
   assert.equal(h.calls.deleteRows.length, 0);
   assert.equal(h.calls.triggerCreates.length, 0);
   assert.equal(h.calls.triggerDeletes.length, 0);
-  assert.equal(h.calls.propSets.length, 0);
+  assert.deepEqual(h.calls.propSets, ['pm25_gistda_last_attempt_ms']);
 });
 
 test('missing config tabs -> fail closed, no auto-create on read', () => {
@@ -1090,7 +1090,8 @@ test('fingerprint includes tambon name: name edit without version bump refetches
   h.tabs.get('Locations')[1].push('ธนู'); /* different from vetted default -> key changes */
   h.outputsReset();
   doGet(h, { action: 'data', v: '1' });
-  assert.equal(h.calls.fetches.length, 4, 'name is part of the cache fingerprint');
+  assert.equal(h.calls.fetches.length, 3, 'same district payload reused under hourly gate');
+  assert.equal(JSON.parse(h.outputs()[0].text).pm25.value, 42, 'selected new tambon from shared district payload');
 });
 
 test('doGet never appends headers/config values (read-only schema)', () => {

@@ -94,13 +94,24 @@ function paintWeatherSmall(d){
  humidity.textContent=NUM(w.humidityPct)?Math.round(w.humidityPct)+'%':'—';
  wind.textContent='ลม '+(NUM(w.windKmh)?Math.round(w.windKmh)+' กม./ชม.':'—');
 }
+let lastPm={status:'unavailable'},lastHistory=[];
+function publishPm(){const f=$('#pm-live-frame');if(f&&f.contentWindow)f.contentWindow.postMessage({type:'uth-pm25-live',pm25:lastPm,history:lastHistory},location.origin)}
+let historySeq=0;
+function readPmHistory(){return new Promise((resolve,reject)=>{
+ const cb='__uthPmHistory'+Date.now().toString(36)+(historySeq++).toString(36),script=document.createElement('script');let done=false;
+ const finish=(err,data)=>{if(done)return;done=true;clearTimeout(timer);delete window[cb];script.remove();err?reject(err):resolve(data)};
+ window[cb]=data=>finish(null,data);const timer=setTimeout(()=>finish(Error('history timeout')),9000);
+ script.onerror=()=>finish(Error('history unavailable'));script.src=window.UthaiLEDRotation.BACKEND_URL+'?action=pm25_history&callback='+cb;document.head.appendChild(script);
+})}
+async function refreshPmHistory(){try{const h=await readPmHistory();if(h&&h.schema===1&&h.status==='ok'&&h.location==='uthai'&&Array.isArray(h.points))lastHistory=h.points;else lastHistory=[]}catch(e){lastHistory=[]}publishPm()}
+const pmFrame=$('#pm-live-frame');if(pmFrame)pmFrame.addEventListener('load',publishPm);
 async function refresh(){
  try{
  const data=await window.UthApiClient.getLive();
- paintPm(data);paintWeatherSmall(data);
- }catch(e){resetPm('PM2.5: UNAVAILABLE · API ไม่ตอบสนอง');}
+ paintPm(data);paintWeatherSmall(data);lastPm=data.pm25||{status:'unavailable'};publishPm();
+ }catch(e){resetPm('PM2.5: UNAVAILABLE · API ไม่ตอบสนอง');lastPm={status:'unavailable'};publishPm();}
  const waterButton=$('#real');if(waterButton)waterButton.click();
 }
 const refreshBtn=$('#refresh-all');if(refreshBtn)refreshBtn.addEventListener('click',refresh);
-refresh();setInterval(refresh,5*60*1000);
+refresh();refreshPmHistory();setInterval(refresh,5*60*1000);setInterval(refreshPmHistory,15*60*1000);
 })();

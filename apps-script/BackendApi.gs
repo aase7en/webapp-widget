@@ -86,7 +86,7 @@ var BackendApi = (function () {
   var FUTURE_MS = 5 * 60000;
   /* Per-channel cadence (best-effort, request-driven; CacheService may evict
    * earlier). PM 30 min / weather 10 min / last-good 6 h (= service max). */
-  var PM_TTL_S = 1800;
+  var PM_TTL_S = 3600;
   var WX_TTL_S = 600;
   var LASTGOOD_TTL_S = 6 * 3600;
   /* Bounded passive failure cooldown: default when the provider sends no
@@ -448,6 +448,34 @@ var BackendApi = (function () {
     }
     return JSON.parse(response.getContentText());
   }
+  /* Global, durable one-hour GISTDA attempt gate. Caller must hold the script
+   * lock or let this helper acquire it. Failure to persist the attempt prevents
+   * the network call; cache eviction returns unavailable, never an early retry. */
+  function gistdaPayload(url, locked) {
+    if (!/^https:\/\/pm25\.gistda\.or\.th\/rest\/getPm25byTambon\?ap_idn=\d{1,10}$/.test(url)) throw new Error('unsupported GISTDA URL');
+    var lock = null;
+    if (!locked) {
+      lock = LockService.getScriptLock();
+      if (!lock.tryLock(10000)) throw new Error('GISTDA busy');
+    }
+    try {
+      var now = nowMs(), props = PropertiesService.getScriptProperties();
+      var rawLast = props.getProperty('pm25_gistda_last_attempt_ms');
+      var last = rawLast == null ? null : Number(rawLast);
+      if (last !== null && (!isFinite(last) || now < last)) throw new Error('invalid GISTDA attempt clock');
+      var cacheKey = 'pm25_gistda_payload_' + url.split('=').pop();
+      if (last !== null && now - last < 3600000) {
+        var cached = safeParse(cache().get(cacheKey));
+        if (cached) return cached;
+        throw new Error('GISTDA hourly gate: no cached response');
+      }
+      props.setProperty('pm25_gistda_last_attempt_ms', String(now));
+      var payload = fetchJson(url);
+      try { cache().put(cacheKey, JSON.stringify(payload), 3600); } catch (e) { /* gate remains active */ }
+      return payload;
+    } finally { if (lock) lock.releaseLock(); }
+  }
+
   /* Uniform bounded passive failure marker: every upstream failure (HTTP or
    * network) sets a cooldown so concurrent/serial read requests cannot hammer
    * a struggling provider; rate-limit responses may extend it via the
@@ -506,13 +534,13 @@ var BackendApi = (function () {
     return base;
   }
 
-  function channelPm25(cfg, now) {
+  function channelPm25(cfg, now, locked) {
     var loc = cfg.active;
     var base = pm25Base(cfg);
     var prov = base.provenance;
     if (base._err) return base;
     try {
-      var payload = fetchJson(GISTDA_BASE + '?ap_idn=' + encodeURIComponent(loc.pmAreaId));
+      var payload = gistdaPayload(GISTDA_BASE + '?ap_idn=' + encodeURIComponent(loc.pmAreaId), locked === true);
       var rows = payload && payload.data;
       if (!Array.isArray(rows) || rows.length === 0) {
         base._err = err('pm25', 'PARSE', 'GISTDA returned no rows for configured area');
@@ -718,7 +746,7 @@ var BackendApi = (function () {
    * on success, and fall back to last-good on a failing build (relabeled
    * stale when aged; the live outage reason is surfaced in errors[]). */
   function refreshChannel(cfg, ch, fetchFresh, makeBase, ttlS, now, c, keys) {
-    var built = fetchFresh(cfg, now);
+    var built = fetchFresh(cfg, now, true);
     if (built._cooldownS) {
       try { c.put(keys.cooldown, '1', built._cooldownS); } catch (e) { /* cooldown is best-effort */ }
     }
@@ -801,6 +829,7 @@ var BackendApi = (function () {
 
   function doGet(e) {
     var params = (e && e.parameter) || {};
+    if (params.action === 'pm25_history') return historyResponse(params);
     if (params.action !== 'data') {
       return HtmlService.createTemplateFromFile('index')
         .evaluate().setTitle('Air Quality Widget')
@@ -825,6 +854,66 @@ var BackendApi = (function () {
       location: { id: cfg.active.id, label: cfg.active.label, lat: cfg.active.lat, lon: cfg.active.lon },
       pm25: channels.pm25, weather: channels.weather, water: channels.water,
     });
+  }
+
+  /* Read only observed PM values from the existing History_Batch tab. */
+  function historyResponse(params) {
+    var cb = params.callback == null ? null : String(params.callback);
+    if (cb !== null && !CALLBACK_RE.test(cb)) return textOutput({schema: 1, status: 'unavailable', points: []});
+    var out = {schema: 1, status: 'unavailable', location: null, points: []};
+    try {
+      var cfg = loadConfigSafe(), now = nowMs();
+      if (!cfg.ok) throw new Error('config unavailable');
+      var sheet = openSpreadsheet().getSheetByName(TAB_HISTORY);
+      if (!sheet) throw new Error('history unavailable');
+      var rows = sheet.getDataRange().getValues(), header = rows[0] || [];
+      var loc = header.indexOf('location_id'), val = header.indexOf('pm25_value'), obs = header.indexOf('pm25_observed_at'), stat = header.indexOf('pm25_status');
+      if (loc < 0 || val < 0 || obs < 0 || stat < 0) throw new Error('history schema unavailable');
+      var seen = {};
+      for (var i = 1; i < rows.length; i++) {
+        var r = rows[i], n = asNumber(r[val]), t = r[obs] instanceof Date ? r[obs].getTime() : Date.parse(String(r[obs] || ''));
+        if (String(r[loc]) !== cfg.active.id || ['ok','stale'].indexOf(String(r[stat])) < 0 || n === null || n < 0 || n > 1000 || !isFinite(t) || t < now - 86400000 || t > now + 120000 || seen[t]) continue;
+        seen[t] = true; out.points.push({value:n, observedAt:isoZ(t)});
+      }
+      out.points.sort(function(a,b){return Date.parse(a.observedAt)-Date.parse(b.observedAt)});
+      out.status = 'ok'; out.location = cfg.active.id;
+    } catch (e) { /* honest unavailable, never synthetic history */ }
+    return cb === null ? textOutput(out) : jsonpOutput(cb, out);
+  }
+
+  /* Scheduled every hour; preserve existing triggers and append each actual
+   * observation once. Failed or repeated observations never invent a row. */
+  function hourlyHistory(event) {
+    var uid = event && event.triggerUid != null ? String(event.triggerUid) : '';
+    var scheduled = uid !== '' && ScriptApp.getProjectTriggers().some(function(t){
+      return t.getHandlerFunction() === 'BackendApiPm25Hourly_' && String(t.getUniqueId()) === uid;
+    });
+    if (!scheduled && !isOwnerSession()) throw new Error('hourly trigger not authorized');
+    var cfg = loadConfigSafe(); if (!cfg.ok) return;
+    var lock = LockService.getScriptLock(); if (!lock.tryLock(15000)) return;
+    try {
+      var sheet = openSpreadsheet().getSheetByName(TAB_HISTORY); if (!sheet) return;
+      var now = nowMs(), pm = getChannelCached(cfg, 'pm25', channelPm25, pm25Base, PM_TTL_S, now, true);
+      if (pm.status !== 'ok' || pm.value === null || !pm.observedAt) return;
+      var rows = sheet.getDataRange().getValues(), h = rows[0] || [], li = h.indexOf('location_id'), oi = h.indexOf('pm25_observed_at');
+      var required = ['batch_id','batch_date','slot','location_id','lat','lon','pm25_value','pm25_observed_at','pm25_status','pm25_provider','pm25_area_id','pm25_tambon_name','wx_temp_c','wx_rh_pct','wx_code','wx_observed_at','wx_status','wx_provider','water_status','water_station_id','water_datum','created_at'];
+      if (h.length < required.length || required.some(function(name, i){return h[i] !== name})) return;
+      var observed = Date.parse(pm.observedAt);
+      for (var i = Math.max(1, rows.length-1000); i < rows.length; i++) {
+        var old = rows[i][oi] instanceof Date ? rows[i][oi].getTime() : Date.parse(String(rows[i][oi] || ''));
+        if (String(rows[i][li]) === cfg.active.id && old === observed) return;
+      }
+      var L = cfg.locations.filter(function(x){return String(x.id).trim() === cfg.active.id})[0];
+      if (!L) return;
+      appendHistoryRow(sheet, bangkokDateStr(now)+':hourly:'+bangkokParts(now).h, bangkokDateStr(now), 'hourly', L, pm, weatherMissing(null), null, []);
+    } finally { lock.releaseLock(); }
+  }
+  function installHourlyTrigger() {
+    assertTrustedCaller('BackendApiInstallPm25Hourly_', true);
+    var found = ScriptApp.getProjectTriggers().filter(function(t){return t.getHandlerFunction() === 'BackendApiPm25Hourly_'});
+    if (found.length > 1) throw new Error('multiple hourly triggers; preserve and inspect');
+    if (!found.length) ScriptApp.newTrigger('BackendApiPm25Hourly_').timeBased().everyHours(1).create();
+    return {hourlyTriggerCount: ScriptApp.getProjectTriggers().filter(function(t){return t.getHandlerFunction() === 'BackendApiPm25Hourly_'}).length};
   }
 
   /* ---------------- history: exactly two batches per day ---------------- */
@@ -1319,7 +1408,7 @@ var BackendApi = (function () {
     canonicalLocationLabel: canonicalLocationLabel,
     parseThaiDateTime: parseThaiDateTime, band: band, freshness: freshness,
     loadConfig: loadConfigSafe, buildChannels: buildChannels,
-    doGet: doGet, historyBatch: historyBatch, setupSheets: setupSheets,
+    doGet: doGet, historyBatch: historyBatch, hourlyHistory: hourlyHistory, installHourlyTrigger: installHourlyTrigger, gistdaPayload: gistdaPayload, setupSheets: setupSheets,
     refreshCharts: refreshCharts, ensureChartsTab: ensureChartsTab,
     CHART_WINDOW_DAYS: CHART_WINDOW_DAYS,
     installTriggers: installTriggers,
@@ -1441,3 +1530,6 @@ function ledOwnerDiagnostics() {
   try { Logger.log('ledOwnerDiagnostics: ' + JSON.stringify(d)); } catch (x) { /* noop */ }
   return d;
 }
+
+function BackendApiPm25Hourly_(event) { return BackendApi.hourlyHistory(event); }
+function BackendApiInstallPm25Hourly_() { return BackendApi.installHourlyTrigger(); }

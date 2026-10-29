@@ -75,6 +75,10 @@ function include(filename) {
 
 /** เพิ่ม retry mechanism */
 function fetchWithRetry(url, options = {}, maxRetries = 3) {
+  if (/^https:\/\/pm25\.gistda\.or\.th\//.test(String(url))) {
+    const payload = BackendApi.gistdaPayload(url, false);
+    return { getContentText: () => JSON.stringify(payload), getResponseCode: () => 200, getHeaders: () => ({}) };
+  }
   for (let i = 0; i < maxRetries; i++) {
     try {
       return UrlFetchApp.fetch(url, options);
@@ -94,13 +98,7 @@ function optionalPM25_(raw) {
 }
 
 function gistdaForMain_() {
-  const response = UrlFetchApp.fetch(CONFIG.API_ENDPOINTS.GISTDA_AIR, {
-    muteHttpExceptions: true
-  });
-  if (response.getResponseCode() !== 200) {
-    throw new Error('GISTDA HTTP ' + response.getResponseCode());
-  }
-  const payload = JSON.parse(response.getContentText());
+  const payload = BackendApi.gistdaPayload(CONFIG.API_ENDPOINTS.GISTDA_AIR, false);
   if (payload?.status !== undefined && Number(payload.status) !== 200) {
     throw new Error('GISTDA response status not OK');
   }
@@ -165,12 +163,11 @@ function fetchAirQualityData() {
     const globalResponse = fetchWithRetry(CONFIG.API_ENDPOINTS.GLOBAL_AIR);
     Logger.log('Global API Response:', globalResponse.getContentText());
     
-    const gistdaResponse = fetchWithRetry(CONFIG.API_ENDPOINTS.GISTDA_AIR);
-    Logger.log('GISTDA API Response:', gistdaResponse.getContentText());
+    const gistdaData = BackendApi.gistdaPayload(CONFIG.API_ENDPOINTS.GISTDA_AIR, false);
     
     const thaiData = JSON.parse(thaiResponse.getContentText());
     const globalData = JSON.parse(globalResponse.getContentText());
-    const gistdaData = JSON.parse(gistdaResponse.getContentText());
+
     
     // Validate API responses
     if (!thaiData) throw new Error('Invalid Thai API response');
@@ -473,8 +470,7 @@ function doGet(e) {
 
 function getWidgetData() {
   try {
-    const response = UrlFetchApp.fetch(CONFIG.API_ENDPOINTS.GISTDA_AIR);
-    const gistdaData = JSON.parse(response.getContentText());
+    const gistdaData = BackendApi.gistdaPayload(CONFIG.API_ENDPOINTS.GISTDA_AIR, false);
     
     // ค้นหาข้อมูลตำบลอุทัย
     const uthaiData = gistdaData.data.find(item => item.tb_tn === "อุทัย");

@@ -1,0 +1,144 @@
+{
+  "checkpoint_date_thailand": "2026-10-29",
+  "repository": "aase7en/webapp-widget",
+  "artifacts": [
+    {
+      "tier": "BLUE",
+      "relative_path": "BLUE/blue_approved_preview.mp4",
+      "sha256": "53e6251f8f1c5d162624073f2b9ed532840cd0090de33f95b0bc88f049faf095",
+      "bytes": 1677525,
+      "probe": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "h264",
+            "width": 1440,
+            "height": 480,
+            "avg_frame_rate": "24/1",
+            "nb_frames": "144"
+          }
+        ],
+        "format": {
+          "duration": "6.000000",
+          "size": "1677525"
+        }
+      }
+    },
+    {
+      "tier": "GREEN",
+      "relative_path": "GREEN/green_approved_preview.mp4",
+      "sha256": "f2f4208de43ebdf5d882a873b884d9a7d9b7d4330e5ea621d88daf801e665821",
+      "bytes": 1298060,
+      "probe": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "h264",
+            "width": 1152,
+            "height": 384,
+            "avg_frame_rate": "24/1",
+            "nb_frames": "145"
+          }
+        ],
+        "format": {
+          "duration": "6.041667",
+          "size": "1298060"
+        }
+      }
+    },
+    {
+      "tier": "YELLOW",
+      "relative_path": "YELLOW/yellow_v4_18s_iphone.mp4",
+      "sha256": "5a63a1eeeefd39ab1579a8d6abad2cf8667b0f8162c206ba2f4f517522a8a5bc",
+      "bytes": 5181233,
+      "probe": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "h264",
+            "width": 960,
+            "height": 540,
+            "avg_frame_rate": "24/1",
+            "nb_frames": "432"
+          }
+        ],
+        "format": {
+          "duration": "18.000000",
+          "size": "5181233"
+        }
+      }
+    },
+    {
+      "tier": "ORANGE",
+      "relative_path": "ORANGE/orange_v9b_60s_nonloop_preview.mp4",
+      "sha256": "520e7540b92df33bff4007e24f3df0a7193aeac4349e5e8eacbbb8492a8c4d2a",
+      "bytes": 6498059,
+      "probe": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "h264",
+            "width": 960,
+            "height": 320,
+            "avg_frame_rate": "20/1",
+            "nb_frames": "1200"
+          }
+        ],
+        "format": {
+          "duration": "60.000000",
+          "size": "6498059"
+        }
+      }
+    },
+    {
+      "tier": "RED",
+      "relative_path": "RED/red_v8b_12s_iphone.mp4",
+      "sha256": "38b733b5035ee68515f4c74e73e938164655a4d4e70dd258f6d9c66d869800c3",
+      "bytes": 4687271,
+      "probe": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "h264",
+            "width": 960,
+            "height": 480,
+            "avg_frame_rate": "18/1",
+            "nb_frames": "216"
+          }
+        ],
+        "format": {
+          "duration": "12.000000",
+          "size": "4687271"
+        }
+      }
+    },
+    {
+      "tier": "RED_IPHONE_SMALL",
+      "relative_path": "RED/red_v8b_12s_iphone_small.mp4",
+      "sha256": "5fc9c4d42ba8f6d0fb744870e09c921623a4809e55edc25d3f88a8e33f3809b8",
+      "bytes": 253232,
+      "probe": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "h264",
+            "width": 640,
+            "height": 320,
+            "avg_frame_rate": "15/1",
+            "nb_frames": "180"
+          }
+        ],
+        "format": {
+          "duration": "12.000000",
+          "size": "253232"
+        }
+      }
+    }
+  ]
+}
