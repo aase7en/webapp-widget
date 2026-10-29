@@ -853,7 +853,7 @@ test('no public (non-underscore) mutating top-level function exists in either .g
     const visibleOk = new Set(['doGet', 'getWidgetData', 'include', 'main', 'importDataToSpreadsheet',
       'logGistdaData', 'logPm25ToSheet2', 'createDailyTrigger', 'fetchAirQualityData', 'getPM25Advice',
       'formatThaiDateTime', 'createMessage', 'handleError', 'optionalPM25_', 'gistdaForMain_',
-      'assertOwnerCaller_', 'fetchWithRetry', 'setupLedBackend', 'verifyLedBackend', 'ledOwnerDiagnostics', 'refreshLedCharts']);
+      'assertOwnerCaller_', 'fetchWithRetry', 'setupLedBackend', 'verifyLedBackend', 'ledOwnerDiagnostics', 'refreshLedCharts', 'installPm25Hourly', 'runPm25HourlyNow']);
     for (const n of names) {
       if (n.startsWith('BackendApi')) assert.ok(n.endsWith('_'), 'BackendApi surface must be underscore-private: ' + n);
       else assert.ok(visibleOk.has(n) || n.endsWith('_'), 'unexpected public surface: ' + n);

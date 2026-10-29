@@ -57,3 +57,5 @@ for(const missingPayloadTime of [false,true])test('legacy writers prefer row obs
 test('legacy combined provider path retains the row observation time',()=>{
  const h=makeContext({fetchQueue:[{body:'{}'},{body:'{}'},{body:gistdaBody({datetimeThai:{dateThai:'17 ตุลาคม 2569',timeThai:'06:30 น.'}})}]});const out=h.ctx.fetchAirQualityData();assert.equal(out.gistda.observedMs,Date.parse('2026-10-16T23:05:00Z'));
 });
+
+test('visible hourly setup and run entry points enforce owner identity',()=>{const h=makeContext({session:{active:'',effective:''}});assert.throws(()=>h.ctx.installPm25Hourly(),/not the trusted owner/);assert.throws(()=>h.ctx.runPm25HourlyNow(),/not authorized/);assert.equal(h.calls.triggerCreates.length,0);assert.equal(h.calls.fetches.length,0)});

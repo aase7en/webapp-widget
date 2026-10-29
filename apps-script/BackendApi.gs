@@ -1542,3 +1542,6 @@ function ledOwnerDiagnostics() {
 
 function BackendApiPm25Hourly_(event) { return BackendApi.hourlyHistory(event); }
 function BackendApiInstallPm25Hourly_() { return BackendApi.installHourlyTrigger(); }
+/* Visible editor entry points; underlying functions enforce owner identity. */
+function installPm25Hourly() { return BackendApi.installHourlyTrigger(); }
+function runPm25HourlyNow() { return BackendApi.hourlyHistory(); }
