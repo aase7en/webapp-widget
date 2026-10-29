@@ -24,7 +24,7 @@ function render(pm,history){
  board.classList.remove('unavailable');for(const key of ['light','dark','shade','glow'])board.style.setProperty('--'+key,t[key]);
  const txt=Number.isInteger(value)?String(value):value.toFixed(1);$('.number').textContent=txt;$('.number').style.setProperty('--value-size',txt.length>3?'72px':txt.length>2?'88px':'112px');$('.badge').textContent=t.status;$('.advice').textContent=t.advice;
  const frac=Math.max(.025,Math.min(.975,(value-lower[idx])/(upper[idx]-lower[idx])));$('.scale-arrow').style.left=20*(idx+frac)+'%';$('.scale-arrow').hidden=false;
- if(selected!==t.id){selected=t.id;poster.src='pm25-media/'+selected+'.jpg';video.classList.remove('ready');video.src='pm25-media/'+selected+'-optimized.mp4';video.load()}
+ if(selected!==t.id){selected=t.id;poster.src='pm25-media/'+selected+'.jpg';video.classList.remove('ready');if(!matchMedia('(prefers-reduced-motion: reduce)').matches){video.src='pm25-media/'+selected+'-optimized.mp4';video.load()}}
  if(!matchMedia('(prefers-reduced-motion: reduce)').matches)video.play().catch(()=>{});drawHistory(history);
 }
 video.addEventListener('loadeddata',()=>video.classList.add('ready'));
