@@ -1,7 +1,7 @@
 'use strict';
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm');
 function start(){
- class Elem{constructor(){this.textContent='';this.style={setProperty:(k,v)=>{this.style[k]=v}};this.hidden=false;this.children=[];this.attrs={};this.classList={add(){},remove(){}}}setAttribute(k,v){this.attrs[k]=v}append(x){this.children.push(x)}removeChild(){this.children.shift()}get firstChild(){return this.children[0]}addEventListener(){}pause(){}load(){}play(){return Promise.resolve()}}
+ class Elem{constructor(){this.textContent='';this.style={setProperty:(k,v)=>{this.style[k]=v}};this.hidden=false;this.children=[];this.attrs={};this.dataset={};this.classList={add(){},remove(){}}}setAttribute(k,v){this.attrs[k]=v}append(x){this.children.push(x)}removeChild(){this.children.shift()}get firstChild(){return this.children[0]}addEventListener(){}pause(){}load(){}play(){return Promise.resolve()}}
  const els=new Map(),get=k=>{if(!els.has(k))els.set(k,new Elem());return els.get(k)};let handler;const parent={};
  const ctx={document:{querySelector:get,createElementNS:()=>new Elem()},window:{addEventListener:(type,fn)=>{if(type==='message')handler=fn}},parent,location:{origin:'https://test.invalid'},matchMedia:()=>({matches:false}),setInterval:()=>{},Date,Intl,Number,Array,Math,Promise};vm.runInNewContext(fs.readFileSync('v2/pm25-live.js','utf8'),ctx);return{get,send:(data,origin='https://test.invalid')=>handler({origin,source:parent,data:{type:'uth-pm25-live',...data}})};
 }
@@ -9,3 +9,4 @@ for(const [value,name] of [[0,'ดีมาก'],[15,'ดีมาก'],[15.1,'�
 test('missing PM is not turned into zero or a marker',()=>{const x=start();x.send({pm25:{status:'unavailable'}});assert.equal(x.get('.number').textContent,'—');assert.equal(x.get('.scale-arrow').hidden,true)});
 test('untrusted origin ignored',()=>{const x=start();x.send({pm25:{status:'latest',value:90}},'https://evil.invalid');assert.equal(x.get('.badge').textContent,'')});
 test('history preserves gaps instead of joining them',()=>{const x=start(),now=Date.now();x.send({pm25:{status:'latest',value:20},history:[{value:12,observedAt:new Date(now-3*3600000).toISOString()},{value:14,observedAt:new Date(now-2*3600000).toISOString()},{value:20,observedAt:new Date(now).toISOString()}]});const children=x.get('#series').children;assert.equal(children.filter(e=>e.attrs.class==='trend-line').length,1);assert.equal(children.filter(e=>e.attrs.class==='point').length,3)});
+test('visible label preserves the provider observation time',()=>{const x=start();x.send({pm25:{status:'latest',value:20,observedAt:'2026-10-17T06:05+07:00'}});assert.match(x.get('.trend-title').textContent,/GISTDA 17\/10, 06:05/)});

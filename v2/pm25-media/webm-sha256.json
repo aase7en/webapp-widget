@@ -1,0 +1,22 @@
+{
+  "blue": {
+    "sha256": "efe7a5e7630237049a6746b38c89c0d6e03d7f0dbaba069a29a9ac45d1f30450",
+    "bytes": 151587
+  },
+  "green": {
+    "sha256": "269f577105109ec8463038f1f0ff8c11f1939022d881fe8e058c832fa60b8bf0",
+    "bytes": 240154
+  },
+  "orange": {
+    "sha256": "99b7b2898d82db517f61de1ff584ccc7f39f76fb05e4aa5ce7dda466345cb6be",
+    "bytes": 1989565
+  },
+  "red": {
+    "sha256": "1c76fed962901eb8d3dcac347d2cd145ff566985bd8d9e3d6f0fbdd2f99c2650",
+    "bytes": 304442
+  },
+  "yellow": {
+    "sha256": "ee305ff06b34aa4301145f26025354eb73675c78cd5a11f93adffe7c1763ef31",
+    "bytes": 1862243
+  }
+}

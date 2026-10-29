@@ -463,15 +463,18 @@ var BackendApi = (function () {
       var rawLast = props.getProperty('pm25_gistda_last_attempt_ms');
       var last = rawLast == null ? null : Number(rawLast);
       if (last !== null && (!isFinite(last) || now < last)) throw new Error('invalid GISTDA attempt clock');
-      var cacheKey = 'pm25_gistda_payload_' + url.split('=').pop();
+      var areaId = url.split('=').pop(), cacheKey = 'pm25_gistda_payload_' + areaId;
+      var lastGoodKey = 'pm25_gistda_lastgood_' + areaId;
       if (last !== null && now - last < 3600000) {
-        var cached = safeParse(cache().get(cacheKey));
+        var cached = safeParse(cache().get(cacheKey)) || safeParse(props.getProperty(lastGoodKey));
         if (cached) return cached;
         throw new Error('GISTDA hourly gate: no cached response');
       }
       props.setProperty('pm25_gistda_last_attempt_ms', String(now));
       var payload = fetchJson(url);
-      try { cache().put(cacheKey, JSON.stringify(payload), 3600); } catch (e) { /* gate remains active */ }
+      var serialized = JSON.stringify(payload);
+      try { cache().put(cacheKey, serialized, 21600); } catch (e) { /* gate remains active */ }
+      try { if (serialized.length <= 2000) props.setProperty(lastGoodKey, serialized); } catch (e) { /* last-good is best effort */ }
       return payload;
     } finally { if (lock) lock.releaseLock(); }
   }
@@ -868,11 +871,12 @@ var BackendApi = (function () {
       if (!sheet) throw new Error('history unavailable');
       var rows = sheet.getDataRange().getValues(), header = rows[0] || [];
       var loc = header.indexOf('location_id'), val = header.indexOf('pm25_value'), obs = header.indexOf('pm25_observed_at'), stat = header.indexOf('pm25_status');
-      if (loc < 0 || val < 0 || obs < 0 || stat < 0) throw new Error('history schema unavailable');
+      var provider = header.indexOf('pm25_provider'), area = header.indexOf('pm25_area_id'), tambon = header.indexOf('pm25_tambon_name');
+      if (loc < 0 || val < 0 || obs < 0 || stat < 0 || provider < 0 || area < 0 || tambon < 0) throw new Error('history schema unavailable');
       var seen = {};
       for (var i = 1; i < rows.length; i++) {
         var r = rows[i], n = asNumber(r[val]), t = r[obs] instanceof Date ? r[obs].getTime() : Date.parse(String(r[obs] || ''));
-        if (String(r[loc]) !== cfg.active.id || ['ok','stale'].indexOf(String(r[stat])) < 0 || n === null || n < 0 || n > 1000 || !isFinite(t) || t < now - 86400000 || t > now + 120000 || seen[t]) continue;
+        if (String(r[loc]) !== cfg.active.id || String(r[provider]).trim() !== cfg.active.pmProvider || String(r[area]).trim() !== cfg.active.pmAreaId || String(r[tambon]).trim().normalize('NFC') !== cfg.active.pmTambonName || ['ok','stale'].indexOf(String(r[stat])) < 0 || n === null || n < 0 || n > 1000 || !isFinite(t) || t < now - 86400000 || t > now + 120000 || seen[t]) continue;
         seen[t] = true; out.points.push({value:n, observedAt:isoZ(t)});
       }
       out.points.sort(function(a,b){return Date.parse(a.observedAt)-Date.parse(b.observedAt)});

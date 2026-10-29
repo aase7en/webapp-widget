@@ -275,7 +275,8 @@ test('corrupted cache degrades gracefully without violating hourly gate', () => 
   try { out = doGet(h, { action: 'data', v: '1' }); } catch (e) { assert.fail('must not crash: ' + e.message); }
   const body = JSON.parse(h.outputs()[0].text);
   assert.equal(body.schema, 1);
-  assert.equal(body.pm25.status, 'missing', 'corrupt cache cannot trigger an early fetch');
+  assert.equal(body.pm25.status, 'ok', 'durable last-good survives cache corruption');
+  assert.equal(h.calls.fetches.filter(x=>x.includes('gistda')).length, 1, 'no early upstream retry');
 });
 
 test('stale-while-error: last-good served (as stale) when upstream dies', () => {
@@ -300,7 +301,7 @@ test('data route only records hourly attempt property, without Sheet or trigger 
   assert.equal(h.calls.deleteRows.length, 0);
   assert.equal(h.calls.triggerCreates.length, 0);
   assert.equal(h.calls.triggerDeletes.length, 0);
-  assert.deepEqual(h.calls.propSets, ['pm25_gistda_last_attempt_ms']);
+  assert.deepEqual(h.calls.propSets, ['pm25_gistda_last_attempt_ms','pm25_gistda_lastgood_1414']);
 });
 
 test('missing config tabs -> fail closed, no auto-create on read', () => {

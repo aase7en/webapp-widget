@@ -19,15 +19,17 @@ function drawHistory(points){
 }
 function render(pm,history){
  const valid=pm&&pm.status==='latest'&&typeof pm.value==='number'&&Number.isFinite(pm.value)&&pm.value>=0&&pm.value<=1000;
- if(!valid){board.classList.add('unavailable');$('.number').textContent='—';$('.badge').textContent='รอข้อมูล';$('.advice').textContent='ไม่พบข้อมูลล่าสุด';$('.scale-arrow').hidden=true;video.pause();drawHistory(history);return}
+ if(!valid){board.classList.add('unavailable');$('.number').textContent='—';$('.badge').textContent='รอข้อมูล';$('.advice').textContent='ไม่พบข้อมูลล่าสุด';$('.trend-title').textContent='GISTDA · รอข้อมูล';$('.scale-arrow').hidden=true;video.pause();drawHistory(history);return}
+ const observed=Date.parse(pm.observedAt);$('.trend-title').textContent=Number.isFinite(observed)?'GISTDA '+new Intl.DateTimeFormat('en-GB',{timeZone:'Asia/Bangkok',day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit',hour12:false}).format(new Date(observed))+' · เทียบเกณฑ์สี 24 ชม.':'GISTDA · ไม่ทราบเวลาวัด';
  const value=Math.round(pm.value*10)/10,idx=value<=15?0:value<=25?1:value<=37.5?2:value<=75?3:4,t=tiers[idx],lower=[0,15,25,37.5,75],upper=[15,25,37.5,75,150];
  board.classList.remove('unavailable');for(const key of ['light','dark','shade','glow'])board.style.setProperty('--'+key,t[key]);
  const txt=Number.isInteger(value)?String(value):value.toFixed(1);$('.number').textContent=txt;$('.number').style.setProperty('--value-size',txt.length>3?'72px':txt.length>2?'88px':'112px');$('.badge').textContent=t.status;$('.advice').textContent=t.advice;
  const frac=Math.max(.025,Math.min(.975,(value-lower[idx])/(upper[idx]-lower[idx])));$('.scale-arrow').style.left=20*(idx+frac)+'%';$('.scale-arrow').hidden=false;
- if(selected!==t.id){selected=t.id;poster.src='pm25-media/'+selected+'.jpg';video.classList.remove('ready');if(!matchMedia('(prefers-reduced-motion: reduce)').matches){video.src='pm25-media/'+selected+'-optimized.mp4';video.load()}}
+ if(selected!==t.id){selected=t.id;poster.src='pm25-media/'+selected+'.jpg';video.classList.remove('ready');video.dataset.fallback='0';if(!matchMedia('(prefers-reduced-motion: reduce)').matches){video.src='pm25-media/'+selected+'-optimized.mp4';video.load()}}
  if(!matchMedia('(prefers-reduced-motion: reduce)').matches)video.play().catch(()=>{});drawHistory(history);
 }
 video.addEventListener('loadeddata',()=>video.classList.add('ready'));
+video.addEventListener('error',()=>{if(selected&&video.dataset.fallback!=='1'&&video.canPlayType('video/webm')){video.dataset.fallback='1';video.src='pm25-media/'+selected+'.webm';video.load();video.play().catch(()=>{})}});
 window.addEventListener('message',e=>{if(e.origin!==location.origin||e.source!==parent||!e.data||e.data.type!=='uth-pm25-live')return;render(e.data.pm25,e.data.history)});
 tick();setInterval(tick,15000);
 })();
