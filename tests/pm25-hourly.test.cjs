@@ -41,7 +41,7 @@ test('polling before each trigger preserves real hourly observations without dup
  const h=makeContext({tabs,triggers:[{handler:'BackendApiPm25Hourly_',id:'hourly'}],fetchQueue:[{body:gistdaBody()},{body:openMeteoBody()},{body:gistdaBody({pm25:25,dt:'2026-10-17T07:05:00.000Z'})},{body:openMeteoBody()}]});
  doGet(h,{action:'data',v:'1'});h.setNow(NOW_MS+60000);h.ctx.BackendApiPm25Hourly_({triggerUid:'hourly'});
  h.setNow(NOW_MS+61*60000);h.outputsReset();doGet(h,{action:'data',v:'1'});h.setNow(NOW_MS+62*60000);h.ctx.BackendApiPm25Hourly_({triggerUid:'hourly'});
- const rows=h.calls.appends.filter(x=>x.sheet==='History_Batch').map(x=>x.row);assert.deepEqual(rows.map(r=>r[7]),['2026-10-17T06:05+07:00','2026-10-17T07:05+07:00']);assert.equal(h.calls.fetches.filter(x=>x.includes('gistda')).length,2);
+ const rows=h.calls.appends.filter(x=>x.sheet==='PM25_Hourly').map(x=>x.row);assert.deepEqual(rows.map(r=>r[7]),['2026-10-17T06:05+07:00','2026-10-17T07:05+07:00']);assert.equal(h.calls.fetches.filter(x=>x.includes('gistda')).length,2);
 });
 test('legacy sheet writes the real observation time when last-good follows a provider failure',()=>{
  const tabs=defaultTabs();tabs['ชีต1']=[['Timestamp','AQI (US)','PM10 (µg/m³)','PM2.5 (µg/m³)','PM2.5 24hr Avg (µg/m³)']];
@@ -59,3 +59,16 @@ test('legacy combined provider path retains the row observation time',()=>{
 });
 
 test('visible hourly setup and run entry points enforce owner identity',()=>{const h=makeContext({session:{active:'',effective:''}});assert.throws(()=>h.ctx.installPm25Hourly(),/not the trusted owner/);assert.throws(()=>h.ctx.runPm25HourlyNow(),/not authorized/);assert.equal(h.calls.triggerCreates.length,0);assert.equal(h.calls.fetches.length,0)});
+
+test('retention removes only PM hourly rows older than 90 days and preserves unknown dates and mixed legacy history',()=>{
+ const tabs=defaultTabs(),header=tabs.History_Batch[0].slice();header.splice(11,0,'pm25_tambon_name');
+ const row=(timestamp)=>{const r=Array(header.length).fill('');r[header.indexOf('location_id')]='uthai';r[header.indexOf('pm25_observed_at')]=timestamp;return r};
+ tabs.PM25_Hourly=[header,row(new Date(NOW_MS-91*86400000).toISOString()),row(new Date(NOW_MS-90*86400000).toISOString()),row('invalid date')];
+ const before=JSON.stringify(tabs.History_Batch),h=makeContext({tabs,triggers:[{handler:'BackendApiPm25Hourly_',id:'hourly'}],fetchQueue:[{code:429}]});
+ h.ctx.BackendApiPm25Hourly_({triggerUid:'hourly'});
+ assert.equal(JSON.stringify(tabs.History_Batch),before);assert.equal(tabs.PM25_Hourly.length,3);assert.equal(tabs.PM25_Hourly[1][7],new Date(NOW_MS-90*86400000).toISOString());assert.equal(tabs.PM25_Hourly[2][7],'invalid date');assert.deepEqual(h.calls.deleteRows,['PM25_Hourly']);
+});
+
+test('incompatible hourly schema never prunes rows',()=>{
+ const tabs=defaultTabs();tabs.PM25_Hourly=[['unknown'],['old']];const h=makeContext({tabs,triggers:[{handler:'BackendApiPm25Hourly_',id:'hourly'}]});h.ctx.BackendApiPm25Hourly_({triggerUid:'hourly'});assert.equal(h.calls.deleteRows.length,0);assert.equal(h.calls.fetches.length,0);
+});

@@ -175,7 +175,7 @@ function makeContext(opts = {}) {
         };
       },
       appendRow(row) { calls.appends.push({ sheet: name, row: row.slice() }); rows.push(row.slice()); },
-      deleteRows() { calls.deleteRows.push(name); },
+      deleteRows(start, count = 1) { calls.deleteRows.push(name); rows.splice(start - 1, count); },
       getDataRange() { const w = Math.max(1, ...rows.map(r => r.length)); return this.getRange(1, 1, Math.max(1, rows.length), w); },
       newChart: () => newChartBuilder(name),
       insertChart(chart) {

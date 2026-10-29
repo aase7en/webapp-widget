@@ -10,9 +10,14 @@ const tiers=[
 const $=s=>document.querySelector(s),board=$('#board'),video=$('video'),poster=$('.scene img');let selected='';
 function tick(){const d=new Date();$('.date').textContent=new Intl.DateTimeFormat('th-TH',{timeZone:'Asia/Bangkok',weekday:'short',day:'numeric',month:'short',year:'2-digit'}).format(d);$('.time').textContent=new Intl.DateTimeFormat('en-GB',{timeZone:'Asia/Bangkok',hour:'2-digit',minute:'2-digit',hour12:false}).format(d)}
 function drawHistory(points){
- const ns='http://www.w3.org/2000/svg',g=$('#series');while(g.firstChild)g.removeChild(g.firstChild);if(!Array.isArray(points))return;
+ const ns='http://www.w3.org/2000/svg',g=$('#series');while(g.firstChild)g.removeChild(g.firstChild);if(!Array.isArray(points))points=[];
  const now=Date.now(),start=now-24*3600000;
- const valid=points.filter(p=>p&&typeof p.value==='number'&&Number.isFinite(p.value)&&p.value>=0&&p.value<=1000&&Number.isFinite(Date.parse(p.observedAt))&&Date.parse(p.observedAt)>=start&&Date.parse(p.observedAt)<=now+120000).sort((a,b)=>Date.parse(a.observedAt)-Date.parse(b.observedAt));
+ let valid=points.filter(p=>p&&typeof p.value==='number'&&Number.isFinite(p.value)&&p.value>=0&&p.value<=1000&&Number.isFinite(Date.parse(p.observedAt))&&Date.parse(p.observedAt)>=start&&Date.parse(p.observedAt)<=now+120000).sort((a,b)=>Date.parse(a.observedAt)-Date.parse(b.observedAt));
+ const hours=new Set(valid.map(p=>Math.floor(Date.parse(p.observedAt)/3600000))),last=valid.length?Date.parse(valid[valid.length-1].observedAt):0,lastHour=Math.floor(last/3600000);
+ const complete=last>=now-2*3600000&&Array.from({length:24},(_,i)=>lastHour-i).every(h=>hours.has(h));
+ $('.history-label').textContent=complete?'ข้อมูลจริง':'กราฟ DEMO · ค่าจำลอง';
+ $('.trend-plot').setAttribute('aria-label',complete?'กราฟค่าฝุ่นจริงย้อนหลัง 24 ชั่วโมง':'กราฟตัวอย่าง DEMO ค่าจำลอง ไม่ใช่ข้อมูลวัดจริง');
+ if(!complete){const demo=[24,23,25,28,31,29,27,25,24,22,20,19,21,22,23,22,21,20,18,17,16,17,16,15];valid=demo.map((value,i)=>({value,observedAt:new Date(now-(23-i)*3600000).toISOString()}))}
  const max=Math.max(50,...valid.map(p=>p.value)),groups=[];let group=[];
  for(const p of valid){if(group.length&&Date.parse(p.observedAt)-Date.parse(group[group.length-1].observedAt)>90*60000){groups.push(group);group=[]}group.push(p)}if(group.length)groups.push(group);
  for(const samples of groups){const xy=samples.map(p=>[Math.max(0,Math.min(300,(Date.parse(p.observedAt)-start)/86400000*300)),31-Math.min(1,p.value/max)*27]);if(xy.length>1){let line=xy.map((p,i)=>(i?'L':'M')+p[0].toFixed(1)+' '+p[1].toFixed(1)).join(' ');const area=document.createElementNS(ns,'path');area.setAttribute('d',line+' L'+xy[xy.length-1][0].toFixed(1)+' 35 L'+xy[0][0].toFixed(1)+' 35 Z');area.setAttribute('fill','url(#fill)');g.append(area);const path=document.createElementNS(ns,'path');path.setAttribute('d',line);path.setAttribute('class','trend-line');g.append(path)}for(const [x,y] of xy){const circle=document.createElementNS(ns,'circle');circle.setAttribute('cx',x.toFixed(1));circle.setAttribute('cy',y.toFixed(1));circle.setAttribute('r','2');circle.setAttribute('class','point');g.append(circle)}}
