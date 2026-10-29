@@ -118,7 +118,8 @@ function gistdaForMain_() {
       pm25: pm25,
       pm25Avg24hr: avg24,
       tambon: uthai.tb_tn,
-      datetime: payload.datetimeThai || null
+      datetime: payload.datetimeThai || null,
+      observedMs: BackendApi.gistdaObservedMs(uthai, payload)
     }
   };
 }
@@ -198,6 +199,7 @@ function fetchAirQualityData() {
         pm25: uthai.pm25,
         pm25Avg24hr: uthai.pm25Avg24hr,
         datetime: gistdaData.datetimeThai,
+        observedMs: BackendApi.gistdaObservedMs(uthai, gistdaData),
         tambon: uthai.tb_tn
       }
     };
@@ -406,8 +408,9 @@ function importDataToSpreadsheet_(airData) {
     throw new Error('Missing GISTDA PM2.5 concentration');
   }
 
-  const observed = BackendApi.parseThaiDateTime(gistda.datetime);
-  if (!observed) throw new Error('Missing GISTDA observation time');
+  const fallback = BackendApi.parseThaiDateTime(gistda.datetime);
+  const observedMs = typeof gistda.observedMs === 'number' && Number.isFinite(gistda.observedMs) ? gistda.observedMs : (fallback ? fallback.ms : null);
+  if (observedMs === null) throw new Error('Missing GISTDA observation time');
 
   // Initialise the header BEFORE appending: on a blank sheet the first
   // appendRow() would occupy row 1 and hide the absence of a header.
@@ -421,7 +424,7 @@ function importDataToSpreadsheet_(airData) {
 
   // WAQI's PM10 subindex is not PM10 mass in µg/m³.
   // Never fabricate zero, a measurement or NaN in AQI/PM10 columns.
-  const newRow = [formatThaiDateTime(new Date(observed.ms)), '', '', pm25 === null ? '' : pm25,
+  const newRow = [formatThaiDateTime(new Date(observedMs)), '', '', pm25 === null ? '' : pm25,
     avg24 === null ? '' : avg24];
   sheet.appendRow(newRow);
   sheet.getRange(sheet.getLastRow(), 2, 1, 4).setNumberFormat('0.00');
@@ -507,8 +510,9 @@ function logPm25ToSheet2_(airData) {
   try {
     const gistda = airData && airData.gistda;
     if (!gistda || !gistda.tambon) throw new Error('Invalid GISTDA data structure or missing tambon name');
-    const observed = BackendApi.parseThaiDateTime(gistda.datetime);
-    if (!observed) throw new Error('Missing GISTDA observation time');
+    const fallback = BackendApi.parseThaiDateTime(gistda.datetime);
+    const observedMs = typeof gistda.observedMs === 'number' && Number.isFinite(gistda.observedMs) ? gistda.observedMs : (fallback ? fallback.ms : null);
+    if (observedMs === null) throw new Error('Missing GISTDA observation time');
     const spreadsheet = SpreadsheetApp.openById(CONFIG.SPREADSHEET_ID);
     let sheet = spreadsheet.getSheetByName("ชีต2");
 
@@ -520,7 +524,7 @@ function logPm25ToSheet2_(airData) {
     }
 
     // Preserve the source observation time, including when last-good is reused.
-    const formattedTimestamp = Utilities.formatDate(new Date(observed.ms), "Asia/Bangkok", "dd/MM/yyyy HH:mm:ss");
+    const formattedTimestamp = Utilities.formatDate(new Date(observedMs), "Asia/Bangkok", "dd/MM/yyyy HH:mm:ss");
     
     // ดึงข้อมูลชื่อตำบล และค่าเฉลี่ย 24 ชม.
     const tambonName = gistda.tambon;

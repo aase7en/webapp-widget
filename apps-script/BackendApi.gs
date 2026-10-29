@@ -537,6 +537,27 @@ var BackendApi = (function () {
     return base;
   }
 
+  function gistdaObservedMs(item, payload) {
+    /* observedAt: the ROW's own dt (source time) first; weekday-tolerant
+     * datetimeThai fallback. Never fetch time / generatedAt. */
+    var obsMs = null;
+    if (typeof item.dt === 'string' && item.dt !== '') {
+      /* GISTDA row dt is BANGKOK WALL TIME mislabeled with a 'Z' suffix
+       * (verified: dt '23:00:00.000Z' pairs with timeThai 'เวลา 23:00 น.'
+       * for the same rows). Parse the wall components as +07:00. */
+      var dw = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/.exec(item.dt);
+      if (dw) {
+        var ms = Date.UTC(+dw[1], +dw[2] - 1, +dw[3], +dw[4], +dw[5]) - BANGKOK_OFFSET_MS;
+        if (bangkokDateStr(ms) === dw[1] + '-' + dw[2] + '-' + dw[3]) obsMs = ms;
+      }
+    }
+    if (obsMs === null) {
+      var thai = parseThaiDateTime(payload.datetimeThai);
+      if (thai) obsMs = thai.ms;
+    }
+    return obsMs;
+  }
+
   function channelPm25(cfg, now, locked) {
     var loc = cfg.active;
     var base = pm25Base(cfg);
@@ -565,23 +586,7 @@ var BackendApi = (function () {
       var item = matches[0];
       var raw = asNumber(item.pm25);
       if (raw === null || raw < 0) { base._err = err('pm25', 'PARSE', 'invalid pm25 value'); return base; }
-      /* observedAt: the ROW's own dt (source time) first; weekday-tolerant
-       * datetimeThai fallback. Never fetch time / generatedAt. */
-      var obsMs = null;
-      if (typeof item.dt === 'string' && item.dt !== '') {
-        /* GISTDA row dt is BANGKOK WALL TIME mislabeled with a 'Z' suffix
-         * (verified: dt '23:00:00.000Z' pairs with timeThai 'เวลา 23:00 น.'
-         * for the same rows). Parse the wall components as +07:00. */
-        var dw = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/.exec(item.dt);
-        if (dw) {
-          var ms = Date.UTC(+dw[1], +dw[2] - 1, +dw[3], +dw[4], +dw[5]) - BANGKOK_OFFSET_MS;
-          if (bangkokDateStr(ms) === dw[1] + '-' + dw[2] + '-' + dw[3]) obsMs = ms;
-        }
-      }
-      if (obsMs === null) {
-        var thai = parseThaiDateTime(payload.datetimeThai);
-        if (thai) obsMs = thai.ms;
-      }
+      var obsMs = gistdaObservedMs(item, payload);
       if (obsMs === null) { base._err = err('pm25', 'OBSERVED_AT', 'no usable source timestamp on row/payload'); return base; }
       var fresh = freshness(obsMs, now);
       if (fresh === 'future') {
@@ -1410,7 +1415,7 @@ var BackendApi = (function () {
     PM_TTL_S: PM_TTL_S, WX_TTL_S: WX_TTL_S, LASTGOOD_TTL_S: LASTGOOD_TTL_S,
     COOLDOWN_DEFAULT_S: COOLDOWN_DEFAULT_S, COOLDOWN_MIN_S: COOLDOWN_MIN_S, COOLDOWN_MAX_S: COOLDOWN_MAX_S,
     canonicalLocationLabel: canonicalLocationLabel,
-    parseThaiDateTime: parseThaiDateTime, band: band, freshness: freshness,
+    parseThaiDateTime: parseThaiDateTime, gistdaObservedMs: gistdaObservedMs, band: band, freshness: freshness,
     loadConfig: loadConfigSafe, buildChannels: buildChannels,
     doGet: doGet, historyBatch: historyBatch, hourlyHistory: hourlyHistory, installHourlyTrigger: installHourlyTrigger, gistdaPayload: gistdaPayload, setupSheets: setupSheets,
     refreshCharts: refreshCharts, ensureChartsTab: ensureChartsTab,

@@ -48,3 +48,12 @@ test('legacy sheet writes the real observation time when last-good follows a pro
  const h=makeContext({tabs,fetchQueue:[{body:gistdaBody()},{code:429}]});h.ctx.BackendApi.gistdaPayload(url,false);h.setNow(NOW_MS+3600000);assert.throws(()=>h.ctx.BackendApi.gistdaPayload(url,false));h.setNow(NOW_MS+3660000);h.ctx.main_();
  const row=h.calls.appends.find(x=>x.sheet==='ชีต1').row;assert.equal(row[0],'2026-10-16T23:05:00.000Z');assert.equal(row[3],20.9);assert.equal(h.calls.fetches.length,2);
 });
+for(const missingPayloadTime of [false,true])test('legacy writers prefer row observation time '+(missingPayloadTime?'when payload time missing':'when payload time differs'),()=>{
+ const tabs=defaultTabs();tabs['ชีต1']=[['Timestamp','AQI (US)','PM10 (µg/m³)','PM2.5 (µg/m³)','PM2.5 24hr Avg (µg/m³)']];tabs['ชีต2']=[['วันที่-เวลา','ตำบล','ค่าเฉลี่ย PM2.5 (24 ชม.)']];
+ const payload=JSON.parse(gistdaBody());if(missingPayloadTime)delete payload.datetimeThai;else payload.datetimeThai.timeThai='เวลา 06:30 น.';
+ const h=makeContext({tabs,fetchQueue:[{body:JSON.stringify(payload)}]});const data=h.ctx.gistdaForMain_();h.ctx.importDataToSpreadsheet_(data);h.ctx.logPm25ToSheet2_(data);
+ assert.equal(h.calls.appends.find(x=>x.sheet==='ชีต1').row[0],'2026-10-16T23:05:00.000Z');assert.equal(h.calls.appends.find(x=>x.sheet==='ชีต2').row[0],'2026-10-16T23:05:00.000Z');
+});
+test('legacy combined provider path retains the row observation time',()=>{
+ const h=makeContext({fetchQueue:[{body:'{}'},{body:'{}'},{body:gistdaBody({datetimeThai:{dateThai:'17 ตุลาคม 2569',timeThai:'06:30 น.'}})}]});const out=h.ctx.fetchAirQualityData();assert.equal(out.gistda.observedMs,Date.parse('2026-10-16T23:05:00Z'));
+});
