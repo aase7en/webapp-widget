@@ -406,6 +406,9 @@ function importDataToSpreadsheet_(airData) {
     throw new Error('Missing GISTDA PM2.5 concentration');
   }
 
+  const observed = BackendApi.parseThaiDateTime(gistda.datetime);
+  if (!observed) throw new Error('Missing GISTDA observation time');
+
   // Initialise the header BEFORE appending: on a blank sheet the first
   // appendRow() would occupy row 1 and hide the absence of a header.
   const header = sheet.getRange(1, 1, 1, 5).getValues()[0];
@@ -418,7 +421,7 @@ function importDataToSpreadsheet_(airData) {
 
   // WAQI's PM10 subindex is not PM10 mass in µg/m³.
   // Never fabricate zero, a measurement or NaN in AQI/PM10 columns.
-  const newRow = [formatThaiDateTime(new Date()), '', '', pm25 === null ? '' : pm25,
+  const newRow = [formatThaiDateTime(new Date(observed.ms)), '', '', pm25 === null ? '' : pm25,
     avg24 === null ? '' : avg24];
   sheet.appendRow(newRow);
   sheet.getRange(sheet.getLastRow(), 2, 1, 4).setNumberFormat('0.00');
@@ -502,6 +505,10 @@ function getWidgetData() {
 /** ฟังก์ชันสำหรับบันทึกข้อมูล PM2.5 ลงใน 'ชีต2' */
 function logPm25ToSheet2_(airData) {
   try {
+    const gistda = airData && airData.gistda;
+    if (!gistda || !gistda.tambon) throw new Error('Invalid GISTDA data structure or missing tambon name');
+    const observed = BackendApi.parseThaiDateTime(gistda.datetime);
+    if (!observed) throw new Error('Missing GISTDA observation time');
     const spreadsheet = SpreadsheetApp.openById(CONFIG.SPREADSHEET_ID);
     let sheet = spreadsheet.getSheetByName("ชีต2");
 
@@ -512,14 +519,8 @@ function logPm25ToSheet2_(airData) {
       sheet.appendRow(['วันที่-เวลา', 'ตำบล', 'ค่าเฉลี่ย PM2.5 (24 ชม.)']);
     }
 
-    const { gistda } = airData;
-    if (!gistda || !gistda.tambon) { // ตรวจสอบว่ามีข้อมูลตำบลด้วย
-      throw new Error('Invalid GISTDA data structure or missing tambon name');
-    }
-    
-    // ใช้เวลาปัจจุบันในการบันทึกข้อมูล
-    const now = new Date();
-    const formattedTimestamp = Utilities.formatDate(now, "Asia/Bangkok", "dd/MM/yyyy HH:mm:ss");
+    // Preserve the source observation time, including when last-good is reused.
+    const formattedTimestamp = Utilities.formatDate(new Date(observed.ms), "Asia/Bangkok", "dd/MM/yyyy HH:mm:ss");
     
     // ดึงข้อมูลชื่อตำบล และค่าเฉลี่ย 24 ชม.
     const tambonName = gistda.tambon;

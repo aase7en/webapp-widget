@@ -43,3 +43,8 @@ test('polling before each trigger preserves real hourly observations without dup
  h.setNow(NOW_MS+61*60000);h.outputsReset();doGet(h,{action:'data',v:'1'});h.setNow(NOW_MS+62*60000);h.ctx.BackendApiPm25Hourly_({triggerUid:'hourly'});
  const rows=h.calls.appends.filter(x=>x.sheet==='History_Batch').map(x=>x.row);assert.deepEqual(rows.map(r=>r[7]),['2026-10-17T06:05+07:00','2026-10-17T07:05+07:00']);assert.equal(h.calls.fetches.filter(x=>x.includes('gistda')).length,2);
 });
+test('legacy sheet writes the real observation time when last-good follows a provider failure',()=>{
+ const tabs=defaultTabs();tabs['ชีต1']=[['Timestamp','AQI (US)','PM10 (µg/m³)','PM2.5 (µg/m³)','PM2.5 24hr Avg (µg/m³)']];
+ const h=makeContext({tabs,fetchQueue:[{body:gistdaBody()},{code:429}]});h.ctx.BackendApi.gistdaPayload(url,false);h.setNow(NOW_MS+3600000);assert.throws(()=>h.ctx.BackendApi.gistdaPayload(url,false));h.setNow(NOW_MS+3660000);h.ctx.main_();
+ const row=h.calls.appends.find(x=>x.sheet==='ชีต1').row;assert.equal(row[0],'2026-10-16T23:05:00.000Z');assert.equal(row[3],20.9);assert.equal(h.calls.fetches.length,2);
+});
