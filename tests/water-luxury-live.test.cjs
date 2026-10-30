@@ -62,3 +62,10 @@ test('spark area uses station-specific gradient and rejects malformed paths',()=
  assert.match(first,/id="water-fill-s1"/);assert.match(second,/id="water-fill-s2"/);assert.match(first,/L332\.0 125 L5\.0 125 Z/);assert.match(first,/stop-opacity="\.65"/);assert.match(first,/stop-opacity="\.03"/);
  assert.match(spark('M5 20 L332 110 Z" onload="evil','s1'),/รอประวัติ/);assert.match(spark('M5 20 L332 110','unexpected'),/รอประวัติ/);
 });
+
+test('history chart uses a fixed seven-day time window and excludes old or future points',()=>{
+ const begin=js.indexOf('function historyPath('),end=js.indexOf('\nfunction apply(',begin);const history=Function(js.slice(begin,end)+';return historyPath;')();
+ const now=Date.parse('2026-10-30T12:00:00Z'),times=[-9,-6,-1,0.1].map(d=>new Date(now+d*86400000).toISOString());
+ const p=history({trendPoints:[9,1,2,8],trendObservedAt:times},now);assert.match(p,/^M51\.7 /);assert.match(p,/ L285\.3 /);assert.equal((p.match(/[ML]/g)||[]).length,2);
+ const sparse=history({trendPoints:[1,2],trendObservedAt:[new Date(now-7200000).toISOString(),new Date(now-3600000).toISOString()]},now);assert.match(sparse,/^M328\.1 /);assert.match(sparse,/ L330\.1 /);
+});

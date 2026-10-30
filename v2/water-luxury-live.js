@@ -47,14 +47,15 @@ function renderStation(st){
  <div class="reading-detail"><div class="delta" title="${st.observed}">${st.observed}</div><div class="bank-percent" title="สัดส่วนระดับพื้นอ้างอิงถึงตลิ่งต่ำสุด ไม่ใช่ความจุน้ำหรือระดับการเปิดประตู">${label}</div></div>
  </div></div>`;
 }
-function historyPath(st){
+function historyPath(st,now=Date.now()){
  const vals=st?.trendPoints,times=st?.trendObservedAt;
  if(!Array.isArray(vals)||!Array.isArray(times)||vals.length<2||vals.length!==times.length)return '';
- const points=vals.map((level,i)=>({level,ms:Date.parse(times[i])})).filter(x=>Number.isFinite(x.level)&&Number.isFinite(x.ms)).sort((a,b)=>a.ms-b.ms);
+ const windowStart=now-7*86400000;
+ const points=vals.map((level,i)=>({level,ms:Date.parse(times[i])})).filter(x=>Number.isFinite(x.level)&&Number.isFinite(x.ms)&&x.ms>=windowStart&&x.ms<=now).sort((a,b)=>a.ms-b.ms);
  if(points.length<2||points[points.length-1].ms===points[0].ms)return '';
  const min=Math.min(...points.map(x=>x.level)),max=Math.max(...points.map(x=>x.level));
- const extent=Math.max(.15,max-min),span=points[points.length-1].ms-points[0].ms;
- return points.map((v,i)=>(i?'L':'M')+(5+327*(v.ms-points[0].ms)/span).toFixed(1)+' '+(110-82*(v.level-min)/extent).toFixed(1)).join(' ');
+ const extent=Math.max(.15,max-min),span=7*86400000;
+ return points.map((v,i)=>(i?'L':'M')+(5+327*(v.ms-windowStart)/span).toFixed(1)+' '+(110-82*(v.level-min)/extent).toFixed(1)).join(' ');
 }
 function apply(st,reading,now){
  const obs=Date.parse(reading?.observedAt);
@@ -67,6 +68,7 @@ function apply(st,reading,now){
  if((!valid || (Number.isFinite(prior)&&obs<prior))&&
      Number.isFinite(prior)&&prior<=now+120000){
   st.status=now-prior<=3*3600000?'ok':'historical';
+  st.historyPath=historyPath(st.historyReading,now);
   renderStation(st);return;
  }
  st.value=valid?reading.levelMsl:null;
@@ -76,7 +78,8 @@ function apply(st,reading,now){
  st.datum=valid?'MSL':null;
  st.status=valid?(now-obs<=3*3600000?'ok':'historical'):'missing';
  st.observed=valid?'วัด '+new Intl.DateTimeFormat('th-TH',{timeZone:'Asia/Bangkok',day:'2-digit',month:'short',year:'2-digit',hour:'2-digit',minute:'2-digit',hour12:false}).format(new Date(obs)):'ไม่มีค่าที่ตรวจสอบได้';
- st.historyPath=historyPath(reading);
+ st.historyReading=reading;
+ st.historyPath=historyPath(reading,now);
  renderStation(st);
 }
 let reading=false;
@@ -94,6 +97,7 @@ async function refresh(){
    if(st.observedAt&&Number.isFinite(Date.parse(st.observedAt))){
     if(now-Date.parse(st.observedAt)>3*3600000)st.status='historical';
    }
+   st.historyPath=historyPath(st.historyReading,now);
    renderStation(st);
   }
   $('water-data-status').textContent='เชื่อมต่อข้อมูลไม่ได้ · แสดงข้อมูลที่เคยตรวจวัดเมื่อ '+figures.map(x=>x.observed).join('; ');
