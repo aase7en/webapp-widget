@@ -74,7 +74,7 @@ jobs:
           ! grep -q 'AKfycb' index.html legacy.html
       - name: Approved live entry points to the fixed 432x40 visual build
         run: |
-          grep -q 'src="./v2/index.html?display=led"' index.html
+          grep -q 'src="./v2/index.html?display=led&amp;v=' index.html
           grep -q 'led-screen' v2/index.html
           ! grep -q 'MOCK /' v2/index.html v2/weather.html
           ! grep -q '127.0.0.1' v2/index.html v2/api-client.js
