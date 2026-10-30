@@ -133,10 +133,10 @@ var BackendApi = (function () {
   function validPmHourlyRow(r) {
     var n = asNumber(r[2]);
     function timestamp(v) { return v instanceof Date ? v.getTime() : Date.parse(String(v || '')); }
-    return r[0] === 'pm25_hourly_v1' && String(r[1] || '').trim() !== '' &&
+    return r[0] === 'pm25_hourly_v1' && SAFE_ID_RE.test(String(r[1] || '')) &&
       n !== null && n >= 0 && n <= 1000 && isFinite(timestamp(r[3])) &&
-      r[4] === 'ok' && r[5] === 'gistda' && String(r[6] || '').trim() !== '' &&
-      String(r[7] || '').trim() !== '' && isFinite(timestamp(r[8]));
+      r[4] === 'ok' && r[5] === 'gistda' && /^\d{1,10}$/.test(String(r[6] || '')) &&
+      String(r[7] || '').trim() !== '' && String(r[7]).trim().length <= 60 && isFinite(timestamp(r[8]));
   }
   var TAB_CHARTS = 'Charts';
 
