@@ -3,7 +3,7 @@ const root=path.join(__dirname,'..');
 const read=p=>fs.readFileSync(path.join(root,p),'utf8');
 const ui=read('v2/water-luxury-live.html'),js=read('v2/water-luxury-live.js'),css=read('v2/water-luxury-live.css'),rot=read('v2/index.html');
 test('new Water Slide replaces old DOM entirely; PM and Weather remain in three-slide rotation',()=>{
- assert.match(rot,/id="pm"/);assert.match(rot,/src="\.\/weather\.html"/);
+ assert.match(rot,/id="pm"/);assert.match(rot,/src="\.\/weather-luxury\.html\?v=[\w-]+"/);
  assert.match(rot,/src="\.\/water-luxury-live\.html\?v=[\w-]+"/);assert.doesNotMatch(rot,/id="water"|id="s1"|id="s2"|class="spill-sheet"|class="water-station"/);
  assert.match(rot,/main>article/);assert.equal((rot.match(/class="ledframe water-luxury-live-frame"/g)||[]).length,1);
 });

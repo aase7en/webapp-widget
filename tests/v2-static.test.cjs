@@ -233,14 +233,14 @@ test('P1 concurrent callers share one in-flight request',async()=>{
 });
 test('P3 rotation order is pinned PM → Weather → Water and pages depend on led-rotation.js',()=>{
  const screen=fs.readFileSync(path.join(ROOT,'v2/index.html'),'utf8');
- const weatherPage=fs.readFileSync(path.join(ROOT,'v2/weather.html'),'utf8');
+ const weatherPage=fs.readFileSync(path.join(ROOT,'v2/weather-luxury.html'),'utf8');
  const pmPos=screen.indexOf('id="pm"');
- const wxPos=screen.indexOf('./weather.html');
+ const wxPos=screen.indexOf('./weather-luxury.html');
  const waPos=screen.indexOf('src="./water-luxury-live.html?v=20261030-water-1"');
  assert.ok(pmPos>-1&&wxPos>-1&&waPos>-1,'all three strip markers present');
  assert.ok(pmPos<wxPos&&wxPos<waPos,'article DOM order pm → weather → water');
  assert.match(screen,/src="\.\.\/led-rotation\.js"/,'v2/index.html loads the canonical backend reader');
- assert.match(weatherPage,/src="\.\.\/led-rotation\.js"/,'v2/weather.html loads the canonical backend reader');
+ assert.match(weatherPage,/src="weather-snapshot\.js"/,'weather loads the Sheet snapshot adapter');
 });
 test('P3 review cleanup: dead QA CSS removed and legacy geography corrected',()=>{
  const screen=fs.readFileSync(path.join(ROOT,'v2/index.html'),'utf8');
