@@ -1,4 +1,13 @@
 # SESSION-HANDOFF — webapp-widget
+
+## Current checkpoint — 2026-10-30 Weather redesign and shared data
+
+- Owner approved the **visual direction** of the generated Weather concept and requests a premium anime-style Weather page with animated matching scenery/icons, giant temperature, 7-day forecast, feels-like/heat advice and compact current metrics. The concept is static and 2060 × 763, not native 432 × 40. Final animation and LED legibility are not yet approved or verified.
+- Start with [`docs/weather-design/WEATHER-DESIGN-HANDOFF.md`](docs/weather-design/WEATHER-DESIGN-HANDOFF.md), which links the saved concept and owner reference, asset rules, API semantics, 432 × 40 QA and release plan. Use existing PM/Water clock and frame as design anchors.
+- [Draft PR #67](https://github.com/aase7en/webapp-widget/pull/67) is an **unmerged, undeployed** shared hourly backend candidate; Weather on main still calls Open-Meteo directly at this checkpoint. The Weather redesign is not built or live. Recheck actual GitHub, Apps Script, Sheet, triggers and CI; see the detailed design handoff for exact SHAs and outstanding verification.
+- Owner allows deletion of unused Sheet data, but identify and verify ownership/use before deleting; none was deleted for this checkpoint. Preserve unrelated dirty worktrees. No production changes or merge in this handoff.
+- **Next safe action:** recheck current main and PR #67 head, then inspect the Weather implementation and plan a real 432 × 40 demo in an isolated worktree. Older sections below are historical snapshots; later owner decisions in this checkpoint and design handoff supersede old timing/retention assumptions, not the standing single-Sheet contract.
+
 <!-- A handoff is a portable checkpoint, NOT a substitute for actual repo/runtime verification. -->
 **Checkpoint:** 2026-10-22, Asia/Bangkok. **Focus:** one existing Google Sheet + its container-bound Apps Script; continuity when swapping sessions.
 **Repository (not ENV wastewater app):** https://github.com/aase7en/webapp-widget
