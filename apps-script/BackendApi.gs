@@ -1026,7 +1026,11 @@ var BackendApi = (function () {
          * refreshed. Rows record the observedAt/status of the data actually
          * used — a cached PM value may be up to 30 min old at batch time. */
         var pm = getChannelCached(single, 'pm25', channelPm25, pm25Base, PM_TTL_S, now, true);
-        var wx = getChannelCached(single, 'weather', channelWeather, weatherBase, WX_TTL_S, now, true);
+        var wx;
+        if(PropertiesService.getScriptProperties().getProperty('widget_snapshot_mode_v1')==='enabled') {
+          var stored=null;try {if(single.active.id===cfg.active.id)stored=HourlySnapshot.read(now);}catch (_){}
+          wx=stored&&stored.channels.weather?stored.channels.weather.data:weatherMissing(null);
+        } else wx = getChannelCached(single, 'weather', channelWeather, weatherBase, WX_TTL_S, now, true);
         var water = channelWater(single);
         var errs = [];
         if (pm._err) errs.push(pm._err);
@@ -1457,7 +1461,7 @@ var BackendApi = (function () {
     COOLDOWN_DEFAULT_S: COOLDOWN_DEFAULT_S, COOLDOWN_MIN_S: COOLDOWN_MIN_S, COOLDOWN_MAX_S: COOLDOWN_MAX_S,
     canonicalLocationLabel: canonicalLocationLabel,
     parseThaiDateTime: parseThaiDateTime, gistdaObservedMs: gistdaObservedMs, band: band, freshness: freshness,
-    loadConfig: loadConfigSafe, buildChannels: buildChannels, getCachedChannels: getDataPayload,
+    loadConfig: loadConfigSafe, buildChannels: buildChannels, getCachedPm: function(cfg,now){return stripInternal(getChannelCached(cfg,'pm25',channelPm25,pm25Base,PM_TTL_S,now,false));},
     doGet: doGet, historyBatch: historyBatch, hourlyHistory: hourlyHistory, installHourlyTrigger: installHourlyTrigger, gistdaPayload: gistdaPayload, setupSheets: setupSheets,
     refreshCharts: refreshCharts, ensureChartsTab: ensureChartsTab,
     CHART_WINDOW_DAYS: CHART_WINDOW_DAYS,

@@ -213,20 +213,19 @@
       document.getElementById('recommendText').textContent = lv.text;
     }
 
-    // Default Cache & Fetch
-    const CACHE_KEY = 'pm25_widget_cache_v1';
-    const saved = localStorage.getItem(CACHE_KEY);
-    renderPm25(saved ? JSON.parse(saved).pm25 : 12.0);
+    function renderUnavailable() {
+      document.getElementById('pmValue').textContent = '—';
+      document.getElementById('recommendText').textContent = 'ข้อมูลไม่พร้อม';
+    }
+    renderUnavailable();
 
     function fetchPm25() {
       if (typeof google !== 'undefined' && google.script && google.script.run) {
         google.script.run.withSuccessHandler(data => {
           const v = data?.gistda?.selectedArea?.pm25;
-          if (typeof v === 'number') {
-            renderPm25(v);
-            localStorage.setItem(CACHE_KEY, JSON.stringify({ pm25: v, ts: Date.now() }));
-          }
-        }).getWidgetData();
+          if (typeof v === 'number' && Number.isFinite(v) && v >= 0) renderPm25(v);
+          else renderUnavailable();
+        }).withFailureHandler(renderUnavailable).getWidgetData();
       }
     }
     fetchPm25();

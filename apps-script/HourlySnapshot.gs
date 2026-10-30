@@ -34,7 +34,7 @@ var HourlySnapshot = (function () {
   }
   function forecast(loc) {
     var url=FORECAST_URL+'?latitude='+encodeURIComponent(String(loc.lat))+'&longitude='+encodeURIComponent(String(loc.lon))+
-      '&current=wind_speed_10m,is_day,apparent_temperature,uv_index,wind_gusts_10m'+
+      '&current=temperature_2m,relative_humidity_2m,weather_code,wind_speed_10m,is_day,apparent_temperature,uv_index,wind_gusts_10m'+
       '&hourly=temperature_2m,relative_humidity_2m,apparent_temperature,precipitation_probability,weather_code,uv_index,wind_speed_10m,wind_gusts_10m'+
       '&daily=sunrise,sunset,temperature_2m_max,temperature_2m_min,uv_index_max,precipitation_probability_max,weather_code&forecast_days=7&timezone=Asia%2FBangkok';
     var response=UrlFetchApp.fetch(url,{muteHttpExceptions:true,followRedirects:true});
@@ -59,7 +59,7 @@ var HourlySnapshot = (function () {
       if (last!==null && Math.floor(now/3600000)===Math.floor(last/3600000)) return {written:0,reason:'attempt_throttled'};
       props.setProperty(ATTEMPT_KEY,String(now));
     } finally { gate.releaseLock(); }
-    var data=BackendApi.getCachedChannels(cfg,now), f=null;
+    var pm=BackendApi.getCachedPm(cfg,now), f=null;
     try { f=forecast(cfg.active); } catch (_) { /* other channels remain independent */ }
     if(f) try {
       var floodUrl='https://flood-api.open-meteo.com/v1/flood?latitude='+encodeURIComponent(String(cfg.active.lat))+'&longitude='+encodeURIComponent(String(cfg.active.lon))+'&daily=river_discharge&forecast_days=3&timezone=Asia%2FBangkok';
@@ -71,7 +71,15 @@ var HourlySnapshot = (function () {
     try {
       var sh=openSheet(true),rows=sh.getDataRange().getValues(),fingerprint=BackendApi.locationFingerprint(cfg.active), saved=new Date(now).toISOString();
       prune(sh,rows,now);
-      var candidates=[['pm25',data.pm25],['weather',data.weather]];
+      var wx=null;
+      if(f && f.current_units && f.current_units.temperature_2m==='°C' && f.current_units.relative_humidity_2m==='%' && f.current && f.daily){
+        var cur=f.current,t=cur.temperature_2m,rh=cur.relative_humidity_2m,code=cur.weather_code,obs=Date.parse(String(cur.time)+'+07:00');
+        if(typeof t==='number'&&isFinite(t)&&t>=-40&&t<=65&&typeof rh==='number'&&isFinite(rh)&&rh>=0&&rh<=100&&Number.isInteger(code)&&code>=0&&code<=99&&isFinite(obs)){
+          var today=Utilities.formatDate(new Date(now),'Asia/Bangkok','yyyy-MM-dd'),i=f.daily.time.indexOf(today),get=function(k){var v=i>=0&&Array.isArray(f.daily[k])?f.daily[k][i]:null;return typeof v==='number'&&isFinite(v)?v:null};
+          wx={status:'ok',temperatureC:t,humidityPct:rh,weatherCode:code,observedAt:new Date(obs).toISOString(),source:'Open-Meteo weather model',tmaxC:get('temperature_2m_max'),tminC:get('temperature_2m_min'),rainPct:get('precipitation_probability_max'),forecastDate:i>=0?today:null};
+        }
+      }
+      var candidates=[['pm25',pm],['weather',wx]];
       if (f) candidates.push(['forecast',f]);
       var written=0;
       candidates.forEach(function(entry){
