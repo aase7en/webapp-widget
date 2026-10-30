@@ -1128,3 +1128,10 @@ test('BackendApi.gs header marks proposed/un-deployed; no legacy redefinitions',
     assert.ok(!new RegExp(legacy, 'm').test(src));
   }
 });
+
+test('legacy widget in snapshot mode never fetches GISTDA for page reads',()=>{
+ const h=makeContext({props:[['widget_snapshot_mode_v1','enabled']],fetchQueue:[]});
+ h.ctx.HourlySnapshot={read:()=>({channels:{pm25:{data:{status:'ok',value:21.2}}}})};
+ const w=h.ctx.getWidgetData();assert.equal(w.gistda.selectedArea.pm25,21.2);assert.equal(h.calls.fetches.length,0);
+ h.ctx.HourlySnapshot={read:()=>({channels:{}})};assert.equal(h.ctx.getWidgetData().error,true);assert.equal(h.calls.fetches.length,0);
+});

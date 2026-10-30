@@ -848,6 +848,7 @@ var BackendApi = (function () {
 
   function doGet(e) {
     var params = (e && e.parameter) || {};
+    if (params.action === 'snapshot_v1') return HourlySnapshot.web(e);
     if (params.action === 'pm25_history') return historyResponse(params);
     if (params.action !== 'data') {
       return HtmlService.createTemplateFromFile('index')
@@ -867,7 +868,16 @@ var BackendApi = (function () {
       return respond(callbackId, [err('config', 'CONFIG', 'configuration invalid: ' + cfg.reason)], null);
     }
     var now = nowMs();
-    var channels = getDataPayload(cfg, now);
+    var channels;
+    if (PropertiesService.getScriptProperties().getProperty('widget_snapshot_mode_v1') === 'enabled') {
+      /* Once cut over, web requests never refresh a provider. Fail closed if
+         the snapshot is missing or stale; the scheduled collector repairs it. */
+      var snap=null; try { snap=HourlySnapshot.read(now); } catch (_) { /* unavailable */ }
+      var c=snap && snap.channels || {};
+      channels={pm25:c.pm25 ? c.pm25.data : stripInternal(pm25Missing()),
+        weather:c.weather ? c.weather.data : stripInternal(weatherMissing()),
+        water:stripInternal(channelWater(cfg)),errors:[]};
+    } else channels = getDataPayload(cfg, now);
     return respond(callbackId, channels.errors || [], {
       schema: SCHEMA, generatedAt: isoZ(now),
       location: { id: cfg.active.id, label: cfg.active.label, lat: cfg.active.lat, lon: cfg.active.lon },
@@ -1016,7 +1026,11 @@ var BackendApi = (function () {
          * refreshed. Rows record the observedAt/status of the data actually
          * used — a cached PM value may be up to 30 min old at batch time. */
         var pm = getChannelCached(single, 'pm25', channelPm25, pm25Base, PM_TTL_S, now, true);
-        var wx = getChannelCached(single, 'weather', channelWeather, weatherBase, WX_TTL_S, now, true);
+        var wx;
+        if(PropertiesService.getScriptProperties().getProperty('widget_snapshot_mode_v1')==='enabled') {
+          var stored=null;try {if(single.active.id===cfg.active.id)stored=HourlySnapshot.read(now);}catch (_){}
+          wx=stored&&stored.channels.weather?stored.channels.weather.data:weatherMissing(null);
+        } else wx = getChannelCached(single, 'weather', channelWeather, weatherBase, WX_TTL_S, now, true);
         var water = channelWater(single);
         var errs = [];
         if (pm._err) errs.push(pm._err);
@@ -1447,7 +1461,7 @@ var BackendApi = (function () {
     COOLDOWN_DEFAULT_S: COOLDOWN_DEFAULT_S, COOLDOWN_MIN_S: COOLDOWN_MIN_S, COOLDOWN_MAX_S: COOLDOWN_MAX_S,
     canonicalLocationLabel: canonicalLocationLabel,
     parseThaiDateTime: parseThaiDateTime, gistdaObservedMs: gistdaObservedMs, band: band, freshness: freshness,
-    loadConfig: loadConfigSafe, buildChannels: buildChannels,
+    loadConfig: loadConfigSafe, buildChannels: buildChannels, getCachedPm: function(cfg,now){return stripInternal(getChannelCached(cfg,'pm25',channelPm25,pm25Base,PM_TTL_S,now,false));},
     doGet: doGet, historyBatch: historyBatch, hourlyHistory: hourlyHistory, installHourlyTrigger: installHourlyTrigger, gistdaPayload: gistdaPayload, setupSheets: setupSheets,
     refreshCharts: refreshCharts, ensureChartsTab: ensureChartsTab,
     CHART_WINDOW_DAYS: CHART_WINDOW_DAYS,
@@ -1571,7 +1585,11 @@ function ledOwnerDiagnostics() {
   return d;
 }
 
-function BackendApiPm25Hourly_(event) { return BackendApi.hourlyHistory(event); }
+function BackendApiPm25Hourly_(event) {
+  var result=BackendApi.hourlyHistory(event);
+  try { BackendApiSnapshotHourly_(event); } catch (e) { Logger.log('Snapshot collector failed: '+String(e).slice(0,160)); }
+  return result;
+}
 function BackendApiInstallPm25Hourly_() { return BackendApi.installHourlyTrigger(); }
 /* Visible editor entry points; underlying functions enforce owner identity. */
 function installPm25Hourly() { return BackendApi.installHourlyTrigger(); }

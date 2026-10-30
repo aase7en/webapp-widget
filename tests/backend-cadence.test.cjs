@@ -287,3 +287,13 @@ test('doGet under all-429 persists only the PM attempt, no Sheets or triggers', 
   assert.deepEqual(h.calls.propSets, ['pm25_gistda_last_attempt_ms']);
   assert.equal(h.calls.triggerCreates.length + h.calls.triggerDeletes.length, 0);
 });
+
+test('enabled snapshot mode serves legacy data route without provider calls',()=>{
+ const h=makeContext({props:[['widget_snapshot_mode_v1','enabled']],fetchQueue:[]});
+ h.ctx.HourlySnapshot={read:()=>({channels:{pm25:{data:{status:'ok',value:20.9,unit:'µg/m³'}},weather:{data:{status:'ok',temperatureC:29,humidityPct:70}}}})};
+ const result=data(h);assert.equal(result.pm25.value,20.9);assert.equal(h.calls.fetches.length,0);
+});
+test('snapshot read failure fails closed without a provider fallback',()=>{
+ const h=makeContext({props:[['widget_snapshot_mode_v1','enabled']],fetchQueue:[]});h.ctx.HourlySnapshot={read:()=>{throw Error('sheet down')}};
+ const result=data(h);assert.equal(result.pm25.status,'missing');assert.equal(result.weather.status,'missing');assert.equal(h.calls.fetches.length,0);
+});
