@@ -4,7 +4,7 @@ const read=p=>fs.readFileSync(path.join(root,p),'utf8');
 const ui=read('v2/water-luxury-live.html'),js=read('v2/water-luxury-live.js'),css=read('v2/water-luxury-live.css'),rot=read('v2/index.html');
 test('new Water Slide replaces old DOM entirely; PM and Weather remain in three-slide rotation',()=>{
  assert.match(rot,/id="pm"/);assert.match(rot,/src="\.\/weather\.html"/);
- assert.match(rot,/src="\.\/water-luxury-live\.html"/);assert.doesNotMatch(rot,/id="water"|id="s1"|id="s2"|class="spill-sheet"|class="water-station"/);
+ assert.match(rot,/src="\.\/water-luxury-live\.html\?v=[\w-]+"/);assert.doesNotMatch(rot,/id="water"|id="s1"|id="s2"|class="spill-sheet"|class="water-station"/);
  assert.match(rot,/main>article/);assert.equal((rot.match(/class="ledframe water-luxury-live-frame"/g)||[]).length,1);
 });
 test('physical 432x40 water-only view contains two reference stations with no fixture controls',()=>{
@@ -46,4 +46,19 @@ test('verified latest station survives missing and older responses without fake 
  assert.equal(st.value,2.81);assert.equal(st.status,'historical');
  assert.match(st.observed,/วัด /);
  assert.equal(applied.length,3);
+});
+
+test('comparison badge is descriptive, requires fresh data, and never uses historical values as present',()=>{
+ const begin=js.indexOf('function bankBadge(st,now=Date.now()){'),end=js.indexOf('\n// Only a dimensionless',begin);assert.ok(begin>0&&end>begin);
+ const badge=Function(js.slice(begin,end)+';return bankBadge;')();
+ const fresh={status:'ok',datum:'MSL',value:2,bankM:3,observedAt:new Date().toISOString()};
+ assert.equal(badge(fresh).text,'ต่ำกว่าตลิ่ง');assert.equal(badge({...fresh,value:3}).text,'ถึงตลิ่ง');assert.equal(badge({...fresh,value:3.1}).text,'สูงกว่าตลิ่ง');
+ assert.equal(badge({...fresh,status:'historical',value:3.1}).text,'ข้อมูลเก่า');assert.equal(badge({...fresh,observedAt:new Date(Date.now()-4*3600000).toISOString(),value:3.1}).text,'ข้อมูลเก่า');assert.equal(badge({...fresh,bankM:null}).text,'รอข้อมูล');assert.equal(badge({...fresh,datum:'other'}).text,'รอข้อมูล');
+});
+test('spark area uses station-specific gradient and rejects malformed paths',()=>{
+ const begin=js.indexOf('function sparkSvg('),end=js.indexOf('\nfunction bankBadge(',begin);assert.ok(begin>0&&end>begin);
+ const spark=Function(js.slice(begin,end)+';return sparkSvg;')();
+ const first=spark('M5.0 20.0 L332.0 110.0','s1'),second=spark('M5.0 20.0 L332.0 110.0','s2');
+ assert.match(first,/id="water-fill-s1"/);assert.match(second,/id="water-fill-s2"/);assert.match(first,/L332\.0 125 L5\.0 125 Z/);assert.match(first,/stop-opacity="\.65"/);assert.match(first,/stop-opacity="\.03"/);
+ assert.match(spark('M5 20 L332 110 Z" onload="evil','s1'),/รอประวัติ/);assert.match(spark('M5 20 L332 110','unexpected'),/รอประวัติ/);
 });

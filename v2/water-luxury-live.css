@@ -379,3 +379,7 @@ html,body{margin:0!important;padding:0!important;width:432px;height:40px;min-hei
 body{position:relative}
 .widget.v3{position:absolute;left:0;top:0;transform:scale(.3333333333)!important;transform-origin:top left!important;pointer-events:none}
 @media (prefers-reduced-motion:reduce){.widget.v3 .foam-front{filter:none}}
+
+/* Station comparisons are descriptive, not official flood alerts. */
+.widget.v3 .status-trend .badge.warn{background:linear-gradient(180deg,#ffdb69,#e67a10);box-shadow:0 0 16px #ffa73599}
+.widget.v3 .status-trend .badge.danger{background:linear-gradient(180deg,#ff9672,#d92a30);box-shadow:0 0 18px #ff4a3988}

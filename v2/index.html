@@ -531,7 +531,7 @@ html.led-screen .scale>div,html.led-screen .scale>iframe{transform:none!importan
 </head>
 <body><main><h1>UTH LED · Environmental Widgets — Live Preview</h1>
 <p>ทั้งสามแถบมีขนาด 432 × 40 CSS px • PM2.5 อ้างอิงข้อมูล GISTDA ระดับตำบล (ไม่ใช่เซนเซอร์ รพ.) • อุณหภูมิและพยากรณ์ฝนมาจากแบบจำลอง Open-Meteo • ระดับน้ำอ่านสถานีอ้างอิง ThaiWater/HII จริง (ไม่ใช่เครื่องวัดระดับน้ำหน้า รพ.) • ไม่มีการนำข้อมูลสมมติมาแสดงเป็นค่าปัจจุบัน</p>
-<article><h2>1. PM2.5 — ปรับให้ใกล้ภาพอ้างอิง พร้อมมาสคอต 3D</h2><div class="stage-wrap"><div class="scale"><iframe class="ledframe" id="pm-live-frame" title="PM2.5 รายชั่วโมงและแนวโน้มย้อนหลัง" src="./pm25-live.html?v=20261030-pm25-2"></iframe><div class="stage" id="pm" style="display:none">
+<article><h2>1. PM2.5 — ปรับให้ใกล้ภาพอ้างอิง พร้อมมาสคอต 3D</h2><div class="stage-wrap"><div class="scale"><iframe class="ledframe" id="pm-live-frame" title="PM2.5 รายชั่วโมงและแนวโน้มย้อนหลัง" src="./pm25-live.html?v=20261030-water-1"></iframe><div class="stage" id="pm" style="display:none">
 <div class="clock"><div class="d">พ. 21 ต.ค. 69</div><div class="t">07:45</div></div>
 <div class="seg pm-core"><div class="mascot" data-masked="0">
 <img data-base src="../assets/icons3d/rig/pm-base-unavailable.png" alt="">
@@ -557,7 +557,7 @@ html.led-screen .scale>div,html.led-screen .scale>iframe{transform:none!importan
 <small id="weather-source">รอดึงพยากรณ์ Open-Meteo · MODEL FORECAST</small></article>
 <article><h2>3. Water — Luxury V3.2 · HII/Google Sheet</h2>
 <div class="stage-wrap"><div class="scale">
-<iframe class="ledframe water-luxury-live-frame" title="ระดับน้ำ HDA004 และ S.5 จาก Google Sheet พร้อมเวลาที่วัดจริง" src="./water-luxury-live.html" loading="eager" referrerpolicy="strict-origin-when-cross-origin"></iframe>
+<iframe class="ledframe water-luxury-live-frame" title="ระดับน้ำ HDA004 และ S.5 จาก Google Sheet พร้อมเวลาที่วัดจริง" src="./water-luxury-live.html?v=20261030-water-1" loading="eager" referrerpolicy="strict-origin-when-cross-origin"></iframe>
 </div></div>
 <div class="controls"><button id="refresh-all">อัปเดตข้อมูลจริงทุกส่วน</button><button id="real">อัปเดตระดับน้ำจาก Google Sheet</button></div>
 <div class="notice" id="explain">HDA004 และ S.5 เป็นสถานีอ้างอิง ThaiWater/HII ไม่ใช่เครื่องวัดของโรงพยาบาล · ตัวเลขล่าสุดที่บันทึกอาจเป็นข้อมูลย้อนหลัง และภาพการไหลเป็น Animation เพื่อประกอบข้อมูล ไม่ใช่การเปิดประตูจริง</div>

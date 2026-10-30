@@ -57,7 +57,7 @@ test('replacement Water Luxury is the sole scene; old spillway station DOM is ab
  const css=fs.readFileSync(path.join(root,'v2/water-luxury-live.css'),'utf8');
  assert.equal((parent.match(/class="spill-sheet"/g)||[]).length,0);
  assert.doesNotMatch(parent,/id="water"|id="s1"|id="s2"|class="water-station"/);
- assert.match(parent,/src="\.\/water-luxury-live\.html"/);
+ assert.match(parent,/src="\.\/water-luxury-live\.html\?v=[\w-]+"/);
  assert.equal((parent.match(/class="ledframe water-luxury-live-frame"/g)||[]).length,1);
  assert.match(child,/class="foam-front"/);
  assert.match(css,/foam-front/);
