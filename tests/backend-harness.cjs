@@ -152,6 +152,7 @@ function makeContext(opts = {}) {
     if (!sheetCharts.has(name)) sheetCharts.set(name, []);
     const charts = sheetCharts.get(name);
     return {
+      getName: () => name,
       getLastRow: () => rows.length,
       getRange(r, c, nr = 1, nc = 1) {
         const out = [];
@@ -175,8 +176,8 @@ function makeContext(opts = {}) {
         };
       },
       appendRow(row) { calls.appends.push({ sheet: name, row: row.slice() }); rows.push(row.slice()); },
-      deleteRows() { calls.deleteRows.push(name); },
-      getDataRange() { const w = Math.max(1, ...rows.map(r => r.length)); return this.getRange(1, 1, Math.max(1, rows.length), w); },
+      deleteRows(start, count = 1) { calls.deleteRows.push(name); rows.splice(start - 1, count); },
+      getDataRange() { if (opts.readErrorSheets && opts.readErrorSheets.includes(name)) throw new Error("mock sheet read failure"); const w = Math.max(1, ...rows.map(r => r.length)); return this.getRange(1, 1, Math.max(1, rows.length), w); },
       newChart: () => newChartBuilder(name),
       insertChart(chart) {
         chart._id = nextChartId++;
