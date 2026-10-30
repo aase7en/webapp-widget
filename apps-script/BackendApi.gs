@@ -130,6 +130,14 @@ var BackendApi = (function () {
   var TAB_PM_HOURLY = 'PM25_Hourly';
   var PM_RETENTION_MS = 90 * 86400000;
   var PM_HISTORY_HEADER = ['record_type','location_id','pm25_value','pm25_observed_at','pm25_status','pm25_provider','pm25_area_id','pm25_tambon_name','created_at'];
+  function validPmHourlyRow(r) {
+    var n = asNumber(r[2]);
+    function timestamp(v) { return v instanceof Date ? v.getTime() : Date.parse(String(v || '')); }
+    return r[0] === 'pm25_hourly_v1' && String(r[1] || '').trim() !== '' &&
+      n !== null && n >= 0 && n <= 1000 && isFinite(timestamp(r[3])) &&
+      r[4] === 'ok' && r[5] === 'gistda' && String(r[6] || '').trim() !== '' &&
+      String(r[7] || '').trim() !== '' && isFinite(timestamp(r[8]));
+  }
   var TAB_CHARTS = 'Charts';
 
   /* ---------------- charts dashboard ('Charts' tab) ----------------
@@ -878,18 +886,21 @@ var BackendApi = (function () {
       var book = openSpreadsheet(), sheets = [book.getSheetByName(TAB_HISTORY), book.getSheetByName(TAB_PM_HOURLY)].filter(function(s){return !!s});
       if (!sheets.length) throw new Error('history unavailable');
       var seen = {}, readable = 0;
-      sheets.forEach(function(sheet) {
+      sheets.forEach(function(sheet) { try {
       var rows = sheet.getDataRange().getValues(), header = rows[0] || [];
+      var hourly = sheet.getName() === TAB_PM_HOURLY;
+      if (hourly && (header.length !== PM_HISTORY_HEADER.length || PM_HISTORY_HEADER.some(function(name, i){return header[i] !== name}))) return;
       var loc = header.indexOf('location_id'), val = header.indexOf('pm25_value'), obs = header.indexOf('pm25_observed_at'), stat = header.indexOf('pm25_status');
       var provider = header.indexOf('pm25_provider'), area = header.indexOf('pm25_area_id'), tambon = header.indexOf('pm25_tambon_name');
       if (loc < 0 || val < 0 || obs < 0 || stat < 0 || provider < 0 || area < 0 || tambon < 0) return;
       readable++;
       for (var i = 1; i < rows.length; i++) {
         var r = rows[i], n = asNumber(r[val]), t = r[obs] instanceof Date ? r[obs].getTime() : Date.parse(String(r[obs] || ''));
+        if (hourly && !validPmHourlyRow(r)) continue;
         if (String(r[loc]) !== cfg.active.id || String(r[provider]).trim() !== cfg.active.pmProvider || String(r[area]).trim() !== cfg.active.pmAreaId || String(r[tambon]).trim().normalize('NFC') !== cfg.active.pmTambonName || ['ok','stale'].indexOf(String(r[stat])) < 0 || n === null || n < 0 || n > 1000 || !isFinite(t) || t < now - 86400000 || t > now + 120000 || seen[t]) continue;
         seen[t] = true; out.points.push({value:n, observedAt:isoZ(t)});
       }
-      });
+      } catch (sheetError) { /* one damaged tab must not hide another */ } });
       if (!readable) throw new Error('history schema unavailable');
       out.points.sort(function(a,b){return Date.parse(a.observedAt)-Date.parse(b.observedAt)});
       out.status = 'ok'; out.location = cfg.active.id;
@@ -920,7 +931,7 @@ var BackendApi = (function () {
       var runEnd = -1;
       for (var r = rows.length - 1; r >= 0; r--) {
         var stamp = r > 0 ? (rows[r][oi] instanceof Date ? rows[r][oi].getTime() : Date.parse(String(rows[r][oi] || ''))) : NaN;
-        if (r > 0 && rows[r][0] === 'pm25_hourly_v1' && isFinite(stamp) && stamp < now - PM_RETENTION_MS) { if (runEnd < 0) runEnd = r; }
+        if (r > 0 && validPmHourlyRow(rows[r]) && isFinite(stamp) && stamp < now - PM_RETENTION_MS) { if (runEnd < 0) runEnd = r; }
         else if (runEnd >= 0) { sheet.deleteRows(r + 2, runEnd - r); rows.splice(r + 1, runEnd - r); runEnd = -1; }
       }
       var pm = getChannelCached(cfg, 'pm25', channelPm25, pm25Base, PM_TTL_S, now, true);

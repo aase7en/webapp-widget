@@ -78,3 +78,15 @@ test('retention keeps unowned rows and refuses rows with extra mixed data',()=>{
  for(const extra of [false,true]){const tabs=defaultTabs(),row=['other','uthai',20,new Date(NOW_MS-91*86400000).toISOString(),'ok','gistda','1414','อุทัย',''];if(extra){row[0]='pm25_hourly_v1';header.push('water_station_id');row.push('HDA004')}tabs.PM25_Hourly=[header.slice(),row];const h=makeContext({tabs,triggers:[{handler:'BackendApiPm25Hourly_',id:'hourly'}]});h.ctx.BackendApiPm25Hourly_({triggerUid:'hourly'});assert.equal(tabs.PM25_Hourly.length,2);assert.equal(h.calls.deleteRows.length,0);if(extra)header.pop()}
 });
 test('malformed hourly tab does not hide valid legacy observations',()=>{const tabs=defaultTabs(),head=tabs.History_Batch[0];head.splice(11,0,'pm25_tambon_name');const row=Array(head.length).fill('');for(const [k,v] of Object.entries({location_id:'uthai',pm25_value:20,pm25_observed_at:'2026-10-16T22:00:00Z',pm25_status:'ok',pm25_provider:'gistda',pm25_area_id:'1414',pm25_tambon_name:'อุทัย'}))row[head.indexOf(k)]=v;tabs.History_Batch.push(row);tabs.PM25_Hourly=[['wrong']];const h=makeContext({tabs});doGet(h,{action:'pm25_history'});const data=JSON.parse(h.outputs()[0].text);assert.equal(data.status,'ok');assert.equal(data.points.length,1)});
+
+test('malformed owned rows are preserved and unowned rows never appear as real history',()=>{
+ const tabs=defaultTabs(),header=['record_type','location_id','pm25_value','pm25_observed_at','pm25_status','pm25_provider','pm25_area_id','pm25_tambon_name','created_at'];
+ const old=new Date(NOW_MS-91*86400000).toISOString(),recent=new Date(NOW_MS-3600000).toISOString();
+ tabs.PM25_Hourly=[header,['pm25_hourly_v1','uthai','not a number',old,'bad','other','1414','อุทัย','bad'],['other','uthai',77,recent,'ok','gistda','1414','อุทัย',recent]];
+ tabs.History_Batch[0].splice(11,0,'pm25_tambon_name');
+ const h=makeContext({tabs,triggers:[{handler:'BackendApiPm25Hourly_',id:'hourly'}]});h.ctx.BackendApiPm25Hourly_({triggerUid:'hourly'});assert.equal(tabs.PM25_Hourly.length,3);assert.equal(h.calls.deleteRows.length,0);doGet(h,{action:'pm25_history'});assert.equal(JSON.parse(h.outputs()[0].text).points.length,0);
+});
+
+test('a damaged tab read does not hide valid data from another tab',()=>{
+ const tabs=defaultTabs();tabs.PM25_Hourly=[['record_type','location_id','pm25_value','pm25_observed_at','pm25_status','pm25_provider','pm25_area_id','pm25_tambon_name','created_at'],['pm25_hourly_v1','uthai',20,'2026-10-16T22:00:00Z','ok','gistda','1414','อุทัย','2026-10-16T22:10:00Z']];const h=makeContext({tabs,readErrorSheets:['History_Batch']});doGet(h,{action:'pm25_history'});const result=JSON.parse(h.outputs()[0].text);assert.equal(result.status,'ok');assert.equal(result.points.length,1);
+});
