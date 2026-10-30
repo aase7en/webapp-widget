@@ -30,7 +30,7 @@ test('scheduled hourly write keeps observation time and deduplicates without mut
  const tabs=defaultTabs();tabs.History_Batch[0].splice(11,0,'pm25_tambon_name');
  const h=makeContext({tabs,triggers:[{handler:'BackendApiPm25Hourly_',id:'hourly'}],session:{active:'',effective:''},fetchQueue:[{body:gistdaBody()}]});
  h.ctx.BackendApiPm25Hourly_({triggerUid:'hourly'});h.ctx.BackendApiPm25Hourly_({triggerUid:'hourly'});
- assert.equal(h.calls.fetches.length,1);assert.equal(h.calls.appends.length,1);assert.equal(h.calls.appends[0].row[7],'2026-10-17T06:05+07:00');assert.equal(h.calls.triggerDeletes.length,0);
+ assert.equal(h.calls.fetches.length,1);assert.equal(h.calls.appends.length,1);assert.equal(h.calls.appends[0].row[3],'2026-10-17T06:05+07:00');assert.equal(h.calls.triggerDeletes.length,0);
 });
 test('untrusted caller cannot run the hourly write',()=>{const h=makeContext({session:{active:'',effective:''}});assert.throws(()=>h.ctx.BackendApiPm25Hourly_({triggerUid:'fake'}),/not authorized/);assert.equal(h.calls.fetches.length,0)});
 
@@ -41,7 +41,7 @@ test('polling before each trigger preserves real hourly observations without dup
  const h=makeContext({tabs,triggers:[{handler:'BackendApiPm25Hourly_',id:'hourly'}],fetchQueue:[{body:gistdaBody()},{body:openMeteoBody()},{body:gistdaBody({pm25:25,dt:'2026-10-17T07:05:00.000Z'})},{body:openMeteoBody()}]});
  doGet(h,{action:'data',v:'1'});h.setNow(NOW_MS+60000);h.ctx.BackendApiPm25Hourly_({triggerUid:'hourly'});
  h.setNow(NOW_MS+61*60000);h.outputsReset();doGet(h,{action:'data',v:'1'});h.setNow(NOW_MS+62*60000);h.ctx.BackendApiPm25Hourly_({triggerUid:'hourly'});
- const rows=h.calls.appends.filter(x=>x.sheet==='PM25_Hourly').map(x=>x.row);assert.deepEqual(rows.map(r=>r[7]),['2026-10-17T06:05+07:00','2026-10-17T07:05+07:00']);assert.equal(h.calls.fetches.filter(x=>x.includes('gistda')).length,2);
+ const rows=h.calls.appends.filter(x=>x.sheet==='PM25_Hourly').map(x=>x.row);assert.deepEqual(rows.map(r=>r[3]),['2026-10-17T06:05+07:00','2026-10-17T07:05+07:00']);assert.equal(h.calls.fetches.filter(x=>x.includes('gistda')).length,2);
 });
 test('legacy sheet writes the real observation time when last-good follows a provider failure',()=>{
  const tabs=defaultTabs();tabs['ชีต1']=[['Timestamp','AQI (US)','PM10 (µg/m³)','PM2.5 (µg/m³)','PM2.5 24hr Avg (µg/m³)']];
@@ -61,14 +61,20 @@ test('legacy combined provider path retains the row observation time',()=>{
 test('visible hourly setup and run entry points enforce owner identity',()=>{const h=makeContext({session:{active:'',effective:''}});assert.throws(()=>h.ctx.installPm25Hourly(),/not the trusted owner/);assert.throws(()=>h.ctx.runPm25HourlyNow(),/not authorized/);assert.equal(h.calls.triggerCreates.length,0);assert.equal(h.calls.fetches.length,0)});
 
 test('retention removes only PM hourly rows older than 90 days and preserves unknown dates and mixed legacy history',()=>{
- const tabs=defaultTabs(),header=tabs.History_Batch[0].slice();header.splice(11,0,'pm25_tambon_name');
- const row=(timestamp)=>{const r=Array(header.length).fill('');r[header.indexOf('location_id')]='uthai';r[header.indexOf('pm25_observed_at')]=timestamp;return r};
+ const tabs=defaultTabs(),header=['record_type','location_id','pm25_value','pm25_observed_at','pm25_status','pm25_provider','pm25_area_id','pm25_tambon_name','created_at'];
+ const row=(timestamp)=>['pm25_hourly_v1','uthai',20,timestamp,'ok','gistda','1414','อุทัย',new Date(NOW_MS).toISOString()];
  tabs.PM25_Hourly=[header,row(new Date(NOW_MS-91*86400000).toISOString()),row(new Date(NOW_MS-90*86400000).toISOString()),row('invalid date')];
  const before=JSON.stringify(tabs.History_Batch),h=makeContext({tabs,triggers:[{handler:'BackendApiPm25Hourly_',id:'hourly'}],fetchQueue:[{code:429}]});
  h.ctx.BackendApiPm25Hourly_({triggerUid:'hourly'});
- assert.equal(JSON.stringify(tabs.History_Batch),before);assert.equal(tabs.PM25_Hourly.length,3);assert.equal(tabs.PM25_Hourly[1][7],new Date(NOW_MS-90*86400000).toISOString());assert.equal(tabs.PM25_Hourly[2][7],'invalid date');assert.deepEqual(h.calls.deleteRows,['PM25_Hourly']);
+ assert.equal(JSON.stringify(tabs.History_Batch),before);assert.equal(tabs.PM25_Hourly.length,3);assert.equal(tabs.PM25_Hourly[1][3],new Date(NOW_MS-90*86400000).toISOString());assert.equal(tabs.PM25_Hourly[2][3],'invalid date');assert.deepEqual(h.calls.deleteRows,['PM25_Hourly']);
 });
 
 test('incompatible hourly schema never prunes rows',()=>{
  const tabs=defaultTabs();tabs.PM25_Hourly=[['unknown'],['old']];const h=makeContext({tabs,triggers:[{handler:'BackendApiPm25Hourly_',id:'hourly'}]});h.ctx.BackendApiPm25Hourly_({triggerUid:'hourly'});assert.equal(h.calls.deleteRows.length,0);assert.equal(h.calls.fetches.length,0);
 });
+
+test('retention keeps unowned rows and refuses rows with extra mixed data',()=>{
+ const header=['record_type','location_id','pm25_value','pm25_observed_at','pm25_status','pm25_provider','pm25_area_id','pm25_tambon_name','created_at'];
+ for(const extra of [false,true]){const tabs=defaultTabs(),row=['other','uthai',20,new Date(NOW_MS-91*86400000).toISOString(),'ok','gistda','1414','อุทัย',''];if(extra){row[0]='pm25_hourly_v1';header.push('water_station_id');row.push('HDA004')}tabs.PM25_Hourly=[header.slice(),row];const h=makeContext({tabs,triggers:[{handler:'BackendApiPm25Hourly_',id:'hourly'}]});h.ctx.BackendApiPm25Hourly_({triggerUid:'hourly'});assert.equal(tabs.PM25_Hourly.length,2);assert.equal(h.calls.deleteRows.length,0);if(extra)header.pop()}
+});
+test('malformed hourly tab does not hide valid legacy observations',()=>{const tabs=defaultTabs(),head=tabs.History_Batch[0];head.splice(11,0,'pm25_tambon_name');const row=Array(head.length).fill('');for(const [k,v] of Object.entries({location_id:'uthai',pm25_value:20,pm25_observed_at:'2026-10-16T22:00:00Z',pm25_status:'ok',pm25_provider:'gistda',pm25_area_id:'1414',pm25_tambon_name:'อุทัย'}))row[head.indexOf(k)]=v;tabs.History_Batch.push(row);tabs.PM25_Hourly=[['wrong']];const h=makeContext({tabs});doGet(h,{action:'pm25_history'});const data=JSON.parse(h.outputs()[0].text);assert.equal(data.status,'ok');assert.equal(data.points.length,1)});

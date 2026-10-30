@@ -129,7 +129,7 @@ var BackendApi = (function () {
   var TAB_HISTORY = 'History_Batch';
   var TAB_PM_HOURLY = 'PM25_Hourly';
   var PM_RETENTION_MS = 90 * 86400000;
-  var PM_HISTORY_HEADER = ['batch_id','batch_date','slot','location_id','lat','lon','pm25_value','pm25_observed_at','pm25_status','pm25_provider','pm25_area_id','pm25_tambon_name','wx_temp_c','wx_rh_pct','wx_code','wx_observed_at','wx_status','wx_provider','water_status','water_station_id','water_datum','created_at'];
+  var PM_HISTORY_HEADER = ['record_type','location_id','pm25_value','pm25_observed_at','pm25_status','pm25_provider','pm25_area_id','pm25_tambon_name','created_at'];
   var TAB_CHARTS = 'Charts';
 
   /* ---------------- charts dashboard ('Charts' tab) ----------------
@@ -877,18 +877,20 @@ var BackendApi = (function () {
       if (!cfg.ok) throw new Error('config unavailable');
       var book = openSpreadsheet(), sheets = [book.getSheetByName(TAB_HISTORY), book.getSheetByName(TAB_PM_HOURLY)].filter(function(s){return !!s});
       if (!sheets.length) throw new Error('history unavailable');
-      var seen = {};
+      var seen = {}, readable = 0;
       sheets.forEach(function(sheet) {
       var rows = sheet.getDataRange().getValues(), header = rows[0] || [];
       var loc = header.indexOf('location_id'), val = header.indexOf('pm25_value'), obs = header.indexOf('pm25_observed_at'), stat = header.indexOf('pm25_status');
       var provider = header.indexOf('pm25_provider'), area = header.indexOf('pm25_area_id'), tambon = header.indexOf('pm25_tambon_name');
-      if (loc < 0 || val < 0 || obs < 0 || stat < 0 || provider < 0 || area < 0 || tambon < 0) throw new Error('history schema unavailable');
+      if (loc < 0 || val < 0 || obs < 0 || stat < 0 || provider < 0 || area < 0 || tambon < 0) return;
+      readable++;
       for (var i = 1; i < rows.length; i++) {
         var r = rows[i], n = asNumber(r[val]), t = r[obs] instanceof Date ? r[obs].getTime() : Date.parse(String(r[obs] || ''));
         if (String(r[loc]) !== cfg.active.id || String(r[provider]).trim() !== cfg.active.pmProvider || String(r[area]).trim() !== cfg.active.pmAreaId || String(r[tambon]).trim().normalize('NFC') !== cfg.active.pmTambonName || ['ok','stale'].indexOf(String(r[stat])) < 0 || n === null || n < 0 || n > 1000 || !isFinite(t) || t < now - 86400000 || t > now + 120000 || seen[t]) continue;
         seen[t] = true; out.points.push({value:n, observedAt:isoZ(t)});
       }
       });
+      if (!readable) throw new Error('history schema unavailable');
       out.points.sort(function(a,b){return Date.parse(a.observedAt)-Date.parse(b.observedAt)});
       out.status = 'ok'; out.location = cfg.active.id;
     } catch (e) { /* honest unavailable, never synthetic history */ }
@@ -912,13 +914,13 @@ var BackendApi = (function () {
         sheet.getRange(1, 1, 1, PM_HISTORY_HEADER.length).setValues([PM_HISTORY_HEADER]);
       }
       var rows = sheet.getDataRange().getValues(), h = rows[0] || [], li = h.indexOf('location_id'), oi = h.indexOf('pm25_observed_at');
-      if (h.length < PM_HISTORY_HEADER.length || PM_HISTORY_HEADER.some(function(name, i){return h[i] !== name})) return;
+      if (h.length !== PM_HISTORY_HEADER.length || PM_HISTORY_HEADER.some(function(name, i){return h[i] !== name})) return;
       /* Remove only expired, parseable observations in this dedicated tab.
        * Unknown dates and all legacy mixed weather/water rows are preserved. */
       var runEnd = -1;
       for (var r = rows.length - 1; r >= 0; r--) {
         var stamp = r > 0 ? (rows[r][oi] instanceof Date ? rows[r][oi].getTime() : Date.parse(String(rows[r][oi] || ''))) : NaN;
-        if (isFinite(stamp) && stamp < now - PM_RETENTION_MS) { if (runEnd < 0) runEnd = r; }
+        if (r > 0 && rows[r][0] === 'pm25_hourly_v1' && isFinite(stamp) && stamp < now - PM_RETENTION_MS) { if (runEnd < 0) runEnd = r; }
         else if (runEnd >= 0) { sheet.deleteRows(r + 2, runEnd - r); rows.splice(r + 1, runEnd - r); runEnd = -1; }
       }
       var pm = getChannelCached(cfg, 'pm25', channelPm25, pm25Base, PM_TTL_S, now, true);
@@ -929,9 +931,7 @@ var BackendApi = (function () {
         var old = rows[i][oi] instanceof Date ? rows[i][oi].getTime() : Date.parse(String(rows[i][oi] || ''));
         if (String(rows[i][li]) === cfg.active.id && Math.floor(old / 3600000) === Math.floor(observed / 3600000)) return;
       }
-      var L = cfg.locations.filter(function(x){return String(x.id).trim() === cfg.active.id})[0];
-      if (!L) return;
-      appendHistoryRow(sheet, bangkokDateStr(now)+':hourly:'+bangkokParts(now).h, bangkokDateStr(now), 'hourly', L, pm, weatherMissing(null), null, []);
+      sheet.appendRow(['pm25_hourly_v1',cfg.active.id,pm.value,pm.observedAt,pm.status,cfg.active.pmProvider,cfg.active.pmAreaId,cfg.active.pmTambonName,isoZ(now)]);
     } finally { lock.releaseLock(); }
   }
   function installHourlyTrigger() {
