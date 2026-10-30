@@ -848,6 +848,7 @@ var BackendApi = (function () {
 
   function doGet(e) {
     var params = (e && e.parameter) || {};
+    if (params.action === 'snapshot_v1') return HourlySnapshot.web(e);
     if (params.action === 'pm25_history') return historyResponse(params);
     if (params.action !== 'data') {
       return HtmlService.createTemplateFromFile('index')
@@ -1447,7 +1448,7 @@ var BackendApi = (function () {
     COOLDOWN_DEFAULT_S: COOLDOWN_DEFAULT_S, COOLDOWN_MIN_S: COOLDOWN_MIN_S, COOLDOWN_MAX_S: COOLDOWN_MAX_S,
     canonicalLocationLabel: canonicalLocationLabel,
     parseThaiDateTime: parseThaiDateTime, gistdaObservedMs: gistdaObservedMs, band: band, freshness: freshness,
-    loadConfig: loadConfigSafe, buildChannels: buildChannels,
+    loadConfig: loadConfigSafe, buildChannels: buildChannels, getCachedChannels: getDataPayload,
     doGet: doGet, historyBatch: historyBatch, hourlyHistory: hourlyHistory, installHourlyTrigger: installHourlyTrigger, gistdaPayload: gistdaPayload, setupSheets: setupSheets,
     refreshCharts: refreshCharts, ensureChartsTab: ensureChartsTab,
     CHART_WINDOW_DAYS: CHART_WINDOW_DAYS,
