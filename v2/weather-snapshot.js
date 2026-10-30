@@ -23,7 +23,7 @@ function parse(raw,now){
  if((f.current_units||{}).temperature_2m!=='°C'||(f.current_units||{}).relative_humidity_2m!=='%')return d;
  const currentTime=typeof cur.time==='string'&&/^\d{4}-\d\d-\d\dT\d\d:\d\d$/.test(cur.time)?cur.time:null;
  const observed=currentTime?Date.parse(currentTime+'+07:00'):NaN;
- if(!Number.isFinite(observed)||observed>now+FUTURE||now-observed>FRESH)return d;
+ if(!Number.isFinite(observed)||observed>now+FUTURE||now-observed>FRESH||Math.abs(observed-Date.parse(w.observedAt))>15*60000)return d;
  d.feelsC=number(cur.apparent_temperature,-50,80);
  d.icon=condition(w.weatherCode,cur.is_day,cur.wind_speed_10m);
  const hourIndex=Array.isArray(hourly.time)?hourly.time.indexOf(currentTime):-1;
