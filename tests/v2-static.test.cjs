@@ -236,7 +236,7 @@ test('P3 rotation order is pinned PM → Weather → Water and pages depend on l
  const weatherPage=fs.readFileSync(path.join(ROOT,'v2/weather.html'),'utf8');
  const pmPos=screen.indexOf('id="pm"');
  const wxPos=screen.indexOf('./weather.html');
- const waPos=screen.indexOf('src="./water-luxury-live.html"');
+ const waPos=screen.indexOf('src="./water-luxury-live.html?v=20261030-water-1"');
  assert.ok(pmPos>-1&&wxPos>-1&&waPos>-1,'all three strip markers present');
  assert.ok(pmPos<wxPos&&wxPos<waPos,'article DOM order pm → weather → water');
  assert.match(screen,/src="\.\.\/led-rotation\.js"/,'v2/index.html loads the canonical backend reader');
