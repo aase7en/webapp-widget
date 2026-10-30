@@ -940,7 +940,10 @@ var BackendApi = (function () {
       if (!isFinite(observed) || observed < now - PM_RETENTION_MS || observed > now + 120000) return;
       for (var i = Math.max(1, rows.length-1000); i < rows.length; i++) {
         var old = rows[i][oi] instanceof Date ? rows[i][oi].getTime() : Date.parse(String(rows[i][oi] || ''));
-        if (String(rows[i][li]) === cfg.active.id && Math.floor(old / 3600000) === Math.floor(observed / 3600000)) return;
+        if (validPmHourlyRow(rows[i]) && String(rows[i][li]) === cfg.active.id &&
+            String(rows[i][5]).trim() === cfg.active.pmProvider && String(rows[i][6]).trim() === cfg.active.pmAreaId &&
+            String(rows[i][7]).trim().normalize('NFC') === cfg.active.pmTambonName &&
+            Math.floor(old / 3600000) === Math.floor(observed / 3600000)) return;
       }
       sheet.appendRow(['pm25_hourly_v1',cfg.active.id,pm.value,pm.observedAt,pm.status,cfg.active.pmProvider,cfg.active.pmAreaId,cfg.active.pmTambonName,isoZ(now)]);
     } finally { lock.releaseLock(); }

@@ -90,3 +90,13 @@ test('malformed owned rows are preserved and unowned rows never appear as real h
 test('a damaged tab read does not hide valid data from another tab',()=>{
  const tabs=defaultTabs();tabs.PM25_Hourly=[['record_type','location_id','pm25_value','pm25_observed_at','pm25_status','pm25_provider','pm25_area_id','pm25_tambon_name','created_at'],['pm25_hourly_v1','uthai',20,'2026-10-16T22:00:00Z','ok','gistda','1414','อุทัย','2026-10-16T22:10:00Z']];const h=makeContext({tabs,readErrorSheets:['History_Batch']});doGet(h,{action:'pm25_history'});const result=JSON.parse(h.outputs()[0].text);assert.equal(result.status,'ok');assert.equal(result.points.length,1);
 });
+
+test('unowned, malformed and different source rows do not block real hourly recording',()=>{
+ const header=['record_type','location_id','pm25_value','pm25_observed_at','pm25_status','pm25_provider','pm25_area_id','pm25_tambon_name','created_at'];
+ for(const variant of ['unowned','malformed','different-area']){
+  const tabs=defaultTabs(),row=['pm25_hourly_v1','uthai',20,'2026-10-17T06:05+07:00','ok','gistda','1414','อุทัย','2026-10-17T06:10+07:00'];
+  if(variant==='unowned')row[0]='other';if(variant==='malformed')row[2]='not-a-number';if(variant==='different-area')row[6]='other';
+  tabs.PM25_Hourly=[header.slice(),row];const h=makeContext({tabs,triggers:[{handler:'BackendApiPm25Hourly_',id:'hourly'}],fetchQueue:[{body:gistdaBody()}]});
+  h.ctx.BackendApiPm25Hourly_({triggerUid:'hourly'});assert.equal(h.calls.appends.filter(x=>x.sheet==='PM25_Hourly').length,1,variant);
+ }
+});
