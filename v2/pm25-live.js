@@ -24,7 +24,7 @@ function render(pm,history){
 
  const value=Math.round(pm.value*10)/10,idx=value<=15?0:value<=25?1:value<=37.5?2:value<=75?3:4,t=tiers[idx],lower=[0,15,25,37.5,75],upper=[15,25,37.5,75,150];
  board.classList.remove('unavailable');for(const key of ['light','dark','shade','glow'])board.style.setProperty('--'+key,t[key]);
- const txt=Number.isInteger(value)?String(value):value.toFixed(1);$('.number').textContent=txt;$('.number').style.setProperty('--value-size',txt.length>4?'80px':txt.length>3?(txt.includes('.')?(txt.startsWith('1')?'110px':'100px'):'92px'):'112px');$('.badge').textContent=t.status;$('.advice').textContent=t.advice;
+ const txt=Number.isInteger(value)?String(value):value.toFixed(1);$('.number').textContent=txt;$('.number').style.setProperty('--value-size',txt.length>4?'70px':txt.length>3?(txt.includes('.')?(txt.startsWith('1')?'100px':'94px'):'82px'):txt.length>2?'104px':'112px');$('.badge').textContent=t.status;$('.advice').textContent=t.advice;
  const frac=Math.max(.025,Math.min(.975,(value-lower[idx])/(upper[idx]-lower[idx])));$('.scale-arrow').style.left=20*(idx+frac)+'%';$('.scale-arrow').hidden=false;
  if(selected!==t.id){selected=t.id;poster.src='pm25-media/'+selected+'.jpg';video.classList.remove('ready');video.dataset.fallback='0';if(!matchMedia('(prefers-reduced-motion: reduce)').matches){video.src='pm25-media/'+selected+'-optimized.mp4';video.load()}}
  if(!matchMedia('(prefers-reduced-motion: reduce)').matches)video.play().catch(()=>{});drawHistory(history);
