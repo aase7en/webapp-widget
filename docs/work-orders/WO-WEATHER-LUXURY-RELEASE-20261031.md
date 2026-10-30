@@ -1,0 +1,7 @@
+# Weather luxury release — in progress
+
+Owner approved the visual replacement and a Google Sheet hourly backend. This branch includes the approved 432×40 visual, 10 weather animation variants, the temperature-coloured 7-day graph, and candidate shared snapshot backend from PR #67. It is not evidence of a live deployment.
+
+The production view reads only the fixed Sheet snapshot endpoint. Weather is model output, hourly probability is matched to the forecast's current hour, and daily probabilities are daily maxima. Temperature colour is illustrative, not an official heat warning. Missing, wrong-location, future or stale data is unavailable. An in-memory last-good snapshot is revalidated on errors. Heat advice uses the existing NOAA-derived index; the nearby apparent temperature is a separate Open-Meteo estimate. No demo values are shipped in the displayed production page.
+
+Before release: inspect this combined candidate and backend ownership/trigger behaviour, confirm expected installed triggers and private Apps Script HEAD/deployment; preserve private source and v37 rollback; stage backend, collect a real snapshot and verify all channels, flags and schedules; verify 432×40 and iPhone with actual data, 10 scenarios and failure paths; complete CI and independent review; then publish and verify Pages and backend with rollback if required. Do not enable snapshot mode without valid real channels. Do not commit private bound-script sources or secrets.
