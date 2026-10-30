@@ -868,7 +868,16 @@ var BackendApi = (function () {
       return respond(callbackId, [err('config', 'CONFIG', 'configuration invalid: ' + cfg.reason)], null);
     }
     var now = nowMs();
-    var channels = getDataPayload(cfg, now);
+    var channels;
+    if (PropertiesService.getScriptProperties().getProperty('widget_snapshot_mode_v1') === 'enabled') {
+      /* Once cut over, web requests never refresh a provider. Fail closed if
+         the snapshot is missing or stale; the scheduled collector repairs it. */
+      var snap=null; try { snap=HourlySnapshot.read(now); } catch (_) { /* unavailable */ }
+      var c=snap && snap.channels || {};
+      channels={pm25:c.pm25 ? c.pm25.data : stripInternal(pm25Missing()),
+        weather:c.weather ? c.weather.data : stripInternal(weatherMissing()),
+        water:stripInternal(channelWater(cfg)),errors:[]};
+    } else channels = getDataPayload(cfg, now);
     return respond(callbackId, channels.errors || [], {
       schema: SCHEMA, generatedAt: isoZ(now),
       location: { id: cfg.active.id, label: cfg.active.label, lat: cfg.active.lat, lon: cfg.active.lon },
@@ -1572,7 +1581,11 @@ function ledOwnerDiagnostics() {
   return d;
 }
 
-function BackendApiPm25Hourly_(event) { return BackendApi.hourlyHistory(event); }
+function BackendApiPm25Hourly_(event) {
+  var result=BackendApi.hourlyHistory(event);
+  try { BackendApiSnapshotHourly_(event); } catch (e) { Logger.log('Snapshot collector failed: '+String(e).slice(0,160)); }
+  return result;
+}
 function BackendApiInstallPm25Hourly_() { return BackendApi.installHourlyTrigger(); }
 /* Visible editor entry points; underlying functions enforce owner identity. */
 function installPm25Hourly() { return BackendApi.installHourlyTrigger(); }

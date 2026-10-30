@@ -48,13 +48,14 @@ test('invalid day strings and missing today fail closed',()=>{
   assert.equal(panel.validDay('2026-10-13T00:00'),false);
   assert.equal(panel.normalizeForecast(good(),new Date('2026-11-01T06:00:00Z')).state,'UNAVAILABLE');
 });
-test('uses static keyless public Open-Meteo endpoint, Bangkok timezone and correct metric',()=>{
-  const u=new URL(panel.forecastUrl());
-  assert.equal(u.origin,'https://flood-api.open-meteo.com');
-  assert.equal(u.searchParams.get('daily'),'river_discharge');
-  assert.equal(u.searchParams.get('timezone'),'Asia/Bangkok');
-  assert.equal(u.searchParams.has('apikey'),false);
-  assert.equal(u.searchParams.has('token'),false);
+test('flood page reads the fixed owner-bound Sheet snapshot instead of provider directly',()=>{
+  const u=new URL(panel.forecastUrl());assert.equal(u.origin,'https://script.google.com');assert.equal(u.searchParams.get('action'),'snapshot_v1');
+  assert.doesNotMatch(fs.readFileSync(require('node:path').resolve(__dirname,'../water.js'),'utf8'),/flood-api\.open-meteo\.com/);
+});
+test('flood forecast retains model attribution and rejects stale stored payload',async()=>{
+ const wrap=stamp=>({schema:1,location:{id:'uthai'},channels:{forecast:{data:{widgetFlood:{fetchedAt:stamp,data:good()}}}}});
+ const fresh=await panel.fetchForecast(async()=>({ok:true,json:async()=>wrap(at.toISOString())}),()=>at);assert.equal(fresh.state,'MODELLED');
+ const stale=await panel.fetchForecast(async()=>({ok:true,json:async()=>wrap('2026-10-12T00:00:00Z')}),()=>at);assert.equal(stale.state,'UNAVAILABLE');
 });
 test('HTTP errors, offline and bad JSON fail closed',async()=>{
   for(const fn of [

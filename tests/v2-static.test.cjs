@@ -25,7 +25,7 @@ function boot({pm=23.1,levelA=2.87,levelB=3.15,ageMin=20,weather=true,apiFails=f
  const window={fetch:fetcher,UthaiLEDRotation:{requestBackendData:async()=>({ok:true,raw:weather?data:{...data,weather:{status:'missing'}}})}};
  window.document={createElement:()=>({remove(){},src:''}),head:{appendChild(script){
   const cb=new URL(script.src).searchParams.get('callback');
-  queueMicrotask(()=>{if(apiFails)script.onerror();else window[cb]({schema:1,kind:'LAST_OBSERVATION_NOT_LIVE',stations:{
+  queueMicrotask(()=>{if(apiFails){script.onerror();return}if(script.src.includes('action=snapshot_v1')){const c=x=>({observedAt:iso,savedAt:iso,data:x});window[cb]({schema:1,location:data.location,channels:{pm25:c(data.pm25),weather:c(weather?data.weather:{status:'missing'}),forecast:c(forecast)}});return}window[cb]({schema:1,kind:'LAST_OBSERVATION_NOT_LIVE',stations:{
    HDA004:{stationId:471583,status:'ok',levelMsl:levelA,bankM:3.03,groundMsl:.227,observedAt:iso,trendPoints:[],trendObservedAt:[]},
    S5:{stationId:2607,status:'ok',levelMsl:levelB,bankM:4.70,groundMsl:-8.59,observedAt:iso,trendPoints:[],trendObservedAt:[]}
   }});});
@@ -130,9 +130,12 @@ function bootCtl(){
    return{ok:true,raw:dataFor()};
   }}};
  window.document={createElement:()=>({remove(){},src:''}),head:{appendChild(script){
-  calls.water++;calls.waterUrl=script.src;
   const cb=new URL(script.src).searchParams.get('callback');
-  queueMicrotask(()=>{if(state.waterFails)script.onerror();else window[cb](waterFor());});
+  if(script.src.includes('action=snapshot_v1')){
+   calls.backend++;
+   const complete=()=>{if(state.backendFails){script.onerror();return}const d=dataFor(),stamp=iso(state.observationAgeMin),c=x=>({observedAt:stamp,savedAt:stamp,data:x});window[cb]({schema:1,location:d.location,channels:{pm25:c(d.pm25),weather:c(d.weather),forecast:c(forecastFor())}})};
+   if(state.backendDelayMs)setTimeout(complete,state.backendDelayMs);else queueMicrotask(complete);
+  }else{calls.water++;calls.waterUrl=script.src;queueMicrotask(()=>{if(state.waterFails)script.onerror();else window[cb](waterFor());});}
  }}};
  const context=vm.createContext({window,fetch:window.fetch,Date,Math,Number,Set,URLSearchParams,AbortController,setTimeout,clearTimeout,Promise,Error,Intl});
  vm.runInContext(SOURCE,context,{filename:'api-client.js'});
@@ -343,8 +346,10 @@ test('weather scene supports night/moon, fog layers, rain, thunder bolts and red
  assert.match(logic,/createSVG\('unknown'\)/);
 });
 test('Open-Meteo forecast contract requests sunrise/sunset and current is_day',()=>{
- assert.match(SOURCE,/current:'wind_speed_10m,is_day'/);
- assert.match(SOURCE,/daily:'sunrise,sunset'/);
+ const collector=fs.readFileSync(path.join(ROOT,'apps-script/HourlySnapshot.gs'),'utf8');
+ assert.match(collector,/wind_speed_10m,is_day/);
+ assert.match(collector,/sunrise,sunset/);
+ assert.doesNotMatch(SOURCE,/api\.open-meteo\.com/);
  assert.match(SOURCE,/const isDay=validSolar\?raw>=rise&&raw<set:null/);
  assert.match(SOURCE,/cur.is_day===1\|\|cur.is_day===0/);
 });

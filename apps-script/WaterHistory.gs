@@ -81,13 +81,35 @@ var WaterHistory = (function () {
     var hour=Number(Utilities.formatDate(new Date(now),'Asia/Bangkok','H'));
     return Math.abs(hour-morning)<=2?'morning':Math.abs(hour-evening)<=2?'evening':null;
   }
-  function sync_(){
+  function pruneOwned_(sh,now){
+    /* Refuse row deletion if any other columns contain data. Only known
+       scheduled rows for the two stations may be removed; legacy/backfill,
+       malformed records and unknown statuses stay untouched. */
+    if(sh.getLastColumn()!==HEAD.length)return 0;
+    var last=sh.getLastRow(); if(last<2)return 0;
+    var rows=sh.getRange(2,1,last-1,HEAD.length).getValues(),end=-1,removed=0;
+    for(var i=rows.length-1;i>=-1;i--){
+      var r=i>=0?rows[i]:null,meta=r&&HII[String(r[4])],t=r&&obs_(r[8]);
+      var eligible=!!(r&&meta&&Number(r[5])===meta.id&&r[3]==='uthai'&&r[11]==='ThaiWater/HII'&&r[15]==='MSL'&&['LATEST','HISTORICAL'].indexOf(r[10])>=0&&t&&t.utcMs<now-90*86400000);
+      if(eligible){if(end<0)end=i;}
+      else if(end>=0){sh.deleteRows(i+3,end-i);removed+=end-i;end=-1;}
+    }
+    return removed;
+  }
+  function sync_(hourly){
     var lock=LockService.getScriptLock();
     if(!lock.tryLock(20000))throw Error('SYNC_BUSY');
     try {
-      var now=Date.now(),slot=slot_(now);
+      var now=Date.now(),slot=hourly ? 'hourly' : slot_(now);
       if(!slot)throw Error('OUTSIDE_APPROVED_2_DAILY_SLOTS');
       var sh=sheet_(),found={},errors=[];
+      /* Shared durable gate covers both the legacy twice-daily handler and
+         the hourly collector; failed requests also consume the hourly slot. */
+      var props=PropertiesService.getScriptProperties(), key='widget_water_attempt_ms_v1', raw=props.getProperty(key), last=raw===null?null:Number(raw);
+      if(raw!==null&&(!isFinite(last)||last>now+120000))throw Error('INVALID_WATER_ATTEMPT');
+      if(last!==null&&Math.floor(now/3600000)===Math.floor(last/3600000))return {stored:0,verified:0,sourceErrors:0,reason:'attempt_throttled'};
+      props.setProperty(key,String(now));
+      pruneOwned_(sh,now);
       // Fetch only canonical ThaiWater/HII. On API error, preserve already stored Sheet rows.
       // Never introduce a second upstream source or write a cached replay as a new observation.
       [URL].forEach(function(url){
@@ -167,6 +189,6 @@ var WaterHistory = (function () {
     }
     return ContentService.createTextOutput(j).setMimeType(ContentService.MimeType.JSON);
   }
-  return {parse:parse_,read:read_,web:web_,sync:sync_};
+  return {parse:parse_,read:read_,web:web_,sync:function(){return sync_(false)},syncHourly:function(){return sync_(true)}};
 })();
 function waterHistoryRead_(e){ return WaterHistory.web(e); }

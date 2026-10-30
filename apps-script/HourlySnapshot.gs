@@ -45,7 +45,7 @@ var HourlySnapshot = (function () {
   }
   function collect(event) {
     var uid=event && event.triggerUid != null ? String(event.triggerUid) : '';
-    var scheduled=uid!=='' && ScriptApp.getProjectTriggers().some(function(t){return t.getHandlerFunction()==='BackendApiSnapshotHourly_' && String(t.getUniqueId())===uid;});
+    var scheduled=uid!=='' && ScriptApp.getProjectTriggers().some(function(t){return ['BackendApiSnapshotHourly_','BackendApiPm25Hourly_'].indexOf(t.getHandlerFunction())>=0 && String(t.getUniqueId())===uid;});
     if (!scheduled && !BackendApi.isOwnerSession()) throw Error('snapshot caller not authorized');
     var cfg=BackendApi.loadConfig(); if (!cfg.ok || cfg.active.id!=='uthai') throw Error('snapshot config invalid');
     /* A durable attempt gate prevents duplicate provider requests even after a
@@ -56,11 +56,17 @@ var HourlySnapshot = (function () {
     try {
       var props=PropertiesService.getScriptProperties(), raw=props.getProperty(ATTEMPT_KEY), last=raw===null ? null : Number(raw);
       if (raw!==null && (!isFinite(last) || last>now+FUTURE_MS)) throw Error('invalid attempt timestamp');
-      if (last!==null && now-last<3600000) return {written:0,reason:'attempt_throttled'};
+      if (last!==null && Math.floor(now/3600000)===Math.floor(last/3600000)) return {written:0,reason:'attempt_throttled'};
       props.setProperty(ATTEMPT_KEY,String(now));
     } finally { gate.releaseLock(); }
     var data=BackendApi.getCachedChannels(cfg,now), f=null;
     try { f=forecast(cfg.active); } catch (_) { /* other channels remain independent */ }
+    if(f) try {
+      var floodUrl='https://flood-api.open-meteo.com/v1/flood?latitude='+encodeURIComponent(String(cfg.active.lat))+'&longitude='+encodeURIComponent(String(cfg.active.lon))+'&daily=river_discharge&forecast_days=3&timezone=Asia%2FBangkok';
+      var floodResponse=UrlFetchApp.fetch(floodUrl,{muteHttpExceptions:true,followRedirects:true});
+      if(floodResponse.getResponseCode()===200){var flood=JSON.parse(floodResponse.getContentText());
+        if(flood && flood.daily_units && flood.daily_units.river_discharge==='m³/s' && flood.daily && Array.isArray(flood.daily.time) && Array.isArray(flood.daily.river_discharge)) f.widgetFlood={fetchedAt:new Date(Date.now()).toISOString(),data:flood};}
+    } catch (_) { /* forecast remains usable if flood model fails */ }
     var lock=LockService.getScriptLock(); if (!lock.tryLock(15000)) throw Error('snapshot busy');
     try {
       var sh=openSheet(true),rows=sh.getDataRange().getValues(),fingerprint=BackendApi.locationFingerprint(cfg.active), saved=new Date(now).toISOString();
@@ -81,16 +87,25 @@ var HourlySnapshot = (function () {
   /* Pure reader: never fetches any upstream provider or edits sheet state. */
   function read(now) {
     var cfg=BackendApi.loadConfig(); if (!cfg.ok || cfg.active.id!=='uthai') throw Error('snapshot config invalid');
-    var sh=openSheet(false),out={schema:1,status:'unavailable',location:{id:cfg.active.id,lat:cfg.active.lat,lon:cfg.active.lon},channels:{}};
-    if (!sh) return out;
-    var rows=sh.getDataRange().getValues(),fingerprint=BackendApi.locationFingerprint(cfg.active);
-    for (var i=rows.length-1;i>0;i--) {
+    var fingerprint=BackendApi.locationFingerprint(cfg.active),out={schema:1,status:'unavailable',location:{id:cfg.active.id,lat:cfg.active.lat,lon:cfg.active.lon},channels:{}};
+    var cache=null,key='widget_snapshot_read_v1_'+fingerprint;
+    try {cache=CacheService.getScriptCache();var raw=cache.get(key),cached=raw&&JSON.parse(raw);
+      if(cached&&cached.schema===1&&cached.location&&cached.location.id===cfg.active.id&&cached.channels){
+        Object.keys(cached.channels).forEach(function(k){var v=cached.channels[k],obs=Date.parse(v.observedAt),saved=Date.parse(v.savedAt);
+          if(!isFinite(obs)||!isFinite(saved)||obs>now+FUTURE_MS||saved>now+FUTURE_MS||now-obs>3*3600000||now-saved>3*3600000)delete cached.channels[k];});
+        cached.status=Object.keys(cached.channels).length?'ok':'unavailable';return cached;
+      }
+    } catch (_) { cache=null; }
+    var sh=openSheet(false); if (!sh) return out;
+    var count=sh.getLastRow(), start=Math.max(2,count-24), rows=count>=2?sh.getRange(start,1,count-start+1,HEADER.length).getValues():[];
+    for (var i=rows.length-1;i>=0;i--) {
       var r=rows[i]; if (!validRow(r) || r[1]!==cfg.active.id || r[2]!==fingerprint || out.channels[r[3]]) continue;
       var observed=Date.parse(String(r[4])),saved=Date.parse(String(r[5]));
       if (observed>now+FUTURE_MS || saved>now+FUTURE_MS || now-observed>3*3600000 || now-saved>3*3600000) continue;
       out.channels[r[3]]={observedAt:r[4],savedAt:r[5],data:JSON.parse(r[6])};
     }
     if (Object.keys(out.channels).length) out.status='ok';
+    try {if(cache && out.status==='ok')cache.put(key,JSON.stringify(out),60);} catch (_) { /* cache is best effort */ }
     return out;
   }
   function web(e) {
@@ -105,4 +120,23 @@ var HourlySnapshot = (function () {
   }
   return {collect:collect,read:read,web:web,validRow:validRow,prune:prune,HEADER:HEADER};
 })();
-function BackendApiSnapshotHourly_(event) { return HourlySnapshot.collect(event); }
+function BackendApiSnapshotHourly_(event) {
+  var result=HourlySnapshot.collect(event);
+  if(result.reason==='attempt_throttled')return result;
+  try { result.water=WaterHistory.syncHourly(); } catch (_) { result.water={status:'unavailable'}; }
+  return result;
+}
+
+/* Owner-only staged cutover; cannot be invoked through google.script.run. */
+function BackendApiEnableSnapshotMode_() {
+  BackendApi.assertTrustedCaller('BackendApiEnableSnapshotMode_',true);
+  var s=HourlySnapshot.read(Date.now()), c=s.channels||{};
+  if(!c.pm25||!c.weather||!c.forecast)throw Error('snapshot channels not ready');
+  PropertiesService.getScriptProperties().setProperty('widget_snapshot_mode_v1','enabled');
+  return {enabled:true};
+}
+function BackendApiDisableSnapshotMode_() {
+  BackendApi.assertTrustedCaller('BackendApiDisableSnapshotMode_',true);
+  PropertiesService.getScriptProperties().deleteProperty('widget_snapshot_mode_v1');
+  return {enabled:false};
+}

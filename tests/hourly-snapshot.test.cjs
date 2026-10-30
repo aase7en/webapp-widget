@@ -4,15 +4,15 @@ const source=fs.readFileSync('apps-script/HourlySnapshot.gs','utf8');
 const now=Date.parse('2026-10-30T10:00:00Z');
 const H=['record_type','location_id','location_fingerprint','channel','observed_at','saved_at','payload_json'];
 function setup(rows=[H],opts={}) {
- const data=rows.map(r=>r.slice()),calls={fetches:0,deletions:[],appends:0};
- const sh={getRange(){return {getValues:()=>[data[0]],setValues:v=>{data[0]=v[0]}}},getDataRange(){return {getValues:()=>data.map(r=>r.slice())}},deleteRows(start,n){calls.deletions.push([start,n]);data.splice(start-1,n)},appendRow(r){calls.appends++;data.push(r)}};
+ const data=rows.map(r=>r.slice()),calls={fetches:0,deletions:[],appends:0};const cache=new Map();
+ const sh={getLastRow:()=>data.length,getRange(row,col,n){return {getValues:()=>data.slice(row-1,row-1+(n||1)).map(r=>r.slice()),setValues:v=>{data[0]=v[0]}}},getDataRange(){return {getValues:()=>data.map(r=>r.slice())}},deleteRows(start,n){calls.deletions.push([start,n]);data.splice(start-1,n)},appendRow(r){calls.appends++;data.push(r)}};
  const book={getSheetByName:()=>sh,insertSheet:()=>sh};
  const cfg={ok:true,active:{id:'uthai',lat:14.36147,lon:100.64424}};
  const properties=new Map(),MockDate=class extends Date {constructor(...args){super(...(args.length?args:[now]))}static now(){return now}};
  const ContentService={MimeType:{TEXT:'text',JSON:'json',JAVASCRIPT:'js'},createTextOutput:text=>({text,setMimeType(type){this.type=type;return this}})};
  const ctx={Date:MockDate,JSON,Math,Array,Object,String,Number,isFinite,encodeURIComponent,Error,ContentService,
   BackendApi:{loadConfig:()=>cfg,locationFingerprint:()=> 'abc123',isOwnerSession:()=>!!opts.owner,getCachedChannels:()=>{calls.fetches++;return {pm25:{status:'ok',value:22,observedAt:new Date(now).toISOString()},weather:{status:'missing'}}}},
-  PropertiesService:{getScriptProperties:()=>({getProperty:k=>properties.has(k)?properties.get(k):null,setProperty:(k,v)=>properties.set(k,v)})},SpreadsheetApp:{openById:()=>book},ScriptApp:{getProjectTriggers:()=>[]},LockService:{getScriptLock:()=>({tryLock:()=>true,releaseLock(){}})},UrlFetchApp:{fetch(){calls.fetches++;throw Error('offline')}}};
+  PropertiesService:{getScriptProperties:()=>({getProperty:k=>properties.has(k)?properties.get(k):null,setProperty:(k,v)=>properties.set(k,v)})},CacheService:{getScriptCache:()=>({get:k=>cache.get(k)||null,put:(k,v)=>cache.set(k,v)})},SpreadsheetApp:{openById:()=>book},ScriptApp:{getProjectTriggers:()=>[]},LockService:{getScriptLock:()=>({tryLock:()=>true,releaseLock(){}})},UrlFetchApp:{fetch(){calls.fetches++;throw Error('offline')}}};
  vm.runInNewContext(source,ctx);return{api:ctx.HourlySnapshot,data,calls};
 }
 const row=(channel,time,payload={value:22})=>['widget_snapshot_v1','uthai','abc123',channel,time,time,JSON.stringify(payload)];
@@ -25,3 +25,5 @@ test('failed weather forecast does not trigger repeated provider calls within an
 test('public JSONP read rejects executable callbacks and never calls providers',()=>{const fresh=new Date(now-3600000).toISOString(),h=setup([H,row('pm25',fresh)]);let result=h.api.web({parameter:{callback:'x);alert(1)//'}});assert.equal(result.type,'text');assert.equal(result.text,'Invalid callback');result=h.api.web({parameter:{callback:'widget_cb'}});assert.equal(result.type,'js');assert.match(result.text,/^widget_cb\(/);assert.equal(h.calls.fetches,0);assert.equal(h.calls.appends,0)});
 
 test('forecast snapshots expire after two days while weather history retains 90 days',()=>{const age=new Date(now-3*86400000).toISOString(),h=setup([H,row('forecast',age),row('weather',age)]);h.api.prune({deleteRows:(i,n)=>h.data.splice(i-1,n)},h.data.map(r=>r.slice()),now);assert.equal(h.data.length,2);assert.equal(h.data[1][3],'weather')});
+
+test('cached data cannot remain current after its source time expires',()=>{const stamp=new Date(now-2*3600000).toISOString(),h=setup([H,row('pm25',stamp)]);assert.equal(h.api.read(now).status,'ok');assert.equal(h.api.read(now+2*3600000).status,'unavailable');assert.equal(h.calls.fetches,0)});

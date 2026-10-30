@@ -476,6 +476,11 @@ function doGet(e) {
 
 function getWidgetData() {
   try {
+    if (PropertiesService.getScriptProperties().getProperty('widget_snapshot_mode_v1') === 'enabled') {
+      const snapshot = HourlySnapshot.read(Date.now()), channel = snapshot.channels && snapshot.channels.pm25;
+      if (!channel || !channel.data || channel.data.status !== 'ok' || typeof channel.data.value !== 'number') throw new Error('ข้อมูลฝุ่นไม่พร้อม');
+      return {gistda:{selectedArea:{pm25:channel.data.value,area:'อุทัย',dateTime:null}}};
+    }
     const gistdaData = BackendApi.gistdaPayload(CONFIG.API_ENDPOINTS.GISTDA_AIR, false);
     
     // ค้นหาข้อมูลตำบลอุทัย
