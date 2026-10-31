@@ -3,7 +3,7 @@ const $=s=>document.querySelector(s);
 function replace(el,nodes){while(el.firstChild)el.removeChild(el.firstChild);(nodes||[]).forEach(node=>el.appendChild(node))}
 // Decorative temperature palette, not heat-index or an official health warning.
 function temperatureColor(v){
- const stops=[[20,[47,189,242]],[28,[255,225,76]],[33,[255,148,43]],[38,[246,71,55]]];
+ const stops=[[20,[47,189,242]],[24,[77,225,143]],[28,[255,225,76]],[33,[255,148,43]],[38,[246,71,55]]];
  if(v<=stops[0][0])return 'rgb('+stops[0][1].join(',')+')';
  for(let i=1;i<stops.length;i++){const a=stops[i-1],b=stops[i];if(v<=b[0]){const f=(v-a[0])/(b[0]-a[0]);return 'rgb('+a[1].map((n,j)=>Math.round(n+(b[1][j]-n)*f)).join(',')+')';}}
  return 'rgb('+stops[stops.length-1][1].join(',')+')';
