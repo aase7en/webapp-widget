@@ -74,7 +74,12 @@ test('data route happy path: canonical envelope shape', () => {
   assert.equal(body.pm25.avg24h, 18.9); /* pm25Avg24hr from the SAME GISTDA row */
   assert.equal(body.pm25.unit, 'µg/m³');
   assert.equal(body.pm25.observedAt, '2026-10-17T06:05+07:00');
-  assert.equal(body.pm25.band, 'good'); /* 2026 band from the ROUNDED 24h average, not the hourly value */
+  /* v1 wire compat (2026-10-31): band = the legacy hourly cutoffs the old
+   * c3bbbc8 client re-derives and enforces; the 2026 band of the rounded
+   * average travels as explicit avg24hBand metadata. */
+  assert.equal(body.pm25.band, 'very_good'); /* legacy hourly cutoffs of 20.9 */
+  assert.equal(body.pm25.avg24hBand, 'good'); /* 2026 band of the ROUNDED 24h average */
+  assert.equal(body.pm25.bandBasis, 'hourly-legacy');
   assert.ok(body.pm25.source.length > 0);
   assert.equal(body.weather.status, 'ok');
   assert.equal(body.weather.temperatureC, 29.4);
@@ -121,22 +126,36 @@ test('band boundaries and fractional gaps (2026 GISTDA 24h-average criteria, exc
   for (const [v, want] of cases) assert.equal(b(v), want, 'value=' + v);
 });
 
+test('legacy hourly band cutoffs (>=26/38/51/91, inclusive) — the v1 wire-compat derivation', () => {
+  const h = makeContext({ loadCodeGs: false });
+  const b = h.ctx.BackendApi_legacyBand_;
+  const cases = [
+    [0, 'very_good'], [15, 'very_good'], [25.9, 'very_good'], [26, 'good'], [37.9, 'good'],
+    [38, 'moderate'], [50.9, 'moderate'], [51, 'unhealthy_sensitive'], [90.9, 'unhealthy_sensitive'],
+    [91, 'unhealthy'], [120.4, 'unhealthy'], [-1, null], [null, null], ['x', null],
+  ];
+  for (const [v, want] of cases) assert.equal(b(v), want, 'value=' + v);
+});
+
 /* ---------- pm25Avg24hr -> avg24h (owner-validated option A) ---------- */
 
-test('valid avg24h flows to the payload and drives the band; rounding happens BEFORE banding', () => {
+test('valid avg24h flows to the payload and drives the 2026 avg-band metadata; rounding happens BEFORE banding', () => {
   /* raw 15.049 -> rounded 15.0 -> very_good (blue); raw 15.05 -> 15.1 -> good
-   * (green). Half-up at exactly .05, epsilon-guarded. */
+   * (green). Half-up at exactly .05, epsilon-guarded. The wire `band` stays
+   * the legacy hourly derivation (very_good for the 20.9 fixture). */
   for (const [rawAvg, wantRounded, wantBand] of [[15.049, 15, 'very_good'], [15.05, 15.1, 'good'], [37.549, 37.5, 'moderate'], [37.55, 37.6, 'unhealthy_sensitive'], [75.049, 75, 'unhealthy_sensitive'], [75.05, 75.1, 'unhealthy']]) {
     const h = makeContext({ fetchQueue: [{ body: gistdaBody({ target: { pm25Avg24hr: rawAvg } }) }, { body: openMeteoBody() }] });
     doGet(h, { action: 'data', v: '1' });
     const body = JSON.parse(h.outputs()[0].text);
     assert.equal(body.pm25.status, 'ok', 'rawAvg=' + rawAvg);
     assert.equal(body.pm25.avg24h, wantRounded, 'rawAvg=' + rawAvg);
-    assert.equal(body.pm25.band, wantBand, 'rawAvg=' + rawAvg);
+    assert.equal(body.pm25.avg24hBand, wantBand, 'rawAvg=' + rawAvg);
+    assert.equal(body.pm25.band, 'very_good', 'legacy band of hourly 20.9, rawAvg=' + rawAvg);
+    assert.equal(body.pm25.bandBasis, 'hourly-legacy', 'rawAvg=' + rawAvg);
   }
 });
 
-test('null/NaN/negative pm25Avg24hr -> no avg24h and NO band (frontend fails closed to grey)', () => {
+test('null/NaN/negative pm25Avg24hr -> no avg24h/avg24hBand; the legacy band still describes the hourly value', () => {
   for (const bad of [null, NaN, 'abc', '', -0.5]) {
     const h = makeContext({ fetchQueue: [{ body: gistdaBody({ target: { pm25Avg24hr: bad } }) }, { body: openMeteoBody() }] });
     doGet(h, { action: 'data', v: '1' });
@@ -144,7 +163,9 @@ test('null/NaN/negative pm25Avg24hr -> no avg24h and NO band (frontend fails clo
     assert.equal(body.pm25.status, 'ok', 'bad=' + bad);
     assert.equal(body.pm25.value, 20.9, 'hourly value unaffected, bad=' + bad);
     assert.equal(body.pm25.avg24h, null, 'avg absent, never zero, bad=' + bad);
-    assert.equal(body.pm25.band, null, 'band omitted this refresh, bad=' + bad);
+    assert.equal(body.pm25.avg24hBand, null, 'avg-band omitted this refresh, bad=' + bad);
+    assert.equal(body.pm25.band, 'very_good', 'legacy band of hourly 20.9 keeps old clients green, bad=' + bad);
+    assert.equal(body.pm25.bandBasis, 'hourly-legacy', 'bad=' + bad);
   }
 });
 
@@ -727,7 +748,9 @@ test('repo Code.gs + BackendApi.gs co-load: doGet data route serves through the 
   const body = JSON.parse(h.outputs()[0].text);
   assert.equal(body.schema, 1);
   assert.equal(body.pm25.status, 'ok');
-  assert.equal(body.pm25.band, 'good'); /* 2026: from the rounded 24h average (18.9) */
+  assert.equal(body.pm25.band, 'very_good'); /* legacy hourly band on the v1 wire */
+  assert.equal(body.pm25.avg24hBand, 'good'); /* 2026: from the rounded 24h average (18.9) */
+  assert.equal(body.pm25.bandBasis, 'hourly-legacy');
   assert.equal(body.pm25.avg24h, 18.9);
 });
 

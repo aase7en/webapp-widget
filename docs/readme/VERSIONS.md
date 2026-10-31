@@ -10,5 +10,7 @@
 | Weather script | `v2/weather-luxury.js` | `20261031-icon-align-2` |
 | Water | `v2/water-luxury-live.html`, CSS และ script | `20261030-water-1` |
 | ตัวอ่านข้อมูล Sheet | `v2/api-client.js` | `20261031-pm25-24h-1` (ส่ง avg24h + band ต่อ, 2026-10-31) |
+| ตัวอ่าน legacy v1 ในหน้า v2 | `led-rotation.js` | `20261031-pm25-compat-1` (สีใช้ avg24h เท่านั้น; อ่าน bandBasis/avg24hBand) |
+| ตัวส่งข้อมูล PM เข้า iframe | `v2/live-widgets.js` | `20261031-pm25-compat-1` (ไม่มีค่าเฉลี่ยให้แสดงระดับไม่พร้อมใช้งาน) |
 
 ตัวเลขใน query string เป็น cache key ไม่ใช่หมายเลขรุ่นผลิตภัณฑ์และไม่จำเป็นต้องเท่ากันทุกไฟล์ ไฟล์ที่ไม่เปลี่ยนไม่จำเป็นต้องมีวันเดียวกับไฟล์ที่แก้ล่าสุด การตรวจไฟล์ที่ server ตรงกันไม่ได้ยืนยันว่าเบราว์เซอร์ผู้ชมทุกเครื่องไม่มี cache เดิม ควรตรวจซ้ำหลัง deployment แต่ละครั้ง

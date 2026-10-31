@@ -14,11 +14,13 @@ function arrowPercent(v){
   let ratio=Math.max(0,Math.min(1,(v-cutoffs[segment])/(cutoffs[segment+1]-cutoffs[segment])));
   return Math.min(99,Math.max(1,(segment+ratio)*20));
 }
-/* 2026 option A: badge/mascot band from the GISTDA 24-hour average. A
- * backend band string in the vocabulary is authoritative (it is derived
- * from the rounded pm25Avg24hr); otherwise the 2026 cutoffs classify the
- * emitted avg24h. No usable average and no band -> null (grey/unavailable);
- * the hourly number still renders — never zero-filled. */
+/* 2026 option A: badge/mascot band from the GISTDA 24-hour average. The mood
+ * REQUIRES a valid avg24h and is classified with the 2026 cutoffs below — a
+ * backend band string is never trusted on vocabulary alone (its basis is
+ * unknowable on old payloads, so an old hourly band cannot masquerade as a
+ * 24h tier). Explicit metadata is verified instead: avg24hBand must be in
+ * the vocabulary AND agree with the avg derivation. No usable average -> null
+ * (grey/unavailable); the hourly number still renders — never zero-filled. */
 const BAND_TO_BASE={very_good:'good',good:'moderate',moderate:'unhealthy',unhealthy_sensitive:'protective',unhealthy:'severe'};
 const MOODS={
  good:{base:'good',text:'ดีมาก',advice:'สภาพอากาศโดยรวมดี',color:'#77efa6',masked:false},
@@ -35,8 +37,15 @@ function mood(v){
   return MOODS.good;
 }
 function pmMood(p){
-  if(typeof p.band==='string'&&BAND_TO_BASE[p.band])return MOODS[BAND_TO_BASE[p.band]];
-  return NUM(p.avg24h)&&p.avg24h>=0?mood(p.avg24h):null;
+ const avg=NUM(p.avg24h)&&p.avg24h>=0?p.avg24h:null; /* avg REQUIRED: no avg -> grey */
+ if(typeof p.avg24hBand==='string'&&p.avg24hBand!==''){
+  const base=BAND_TO_BASE[p.avg24hBand]; /* metadata must be known AND agree with the avg */
+  if(!base)return null;
+  const m=avg!==null?mood(avg):null;
+  return m&&m.base===base?m:null;
+ }
+ if(typeof p.band==='string'&&p.band!==''&&!BAND_TO_BASE[p.band])return null; /* unknown band fails closed */
+ return avg!==null?mood(avg):null; /* plain band never decides the mood */
 }
 function mascot(m){
  const files='../assets/icons3d/rig/';

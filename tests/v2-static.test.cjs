@@ -242,7 +242,8 @@ test('P3 rotation order is pinned PM → Weather → Water and pages depend on l
  const waPos=screen.indexOf('src="./water-luxury-live.html?v=20261030-water-1"');
  assert.ok(pmPos>-1&&wxPos>-1&&waPos>-1,'all three strip markers present');
  assert.ok(pmPos<wxPos&&wxPos<waPos,'article DOM order pm → weather → water');
- assert.match(screen,/src="\.\.\/led-rotation\.js"/,'v2/index.html loads the canonical backend reader');
+  assert.match(screen,/src="\.\.\/led-rotation\.js\?v=20261031-pm25-compat-1"/,'v2/index.html cache-busts the compatible backend reader');
+  assert.match(screen,/src="\.\/live-widgets\.js\?v=20261031-pm25-compat-1"/,'v2/index.html cache-busts the avg-required PM bridge');
  assert.match(weatherPage,/src="weather-snapshot\.js"/,'weather loads the Sheet snapshot adapter');
 });
 test('P3 review cleanup: dead QA CSS removed and legacy geography corrected',()=>{

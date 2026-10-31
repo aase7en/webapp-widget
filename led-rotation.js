@@ -13,10 +13,13 @@
  * is the response time and is NEVER used as a freshness fallback.
  * PM tier colors follow the 2026 criteria (ดีมาก ≤15 · ดี 15.1–25 · ปานกลาง
  * 25.1–37.5 · เริ่มมีผลกระทบต่อสุขภาพ 37.6–75 · มีผลต่อสุขภาพ >75 µg/m³)
- * applied to the GISTDA 24-hour average: the backend-emitted band string
- * (derived from the rounded pm25Avg24hr) is preferred; the local 2026
- * cutoffs are the fallback. A band string that disagrees with the known
- * vocabulary fails closed.
+ * applied to the GISTDA 24-hour average: the mood is derived from the
+ * validated rounded avg24h (local 2026 cutoffs) and NEVER from the wire
+ * band string alone — its basis is unknowable on old payloads. Explicit
+ * avg-band metadata (avg24hBand / bandBasis:'hourly-legacy', emitted by the
+ * backend on action=data&v=1) is verified, not vocabulary-trusted: a
+ * missing/invalid average greys the tier while the hourly number stays
+ * visible; unknown/out-of-vocabulary/conflicting band strings fail closed.
  */
 (function(root){
 'use strict';
@@ -73,20 +76,32 @@ function freshHeat(reading,nowMs){
 }
 
 /* ---------- PM band derivation (2026 thresholds, local fallback) ----------
- * Owner-validated option A (2026-10-31): color tiers come from the GISTDA
- * 24-hour average (backend band, derived from the rounded pm25Avg24hr, is
- * authoritative). These local 2026 cutoffs are the fallback only, applied to
- * the emitted avg24h when the band string is absent, else the hourly value
- * (legacy payloads). Exclusive lower bounds: ≤15 very_good, 15.1–25 good,
- * 25.1–37.5 moderate, 37.6–75 unhealthy_sensitive, >75 unhealthy — same
- * table as v2/pm25-tier.js. A band string outside the vocabulary fails
- * closed. */
+ * Owner-validated option A (2026-10-31): the mood/band comes ONLY from the
+ * GISTDA 24-hour average, classified with these local 2026 cutoffs. The
+ * wire `band` string is never trusted for the mood by itself (its basis is
+ * unknowable on legacy payloads). Explicit metadata is verified instead:
+ * avg24hBand must equal the 2026 classification of the validated rounded
+ * avg24h, and bandBasis:'hourly-legacy' declares that the plain band uses
+ * the pre-2026 hourly cutoffs (pmLegacyBandKey, >=26/38/51/91 inclusive —
+ * exactly what the deployed c3bbbc8 client re-derives and enforces).
+ * Exclusive 2026 lower bounds: ≤15 very_good, 15.1–25 good, 25.1–37.5
+ * moderate, 37.6–75 unhealthy_sensitive, >75 unhealthy — same table as
+ * v2/pm25-tier.js. No usable average -> moodKey 'unavailable' (the hourly
+ * number stays visible; never zero-filled). Any non-empty band/basis string
+ * outside its vocabulary fails closed. */
 const PM_BAND_CUTOFFS=[[75,'unhealthy'],[37.5,'unhealthy_sensitive'],[25,'moderate'],[15,'good']];
 function pmBandKey(value){
   if(!finite(value)||value<0)return null;
   for(const cut of PM_BAND_CUTOFFS)if(value>cut[0])return cut[1];
   return 'very_good';
 }
+const PM_LEGACY_CUTOFFS=[[91,'unhealthy'],[51,'unhealthy_sensitive'],[38,'moderate'],[26,'good']];
+function pmLegacyBandKey(value){
+  if(!finite(value)||value<0)return null;
+  for(const cut of PM_LEGACY_CUTOFFS)if(value>=cut[0])return cut[1];
+  return 'very_good';
+}
+const PM_BAND_BASIS_LEGACY='hourly-legacy';
 const PM_MOOD={very_good:'good',good:'moderate',moderate:'unhealthy',unhealthy_sensitive:'protective',unhealthy:'severe'};
 const PM_BAND_VOCAB=['very_good','good','moderate','unhealthy_sensitive','unhealthy'];
 
@@ -179,20 +194,36 @@ function normalizePayload(raw,nowMs){
   else if(p.unit!==PM_UNIT){errors.push('pm25-unit');}
   else if(!staleTime(p.observedAt,nowMs)){errors.push('pm25-observedAt');}
   else{
-    /* 2026 option A: mood/band from the 24h average. The hourly value must
-     * still be a valid reading (fail closed); the backend band string is
-     * authoritative for the mood when in the vocabulary, else local 2026
-     * cutoffs classify the emitted avg24h, else the hourly value (legacy
-     * payloads). A non-empty band outside the vocabulary fails closed. */
+    /* 2026 option A: the mood comes ONLY from the validated rounded 24h
+     * average, classified with the local 2026 cutoffs. The hourly value must
+     * still be a valid reading (fail closed). The wire band string never
+     * decides the mood (its basis is unknowable); explicit metadata is
+     * verified instead: avg24hBand must match the avg derivation, and a
+     * declared bandBasis:'hourly-legacy' re-derives the plain band from the
+     * hourly value. Any non-empty band/avg24hBand/bandBasis outside its
+     * vocabulary fails closed. A missing/invalid average keeps the channel
+     * ok with moodKey 'unavailable' — the hourly number stays visible. */
     const hasBand=typeof p.band==='string'&&PM_BAND_VOCAB.indexOf(p.band)>=0;
+    const hasAvgBand=typeof p.avg24hBand==='string'&&PM_BAND_VOCAB.indexOf(p.avg24hBand)>=0;
     const avg24=finite(p.avg24h)&&p.avg24h>=0?p.avg24h:null;
     if(!finite(p.value)||p.value<0){errors.push('pm25-value');}
     else if(typeof p.band==='string'&&p.band!==''&&!hasBand){
       errors.push('pm25-band-conflict:'+p.band); /* fail closed: tampered/buggy band string */
     }
+    else if(typeof p.avg24hBand==='string'&&p.avg24hBand!==''&&
+        (!hasAvgBand||avg24===null||p.avg24hBand!==pmBandKey(avg24))){
+      errors.push('pm25-avg-band-conflict:'+p.avg24hBand); /* metadata must agree with the avg */
+    }
+    else if(typeof p.bandBasis==='string'&&p.bandBasis!==''&&p.bandBasis!==PM_BAND_BASIS_LEGACY){
+      errors.push('pm25-band-basis:'+p.bandBasis); /* unknown basis is untrusted metadata */
+    }
+    else if(hasBand&&typeof p.bandBasis==='string'&&p.bandBasis===PM_BAND_BASIS_LEGACY&&
+        p.band!==pmLegacyBandKey(p.value)){
+      errors.push('pm25-band-conflict:'+p.band); /* declared legacy basis must re-derive */
+    }
     else{
-      const bandKey=hasBand?p.band:(avg24!==null?pmBandKey(avg24):pmBandKey(p.value));
-      pm={status:'ok',value:p.value,moodKey:PM_MOOD[bandKey],observedAt:p.observedAt||null,
+      const moodKey=avg24!==null?PM_MOOD[pmBandKey(avg24)]:'unavailable';
+      pm={status:'ok',value:p.value,moodKey:moodKey,observedAt:p.observedAt||null,
       source:sanitizeText(p.source,80),provenance:normalizeProvenance(p.provenance)};
     }
   }
@@ -287,7 +318,7 @@ async function requestBackendData(fetcher,nowMs,opts){
 
 const api={heatCelsius,parseBangkokTime,heatSeverity,shortHeatLabel,freshHeat,HEAT_CLASSES,
   ROTATE_MS,REFRESH_MS,HEAT_FRESHNESS_MS,FRESH_MS,FUTURE_MS,FETCH_TIMEOUT_MS,
-  PM_UNIT,BACKEND_URL,BACKEND_QUERY,pmBandKey,parseObservedAt,bangkokToday,staleTime,
+  PM_UNIT,BACKEND_URL,BACKEND_QUERY,pmBandKey,pmLegacyBandKey,parseObservedAt,bangkokToday,staleTime,
   normalizePayload,emptyState,requestBackendData,jsonpRequest,
   LOCATION_PLACEHOLDER,sanitizeText,safeId,safeLink,normalizeProvenance,normalizeLocation};
 if(typeof module!=='undefined'&&module.exports)module.exports=api;

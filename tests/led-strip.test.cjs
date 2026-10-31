@@ -258,7 +258,7 @@ test('normalized payload end-to-end drives the boot paint pipeline',()=>{
   const obsIso=new Date(T-10*60000).toLocaleString('sv-SE',{timeZone:'Asia/Bangkok'}).replace(' ','T')+'+07:00';
   const raw={
     schema:1,generatedAt:new Date(T).toLocaleString('sv-SE',{timeZone:'Asia/Bangkok'}).replace(' ','T')+'+07:00',
-    pm25:{status:'ok',value:120,unit:'µg/m³',observedAt:obsIso,band:'unhealthy'},
+    pm25:{status:'ok',value:120,avg24h:120,unit:'µg/m³',observedAt:obsIso,band:'unhealthy'},
     weather:{status:'ok',temperatureC:35,humidityPct:60,weatherCode:0,tmaxC:38,tminC:27,
       rainPct:10,observedAt:obsIso,forecastDate:D.bangkokToday(T)},
     water:{status:'missing',available:false,value:null,unit:'m',observedAt:null,source:'NONE'},

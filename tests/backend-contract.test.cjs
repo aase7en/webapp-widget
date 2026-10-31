@@ -26,12 +26,16 @@ test('frontend normalizePayload accepts a real fresh BackendApi payload', () => 
   const raw = backendPayload(h);
   const state = frontend.normalizePayload(raw, NOW_MS);
   assert.deepEqual(state.errors, []);
-  /* PM: hourly 20.9 stays the display value; band comes from the 24h average
-   * 18.9 -> good (2026) -> mood moderate */
+  /* PM: hourly 20.9 stays the display value; the 2026 mood comes from the
+   * 24h average 18.9 -> good (2026) -> mood moderate. The wire band is the
+   * legacy hourly derivation with explicit adapter metadata. */
   assert.equal(state.pm.status, 'ok');
   assert.equal(state.pm.value, 20.9);
   assert.equal(state.pm.moodKey, 'moderate');
   assert.equal(state.pm.observedAt, '2026-10-17T06:05+07:00');
+  assert.equal(raw.pm25.band, 'very_good');
+  assert.equal(raw.pm25.avg24hBand, 'good');
+  assert.equal(raw.pm25.bandBasis, 'hourly-legacy');
   /* weather: temp+rh -> frontend derives HI locally */
   assert.equal(state.weather.status, 'ok');
   assert.equal(state.weather.tempC, 29.4);
@@ -63,31 +67,51 @@ test('frontend normalizer fail-closes a real MISSING weather channel', () => {
   assert.equal(state.weather.status, 'unavailable');
 });
 
-test('band agreement: backend band equals the frontend 2026 band key on the rounded 24h average at every relevant point', () => {
+test('v1 wire contract: band = legacy hourly cutoffs, avg24hBand = 2026 band of the rounded average, at every relevant point', () => {
+  /* the derivation the DEPLOYED c3bbbc8 client re-computes and enforces */
+  const legacyBandKey = v => {
+    if (typeof v !== 'number' || !isFinite(v) || v < 0) return null;
+    for (const [cut, key] of [[91, 'unhealthy'], [51, 'unhealthy_sensitive'], [38, 'moderate'], [26, 'good']])
+      if (v >= cut) return key;
+    return 'very_good';
+  };
   const points = [10, 15, 15.1, 16, 25, 25.1, 26, 37.5, 37.6, 38, 75, 75.1, 76, 130];
   for (const pm of points) {
     const h = makeContext({ fetchQueue: [{ body: gistdaBody({ pm25: pm, target: { pm25Avg24hr: pm } }) }, { body: openMeteoBody() }] });
     const raw = backendPayload(h);
     assert.equal(raw.pm25.status, 'ok', 'pm=' + pm);
     assert.equal(raw.pm25.avg24h, pm, 'rounded avg passthrough at pm=' + pm);
-    /* backend band == frontend local 2026 derivation on the EMITTED avg */
-    assert.equal(raw.pm25.band, frontend.pmBandKey(raw.pm25.avg24h), 'band drift at avg=' + pm);
-    /* and the backend band passes PM25Tier.classify without conflict, landing
+    /* wire band = the old client's own hourly derivation (inclusive legacy cutoffs) */
+    assert.equal(raw.pm25.band, legacyBandKey(raw.pm25.value), 'legacy band drift at pm=' + pm);
+    /* explicit metadata = the canonical 2026 band of the EMITTED average */
+    assert.equal(raw.pm25.avg24hBand, frontend.pmBandKey(raw.pm25.avg24h), 'avg-band drift at avg=' + pm);
+    assert.equal(raw.pm25.bandBasis, 'hourly-legacy', 'basis marker at pm=' + pm);
+    /* the avg-band metadata passes PM25Tier.classify without conflict, landing
      * on the vocabulary's tier key (what pm25-live.js renders) */
     const cls = pm25Tier.classify(
-      { value: raw.pm25.avg24h, observedAt: raw.pm25.observedAt, status: 'latest', unit: 'µg/m³', band: raw.pm25.band },
+      { value: raw.pm25.avg24h, observedAt: raw.pm25.observedAt, status: 'latest', unit: 'µg/m³', band: raw.pm25.avg24hBand },
       { now: NOW_MS, bandVocabulary: BAND_VOCABULARY });
     assert.equal(cls.conflict, false, 'band-conflict at avg=' + pm);
-    assert.equal(cls.key, BAND_VOCABULARY.get(raw.pm25.band), 'tier key mismatch at avg=' + pm);
+    assert.equal(cls.key, BAND_VOCABULARY.get(raw.pm25.avg24hBand), 'tier key mismatch at avg=' + pm);
     assert.equal(cls.isHealthTier, true, 'health tier at avg=' + pm);
-    /* hourly value may legitimately band differently from the average — the
-     * frontend normalizer must NOT raise a conflict about it */
+    /* the NEW frontend normalizer accepts the adapted envelope and takes the
+     * 2026 mood from the average — never from the legacy wire band */
     const state = frontend.normalizePayload(raw, NOW_MS);
     assert.equal(state.pm.status, 'ok', 'frontend accepts pm=' + pm);
     assert.deepEqual(state.errors, [], 'no band-conflict at pm=' + pm);
     const moodByBand = { very_good: 'good', good: 'moderate', moderate: 'unhealthy', unhealthy_sensitive: 'protective', unhealthy: 'severe' };
-    assert.equal(state.pm.moodKey, moodByBand[raw.pm25.band], 'mood mapping at avg=' + pm);
+    assert.equal(state.pm.moodKey, moodByBand[raw.pm25.avg24hBand], 'mood mapping at avg=' + pm);
   }
+});
+
+test('conflicting avg-band metadata on the wire fails closed for new consumers', () => {
+  const h = makeContext({ fetchQueue: defaultFetchQueue() });
+  const raw = backendPayload(h);
+  assert.equal(raw.pm25.avg24hBand, 'good'); /* avg 18.9 */
+  raw.pm25.avg24hBand = 'moderate'; /* disagrees with the 2026 derivation of 18.9 */
+  const state = frontend.normalizePayload(raw, NOW_MS);
+  assert.equal(state.pm.status, 'unavailable');
+  assert.ok(state.errors.some(e => e.includes('pm25-avg-band-conflict')));
 });
 
 test('tampered band string (outside the 2026 vocabulary) fails closed (both sides pin this)', () => {

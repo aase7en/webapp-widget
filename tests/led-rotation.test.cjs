@@ -10,7 +10,8 @@ const OBS='2026-10-17T08:00:00+07:00';
 const payload=()=>({
   schema:1,
   generatedAt:'2026-10-17T08:24:00+07:00',
-  pm25:{status:'ok',value:22.4,unit:'µg/m³',observedAt:OBS,source:'GISTDA ต.อุทัย',band:'very_good'},
+  /* avg24h 12.5 -> very_good (2026) -> ดี mood; the hourly 22.4 is display-only */
+  pm25:{status:'ok',value:22.4,avg24h:12.5,unit:'µg/m³',observedAt:OBS,source:'GISTDA ต.อุทัย',band:'very_good'},
   weather:{status:'ok',temperatureC:32,humidityPct:72,weatherCode:1,tmaxC:36,tminC:26,
     rainPct:40,observedAt:OBS,forecastDate:'2026-10-17',source:'OPEN_METEO'},
   water:{status:'missing',available:false,value:null,unit:'m',observedAt:null,source:'NONE'},
@@ -127,32 +128,102 @@ test('PM mood mapping covers all five 2026 tiers, decided by the 24h average',()
     assert.equal(got.pm.moodKey,mood,'avg='+avg);
   }
 });
-test('a band string outside the 2026 vocabulary fails closed; in-vocabulary bands are preferred',()=>{
+test('a band string outside the 2026 vocabulary fails closed; a vocabulary band alone never decides the mood',()=>{
   const raw=payload(); raw.pm25.band='hazard'; /* not in very_good/good/moderate/unhealthy_sensitive/unhealthy */
   const s=w.normalizePayload(raw,now);
   assert.equal(s.pm.status,'unavailable');
   assert.equal(s.pm.value,null);
   assert.ok(s.errors.some(e=>String(e).startsWith('pm25-band-conflict:hazard')));
-  /* a backend band in the vocabulary is authoritative (derived from the
-   * rounded 24h average) even when it differs from the hourly derivation */
-  const okRaw=payload(); okRaw.pm25.value=40; okRaw.pm25.band='moderate';
-  const ok=w.normalizePayload(okRaw,now);
+  /* a band whose basis is not declared (old backends emit the legacy hourly
+   * cutoffs) is NEVER trusted for the mood: the validated 24h average decides */
+  const legacyBand=payload(); legacyBand.pm25.value=40; legacyBand.pm25.avg24h=40; legacyBand.pm25.band='very_good';
+  const ok=w.normalizePayload(legacyBand,now);
   assert.equal(ok.pm.status,'ok');
-  assert.equal(ok.pm.moodKey,'unhealthy'); /* moderate -> ปานกลาง mood */
-  const noBand=payload(); noBand.pm25.band=null;
-  assert.equal(w.normalizePayload(noBand,now).pm.status,'ok'); /* local 2026 cutoffs decide */
+  assert.equal(ok.pm.moodKey,'protective'); /* avg 40 -> unhealthy_sensitive; band ignored */
+  const localOnly=payload(); localOnly.pm25.band=null;
+  assert.equal(w.normalizePayload(localOnly,now).pm.moodKey,'good'); /* avg 12.5 -> very_good -> good */
 });
-test('without a band, the fallback classifies the emitted avg24h, then the hourly value',()=>{
-  const byAvg=payload(); byAvg.pm25.band=null; byAvg.pm25.avg24h=80; /* hourly 22.4 would be 'good' */
-  const s=w.normalizePayload(byAvg,now);
-  assert.equal(s.pm.status,'ok');
-  assert.equal(s.pm.moodKey,'severe'); /* 80 > 75 -> unhealthy -> severe */
-  const byHourly=payload(); byHourly.pm25.band=null; byHourly.pm25.avg24h=null; /* legacy payload */
-  assert.equal(w.normalizePayload(byHourly,now).pm.moodKey,'moderate'); /* 22.4 -> good (2026) -> moderate mood */
-  const nothing=payload(); nothing.pm25.band=null; nothing.pm25.avg24h=-1; nothing.pm25.value=null;
+test('without a usable 24h average the mood is unavailable even when the hourly value is valid',()=>{
+  /* Owner spec 2026-10-31: no avg -> grey/unavailable. The hourly reading is
+   * NEVER a band fallback and is never zero-filled; it stays visible. */
+  for(const bad of [null,undefined,NaN,-1,-0.5,'18.9']){
+    const raw=payload(); raw.pm25.band=null; raw.pm25.avg24h=bad;
+    const s=w.normalizePayload(raw,now);
+    assert.equal(s.pm.status,'ok',String(bad));           /* channel stays ok */
+    assert.equal(s.pm.value,22.4,String(bad));            /* hourly number stays visible */
+    assert.equal(s.pm.moodKey,'unavailable',String(bad)); /* color greys */
+    assert.deepEqual(s.errors,[],String(bad));
+  }
+  const nothing=payload(); nothing.pm25.band=null; nothing.pm25.avg24h=null; nothing.pm25.value=null;
   const s3=w.normalizePayload(nothing,now);
   assert.equal(s3.pm.status,'unavailable'); /* nothing usable -> fail closed, no zero */
   assert.ok(s3.errors.includes('pm25-value'));
+});
+test('adapted v1 envelope (legacy band + avg24hBand + bandBasis) is accepted; 2026 mood comes from the avg',()=>{
+  /* exactly what BackendApi.gs emits on action=data&v=1 for hourly 20.9 / avg 18.9 */
+  const raw=payload();
+  raw.pm25.value=20.9; raw.pm25.avg24h=18.9;
+  raw.pm25.band='very_good';          /* legacy hourly cutoffs (>=26/38/51/91 inclusive) */
+  raw.pm25.avg24hBand='good';         /* 2026 band of the rounded average */
+  raw.pm25.bandBasis='hourly-legacy';
+  const s=w.normalizePayload(raw,now);
+  assert.deepEqual(s.errors,[]);
+  assert.equal(s.pm.status,'ok');
+  assert.equal(s.pm.value,20.9);
+  assert.equal(s.pm.moodKey,'moderate'); /* 18.9 -> good (2026) -> ดี; legacy band ignored for mood */
+});
+test('explicit avg-band metadata is verified, never vocabulary-trusted',()=>{
+  const conflict=payload(); conflict.pm25.value=20.9; conflict.pm25.avg24h=18.9;
+  conflict.pm25.band='very_good'; conflict.pm25.avg24hBand='moderate'; conflict.pm25.bandBasis='hourly-legacy';
+  const s1=w.normalizePayload(conflict,now);
+  assert.equal(s1.pm.status,'unavailable');
+  assert.ok(s1.errors.some(e=>String(e).startsWith('pm25-avg-band-conflict:moderate')));
+  /* metadata without a usable average is unverifiable -> fail closed */
+  const noAvg=payload(); noAvg.pm25.band=null; noAvg.pm25.avg24h=null; noAvg.pm25.avg24hBand='good';
+  const s2=w.normalizePayload(noAvg,now);
+  assert.equal(s2.pm.status,'unavailable');
+  assert.ok(s2.errors.some(e=>String(e).startsWith('pm25-avg-band-conflict')));
+  /* out-of-vocabulary metadata fails closed */
+  const vocab=payload(); vocab.pm25.avg24hBand='hazard'; vocab.pm25.avg24h=18.9;
+  const s3=w.normalizePayload(vocab,now);
+  assert.equal(s3.pm.status,'unavailable');
+  assert.ok(s3.errors.some(e=>String(e).startsWith('pm25-avg-band-conflict:hazard')));
+});
+test('declared bandBasis is validated; a declared legacy basis re-derives the band from the hourly value',()=>{
+  const unknown=payload(); unknown.pm25.bandBasis='avg24h';
+  const s1=w.normalizePayload(unknown,now);
+  assert.equal(s1.pm.status,'unavailable');
+  assert.ok(s1.errors.some(e=>String(e).startsWith('pm25-band-basis:avg24h')));
+  /* band must equal the legacy derivation when the envelope declares the basis */
+  const lie=payload(); lie.pm25.value=22.4; lie.pm25.avg24h=null;
+  lie.pm25.band='unhealthy'; lie.pm25.bandBasis='hourly-legacy';
+  const s2=w.normalizePayload(lie,now);
+  assert.equal(s2.pm.status,'unavailable');
+  assert.ok(s2.errors.some(e=>String(e).startsWith('pm25-band-conflict:unhealthy')));
+  /* matching legacy declaration passes (exactly what the old client enforces) */
+  const match=payload(); match.pm25.value=40; match.pm25.avg24h=40;
+  match.pm25.band='moderate'; match.pm25.bandBasis='hourly-legacy';
+  const s3=w.normalizePayload(match,now);
+  assert.deepEqual(s3.errors,[]);
+  assert.equal(s3.pm.moodKey,'protective'); /* still the avg 40 -> unhealthy_sensitive */
+});
+test('legacy hourly cutoffs (>=26/38/51/91, inclusive) are exposed for envelope verification',()=>{
+  const cases=[
+    [0,'very_good'],[15,'very_good'],[15.1,'very_good'],[25,'very_good'],[25.1,'very_good'],
+    [25.9,'very_good'],[26,'good'],[37.9,'good'],[38,'moderate'],[50.9,'moderate'],
+    [51,'unhealthy_sensitive'],[90.9,'unhealthy_sensitive'],[91,'unhealthy'],[120,'unhealthy'],
+  ];
+  for(const [v,band] of cases)assert.equal(w.pmLegacyBandKey(v),band,String(v));
+  for(const bad of [null,undefined,NaN,Infinity,-1,'30'])assert.equal(w.pmLegacyBandKey(bad),null,String(bad));
+});
+test('pre-2026 backend payload (legacy band, no avg24h, no metadata) greys without breaking',()=>{
+  const raw=payload(); delete raw.pm25.avg24h; delete raw.pm25.avg24hBand; delete raw.pm25.bandBasis;
+  raw.pm25.band='very_good';
+  const s=w.normalizePayload(raw,now);
+  assert.deepEqual(s.errors,[]);
+  assert.equal(s.pm.status,'ok');
+  assert.equal(s.pm.value,22.4);
+  assert.equal(s.pm.moodKey,'unavailable'); /* no average -> no health color, hourly kept */
 });
 test('PM unit, value sanity and null handling never fabricate a reading',()=>{
   for(const [mutate,err] of [

@@ -22,15 +22,24 @@
  * cross-checked by tests/backend-contract.test.cjs):
  *   GET {exec}?action=data&v=1[&callback=IDENT]
  *   -> { schema:1, generatedAt, location:{id,label,lat,lon},
- *        pm25:{status:'ok'|'stale'|'missing', value, unit:'µg/m³',
- *              observedAt, source, band, provenance{provider,agency,service,
- *              areaId,stationId,sourceUrl,termsUrl,timeZone,unit,datum}},
+ *        pm25:{status:'ok'|'stale'|'missing', value, avg24h, unit:'µg/m³',
+ *              observedAt, source, band, avg24hBand, bandBasis, provenance{
+ *              provider,agency,service,areaId,stationId,sourceUrl,termsUrl,
+ *              timeZone,unit,datum}},
  *        weather:{status, temperatureC, humidityPct, weatherCode(0..99 int),
  *                 tmaxC, tminC, rainPct, observedAt, forecastDate(today BKK),
  *                 source, provenance},
  *        water:{status:'missing', available:false, value:null, unit:'m',
  *               observedAt:null, source, provenance},
  *        errors:[{channel,code,message}] }
+ *  - PM band semantics on the v1 data route (2026-10-31 wire-compat): `band`
+ *    keeps the PRE-2026 hourly-cutoff meaning (legacyBand of the hourly
+ *    value, >=26/38/51/91 inclusive) so the deployed c3bbbc8 client stays
+ *    green; the canonical 2026 band of the rounded 24h average travels as
+ *    explicit `avg24hBand` metadata with `bandBasis:'hourly-legacy'`. The
+ *    adaptation is a response-only CLONE — the cached channel and the
+ *    snapshot_v1 route keep the canonical avg-based `band` and no adapter
+ *    metadata. A missing average emits avg24h/avg24hBand null (never zero).
  *  - provenance keys are canonical singular/plural-exact: timeZone, unit.
  *    GISTDA PM is a TAMBON AREA aggregate (areaId), never claimed as a
  *    station/sensor; no PCD attribution claims. GISTDA publishes official
@@ -122,6 +131,12 @@ var BackendApi = (function () {
    * (15.0 stays very_good, 37.5 stays moderate) so they agree with the
    * frontend v2/pm25-tier.js tier table. */
   var PM_BANDS = [[75, 'unhealthy'], [37.5, 'unhealthy_sensitive'], [25, 'moderate'], [15, 'good']];
+  /* Pre-2026 hourly cutoffs (INCLUSIVE lower bounds) — byte-compatible with
+   * the deployed legacy frontend (c3bbbc8 led-rotation.js), which re-derives
+   * this band from the hourly value and fails closed on ANY disagreement.
+   * Used ONLY to adapt the action=data&v=1 response; the canonical avg-based
+   * band stays on the cached channel and the snapshot_v1 route. */
+  var PM_LEGACY_BANDS = [[91, 'unhealthy'], [51, 'unhealthy_sensitive'], [38, 'moderate'], [26, 'good']];
   var SLOT_JITTER_H = 2; /* batch records only within configuredHour ± 2h */
   var LEGACY_HISTORY_HANDLERS = ['main', 'logGistdaData'];
   var OWNED_HISTORY_HANDLER = 'BackendApiHistoryBatch_';
@@ -245,6 +260,37 @@ var BackendApi = (function () {
     if (typeof value !== 'number' || !isFinite(value) || value < 0) return null;
     for (var i = 0; i < PM_BANDS.length; i++) if (value > PM_BANDS[i][0]) return PM_BANDS[i][1];
     return 'very_good';
+  }
+
+  /* Legacy hourly band (inclusive >=26/38/51/91) for the v1 wire-compat
+   * envelope; same table the deployed old client re-derives. */
+  function legacyBand(value) {
+    if (typeof value !== 'number' || !isFinite(value) || value < 0) return null;
+    for (var i = 0; i < PM_LEGACY_BANDS.length; i++) if (value >= PM_LEGACY_BANDS[i][0]) return PM_LEGACY_BANDS[i][1];
+    return 'very_good';
+  }
+
+  /* Backward-compatible adaptation of the EXISTING action=data&v=1 response
+   * (2026-10-31). The cached channel and the snapshot_v1 route keep the
+   * canonical avg-based band. ONLY this response is adapted, on a CLONE (the
+   * cached/snapshot object is never mutated):
+   *   band      = legacyBand(hourly value) — the old client re-derives this
+   *               exact string and fails closed on any mismatch;
+   *   avg24hBand= 2026 band of the rounded 24h average (null when the
+   *               average is absent this refresh — never zero-filled);
+   *   bandBasis = 'hourly-legacy' — explicit marker so new clients never
+   *               mistake the legacy band for avg-based data and verify
+   *               the metadata instead of trusting vocabulary alone.
+   * Non-'ok' channels pass through untouched. */
+  function pm25LegacyCompat(pm) {
+    if (!pm || typeof pm !== 'object' || pm.status !== 'ok') return pm;
+    var out = {}, k;
+    for (k in pm) if (Object.prototype.hasOwnProperty.call(pm, k)) out[k] = pm[k];
+    out.band = legacyBand(pm.value);
+    out.avg24hBand = (typeof pm.avg24h === 'number' && isFinite(pm.avg24h) && pm.avg24h >= 0)
+      ? band(pm.avg24h) : null;
+    out.bandBasis = 'hourly-legacy';
+    return out;
   }
 
   /* 1 decimal, half-up, epsilon-guarded double round — same pattern as
@@ -635,9 +681,13 @@ var BackendApi = (function () {
       return {
         status: fresh === 'stale' ? 'stale' : 'ok', value: value, avg24h: avg24h, unit: PM_UNIT,
         observedAt: bangkokIsoObserved(obsMs), source: base.source,
-        /* band = 2026 thresholds on the ROUNDED 24h average; the emitted
-         * `value` keeps its hourly display role. observedAt/staleness are
-         * the row's own source time, identical for value and average. */
+        /* CANONICAL band = 2026 thresholds on the ROUNDED 24h average; the
+         * emitted `value` keeps its hourly display role. This canonical
+         * avg-based band is what the cache and the snapshot_v1 route carry;
+         * the action=data&v=1 response re-bands it to the legacy hourly
+         * cutoffs on a clone (pm25LegacyCompat) for wire compat with the
+         * deployed old client. observedAt/staleness are the row's own source
+         * time, identical for value and average. */
         band: avg24h === null ? null : band(avg24h),
         provenance: prov, _err: null,
       };
@@ -911,7 +961,9 @@ var BackendApi = (function () {
     return respond(callbackId, channels.errors || [], {
       schema: SCHEMA, generatedAt: isoZ(now),
       location: { id: cfg.active.id, label: cfg.active.label, lat: cfg.active.lat, lon: cfg.active.lon },
-      pm25: channels.pm25, weather: channels.weather, water: channels.water,
+      /* v1 wire compat on a clone: legacy band + avg24hBand + bandBasis
+       * (identical adaptation in live and snapshot modes). */
+      pm25: pm25LegacyCompat(channels.pm25), weather: channels.weather, water: channels.water,
     });
   }
 
@@ -1493,7 +1545,7 @@ var BackendApi = (function () {
     PM_TTL_S: PM_TTL_S, WX_TTL_S: WX_TTL_S, LASTGOOD_TTL_S: LASTGOOD_TTL_S,
     COOLDOWN_DEFAULT_S: COOLDOWN_DEFAULT_S, COOLDOWN_MIN_S: COOLDOWN_MIN_S, COOLDOWN_MAX_S: COOLDOWN_MAX_S,
     canonicalLocationLabel: canonicalLocationLabel,
-    parseThaiDateTime: parseThaiDateTime, gistdaObservedMs: gistdaObservedMs, band: band, freshness: freshness,
+    parseThaiDateTime: parseThaiDateTime, gistdaObservedMs: gistdaObservedMs, band: band, legacyBand: legacyBand, freshness: freshness,
     loadConfig: loadConfigSafe, buildChannels: buildChannels, getCachedPm: function(cfg,now){return stripInternal(getChannelCached(cfg,'pm25',channelPm25,pm25Base,PM_TTL_S,now,false));},
     doGet: doGet, historyBatch: historyBatch, hourlyHistory: hourlyHistory, isHourlyAuthorized: isHourlyAuthorized, installHourlyTrigger: installHourlyTrigger, gistdaPayload: gistdaPayload, setupSheets: setupSheets,
     refreshCharts: refreshCharts, ensureChartsTab: ensureChartsTab,
@@ -1530,6 +1582,7 @@ function BackendApiOwnerInitialize_() { return BackendApi.ownerInitialize(); }
 function BackendApiOwnerVerify_() { return BackendApi.ownerVerify(); }
 /* Private test/editor helpers (read-only, still not client-callable). */
 function BackendApi_band_(v) { return BackendApi.band(v); }
+function BackendApi_legacyBand_(v) { return BackendApi.legacyBand(v); }
 function BackendApi_parseThaiDateTime_(dt) { return BackendApi.parseThaiDateTime(dt); }
 /* Mutating private wrappers also carry a strict owner guard (defense in depth:
  * underscore already blocks google.script.run; the guard blocks any other

@@ -31,7 +31,8 @@ function payload(over = {}) {
     schema: 1,
     generatedAt: iso(NOW),
     location: {id:'uthai_tambon', label:'ต.อุทัย จ.อุทัยธานี', lat:14.36147, lon:100.64424},
-    pm25: {status:'ok', value:20.9, unit:'µg/m³', observedAt:obs(NOW - 10*60000), source:'GISTDA', band:'very_good',
+    pm25: {status:'ok', value:20.9, avg24h:12.5, unit:'µg/m³', observedAt:obs(NOW - 10*60000), source:'GISTDA', band:'very_good',
+      avg24hBand:'very_good', bandBasis:'hourly-legacy',
       provenance:{provider:'GISTDA', agency:'GISTDA', service:'PM25 tambon/area estimate',
         stationId:'1414', sourceUrl:'https://gistda.or.th/', termsUrl:null,
         timeZone:'Asia/Bangkok', unit:'µg/m³', datum:null}},
@@ -130,9 +131,11 @@ test('Chrome: all six PM moods render from controlled fresh payloads', {skip: br
       const body = payload();
       body.pm25.value = mood === 'unavailable' ? null : moodValues[mood];
       if (mood !== 'unavailable') {
+        body.pm25.avg24h = moodValues[mood]; /* 2026 mood derives from the 24h average */
         body.pm25.band = mood === 'good' && moodValues[mood] <= 25 ? 'very_good'
           : moodValues[mood] <= 37 ? 'good' : moodValues[mood] <= 50 ? 'moderate'
           : moodValues[mood] <= 90 ? 'unhealthy_sensitive' : 'unhealthy';
+        body.pm25.avg24hBand = body.pm25.band; /* consistent adapter metadata */
       }
       const {context, page, pageErrors} = await openPage(browser, {payload: body});
       await page.locator(`#slide-pm[data-pm-mood="${mood}"]`).waitFor();
@@ -250,7 +253,7 @@ test('Chrome: CORS failure falls back to JSONP once and renders the payload', {s
   const browser = await chromium.launch({headless:true, executablePath:chrome});
   try {
     const body = payload();
-    body.pm25.value = 70; body.pm25.band = 'unhealthy_sensitive';
+    body.pm25.value = 70; body.pm25.avg24h = 70; body.pm25.band = 'unhealthy_sensitive';
     const {context, page, external} = await openPage(browser, {payload: body, mode:'jsonp'});
     await page.locator('#slide-pm[data-pm-mood="protective"]').waitFor();
     assert.equal(await page.locator('#pm-value').textContent(), '70');
