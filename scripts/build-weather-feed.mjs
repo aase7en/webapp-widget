@@ -4,20 +4,23 @@ import {readFile,writeFile} from 'node:fs/promises';
 import {pathToFileURL} from 'node:url';
 const LAT=14.36147,LON=100.64424;
 const URL='https://api.open-meteo.com/v1/forecast?latitude='+LAT+'&longitude='+LON+
- '&current=temperature_2m,relative_humidity_2m,weather_code,wind_speed_10m,is_day,apparent_temperature,uv_index,wind_gusts_10m'+
- '&hourly=temperature_2m,relative_humidity_2m,apparent_temperature,precipitation_probability,weather_code,uv_index,wind_speed_10m,wind_gusts_10m'+
- '&daily=sunrise,sunset,temperature_2m_max,temperature_2m_min,uv_index_max,precipitation_probability_max,weather_code&forecast_days=7&timezone=Asia%2FBangkok';
+  '&current=temperature_2m,relative_humidity_2m,weather_code,wind_speed_10m,is_day,apparent_temperature,uv_index,wind_gusts_10m'+
+  '&hourly=temperature_2m,relative_humidity_2m,apparent_temperature,precipitation_probability,weather_code,uv_index,wind_speed_10m,wind_gusts_10m'+
+  '&daily=sunrise,sunset,temperature_2m_max,temperature_2m_min,uv_index_max,precipitation_probability_max,weather_code&forecast_days=8&timezone=Asia%2FBangkok';
+/* Eight days: a feed built before Bangkok midnight still covers today..+6
+   for consumers reading it after midnight, so the seventh page day (the
+   coming Saturday) never disappears across the rollover. */
 export function validateForecast(f,now=Date.now()){
- if(!f||f.timezone!=='Asia/Bangkok'||!f.current||!f.current_units||f.current_units.temperature_2m!=='°C'||f.current_units.relative_humidity_2m!=='%'||!f.hourly||!Array.isArray(f.hourly.time)||!f.daily||!Array.isArray(f.daily.time)||f.daily.time.length!==7)throw Error('forecast shape invalid');
- const c=f.current,t=c.temperature_2m,rh=c.relative_humidity_2m;
- if(!Number.isFinite(t)||t< -40||t>65||!Number.isFinite(rh)||rh<0||rh>100||!Number.isInteger(c.weather_code))throw Error('current conditions invalid');
- if(typeof c.time!=='string'||!/^\d{4}-\d\d-\d\dT\d\d:\d\d$/.test(c.time))throw Error('source time invalid');
- const observed=Date.parse(c.time+'+07:00');if(!Number.isFinite(observed)||observed>now+120000||now-observed>3*3600000)throw Error('source time stale or future');
- const today=new Date(now+7*3600000).toISOString().slice(0,10),dates=f.daily.time;
- if(dates.some((date,i)=>date!==new Date(Date.parse(today+'T00:00:00Z')+i*86400000).toISOString().slice(0,10)))throw Error('forecast dates invalid');
- if(f.hourly_units?.precipitation_probability!=='%'||f.daily_units?.temperature_2m_max!=='°C'||f.daily_units?.temperature_2m_min!=='°C'||f.daily_units?.precipitation_probability_max!=='%')throw Error('forecast units invalid');
- if(!Array.isArray(f.hourly.precipitation_probability)||f.hourly.precipitation_probability.length!==f.hourly.time.length||!f.hourly.time.length)throw Error('hourly forecast invalid');
- for(const key of ['temperature_2m_max','temperature_2m_min','precipitation_probability_max','weather_code'])if(!Array.isArray(f.daily[key])||f.daily[key].length!==7)throw Error('daily forecast invalid');
+  if(!f||f.timezone!=='Asia/Bangkok'||!f.current||!f.current_units||f.current_units.temperature_2m!=='°C'||f.current_units.relative_humidity_2m!=='%'||!f.hourly||!Array.isArray(f.hourly.time)||!f.daily||!Array.isArray(f.daily.time)||f.daily.time.length!==8)throw Error('forecast shape invalid');
+  const c=f.current,t=c.temperature_2m,rh=c.relative_humidity_2m;
+  if(!Number.isFinite(t)||t< -40||t>65||!Number.isFinite(rh)||rh<0||rh>100||!Number.isInteger(c.weather_code))throw Error('current conditions invalid');
+  if(typeof c.time!=='string'||!/^\d{4}-\d\d-\d\dT\d\d:\d\d$/.test(c.time))throw Error('source time invalid');
+  const observed=Date.parse(c.time+'+07:00');if(!Number.isFinite(observed)||observed>now+120000||now-observed>3*3600000)throw Error('source time stale or future');
+  const today=new Date(now+7*3600000).toISOString().slice(0,10),dates=f.daily.time;
+  if(dates.some((date,i)=>date!==new Date(Date.parse(today+'T00:00:00Z')+i*86400000).toISOString().slice(0,10)))throw Error('forecast dates invalid');
+  if(f.hourly_units?.precipitation_probability!=='%'||f.daily_units?.temperature_2m_max!=='°C'||f.daily_units?.temperature_2m_min!=='°C'||f.daily_units?.precipitation_probability_max!=='%')throw Error('forecast units invalid');
+  if(!Array.isArray(f.hourly.precipitation_probability)||f.hourly.precipitation_probability.length!==f.hourly.time.length||!f.hourly.time.length)throw Error('hourly forecast invalid');
+  for(const key of ['temperature_2m_max','temperature_2m_min','precipitation_probability_max','weather_code'])if(!Array.isArray(f.daily[key])||f.daily[key].length!==8)throw Error('daily forecast invalid');
  if(!Number.isFinite(f.latitude)||!Number.isFinite(f.longitude)||Math.abs(f.latitude-LAT)>.3||Math.abs(f.longitude-LON)>.3)throw Error('provider grid is too far from requested location');
  if(JSON.stringify(f).length>44000)throw Error('forecast exceeds Sheet cell budget');return f;
 }
