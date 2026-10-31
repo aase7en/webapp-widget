@@ -4,10 +4,10 @@
 
 | ส่วน | ไฟล์ | cache version ใน URL |
 | --- | --- | --- |
-| ตัวสลับหน้าที่ `index.html` โหลด | `v2/index.html` | `20261031-weather-graph-2` |
+| ตัวสลับหน้าที่ `index.html` โหลด | `v2/index.html` | `20261031-icon-align-1` |
 | PM2.5 | `v2/pm25-live.html` และ `v2/pm25-live.js` | `20261031-weather-graph-2` |
-| Weather | `v2/weather-luxury.html` | `20261031-weather-graph-2` |
-| Weather script | `v2/weather-luxury.js` | `20261031-graph-colors` |
+| Weather | `v2/weather-luxury.html` | `20261031-icon-align-1` (icon alignment + halo, 2026-10-31) |
+| Weather script | `v2/weather-luxury.js` | `20261031-icon-align-1` (icon alignment + halo, 2026-10-31) |
 | Water | `v2/water-luxury-live.html`, CSS และ script | `20261030-water-1` |
 | ตัวอ่านข้อมูล Sheet | `v2/api-client.js` | `20261030-hourly-1` |
 
