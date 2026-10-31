@@ -18,3 +18,18 @@ test('probability follows the current Bangkok hour, not an older model observati
 test('missing current-hour forecast is unavailable instead of an older probability',()=>{let s=snapshot();s.channels.forecast.data.hourly.time=['2026-10-31T11:00'];assert.equal(parse(s,now).rainPct,null)});
 
 test('clear day uses sun/cloud and clear night uses moon/cloud',()=>{assert.equal(condition(1,1,3),'partly-cloudy');assert.equal(condition(1,0,3),'night')});
+
+test('after Bangkok midnight a feed cached from yesterday still yields six days',()=>{
+  let s=snapshot(),nightNow=Date.parse('2026-10-31T17:30:00Z');
+  s.channels.weather.observedAt='2026-10-31T17:15:00Z';s.channels.weather.savedAt='2026-10-31T17:15:00Z';
+  s.channels.forecast.observedAt='2026-10-31T17:15:00Z';s.channels.forecast.savedAt='2026-10-31T17:15:00Z';
+  s.channels.weather.data.observedAt='2026-10-31T17:15:00Z';
+  s.channels.forecast.data.current={time:'2026-11-01T00:15',is_day:0,apparent_temperature:30,wind_speed_10m:5};
+  s.channels.forecast.data.hourly={time:['2026-10-31T23:00','2026-11-01T00:00'],precipitation_probability:[10,55]};
+  s.channels.forecast.data.daily={time:['2026-10-31','2026-11-01','2026-11-02','2026-11-03','2026-11-04','2026-11-05','2026-11-06'],temperature_2m_max:[30,31,32,33,34,35,36],temperature_2m_min:[24,24,24,24,24,24,24],precipitation_probability_max:[10,20,30,40,50,60,70],weather_code:[0,1,3,61,95,45,2]};
+  const d=parse(s,nightNow);
+  assert.equal(d.rainPct,55,'current Bangkok hour probability still resolves');
+  assert.equal(d.days.length,6,'yesterday-starting feed exposes the six remaining days');
+  assert.equal(d.days[0].date,'2026-11-01');
+  assert.equal(d.high,31);assert.equal(d.low,24);
+});
