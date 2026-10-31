@@ -23,9 +23,18 @@ test('per-condition vertical alignment keeps partly-cloudy reference and offsets
   assert.match(html,new RegExp('\\.icon\\[data-condition="'+id+'"\\]\\{top:-7px\\}'),id+' moon group -> -7px');
  }
  for(const id of ['cloudy','fog','rain','thunderstorm','wind']){
-  assert.match(html,new RegExp('\\.icon\\[data-condition="'+id+'"\\]\\{top:-22px\\}'),id+' no-luminary group -> -22px');
+  assert.match(html,new RegExp('\\.icon\\[data-condition="'+id+'"\\]\\{top:-26px\\}'),id+' no-luminary group -> -26px (two native LED pixels up)');
  }
  assert.match(html,/\.icon\{left:333px;top:-20px;/,'partly-cloudy reference baseline stays top:-20px');
+});
+
+test('no-luminary icons move two native LED pixels, not two enlarged board pixels',()=>{
+ const scale=Number(html.match(/transform:scale\(([^)]+)\)/)[1]);
+ const referenceTop=Number(html.match(/\.icon\{left:333px;top:(-?\d+)px;/)[1]);
+ for(const id of ['cloudy','fog','rain','thunderstorm','wind']){
+  const top=Number(html.match(new RegExp('\\.icon\\[data-condition="'+id+'"\\]\\{top:(-?\\d+)px\\}'))[1]);
+  assert.ok(Math.abs((top-referenceTop)*scale+2)<1e-8,id+' must move up two 432x40 display pixels');
+ }
 });
 
 test('paint() sets dataset.condition on the reduced-motion poster too',()=>{
@@ -33,11 +42,11 @@ test('paint() sets dataset.condition on the reduced-motion poster too',()=>{
  assert.match(js,/\$\('#icon'\)\.dataset\.condition=id/);
 });
 
-test('cache versions bumped to 20261031-icon-align-1 across the embed chain',()=>{
- assert.match(html,/weather-luxury\.js\?v=20261031-icon-align-1/,'weather-luxury.js embed in its own page');
+test('cache versions bumped to 20261031-icon-align-2 across the embed chain',()=>{
+ assert.match(html,/weather-luxury\.js\?v=20261031-icon-align-2/,'weather-luxury.js embed in its own page');
  assert.match(html,/src="weather-snapshot\.js"/,'snapshot adapter stays unversioned (pinned by tests)');
  const screen=fs.readFileSync(path.join(ROOT,'v2/index.html'),'utf8');
- assert.match(screen,/weather-luxury\.html\?v=20261031-icon-align-1/,'v2/index.html weather embed');
+ assert.match(screen,/weather-luxury\.html\?v=20261031-icon-align-2/,'v2/index.html weather embed');
  const root=fs.readFileSync(path.join(ROOT,'index.html'),'utf8');
- assert.match(root,/v2\/index\.html\?display=led&amp;v=20261031-icon-align-1/,'root index.html switcher embed');
+ assert.match(root,/v2\/index\.html\?display=led&amp;v=20261031-icon-align-2/,'root index.html switcher embed');
 });
