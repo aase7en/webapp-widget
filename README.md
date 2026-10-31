@@ -1,270 +1,137 @@
-# Air Quality Widget — PM2.5 (ตำบลอุทัย)
+<div align="center">
 
-Widget แสดงค่าฝุ่น PM2.5 ของพื้นที่ตำบลอุทัย ดึงข้อมูลจาก GISTDA / Air4Thai / WAQI
-ตัว `index.html` ใน repo นี้เป็นเพียงตัว wrapper ที่ฝัง iframe ของ Web App ที่ deploy จาก Google Apps Script
+# UTH Environmental Widget
 
-## ที่มาของโค้ด
+**ป้ายข้อมูลสิ่งแวดล้อมสำหรับโรงพยาบาลอุทัย**<br>
+PM2.5 · สภาพอากาศ · ระดับน้ำสถานีอ้างอิง
 
-โค้ดหลักของ widget อยู่ใน Google Apps Script project ชื่อ:
+[เปิด Widget หลัก](https://aase7en.github.io/webapp-widget/) · [ดูหน้า Weather](https://aase7en.github.io/webapp-widget/v2/weather-luxury.html) · [ดูหน้าระดับน้ำ](https://aase7en.github.io/webapp-widget/v2/water-luxury-live.html) · [หน้ารวมตัวอย่าง](https://aase7en.github.io/webapp-widget/v2/)
 
-**📜 API Report_PM2.5**
+</div>
 
-🔗 ลิ้งสำหรับเข้าไปแก้ไข/อัพเดทโค้ด:
-https://script.google.com/home/projects/1H7_0yH9yFDSDKhe66IhhRvyeVgV4rdI8R96stDY0cIbnOfemiCHvlejj/edit
+## โปรเจกต์นี้ทำอะไร
 
-> ⚠️ เวลาจะแก้ไข/อัพเดท widget ให้ไปแก้ที่ Google Apps Script ตามลิ้งด้านบน
-> หลังแก้แล้วต้อง **Deploy → New deployment** ใหม่ แล้วนำ URL มาใส่แทนที่ใน `index.html` ของ repo นี้
-> (หรือเลือก **Manage deployments → Edit → New version** เพื่อให้ URL เดิมใช้งานได้ต่อ)
+แสดงข้อมูลสิ่งแวดล้อมที่อ่านได้รวดเร็วบริเวณโรงพยาบาลอุทัย จังหวัดพระนครศรีอยุธยา บนแถบ LED **432 × 40 พิกเซล** ซึ่งใช้พื้นที่ส่วนหนึ่งของจอจริงขนาด 432 × 288 พิกเซล หน้าหลักสลับระหว่างฝุ่น สภาพอากาศ และระดับน้ำโดยอัตโนมัติ พร้อมภาพเคลื่อนไหวและภาพนิ่งสำรองสำหรับอุปกรณ์หรือการตั้งค่าที่ลดการเคลื่อนไหว
 
-## โครงสร้างไฟล์
+ข้อมูลที่แสดงเป็นข้อมูลประกอบการติดตามสถานการณ์ ไม่ใช่เครื่องมือวินิจฉัยหรือระบบแจ้งเตือนภัยฉุกเฉินโดยลำพัง ควรตรวจสอบเวลาและประกาศทางการประกอบเสมอ
 
-| ไฟล์ | รายละเอียด |
+| หน้า | แสดงอะไร | ที่มาของข้อมูล |
+| --- | --- | --- |
+| PM2.5 | ค่ารายชั่วโมง ระดับสี และกราฟย้อนหลังสูงสุด 24 ชั่วโมง | GISTDA ผ่าน Google Sheet |
+| Weather | อุณหภูมิ ความรู้สึก ความชื้น โอกาสฝน ค่าสูงสุด/ต่ำสุด และพยากรณ์ 7 วัน | แบบจำลอง Open-Meteo ผ่าน Google Sheet |
+| Water | สถานีอ้างอิง HDA004 ช่องสะเดา และ S.5 สะพานปรีดี พร้อมกราฟประวัติ | ThaiWater/HII ผ่าน Google Sheet |
+
+> **ข้อจำกัดสำคัญ:** PM2.5 เป็นค่าประมาณระดับพื้นที่ ไม่ใช่เครื่องวัดหน้าโรงพยาบาล; อากาศเป็นผลแบบจำลอง; สถานีน้ำเป็นสถานีอ้างอิง ไม่ใช่เซนเซอร์ของโรงพยาบาล ภาพประตูน้ำเป็นภาพประกอบ ไม่ได้บอกสถานะประตูจริง
+>
+> โค้ด PM2.5 ปัจจุบันนำ **ค่ารายชั่วโมง** ไปเทียบช่วงสีที่แสดง ยังไม่ได้ใช้ค่าเฉลี่ย 24 ชั่วโมงเป็นตัวเปลี่ยนสีตามความต้องการเดิม จึงไม่ควรตีความสีนี้ว่าเป็นการจัดระดับจากค่าเฉลี่ย 24 ชั่วโมง งานแก้ไขยังต้องดำเนินการต่อ
+
+## ตัวอย่างหน้าจอ
+
+ภาพต่อไปนี้จับจากหน้าเว็บที่ขนาด 432 × 40 แล้วขยาย 3 เท่าให้อ่านง่าย **ค่าฝุ่น กราฟ ค่าพยากรณ์ และภาพสถานะน้ำในชุดสาธิตเป็นข้อมูลจำลองเพื่อแสดงรูปแบบเท่านั้น ไม่ใช่ข้อมูลปัจจุบัน** ส่วนภาพน้ำที่ระบุว่าเป็นภาพจริงบันทึก ณ วันที่ 31 ตุลาคม 2569 เวลา 08:45 น. ค่าอาจเปลี่ยนไปหรือเก่าแล้ว ให้เปิดลิงก์หน้าเว็บเพื่อตรวจข้อมูลล่าสุด ภาพนิ่งไม่แสดงการเคลื่อนไหวของ animation
+
+### PM2.5 — ห้าระดับสี
+
+| ฟ้า · ดีมาก | เขียว · ดี |
 | --- | --- |
-| `index.html` | Wrapper หน้าเว็บที่ฝัง iframe ของ Apps Script Web App |
-| `apps-script/Code.gs` | สำเนาโค้ด Server-side ของ Apps Script (ไว้อ้างอิง / version control) |
-| `apps-script/index.html` | สำเนาโค้ด UI ของ widget ที่อยู่ใน Apps Script |
+| ![ตัวอย่าง PM2.5 สีฟ้า ค่าจำลอง](docs/readme/screenshots/pm25-blue.png) | ![ตัวอย่าง PM2.5 สีเขียว ค่าจำลอง](docs/readme/screenshots/pm25-green.png) |
+| **เหลือง · ปานกลาง** | **ส้ม · เริ่มมีผลต่อสุขภาพ** |
+| ![ตัวอย่าง PM2.5 สีเหลือง ค่าจำลอง](docs/readme/screenshots/pm25-yellow.png) | ![ตัวอย่าง PM2.5 สีส้ม ค่าจำลอง](docs/readme/screenshots/pm25-orange.png) |
+| **แดง · มีผลต่อสุขภาพ** | |
+| ![ตัวอย่าง PM2.5 สีแดง ค่าจำลอง](docs/readme/screenshots/pm25-red.png) | |
 
-> ไฟล์ใน `apps-script/` เป็นเพียง **สำเนาเพื่ออ้างอิง** การแก้ไขจริงต้องไปทำใน Google Apps Script editor ตามลิ้งด้านบน
+### Weather — ไอคอนและฉากตามสภาพอากาศ
 
-## API ที่ใช้
+ค่าทุกภาพในส่วนนี้เป็น **ข้อมูลจำลอง** เพื่อแสดงสภาพอากาศและหน้าตาแต่ละแบบ
 
-- **GISTDA**: `https://pm25.gistda.or.th/rest/getPm25byTambon?ap_idn=1414` (แหล่งข้อมูลหลัก — ตำบลอุทัย)
-- **Air4Thai (PCD)**: `http://air4thai.pcd.go.th/services/getNewAQI_JSON.php?stationID=21t`
-- **WAQI Global**: `https://api.waqi.info/feed/A419398/`
+<details open><summary><strong>สภาพอากาศกลางวัน</strong></summary>
 
-## Google Sheet ที่เก็บข้อมูล
-
-Spreadsheet ID: `1kBUKdezfAxIziq167e-RJV1nNZkeiaz6YQcpVAMja9w`
-
-- **ชีต1**: เก็บข้อมูล AQI / PM10 / PM2.5 / PM2.5 24hr Avg (เก็บ 7 วันล่าสุด)
-- **ชีต2**: log ค่าเฉลี่ย PM2.5 24 ชม. ของตำบล
-
-## Trigger เวลาทำงานอัตโนมัติ
-
-| ฟังก์ชัน | เวลา (GMT+7) |
+| แดดสลับเมฆ | เมฆมาก |
 | --- | --- |
-| `main` (รายงาน + บันทึกชีต1) | 06:00 และ 16:00 ทุกวัน |
-| `logGistdaData` (บันทึกชีต2) | 08:00 และ 20:00 ทุกวัน |
+| ![แดดสลับเมฆ ข้อมูลจำลอง](docs/readme/screenshots/weather-partly-cloudy.png) | ![เมฆมาก ข้อมูลจำลอง](docs/readme/screenshots/weather-cloudy.png) |
+| **ฝน** | **พายุฝนฟ้าคะนอง** |
+| ![ฝน ข้อมูลจำลอง](docs/readme/screenshots/weather-rain.png) | ![พายุ ข้อมูลจำลอง](docs/readme/screenshots/weather-thunderstorm.png) |
+| **หมอก** | **ลมแรง** |
+| ![หมอก ข้อมูลจำลอง](docs/readme/screenshots/weather-fog.png) | ![ลมแรง ข้อมูลจำลอง](docs/readme/screenshots/weather-wind.png) |
 
-หากต้องการสร้าง trigger ใหม่ ให้รันฟังก์ชัน `createDailyTrigger()` ใน Apps Script editor
+</details>
 
----
+<details><summary><strong>สภาพอากาศกลางคืน — กดเพื่อดู</strong></summary>
 
-## Backend JSON API v1 (contract — proposed, not yet deployed)
+| กลางคืน | ฝนกลางคืน |
+| --- | --- |
+| ![กลางคืน ข้อมูลจำลอง](docs/readme/screenshots/weather-night.png) | ![ฝนกลางคืน ข้อมูลจำลอง](docs/readme/screenshots/weather-night-rain.png) |
+| **ลมแรงกลางคืน** | **พายุฝนฟ้าคะนองกลางคืน** |
+| ![ลมแรงกลางคืน ข้อมูลจำลอง](docs/readme/screenshots/weather-night-wind.png) | ![พายุกลางคืน ข้อมูลจำลอง](docs/readme/screenshots/weather-night-thunderstorm.png) |
 
-หน้า LED ใหม่เรียก backend เดิมทางเดียว: `GET {exec}?action=data&v=1`
-(เพิ่ม `&callback=IDENT` เฉพาะกรณี JSONP fallback; IDENT ต้องเป็น identifier เดี่ยว
-`^[A-Za-z_$][A-Za-z0-9_$]*$` เท่านั้น) — frontend ไม่เรียก upstream เองเลย
+</details>
 
-การตอบ (ทุกช่อง fail-closed แยกอิสระ):
+กราฟพยากรณ์ใช้สีฟ้า → เขียว → เหลือง → ส้ม → แดง เพื่อช่วยอ่านความแตกต่างของอุณหภูมิ **สีกราฟเป็นการออกแบบภาพ ไม่ใช่เกณฑ์เตือนสุขภาพอย่างเป็นทางการ**
 
-```json
-{
-  "schema": 1,
-  "generatedAt": "ISO-8601 (เวลาตอบ, ไม่ใช่เวลาวัด)",
-  "location": { "id": "uthai", "label": "…", "lat": 14.36147, "lon": 100.64424 },
-  "pm25": {
-    "status": "ok | stale | missing",
-    "value": 20.9, "unit": "µg/m³",
-    "observedAt": "2026-10-17T06:05+07:00 (เวลาวัดจริงจาก GISTDA datetimeThai แปลง พ.ศ.→ค.ศ.)",
-    "source": "GISTDA pm25.gistda.or.th · …",
-    "band": "very_good|good|moderate|unhealthy_sensitive|unhealthy (>=91/>=51/>=38/>=26 ตาม Code.gs เดิม)",
-    "provenance": { "provider", "agency", "service", "areaId", "stationId", "sourceUrl", "termsUrl", "timeZone", "unit", "datum" }  // canonical keys: timeZone/unit (exact); PM GISTDA = tambon areaId ไม่ใช่สถานีวัด
-  },
-  "weather": {
-    "status": "ok | stale | missing",
-    "temperatureC": 29.4, "humidityPct": 78, "weatherCode": 80,
-    "tmaxC": 33.1, "tminC": 25.2, "rainPct": 55,
-    "observedAt": "…+07:00", "forecastDate": "YYYY-MM-DD (กรุงเทพฯ)",
-    "source": "Open-Meteo (weather model) · …", "provenance": { … }
-  },
-  "water": {
-    "status": "missing", "available": false, "value": null, "unit": "m",
-    "observedAt": null,
-    "source": "ไม่มีสถานีระดับน้ำที่ยืนยันแล้ว — รอข้อมูลจริง …",
-    "provenance": { …, "note": "no verified station API; thresholds pending engineer confirmation" }
-  },
-  "errors": [ { "channel": "pm25|weather|water|config|version|callback", "code": "UPSTREAM|PARSE|OBSERVED_AT|CONFIG|VERSION|CALLBACK", "message": "…" } ]
-}
+### ระดับน้ำ — สถานีอ้างอิง
+
+![ตัวอย่างหน้าระดับน้ำ บันทึกเมื่อ 31 ตุลาคม 2569](docs/readme/screenshots/water-live.png)
+
+<details><summary><strong>ตัวอย่างสถานะน้ำ — ข้อมูลจำลอง กดเพื่อดู</strong></summary>
+
+| ต่ำกว่าตลิ่ง | ถึงตลิ่ง |
+| --- | --- |
+| ![ตัวอย่างต่ำกว่าตลิ่ง ข้อมูลจำลอง](docs/readme/screenshots/water-below.png) | ![ตัวอย่างถึงตลิ่ง ข้อมูลจำลอง](docs/readme/screenshots/water-at-bank.png) |
+| **สูงกว่าตลิ่ง** | **ข้อมูลเก่า** |
+| ![ตัวอย่างสูงกว่าตลิ่ง ข้อมูลจำลอง](docs/readme/screenshots/water-above.png) | ![ตัวอย่างข้อมูลเก่า ข้อมูลจำลอง](docs/readme/screenshots/water-historical.png) |
+| **รอข้อมูล** | |
+| ![ตัวอย่างรอข้อมูล ข้อมูลจำลอง](docs/readme/screenshots/water-unavailable.png) | |
+
+</details>
+
+ค่าที่ขาดหรือเก่าต้องพิจารณาตามเวลาวัดและสถานะบนหน้าจอ เทียบระดับกับตลิ่งเฉพาะเมื่อมีข้อมูลอ้างอิงที่ถูกต้อง ป้ายระดับน้ำไม่ใช่คำสั่งอพยพ
+
+## แหล่งข้อมูลและเครดิต
+
+ขอบคุณผู้ให้บริการข้อมูลและหน่วยงานที่เกี่ยวข้อง เครื่องหมายด้านล่างใช้เพื่อระบุแหล่งที่มา ไม่ได้แสดงการรับรองโครงการจากเจ้าของเครื่องหมาย
+
+| ผู้ให้บริการ | บทบาทในระบบ | ข้อมูลและเงื่อนไข |
+| --- | --- | --- |
+| [<img src="docs/readme/brands/gistda.png" alt="GISTDA" width="105">](https://www.gistda.or.th/) | ค่า PM2.5 ประมาณรายชั่วโมงระดับตำบล | [เช็คฝุ่น GISTDA](https://pm25.gistda.or.th/) · [แหล่งโลโก้](https://www.gistda.or.th/about/download-gistda-logo-2/) |
+| [<img src="docs/readme/brands/open-meteo.png" alt="Open-Meteo" width="85">](https://open-meteo.com/) | ข้อมูลและพยากรณ์อากาศแบบจำลอง รวมถึงข้อมูลแบบจำลองน้ำที่ backend ดึงไว้ | [Weather API](https://open-meteo.com/en/docs) · [Flood API](https://open-meteo.com/en/docs/flood-api) · ข้อมูล [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/) · [เงื่อนไขบริการ](https://open-meteo.com/en/terms) |
+| [<img src="docs/readme/brands/hii.png" alt="สถาบันสารสนเทศทรัพยากรน้ำ" width="110">](https://www.hii.or.th/) | ThaiWater/HII รวบรวมและให้บริการข้อมูลระดับน้ำจากสถานีอ้างอิง | [ThaiWater](https://www.thaiwater.net/) · [ข้อมูลหน่วยงานและเครื่องหมาย](https://www.hii.or.th/เครื่องหมาย-สสน/) |
+
+โค้ดเดิมในโปรเจกต์ยังอ้างถึง [Air4Thai / กรมควบคุมมลพิษ](https://www.air4thai.com/) และ [World Air Quality Index (WAQI)](https://aqicn.org/) สำหรับงานเดิมบางส่วน แต่ **ไม่ใช่แหล่งหลักที่ยืนยันว่าป้อนสามหน้าหลักในปัจจุบัน** เครดิตและโลโก้แสดงไว้เพื่อให้เห็นที่มาของโค้ดเดิม:
+
+[<img src="docs/readme/brands/pcd.png" alt="กรมควบคุมมลพิษ Air4Thai" width="120">](https://www.pcd.go.th/)　[<img src="docs/readme/brands/waqi.png" alt="World Air Quality Index" width="65">](https://aqicn.org/media/)
+
+ภาพเครื่องหมายเป็นทรัพย์สินของเจ้าของแต่ละราย ดูที่มาไฟล์ได้ใน [รายการแหล่งโลโก้](docs/readme/brands/SOURCES.md) การใช้งานข้อมูลและ API ต้องเป็นไปตามเงื่อนไขของผู้ให้บริการแต่ละราย
+
+## ระบบทำงานอย่างไร
+
+```text
+GISTDA ──────┐
+Open-Meteo ──┼─→ Apps Script ของชีตเดิม ─→ Google Sheet / snapshot ─→ GitHub Pages ─→ จอ LED
+ThaiWater ───┘
 ```
 
-กติกาสำคัญ:
+- ตัวเก็บข้อมูลถูกตั้งให้ทำงานรายชั่วโมงและมีตัวจำกัดการเรียกข้อมูลซ้ำในชั่วโมงเดียวกัน หน้าเว็บอ่าน snapshot จาก Apps Script/Sheet แทนการให้ทุกหน้าเว็บเรียกผู้ให้บริการโดยตรง การทำงานจริงขึ้นกับ trigger และความพร้อมของต้นทาง
+- เวลาข้อมูลจากต้นทางและเวลาบันทึกเป็นคนละค่า ข้อมูลเก่าหรือข้อมูลที่ไม่มีต้องไม่ถูกแสดงเป็นข้อมูลสดหรือแทนด้วยศูนย์ กราฟจะเว้นช่องที่ไม่มีข้อมูลจริง
+- ข้อมูล PM และ snapshot ที่ระบบใหม่เป็นเจ้าของมีนโยบายเก็บสูงสุด 90 วัน; snapshot พยากรณ์เก็บ 2 วัน แถวระดับน้ำที่ระบบใหม่เป็นเจ้าของและผ่านการตรวจรูปแบบมีนโยบาย 90 วัน ไม่ลบข้อมูลเก่าที่ระบุเจ้าของไม่ได้โดยอัตโนมัติ
+- ใช้ Google Sheet และ Apps Script เดิมที่ผูกกันอยู่ ไม่สร้างฐานข้อมูลแยกสำหรับป้ายนี้
+- ณ จุดตรวจวันที่ 31 ตุลาคม 2569 การดึงและบันทึกด้วยมือผ่านแล้ว แต่ **ยังรอหลักฐานรอบ trigger รายชั่วโมงอัตโนมัติหลังติดตั้ง** อย่าใช้เอกสารนี้แทนการตรวจสถานะปัจจุบัน
 
-- `observedAt` = เวลาที่ต้นทางวัดเท่านั้น ห้ามแทนด้วยเวลา fetch/generatedAt — ไม่รู้เวลาวัด = `missing`
-- อนาคต > 5 นาที ถูกตีตก; อายุ > 3 ชม. = `stale` (frontend แสดงเทา)
-- Read route ไม่เขียน Sheet/trigger/properties ใดๆ ทั้งสิ้น (cooldown ก็เก็บใน
-  CacheService อย่างเดียว); ใช้ CacheService แบบแยกรายช่อง: PM2.5 TTL 1,800 วิ
-  (30 นาที) / อากาศ TTL 600 วิ (10 นาที) / last-good รายช่อง 21,600 วิ (6 ชม. =
-  ค่าสูงสุดของบริการ); key = `bapi_v2_{location}_{config_version}_
-  {fingerprint(พิกัด+providers+areaId+tambon+station+datum+label)}` +
-  LockService กัน stampede; upstream ล่มเสิร์บ last-good รายช่อง พร้อมยกเป็น
-  `stale` — ไม่เคยปลอมค่าสด ไม่เคยคืน 0
-- ไม่มี secret/token/Spreadsheet ID/ประวัติดิบใน payload เด็ดขาด
+ตรวจเลข cache version ของแต่ละหน้าและขอบเขตการตรวจล่าสุดได้ที่ [บันทึกเวอร์ชัน](docs/readme/VERSIONS.md)
 
-### จังหวะการดึงข้อมูล (cadence — best-effort ทั้งหมด ห้ามอ้างเป็น rate ที่แน่นอน)
+## สำหรับผู้พัฒนา
 
-- frontend: อ่าน backend ทุก 15 นาที (`REFRESH_MS` ใน led-rotation.js, ไม่เปลี่ยน)
-  และ refresh เมื่อแท็บกลับมา visible; freshness tick 60 วิ เป็นการ repaint
-  จาก observedAt เท่านั้น (ไม่มี network); ไม่มี retry loop — JSONP fallback
-  ครั้งเดียวเฉพาะกรณี CORS
-- backend → upstream: PM2.5 (GISTDA) เติมใหม่เมื่อพ้น 30 นาที / อากาศ
-  (Open-Meteo) เมื่อพ้น 10 นาที "ต่อการเข้ามาอ่าน" — cache หมดอายุจะถูกเติม
-  เฉพาะเมื่อมี request เข้ามา (ไม่มี scheduler/cron รีเฟรช read cache)
-  ไม่มี client เปิดอยู่ = ไม่มีการยิง upstream; CacheService อาจ evict
-  ก่อนอายุจริง ดังนั้นทุกตัวเลข cadence เป็น best-effort upper bound
-  ของความสด ไม่ใช่การรับประกันจังหวะเข็มนาฬิกา
-- งบเรียกต่อวัน (ต่อ active location, กรณี LED เปิดตลอด): GISTDA ~48 ครั้ง
-  + มากสุด ~2 จาก history batch; Open-Meteo ~96 + ~2 — history กับ read route
-  ใช้ cache/helper เดียวกัน ช่องที่ยังอุ่นไม่ fetch เพิ่ม (batch อุ่น = 0 call
-  เพิ่ม) จึงห้ามเขียนว่า "48 เป๊ะ" — ให้เขียน "~48+2 best-effort"
-- HTTP 429/5xx หรือ network failure → cooldown แบบ passive เก็บใน cache รายช่อง
-  (ค่าเริ่มต้น 300 วิ; ใช้ `Retry-After` เฉพาะเมื่อต้นทางส่งจริง — delta-seconds
-  เท่านั้น — กันขอบไว้ 30–3,600 วิ) ระหว่าง cooldown: เสิร์บ last-good รายช่อง
-  (เก่าเกิน 3 ชม. ขึ้น `stale`/เทา พร้อม observedAt เดิม) หรือ `missing`
-  ตรงๆ หากไม่เคยมีค่าดี — ไม่มี retry storm จากฝั่งไหน
-- history: ยังวันละ 2 รอบเช้า/เย็นตามเดิมทุกประการ (cadence ไม่เปลี่ยน)
-  เพียงดึงข้อมูลผ่าน per-channel cache เดียวกับ read route; แถวบันทึก
-  observedAt/status ของข้อมูลที่ใช้จริง (ค่า PM ในแถวอาจเก่าได้ถึง 30 นาที
-  ถ้า batch เดินทางมาตอน cache ยังอุ่น)
-- ชนิดของข้อมูล: GISTDA = ค่าประมาณรายชั่วโมงระดับตำบล (official estimate:
-  ดาวเทียม+ภาคพื้นผสม) ไม่ใช่สถานีวัดหน้าโรงพยาบาล; Open-Meteo = โมเดลอากาศ
-  (current เป็นค่า interpolate ของโมเดล) ไม่ใช่การวัดจริงที่ รพ. — ไม่มี
-  การอ้างเปอร์เซ็นต์ความแม่นยำของสภาพอากาศในที่ใดของเอกสาร/หน้าจอ
+| เส้นทาง | หน้าที่ |
+| --- | --- |
+| `index.html`, `v2/index.html` | หน้าหลักและการสลับหน้าของป้าย |
+| `v2/pm25-live.*`, `v2/weather-luxury.*`, `v2/water-luxury-live.*` | หน้าฝุ่น อากาศ และน้ำตามลำดับ |
+| `v2/api-client.js`, `v2/live-widgets.js`, `v2/weather-snapshot.js` | อ่านและตรวจข้อมูลสำหรับหน้าเว็บ |
+| `apps-script/BackendApi.gs`, `HourlySnapshot.gs`, `WaterHistory.gs` | backend, การเก็บ snapshot และประวัติน้ำ |
+| `docs/readme/` | ภาพตัวอย่างและเครดิตเครื่องหมาย |
 
-### การตั้งค่า (แท็บใหม่ใน Spreadsheet เดิม — ไม่แตะ ชีต1/ชีต2)
+ทดสอบแบบ local จากโฟลเดอร์ repo:
 
-- `Settings`: active_location_id, history_morning_hour (default 06),
-  history_evening_hour (default 16), timezone, config_version
-- `Locations`: id,label,enabled,lat,lon,pm_provider(gistda),pm_location_id,
-  weather_provider(open-meteo),water_provider,water_station_id,water_datum,
-  official_bank_crest_m,water_thresholds (ค่า datum/threshold เว้นว่างจนกว่า
-  วิศวกรยืนยันสถานี) — สร้างแท็บโดยรัน `BackendApiSetupSheets()` (idempotent,
-  อยู่แล้วไม่ทับ)
-  - label: default เดิมที่ผิด `'ต.อุทัย อ.พระนครศรีอยุธยา'` (ต.อุทัยอยู่ใน อ.อุทัย)
-    ถูกแปลงเป็น `'ต.อุทัย อ.อุทัย จ.พระนครศรีอยุธยา'` แบบ pure normalization
-    ตอน backend อ่านค่า — API/หน้าจอคืนข้อความที่ถูกต้อง โดยที่ backend
-    ไม่เขียนแก้ cell ใน Sheet เด็ดขาด (ข้อความเดิมใน cell คงอยู่จนเจ้าของ
-    แก้เอง); label อื่นที่ไม่ใช่ legacy ตัวนี้ผ่านค่าตรงๆ ไม่ถูกแตะ
-    และ label เป็นส่วนหนึ่งของ cache fingerprint (แก้ label = cache เปลี่ยน)
-- `API_Sources`: metadata สาธารณะของ provider (URL ต้องผ่าน allowlist แค่ใช้
-  อ้างอิง ไม่ถูก fetch จาก sheet; ห้ามใส่ API key — ใช้ชื่อ Script Property
-  อย่างเดียวถ้าจำเป็น)
-- `History_Batch`: ประวัติ "วันละ 2 รอบ" เช้า/เย็น แถวละ location ที่ enabled,
-  idempotent ตาม (date, slot, location_id); ติดตั้ง trigger โดยรัน
-  `BackendApiInstallTriggers()` (สร้างเฉพาะ trigger ของ BackendApiHistoryBatch —
-  trigger ของ main/logGistdaData อื่นไม่ถูกลบ; trigger Apps Script ทำงาน
-  ใกล้ชั่วโมง ไม่ตรงนาที)
-- Migration ประวัติเดิม (วันละ 2 รอบ): `BackendApiPlanLegacyMigration()` (อ่านอย่างเดียว)
-  แสง inventory + backup metadata; การ migrate จริงใช้
-  `BackendApiInstallAndMigrate({verifiedHistoryOnly:true})` — ติดตั้ง/ตรวจ 2 trigger ใหม่
-  ก่อน แล้วจึง retire เฉพาะ legacy history handlers ที่รู้จัก (main 06/16 + logGistdaData
-  08/20 — ยืนยันจาก live source แล้วว่าเป็นงาน history ล้วน ไม่มีการส่ง LINE ที่ทำงานอยู่)
-  หากไม่ส่ง verifiedHistoryOnly ระบบจะปฏิเสธ (retire ไม่ทำ) และรายงาน
-  cadenceComplete:false — ปล่อยไว้จะได้ 4 batches/วัน ไม่ใช่ 2; creator limitation:
-  trigger ไม่เปิดเผยผู้สร้าง จึงจับคู่ตามชื่อ handler ที่ยืนยันแล้วเท่านั้น
-  งาน/แจ้งเตือนอื่นไม่ถูกแตะ; การลบที่ล้มเหลวแบบ concurrent รายงาน incomplete ไม่ claim สำเร็จ
-- `createDailyTrigger` เดิม (เคยลบ trigger ทั้งโปรเจ็กต์) ถูก guard ใน candidate:
-  ไม่ทำงานเว้นแต่เรียกพร้อม flag และ config ถูกต้อง แล้ว redirect ไป installer ใหม่
-  (2 รอบ/วัน) เท่านั้น
+```sh
+python3 -m http.server 8000
+node --test tests/weather-snapshot.test.cjs
+```
 
-### แท็บ Charts (กราฟฝังใน Google Sheet — สร้างอัตโนมัติ)
-
-- ดูกราฟ: เปิด Spreadsheet → แท็บ **Charts** — กราฟเส้น (smooth) ฝังในชีต
-  PM2.5 (#FF8C00), อุณหภูมิ (#E53935), ความชื้น (#42A5F5) จากข้อมูล
-  `History_Batch` ของพื้นที่ active **ย้อนหลัง 30 วัน** (แกนวันที่ `d MMM`,
-  ค่าที่ขาดหายเป็นช่องว่าง ไม่เติม 0; ไม่แตะแถว/คอลัมน์ History_Batch เด็ดขาด)
-- ระบบสร้างกราฟใหม่เองหลังบันทึกประวัติเช้า/เย็นทุกรอบ (สร้างแท็บครั้งแรก
-  แบบ lazy — เจ้าของไม่ต้อง setup เพิ่ม) และเจ้าของรัน
-  **refreshLedCharts** ใน Editor (dropdown ของไฟล์ BackendApi.js) เพื่อ
-  refresh ด้วยมือได้ทันที — ปลอดภัยแม้ยังไม่มีข้อมูล (จะไม่สร้างกราฟ ไม่พัง)
-- กราฟของระบบมี title ลงท้าย `[อัตโนมัติ]` — refresh จะลบ/สร้างใหม่เฉพาะ
-  กราฟที่มี marker นี้ กราฟที่มนุษย์สร้างเองไม่ถูกแตะ; route อ่านข้อมูล
-  (`?action=data`) ไม่แตะกราฟ/แท็บเลย
-- **ฝน** (`wx_rain_pct`) และ **ระดับน้ำ** (`water_level_m`): ยังไม่มีคอลัมน์
-  ใน History_Batch ปัจจุบัน — กราฟจะปรากฏเองทันทีเมื่อมีคอลัมน์พร้อมข้อมูล
-  จริงที่บันทึก; กราฟน้ำต้องมีอย่างน้อย 1 ค่าตัวเลขจริงในหน้าต่าง 30 วัน
-  (ไม่สร้างชุดข้อมูลปลอม — "น้ำรอข้อมูลจริง" เช่นเดียวกับหน้าจอ LED)
-- หลาย location ที่ enabled พร้อมกัน: ถ้าแถวต่าง location สลับกันระบบจะ
-  ไม่วาดกราฟ (ไม่ปนกัน) และเขียนเหตุผลไว้ในผลลัพธ์ของ refreshLedCharts
-
-
-### ขั้นตอน deploy และ rollback (เมื่ออนุมัติ)
-
-1. Login เจ้าของ: `npx @google/clasp login` (บัญชีเจ้าของโปรเจ็กต์) — credential
-   เก็บเฉพาะ `~/.clasprc.json`; สำรอง source จริงก่อนเสมอ:
-   `npx @google/clasp clone <scriptId>` แล้ว diff กับ `apps-script/` ใน repo
-2. เพิ่มไฟล์ `BackendApi.gs` + แก้ `doGet` เดิมเป็นบรรทัดเดียว
-   `return BackendApi_doGet(e);` (ไม่มี action = UI เดิมทุกประการ)
-3. Deploy: **Manage deployments → Edit → New version** (URL exec เดิมไม่เปลี่ยน)
-4. Rollback: (ก) ย้อน deployment กลับ version ก่อนหน้า ใน Apps Script editor
-   หรือ (ข) revert frontend ตามเอกสาร LED-ROTATION.md — สองทางแยกอิสระ
-
-### Runtime vs public reference (สำคัญ)
-
-`apps-script/Code.gs` ใน repo = สำเนา SANITIZED ของ live @24 "Widget_V1.2"
-(pull 2026-10-17 ผ่าน clasp เก็บที่ /tmp นอก repo): token จริงถูกเปลี่ยนเป็นชื่อ
-Script Property — ที่ runtime ต้องมี: `WAQI_TOKEN` (และ `LINE_TOKEN_*` ถ้าเปิด
-แจ้งเตือนในอนาคต) — ฟังก์ชันอื่นทั้งหมด (รวม main/GISTDA-primary/hotfix
-`gistdaForMain_`/`optionalPM25_`) byte-for-byte ตาม live ยกเว้น 2 patch ที่
-document ไว้ใน header: (1) doGet hook ไป BackendApi_doGet (2) guard
-createDailyTrigger การ deploy จริงสร้างจาก candidate ใน /tmp (live + 2 patch +
-BackendApi.gs) ไม่ใช่ push repo ตรงๆ; ไม่หมุน/เปลี่ยน key ที่ยังทำงานอยู่โดยเงียบ
-
-### การรัน setup/migration ของเจ้าของ (เมื่ออนุมัติ)
-
-- ขั้นตอนรันเจ้าขอย (ครั้งเดียว หลัง deploy @27+): **ชื่อฟังก์ชันแบบเห็นใน dropdown แล้ว**
-  1) เปิด https://script.google.com/home/projects/1H7_0yH9yFDSDKhe66IhhRvyeVgV4rdI8R96stDY0cIbnOfemiCHvlejj/edit
-     ด้วยบัญชี a.richbusinessman@gmail.com (รีเฟรช Editor ถ้าเปิดค้างจากก่อน deploy)
-  2) เลือกไฟล์ **BackendApi.js** (ใน Editor ชื่อไฟล์ลงท้าย .js) → ใน dropdown
-     ฟังก์ชันข้างปุ่ม Debug เลือก **setupLedBackend** → กด **Run**
-     (ฟังก์ชันที่ลงท้าย `_` ถูกซ่อนใน dropdown — นั่นคือสาเหตุที่เลือก
-     BackendApiOwnerInitialize_ ไม่เจอ; setupLedBackend เป็นชื่อหน้ากากที่ guard
-     ความปลอดภัยชุดเดิมทุกประการ)
-  3) ครั้งแรก Google ขอ Authorization → Review permissions → เลือกบัญชี → Allow
-  3.5) ถ้า Run แล้วเจอ "caller is not the trusted owner" — เลือก
-     `ledOwnerDiagnostics` → Run (ขอสิทธิ์ครั้งแรกตามหน้า Review permissions
-     ปกติ) แล้วส่งเฉพาะบรรทัด boolean ที่ได้ให้ทีม
-     ({activeEmailPresent,effectiveEmailPresent,activeEqualsEffective,
-     scheduledContext,trusted}) — ห้ามส่งอีเมล/ค่าอื่น
-  4) Execution log ต้องเห็น: setupLedBackend: {"ok":true,"stage":"done",
-     "cadenceComplete":true,"ownedTriggerCount":2,"legacyRetiredCount":4,...}
-  5) ตรวจซ้ำ: เลือก **verifyLedBackend** → Run (อ่านอย่างเดียว:
-     ownedTriggerCount:2, legacyHistoryTriggers:0, tabs 4 รายการ)
-- วิธีที่ใช้ได้ทันที ( SECURITY ): เปิด Apps Script editor → เลือกฟังก์ชัน
-  `BackendApiOwnerInitialize_` (ขึ้นต้นด้วย underscore = private ต่อ google.script.run)
-  ใน dropdown ข้าง Debug แล้วกด Run — ครั้งเดียวจบ: สร้างแท็บที่ขาด + ตรวจ config +
-  สำรอง trigger inventory + ติดตั้ง 2 trigger `BackendApiHistoryBatch_` + retire
-  legacy history (main/logGistdaData) — ไม่เขียนแถวตัวอย่าง ไม่มี token/trigger id
-  ในผลลัพธ์ หาก dropdown ไม่แสดงฟังก์ชัน _ ให้แจ้งทีมเพื่อเพิ่ม no-arg wrapper
-  ที่มี owner guard เดียวกัน (ห้ามแก้เองโดยลด guard) ตรวจสอบผลทีหลังด้วยการรัน
-  `BackendApiOwnerVerify_` (อ่านอย่างเดียว เช่นเดียวกัน)
-- `clasp run` (scripts.run API): ยังใช้ไม่ได้กับ deployment ปัจจุบัน — manifest
-  เป็น webapp only (ไม่มี executionApi access) และต้องเปิด Apps Script API
-  ใน user settings ก่อน → blocker ที่ต้องตัดสินใจของเจ้าขอยหากจะใช้ทางนี้
-
-### ข้อมูลน้ำ (สถานะวิจัยล่าสุด)
-
-คง DISABLED/unknown: คลัง HII เป็นรายเดือนสิ้นสุด 30 ก.ย. (ไม่ใช่ real-time),
-สถานี 492334/492335 ยังไม่ผ่านการยืนยัน, พิกัดโดยประมาณอาจต่างจากหมุด OSM
-โรงพยาบาล ~131 ม. — ห้ามเลื่อนพิกัด/พื้นที่ PM เพื่อเอาใจแหล่งน้ำ; API_Sources
-เปิดรายการ catalog (docs เท่านั้น) ได้แต่ห้ามเปิดใช้ gate alerts/ระดับที่เดา
-
-### Security model (google.script.run exposure) — 2026-10-17
-
-- ปัญหาเดิม: UI HtmlService สาธารณะเปิดฟังก์ชัน top-level ทุกตัวผ่าน
-  google.script.run (รันในนามผู้ deploy) — flag ยืนยันเป็นแค่ consent ไม่ใช่
-  authentication
-- แก้: ฟังก์ชัน mutating/inventory ทุกตัวลงท้าย `_` (private ต่อ
-  google.script.run ตาม official docs) และ entry หลัก BackendApiOwnerInitialize_
-  บังคับ owner session จริง (Session.getActiveUser email ไม่ว่างเปล่าและเท่ากับ
-  getEffectiveUser); legacy write entries (main/importDataToSpreadsheet/
-  logGistdaData/logPm25ToSheet2/createDailyTrigger) ใส่ guard เดียวกันโดยคง
-  body เดิมไว้เป็น *_ — trigger เดิมของเจ้าขอยยังทำงานต่อ (ยกเว้นช่วง migrate)
-  เพราะ context ของ time-trigger ที่ handler ตรงกันถือว่า trusted
-- สิ่งที่ยังเป็น public โดยตั้งใจ: doGet (route อ่าน + legacy UI) และ
-  getWidgetData (อ่านอย่างเดียว) เท่านั้น; ไม่มี public mutator/Inventory
-- consent: การเพิ่ม Session/getScriptTrigger อาจทำให้ Google ขอ authorize
-  scope เพิ่มครั้งเดียวตอนเจ้าขอยกด Run — อนุมัติได้ตามปกติ
-- token เดิมที่เคยตกไปใน repo สาธารณะเป็นปัญหาเชิงประวัติศาสตร์: ไม่เปลี่ยน
-  visibility ของ repo และไม่หมุน key ที่ยังทำงานอยู่โดยไม่ได้รับอนุญาต —
-  mirror สาธารณะ (redacted) กับ runtime candidate (ค่าจริง) แยกกันเสมอ
+เปิด `http://localhost:8000/` การรัน local ยังต้องเข้าถึง backend ที่ตั้งค่าไว้หากต้องการข้อมูลจริง ก่อนแก้ระบบจริงให้ตรวจ [AGENTS.md](AGENTS.md) และ [SESSION-HANDOFF.md](SESSION-HANDOFF.md) รวมถึงสถานะ deployment และ trigger ล่าสุด ห้ามนำ secrets ลง repo เอกสารเทคนิคเพิ่มเติม: [LED rotation](LED-ROTATION.md) · [Water LED](WATER-LED.md) · [README เดิม — เก็บไว้เป็นประวัติ ไม่ใช่สถานะปัจจุบัน](docs/archive/README-legacy-20261031.md)
