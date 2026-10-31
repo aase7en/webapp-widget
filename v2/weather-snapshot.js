@@ -26,7 +26,8 @@ function parse(raw,now){
  if(!Number.isFinite(observed)||observed>now+FUTURE||now-observed>FRESH||Math.abs(observed-Date.parse(w.observedAt))>15*60000)return d;
  d.feelsC=number(cur.apparent_temperature,-50,80);
  d.icon=condition(w.weatherCode,cur.is_day,cur.wind_speed_10m);
- const hourIndex=Array.isArray(hourly.time)?hourly.time.indexOf(currentTime):-1;
+ const currentHour=currentTime?currentTime.slice(0,13)+':00':null;
+ const hourIndex=Array.isArray(hourly.time)?hourly.time.indexOf(currentHour):-1;
  d.rainPct=hourIndex>=0&&(f.hourly_units||{}).precipitation_probability==='%'?number((hourly.precipitation_probability||[])[hourIndex],0,100):null;
  let today=new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Bangkok',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date(now));
  let dates=Array.isArray(daily.time)?daily.time:[], start=dates.indexOf(today);

@@ -11,3 +11,5 @@ test('day/night conditions do not invent icons for unknown codes',()=>{assert.eq
 
 test('different weather and forecast observations are not mixed',()=>{let s=snapshot();s.channels.weather.data.observedAt='2026-10-31T04:00:00Z';let d=parse(s,now);assert.equal(d.temperatureC,32);assert.equal(d.rainPct,null);assert.equal(d.days.length,0)});
 test('wrong coordinates and missing units fail closed',()=>{let s=snapshot();s.location.lon=99;assert.equal(parse(s,now).temperatureC,null);s=snapshot();s.channels.forecast.data.hourly_units={};assert.equal(parse(s,now).rainPct,null);s.channels.forecast.data.daily_units={};assert.equal(parse(s,now).days.length,0)});
+
+test('quarter-hour model time uses the containing hour probability',()=>{let s=snapshot();s.channels.forecast.data.current.time='2026-10-31T12:15';s.channels.weather.data.observedAt='2026-10-31T05:15:00Z';assert.equal(parse(s,now).rainPct,40)});
