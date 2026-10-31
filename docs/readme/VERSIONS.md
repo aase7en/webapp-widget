@@ -4,10 +4,10 @@
 
 | ส่วน | ไฟล์ | cache version ใน URL |
 | --- | --- | --- |
-| ตัวสลับหน้าที่ `index.html` โหลด | `v2/index.html` | `20261031-icon-align-2` |
+| ตัวสลับหน้าที่ `index.html` โหลด | `v2/index.html` | `20261031-icon-fit-3` |
 | PM2.5 | `v2/pm25-live.html`, `v2/pm25-live.js` และ `v2/pm25-tier.js` | `20261031-pm25-24h-1` (สีอิงค่าเฉลี่ย 24 ชั่วโมง, 2026-10-31) |
-| Weather | `v2/weather-luxury.html` | `20261031-icon-align-2` (halo + ยกกลุ่มเมฆล้วน 2 พิกเซลบน LED จริง, 2026-10-31) |
-| Weather script | `v2/weather-luxury.js` | `20261031-icon-align-2` |
+| Weather | `v2/weather-luxury.html` | `20261031-icon-fit-3` (halo ตามรูปทรงและปรับภาพฝนให้พอดีกรอบ, 2026-10-31) |
+| Weather script | `v2/weather-luxury.js` | `20261031-icon-fit-3` |
 | Water | `v2/water-luxury-live.html`, CSS และ script | `20261030-water-1` |
 | ตัวอ่านข้อมูล Sheet | `v2/api-client.js` | `20261031-pm25-24h-1` (ส่ง avg24h + band ต่อ, 2026-10-31) |
 | ตัวอ่าน legacy v1 ในหน้า v2 | `led-rotation.js` | `20261031-pm25-compat-1` (สีใช้ avg24h เท่านั้น; อ่าน bandBasis/avg24hBand) |
