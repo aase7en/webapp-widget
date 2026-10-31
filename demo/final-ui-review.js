@@ -60,7 +60,7 @@
 
   async function buildWeatherPreview() {
     if(weatherTemplate) return weatherTemplate;
-    const htmlUrl=new URL('../v2/weather-luxury.html',location.href), response=await fetch(htmlUrl);
+    const htmlUrl=new URL('../v2/weather-luxury.html?v=20261031-final-ui-4',location.href), response=await fetch(htmlUrl);
     if(!response.ok)throw Error('weather document unavailable');
     const html=await response.text();
     const tag=html.match(/<script\s+src="(weather-luxury\.js(?:\?[^"]*)?)"><\/script>/);
@@ -94,7 +94,7 @@
       }
       loading.remove();sendFixture();
     });
-    if(page==='weather')frame.srcdoc=html;else frame.src='../v2/pm25-live.html';
+    if(page==='weather')frame.srcdoc=html;else frame.src='../v2/pm25-live.html?v=20261031-pm25-final-2';
     stage.append(frame);resize();
   }
   function syncUI() {
@@ -102,7 +102,7 @@
     document.querySelectorAll('[data-page]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.page===page)));
     $('#preview-title').textContent=(page==='pm25'?'PM2.5':'Weather')+' · '+item.label+(page==='weather'?' ('+item.detail+')':'');
     $('#choose-title').textContent=page==='pm25'?'เลือกระดับค่าฝุ่น':'เลือกสภาพอากาศ';
-    $('#hint').textContent=page==='pm25'?'สีอิงค่าเฉลี่ย 24 ชั่วโมง ส่วนตัวเลขใหญ่เป็นค่ารายชั่วโมงจำลอง · เมื่อขยายภาพ เลื่อนซ้าย–ขวาได้':'แตะสถานะเพื่อเปลี่ยนตัวอย่างทันที · เมื่อขยายภาพ เลื่อนซ้าย–ขวาได้';
+    $('#hint').textContent=page==='pm25'?'สีป้ายและภาพอิงค่าเฉลี่ย 24 ชั่วโมง ส่วนสีตัวเลขและลูกศรอิงค่ารายชั่วโมงจำลอง · เมื่อขยายภาพ เลื่อนซ้าย–ขวาได้':'แตะสถานะเพื่อเปลี่ยนตัวอย่างทันที · เมื่อขยายภาพ เลื่อนซ้าย–ขวาได้';
     $('#count').textContent=(items.indexOf(item)+1)+' / '+items.length;
     choices.replaceChildren(...items.map(x=>{const b=document.createElement('button'),small=document.createElement('small');b.type='button';b.className='choice';b.dataset.state=x.id;b.style.setProperty('--swatch',x.color);b.setAttribute('aria-pressed',String(x.id===item.id));b.append(document.createTextNode(x.label));small.textContent=x.detail;b.append(small);return b;}));
     const url=new URL(location.href);url.searchParams.set('page',page);url.searchParams.set('state',item.id);historyReplace(url);

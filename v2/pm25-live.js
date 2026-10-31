@@ -1,7 +1,6 @@
 /* Owner-approved PM2.5 display. All values are supplied by the verified parent.
- * 2026 option A: the big number is the latest HOURLY reading; the tier color,
- * badge and scale marker are banded from the GISTDA 24-hour average
- * (pm25Avg24hr) via PM25Tier.classify (1-decimal half-up BEFORE banding).
+ * 2026 option A: the big number is the latest HOURLY reading; the badge and scene are banded from the GISTDA 24-hour average
+ * (pm25Avg24hr); number color and scale marker follow the hourly reading.
  * A missing/invalid average never becomes zero: the tier renders grey
  * unavailable and the secondary readout hides, while the hourly number stays. */
 (()=>{
@@ -34,7 +33,7 @@ function setNumber(value){
 }
 function render(pm,history){
  const valid=pm&&pm.status==='latest'&&typeof pm.value==='number'&&Number.isFinite(pm.value)&&pm.value>=0&&pm.value<=1000;
- if(!valid){board.classList.add('unavailable');board.dataset.tier='';$('.number').textContent='—';$('.badge').textContent='รอข้อมูล';$('.advice').textContent='ไม่พบข้อมูลล่าสุด';$('.avg-note').hidden=true;$('.scale-arrow').hidden=true;video.pause();drawHistory(history);return}
+ if(!valid){board.classList.add('unavailable');board.dataset.tier='';for(const key of ['light','dark','glow'])board.style.setProperty('--number-'+key,GREY[key]);$('.number').textContent='—';$('.badge').textContent='รอข้อมูล';$('.advice').textContent='ไม่พบข้อมูลล่าสุด';$('.avg-note').hidden=true;$('.scale-arrow').hidden=true;video.pause();drawHistory(history);return}
 
  const value=Math.round(pm.value*10)/10;setNumber(value); /* big number: hourly, unchanged */
  /* Tier from the 24h average. observedAt is the source-observation time; the
@@ -45,14 +44,15 @@ function render(pm,history){
  const t=cls&&cls.isHealthTier?tiers.find(x=>x.id===cls.key):null;
  if(!t){ /* avg absent/unavailable/historical/conflicted: grey tier, hourly number stays, never zero-filled */
   board.classList.add('unavailable');board.dataset.tier='';
-  for(const key of ['light','dark','shade','glow'])board.style.setProperty('--'+key,GREY[key]);
+  for(const key of ['light','dark','shade','glow'])board.style.setProperty('--'+key,GREY[key]);for(const key of ['light','dark','glow'])board.style.setProperty('--number-'+key,GREY[key]);
   $('.badge').textContent='รอข้อมูล';$('.advice').textContent='รอค่าเฉลี่ย 24 ชม.';$('.avg-note').hidden=true;$('.scale-arrow').hidden=true;video.pause();drawHistory(history);return;
  }
- const idx=tiers.indexOf(t),band=BANDS[idx];
+ const hourly=PM25Tier.classify({value,observedAt:pm.observedAt,status:pm.status,unit:pm.unit||'µg/m³'},{now:Date.now()});
+ const ht=hourly.isHealthTier?tiers.find(x=>x.id===hourly.key):null;
  board.classList.remove('unavailable');board.dataset.tier=t.id;for(const key of ['light','dark','shade','glow'])board.style.setProperty('--'+key,t[key]);
  $('.badge').textContent=t.status;$('.advice').textContent=t.advice;
  $('.avg-note').hidden=false;$('.avg-note').textContent='เฉลี่ย 24 ชม. '+cls.displayValue.toFixed(1);
- const frac=Math.max(.025,Math.min(.975,(cls.displayValue-band[0])/(band[1]-band[0])));$('.scale-arrow').style.left=20*(idx+frac)+'%';$('.scale-arrow').hidden=false;
+ if(ht){const idx=tiers.indexOf(ht),band=BANDS[idx];for(const key of ['light','dark','glow'])board.style.setProperty('--number-'+key,ht[key]);const frac=Math.max(.025,Math.min(.975,(hourly.displayValue-band[0])/(band[1]-band[0])));$('.scale-arrow').style.left=20*(idx+frac)+'%';$('.scale-arrow').hidden=false;}else{$('.scale-arrow').hidden=true;for(const key of ['light','dark','glow'])board.style.setProperty('--number-'+key,GREY[key]);}
  if(selected!==t.id){selected=t.id;poster.src='pm25-media/'+selected+'.jpg';video.classList.remove('ready');video.dataset.fallback='0';if(!matchMedia('(prefers-reduced-motion: reduce)').matches){video.src='pm25-media/'+selected+'-optimized.mp4';video.load()}}
  if(!matchMedia('(prefers-reduced-motion: reduce)').matches)video.play().catch(()=>{});drawHistory(history);
 }

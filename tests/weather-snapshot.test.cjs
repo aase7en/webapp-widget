@@ -16,3 +16,5 @@ test('quarter-hour model time uses the containing hour probability',()=>{let s=s
 
 test('probability follows the current Bangkok hour, not an older model observation',()=>{let s=snapshot();s.channels.weather.data.observedAt='2026-10-31T04:00:00Z';s.channels.forecast.data.current.time='2026-10-31T11:00';s.channels.forecast.data.hourly.time=['2026-10-31T11:00','2026-10-31T12:00'];s.channels.forecast.data.hourly.precipitation_probability=[5,90];assert.equal(parse(s,now).rainPct,90)});
 test('missing current-hour forecast is unavailable instead of an older probability',()=>{let s=snapshot();s.channels.forecast.data.hourly.time=['2026-10-31T11:00'];assert.equal(parse(s,now).rainPct,null)});
+
+test('clear day uses sun/cloud and clear night uses moon/cloud',()=>{assert.equal(condition(1,1,3),'partly-cloudy');assert.equal(condition(1,0,3),'night')});
