@@ -6,7 +6,7 @@ var HourlySnapshot = (function () {
   'use strict';
   var TAB = 'Widget_Hourly_Snapshots', HEADER = ['record_type','location_id','location_fingerprint','channel','observed_at','saved_at','payload_json'];
   var TYPE = 'widget_snapshot_v1', KEEP_MS = 90 * 86400000, FORECAST_KEEP_MS = 2 * 86400000, FUTURE_MS = 120000;
-  var FORECAST_URL = 'https://api.open-meteo.com/v1/forecast', ATTEMPT_KEY = 'widget_snapshot_attempt_ms_v1', WEATHER_DIAGNOSTIC_KEY = 'widget_weather_diagnostic_v1';
+  var FORECAST_URL = 'https://api.open-meteo.com/v1/forecast', WEATHER_FEED_URL = 'https://raw.githubusercontent.com/aase7en/webapp-widget/weather-data/weather.json', ATTEMPT_KEY = 'widget_snapshot_attempt_ms_v1', WEATHER_DIAGNOSTIC_KEY = 'widget_weather_diagnostic_v1';
   /* Only a timestamp and HTTP status are retained: never provider bodies,
      coordinates, credentials, or exception text. Diagnostics do not retry. */
   function saveWeatherDiagnostic(now, ok, error) {
@@ -46,7 +46,24 @@ var HourlySnapshot = (function () {
     }
     return removed;
   }
+  function validForecast(f) {
+    return !!(f && f.timezone==='Asia/Bangkok' && f.current && f.hourly && Array.isArray(f.hourly.time) && f.daily && Array.isArray(f.daily.time));
+  }
   function forecast(loc) {
+    /* A public, hourly GitHub transport cache avoids the shared-IP limits of
+       Apps Script. Sheet snapshots remain canonical; clients never call it.
+       If the feed is absent or stale, make one normal direct attempt. */
+    try {
+      var cachedResponse=UrlFetchApp.fetch(WEATHER_FEED_URL,{muteHttpExceptions:true,followRedirects:true});
+      if(cachedResponse.getResponseCode()===200){
+        var feed=JSON.parse(cachedResponse.getContentText()),received=feed && Date.parse(feed.fetchedAt),f=feed && feed.data,now=Date.now();
+        var observed=f && f.current && typeof f.current.time==='string' && /^\d{4}-\d\d-\d\dT\d\d:\d\d$/.test(f.current.time) ? Date.parse(f.current.time+'+07:00') : NaN;
+        if(feed && feed.schema===1 && feed.requestedLocation && feed.requestedLocation.lat===loc.lat && feed.requestedLocation.lon===loc.lon && isFinite(received) && received<=now+FUTURE_MS && now-received<=90*60000 && isFinite(observed) && observed<=now+FUTURE_MS && now-observed<=3*3600000 && validForecast(f)){
+          f.widgetTransport={source:'Open-Meteo',via:'GitHub hourly transport cache',fetchedAt:feed.fetchedAt};
+          return f;
+        }
+      }
+    } catch (_) { /* direct path remains available */ }
     var url=FORECAST_URL+'?latitude='+encodeURIComponent(String(loc.lat))+'&longitude='+encodeURIComponent(String(loc.lon))+
       '&current=temperature_2m,relative_humidity_2m,weather_code,wind_speed_10m,is_day,apparent_temperature,uv_index,wind_gusts_10m'+
       '&hourly=temperature_2m,relative_humidity_2m,apparent_temperature,precipitation_probability,weather_code,uv_index,wind_speed_10m,wind_gusts_10m'+
@@ -54,7 +71,7 @@ var HourlySnapshot = (function () {
     var response=UrlFetchApp.fetch(url,{muteHttpExceptions:true,followRedirects:true});
     if (response.getResponseCode()!==200) { var failure=Error('forecast unavailable'); failure.httpStatus=response.getResponseCode(); throw failure; }
     var f=JSON.parse(response.getContentText());
-    if (!f || f.timezone!=='Asia/Bangkok' || !f.current || !f.hourly || !Array.isArray(f.hourly.time) || !f.daily || !Array.isArray(f.daily.time)) throw Error('invalid forecast');
+    if (!validForecast(f)) throw Error('invalid forecast');
     return f;
   }
   function authorized(event) {

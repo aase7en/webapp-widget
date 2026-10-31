@@ -1,0 +1,46 @@
+name: Uthai weather transport cache
+on:
+  schedule:
+    - cron: '8 * * * *'
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: uthai-weather-transport-cache
+  cancel-in-progress: false
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Download prior cache for the one-attempt-per-hour gate
+        shell: bash
+        run: |
+          curl -fsSL --max-time 15 "https://raw.githubusercontent.com/aase7en/webapp-widget/weather-data/weather.json?run=$GITHUB_RUN_ID" -o "$RUNNER_TEMP/weather-prior.json" || true
+      - name: Fetch validated forecast once for this hour
+        shell: bash
+        run: node scripts/build-weather-feed.mjs "$RUNNER_TEMP/weather.json" "$RUNNER_TEMP/weather-prior.json"
+      - name: Publish only validated data to the dedicated transport branch
+        shell: bash
+        run: |
+          if [ ! -f "$RUNNER_TEMP/weather.json" ]; then
+            echo 'Already updated this hour; no new request or commit.'
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          if git ls-remote --exit-code --heads origin weather-data >/dev/null; then
+            git fetch --no-tags origin weather-data
+            git switch -c weather-data FETCH_HEAD
+          else
+            git switch -c weather-data
+          fi
+          cp "$RUNNER_TEMP/weather.json" weather.json
+          git add -- weather.json
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m 'data(weather): validated hourly transport [skip ci]'
+          git push origin HEAD:refs/heads/weather-data

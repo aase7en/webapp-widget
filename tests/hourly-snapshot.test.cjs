@@ -12,7 +12,7 @@ function setup(rows=[H],opts={}) {
  const ContentService={MimeType:{TEXT:'text',JSON:'json',JAVASCRIPT:'js'},createTextOutput:text=>({text,setMimeType(type){this.type=type;return this}})};
  const ctx={Date:MockDate,JSON,Math,Array,Object,String,Number,isFinite,encodeURIComponent,Error,ContentService,
   BackendApi:{loadConfig:()=>cfg,locationFingerprint:()=> 'abc123',isOwnerSession:()=>!!opts.owner,getCachedPm:()=>{calls.fetches++;if(opts.pmThrow)throw Error('PM offline');return {status:'ok',value:22,observedAt:new Date(now).toISOString()}}},
-  PropertiesService:{getScriptProperties:()=>({getProperty:k=>properties.has(k)?properties.get(k):null,setProperty:(k,v)=>properties.set(k,v)})},CacheService:{getScriptCache:()=>({get:k=>cache.get(k)||null,put:(k,v)=>cache.set(k,v)})},SpreadsheetApp:{openById:()=>book},ScriptApp:{getProjectTriggers:()=>[]},LockService:{getScriptLock:()=>({tryLock:()=>true,releaseLock(){}})},Utilities:{formatDate:()=> '2026-10-30'},UrlFetchApp:{fetch(url){calls.fetches++;if(opts.forecastHttpStatus&&String(url).includes('api.open-meteo.com'))return {getResponseCode:()=>opts.forecastHttpStatus,getContentText:()=>'{"secret":"must not escape"}'};if(opts.forecast&&String(url).includes('api.open-meteo.com'))return {getResponseCode:()=>200,getContentText:()=>JSON.stringify(opts.forecast)};throw Error('offline')}}};
+  PropertiesService:{getScriptProperties:()=>({getProperty:k=>properties.has(k)?properties.get(k):null,setProperty:(k,v)=>properties.set(k,v)})},CacheService:{getScriptCache:()=>({get:k=>cache.get(k)||null,put:(k,v)=>cache.set(k,v)})},SpreadsheetApp:{openById:()=>book},ScriptApp:{getProjectTriggers:()=>[]},LockService:{getScriptLock:()=>({tryLock:()=>true,releaseLock(){}})},Utilities:{formatDate:()=> '2026-10-30'},UrlFetchApp:{fetch(url){calls.fetches++;if(opts.cacheFeed&&String(url).includes('raw.githubusercontent.com'))return {getResponseCode:()=>200,getContentText:()=>JSON.stringify(opts.cacheFeed)};if(opts.forecastHttpStatus&&String(url).includes('api.open-meteo.com'))return {getResponseCode:()=>opts.forecastHttpStatus,getContentText:()=>'{"secret":"must not escape"}'};if(opts.forecast&&String(url).includes('api.open-meteo.com'))return {getResponseCode:()=>200,getContentText:()=>JSON.stringify(opts.forecast)};throw Error('offline')}}};
  vm.runInNewContext(source,ctx);return{api:ctx.HourlySnapshot,data,calls};
 }
 const row=(channel,time,payload={value:22})=>['widget_snapshot_v1','uthai','abc123',channel,time,time,JSON.stringify(payload)];
@@ -20,7 +20,7 @@ test('unauthorized caller cannot query or write any provider',()=>{const h=setup
 test('snapshot read is read-only and rejects stale or wrong-location observations',()=>{const fresh=new Date(now-3600000).toISOString(),old=new Date(now-4*3600000).toISOString(),wrong=row('weather',fresh);wrong[1]='other';const h=setup([H,row('pm25',old),row('pm25',fresh),wrong]);const result=h.api.read(now);assert.equal(result.channels.pm25.data.value,22);assert.equal(result.channels.weather,undefined);assert.equal(h.calls.fetches,0);assert.equal(h.calls.appends,0)});
 test('pruning removes only valid expired rows and preserves unknown or malformed data',()=>{const old=new Date(now-91*86400000).toISOString(),fresh=new Date(now-3600000).toISOString(),unknown=row('pm25',old);unknown[0]='unknown';const broken=row('weather',old);broken[6]='bad';const h=setup([H,row('pm25',old),unknown,broken,row('pm25',fresh)]);h.api.prune({deleteRows:(i,n)=>{h.calls.deletions.push([i,n]);h.data.splice(i-1,n)}},h.data.map(r=>r.slice()),now);assert.equal(h.data.length,4);assert.equal(h.data[1][0],'unknown');assert.equal(h.data[2][6],'bad');assert.equal(h.calls.deletions.length,1)});
 
-test('failed weather forecast does not trigger repeated provider calls within an hour',()=>{const h=setup([H],{owner:true});const first=h.api.collect({});assert.equal(first.written,1);assert.equal(h.calls.fetches,2);const second=h.api.collect({});assert.equal(second.reason,'attempt_throttled');assert.equal(h.calls.fetches,2);assert.equal(h.calls.appends,1)});
+test('failed weather forecast does not trigger repeated provider calls within an hour',()=>{const h=setup([H],{owner:true});const first=h.api.collect({});assert.equal(first.written,1);assert.equal(h.calls.fetches,3);const second=h.api.collect({});assert.equal(second.reason,'attempt_throttled');assert.equal(h.calls.fetches,3);assert.equal(h.calls.appends,1)});
 
 test('weather HTTP failures expose only safe status metadata without retrying',()=>{
  const h=setup([H],{owner:true,forecastHttpStatus:429});
@@ -28,7 +28,7 @@ test('weather HTTP failures expose only safe status metadata without retrying',(
  const d=h.api.read(now).weatherDiagnostic;
  assert.equal(d.status,'failed');assert.equal(d.httpStatus,429);assert.equal(d.attemptedAt,new Date(now).toISOString());
  assert.doesNotMatch(JSON.stringify(d),/secret|must not escape/);
- assert.equal(h.api.collect({}).reason,'attempt_throttled');assert.equal(h.calls.fetches,2);
+ assert.equal(h.api.collect({}).reason,'attempt_throttled');assert.equal(h.calls.fetches,3);
 });
 
 test('weather transport failure is distinguishable without leaking exception text',()=>{
@@ -43,6 +43,20 @@ test('forecast snapshots expire after two days while weather history retains 90 
 
 test('cached data cannot remain current after its source time expires',()=>{const stamp=new Date(now-2*3600000).toISOString(),h=setup([H,row('pm25',stamp)]);assert.equal(h.api.read(now).status,'ok');assert.equal(h.api.read(now+2*3600000).status,'unavailable');assert.equal(h.calls.fetches,0)});
 
-test('one weather response supplies both current conditions and forecast',()=>{const forecast={timezone:'Asia/Bangkok',current_units:{temperature_2m:'°C',relative_humidity_2m:'%'},current:{time:'2026-10-30T17:00',temperature_2m:30,relative_humidity_2m:70,weather_code:3},hourly:{time:['2026-10-30T18:00']},daily:{time:['2026-10-30'],temperature_2m_max:[33],temperature_2m_min:[25],precipitation_probability_max:[80]}};const h=setup([H],{owner:true,forecast});const result=h.api.collect({});assert.equal(result.written,3);assert.equal(h.data.find(r=>r[3]==='weather')[6].includes('temperatureC'),true);assert.equal(h.calls.fetches,3)});
+test('one weather response supplies both current conditions and forecast',()=>{const forecast={timezone:'Asia/Bangkok',current_units:{temperature_2m:'°C',relative_humidity_2m:'%'},current:{time:'2026-10-30T17:00',temperature_2m:30,relative_humidity_2m:70,weather_code:3},hourly:{time:['2026-10-30T18:00']},daily:{time:['2026-10-30'],temperature_2m_max:[33],temperature_2m_min:[25],precipitation_probability_max:[80]}};const h=setup([H],{owner:true,forecast});const result=h.api.collect({});assert.equal(result.written,3);assert.equal(h.data.find(r=>r[3]==='weather')[6].includes('temperatureC'),true);assert.equal(h.calls.fetches,4)});
+
+test('fresh location-bound transport feed supplies weather without a direct forecast request',()=>{
+ const f={timezone:'Asia/Bangkok',current_units:{temperature_2m:'°C',relative_humidity_2m:'%'},current:{time:'2026-10-30T17:00',temperature_2m:30,relative_humidity_2m:70,weather_code:3},hourly:{time:[]},daily:{time:['2026-10-30']}};
+ const cacheFeed={schema:1,requestedLocation:{lat:14.36147,lon:100.64424},fetchedAt:new Date(now-60000).toISOString(),data:f};
+ const h=setup([H],{owner:true,cacheFeed});assert.equal(h.api.collect({}).written,3);assert.equal(h.calls.fetches,3);
+ assert.match(h.data.find(r=>r[3]==='forecast')[6],/GitHub hourly transport cache/);
+});
+
+test('wrong-location or stale transport feed is rejected and direct forecast remains available',()=>{
+ const f={timezone:'Asia/Bangkok',current_units:{temperature_2m:'°C',relative_humidity_2m:'%'},current:{time:'2026-10-30T17:00',temperature_2m:30,relative_humidity_2m:70,weather_code:3},hourly:{time:[]},daily:{time:['2026-10-30']}};
+ for(const cacheFeed of [{schema:1,requestedLocation:{lat:0,lon:0},fetchedAt:new Date(now).toISOString(),data:f},{schema:1,requestedLocation:{lat:14.36147,lon:100.64424},fetchedAt:new Date(now-91*60000).toISOString(),data:f}]){
+  const h=setup([H],{owner:true,cacheFeed,forecast:f});assert.equal(h.api.collect({}).written,3);assert.equal(h.calls.fetches,4);assert.doesNotMatch(h.data.find(r=>r[3]==='forecast')[6],/GitHub hourly transport cache/);
+ }
+});
 
 test('PM fetch exception does not suppress weather collection',()=>{const f={timezone:'Asia/Bangkok',current_units:{temperature_2m:'°C',relative_humidity_2m:'%'},current:{time:'2026-10-30T17:00',temperature_2m:30,relative_humidity_2m:70,weather_code:3},hourly:{time:[]},daily:{time:['2026-10-30']}};const h=setup([H],{owner:true,forecast:f,pmThrow:true});assert.equal(h.api.collect({}).written,2);assert.ok(h.data.some(r=>r[3]==='weather'));assert.ok(h.data.some(r=>r[3]==='forecast'))});
