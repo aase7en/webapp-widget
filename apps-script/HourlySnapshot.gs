@@ -6,7 +6,21 @@ var HourlySnapshot = (function () {
   'use strict';
   var TAB = 'Widget_Hourly_Snapshots', HEADER = ['record_type','location_id','location_fingerprint','channel','observed_at','saved_at','payload_json'];
   var TYPE = 'widget_snapshot_v1', KEEP_MS = 90 * 86400000, FORECAST_KEEP_MS = 2 * 86400000, FUTURE_MS = 120000;
-  var FORECAST_URL = 'https://api.open-meteo.com/v1/forecast', ATTEMPT_KEY = 'widget_snapshot_attempt_ms_v1';
+  var FORECAST_URL = 'https://api.open-meteo.com/v1/forecast', ATTEMPT_KEY = 'widget_snapshot_attempt_ms_v1', WEATHER_DIAGNOSTIC_KEY = 'widget_weather_diagnostic_v1';
+  /* Only a timestamp and HTTP status are retained: never provider bodies,
+     coordinates, credentials, or exception text. Diagnostics do not retry. */
+  function saveWeatherDiagnostic(now, ok, error) {
+    var code=error && error.httpStatus;
+    var value={attemptedAt:new Date(now).toISOString(),status:ok?'ok':'failed',httpStatus:typeof code==='number' && code>=100 && code<=599 ? code : null};
+    try { PropertiesService.getScriptProperties().setProperty(WEATHER_DIAGNOSTIC_KEY,JSON.stringify(value)); } catch (_) { /* diagnostic must not affect collection */ }
+  }
+  function readWeatherDiagnostic(now) {
+    try {
+      var raw=PropertiesService.getScriptProperties().getProperty(WEATHER_DIAGNOSTIC_KEY), d=raw && JSON.parse(raw), t=d && Date.parse(d.attemptedAt);
+      if(!d || !isFinite(t) || t>now+FUTURE_MS || ['ok','failed'].indexOf(d.status)<0 || !(d.httpStatus===null || (Number.isInteger(d.httpStatus) && d.httpStatus>=100 && d.httpStatus<=599)))return null;
+      return {attemptedAt:d.attemptedAt,status:d.status,httpStatus:d.httpStatus};
+    } catch (_) { return null; }
+  }
   function validRow(r) {
     if (!r || r.length !== HEADER.length || r[0] !== TYPE || r[1] !== 'uthai' || !/^[a-z0-9]+$/.test(String(r[2])) || ['pm25','weather','forecast'].indexOf(r[3]) < 0) return false;
     var observed = Date.parse(String(r[4])), saved = Date.parse(String(r[5]));
@@ -38,7 +52,7 @@ var HourlySnapshot = (function () {
       '&hourly=temperature_2m,relative_humidity_2m,apparent_temperature,precipitation_probability,weather_code,uv_index,wind_speed_10m,wind_gusts_10m'+
       '&daily=sunrise,sunset,temperature_2m_max,temperature_2m_min,uv_index_max,precipitation_probability_max,weather_code&forecast_days=7&timezone=Asia%2FBangkok';
     var response=UrlFetchApp.fetch(url,{muteHttpExceptions:true,followRedirects:true});
-    if (response.getResponseCode()!==200) throw Error('forecast unavailable');
+    if (response.getResponseCode()!==200) { var failure=Error('forecast unavailable'); failure.httpStatus=response.getResponseCode(); throw failure; }
     var f=JSON.parse(response.getContentText());
     if (!f || f.timezone!=='Asia/Bangkok' || !f.current || !f.hourly || !Array.isArray(f.hourly.time) || !f.daily || !Array.isArray(f.daily.time)) throw Error('invalid forecast');
     return f;
@@ -64,7 +78,8 @@ var HourlySnapshot = (function () {
     } finally { gate.releaseLock(); }
     var pm=null, f=null;
     try { pm=BackendApi.getCachedPm(cfg,now); } catch (_) { /* weather remains independent */ }
-    try { f=forecast(cfg.active); } catch (_) { /* other channels remain independent */ }
+    try { f=forecast(cfg.active); saveWeatherDiagnostic(now,true,null); }
+    catch (e) { saveWeatherDiagnostic(now,false,e); /* other channels remain independent */ }
     if(f) try {
       var floodUrl='https://flood-api.open-meteo.com/v1/flood?latitude='+encodeURIComponent(String(cfg.active.lat))+'&longitude='+encodeURIComponent(String(cfg.active.lon))+'&daily=river_discharge&forecast_days=3&timezone=Asia%2FBangkok';
       var floodResponse=UrlFetchApp.fetch(floodUrl,{muteHttpExceptions:true,followRedirects:true});
@@ -108,6 +123,7 @@ var HourlySnapshot = (function () {
         cached.status=Object.keys(cached.channels).length?'ok':'unavailable';return cached;
       }
     } catch (_) { cache=null; }
+    var diagnostic=readWeatherDiagnostic(now); if(diagnostic)out.weatherDiagnostic=diagnostic;
     var sh=openSheet(false); if (!sh) return out;
     var count=sh.getLastRow(), start=Math.max(2,count-24), rows=count>=2?sh.getRange(start,1,count-start+1,HEADER.length).getValues():[];
     for (var i=rows.length-1;i>=0;i--) {
