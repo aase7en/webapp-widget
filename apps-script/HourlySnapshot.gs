@@ -59,7 +59,8 @@ var HourlySnapshot = (function () {
       if (last!==null && Math.floor(now/3600000)===Math.floor(last/3600000)) return {written:0,reason:'attempt_throttled'};
       props.setProperty(ATTEMPT_KEY,String(now));
     } finally { gate.releaseLock(); }
-    var pm=BackendApi.getCachedPm(cfg,now), f=null;
+    var pm=null, f=null;
+    try { pm=BackendApi.getCachedPm(cfg,now); } catch (_) { /* weather remains independent */ }
     try { f=forecast(cfg.active); } catch (_) { /* other channels remain independent */ }
     if(f) try {
       var floodUrl='https://flood-api.open-meteo.com/v1/flood?latitude='+encodeURIComponent(String(cfg.active.lat))+'&longitude='+encodeURIComponent(String(cfg.active.lon))+'&daily=river_discharge&forecast_days=3&timezone=Asia%2FBangkok';

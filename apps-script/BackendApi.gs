@@ -1586,8 +1586,10 @@ function ledOwnerDiagnostics() {
 }
 
 function BackendApiPm25Hourly_(event) {
-  var result=BackendApi.hourlyHistory(event);
-  try { BackendApiSnapshotHourly_(event); } catch (e) { Logger.log('Snapshot collector failed: '+String(e).slice(0,160)); }
+  var result;
+  try { result=BackendApi.hourlyHistory(event); }
+  catch (e) { Logger.log('PM hourly history failed'); result={status:'unavailable'}; }
+  try { BackendApiSnapshotHourly_(event); } catch (e) { Logger.log('Snapshot collector failed'); }
   return result;
 }
 function BackendApiInstallPm25Hourly_() { return BackendApi.installHourlyTrigger(); }

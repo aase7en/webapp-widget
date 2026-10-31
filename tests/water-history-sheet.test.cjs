@@ -134,5 +134,15 @@ test('only scheduled HII API is queried and loss of API cannot switch to shadow 
 
 test('hourly collector shares the one-hour provider gate with the legacy collector',()=>{const h=harness();h.answers[PRIMARY]={data:data()};assert.equal(h.env.WaterHistory.syncHourly().stored,2);assert.equal(h.env.WaterHistory.sync().stored,0);assert.equal(h.calls(),1)});
 
-test('hourly cleanup removes only expired scheduled water readings and preserves backfill',()=>{const h=harness();const old=['old','2026-01-01','hourly','uthai','HDA004',471583,'name',2.7,'2026-01-01 17:00','','HISTORICAL','ThaiWater/HII',PRIMARY,3.03,.227,'MSL','reference',''];const back=old.slice();back[10]='VERIFIED_BACKFILL';h.values.push(old,back);h.answers[PRIMARY]={data:data()};h.env.WaterHistory.syncHourly();assert.equal(h.values.filter(r=>r[8]==='2026-01-01 17:00').length,1);assert.equal(h.values[1][10],'VERIFIED_BACKFILL')});
+test('cleanup deletes only validated new hourly-owned rows, preserving legacy and malformed records',()=>{
+ const h=harness();const old=['2026-01-01:hourly_v1','2026-01-01','hourly_v1','uthai','HDA004',471583,'HDA004 ช่องสะเดา',2.7,'2026-01-01 17:00','2026-01-01T10:30:00Z','HISTORICAL','ThaiWater/HII',PRIMARY,3.03,.227,'MSL','reference_station_not_hospital_sensor','2026-01-01T10:30:00Z'];
+ const legacy=old.slice();legacy[0]='legacy-user-data';legacy[2]='unowned';legacy[7]=null;
+ const malformed=old.slice();malformed[7]=null;
+ const back=old.slice();back[10]='VERIFIED_BACKFILL';
+ h.values.push(old,legacy,malformed,back);h.answers[PRIMARY]={data:data()};h.env.WaterHistory.syncHourly();
+ assert.equal(h.values.includes(old),false);assert.equal(h.values.includes(legacy),true);assert.equal(h.values.includes(malformed),true);assert.equal(h.values.includes(back),true);
+});
+test('mixed legacy water row survives when upstream is offline',()=>{
+ const h=harness();const legacy=['legacy-user-data','2026-01-01','unowned','uthai','HDA004',471583,'name',null,'2026-01-01 17:00','','HISTORICAL','ThaiWater/HII',PRIMARY,null,null,'MSL','reference',''];h.values.push(legacy);assert.throws(()=>h.env.WaterHistory.syncHourly(),/NO_VERIFIED_STATION/);assert.equal(h.values.includes(legacy),true);
+});
 test('failed HII request is not retried within the same hourly window',()=>{const h=harness();assert.throws(()=>h.env.WaterHistory.syncHourly(),/NO_VERIFIED_STATION/);const retry=h.env.WaterHistory.syncHourly();assert.equal(retry.reason,'attempt_throttled');assert.equal(h.calls(),1)});
