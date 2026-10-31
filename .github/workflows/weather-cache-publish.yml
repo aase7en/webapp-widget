@@ -1,7 +1,8 @@
 name: Uthai weather transport cache
 on:
   schedule:
-    - cron: '8 * * * *'
+    # Avoid the busiest part of the hour; Apps Script reads near :56.
+    - cron: '23 * * * *'
   workflow_dispatch:
 permissions:
   contents: write
