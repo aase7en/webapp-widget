@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#071726">
+  <title>ตรวจหน้าจอ PM2.5 และ Weather · UTH Widget</title>
+  <link rel="stylesheet" href="final-ui-review.css">
+  <script defer src="final-ui-review.js"></script>
+</head>
+<body>
+  <main>
+    <header class="masthead">
+      <div>
+        <span class="eyebrow">UTH WIDGET · UI REVIEW</span>
+        <h1>ตรวจหน้าจอก่อนปิดงาน</h1>
+        <p>เลือกสถานะเพื่อดูภาพ สี ตัวเลข และ Animation ของป้ายขนาด 432 × 40 พิกเซล</p>
+      </div>
+      <a class="live-link" href="../">เปิดหน้าจริง <span aria-hidden="true">↗</span></a>
+    </header>
+
+    <div class="notice" role="note"><strong>หน้าเดโม · ข้อมูลจำลอง</strong><span>ค่าตัวเลขและกราฟในหน้านี้ใช้สำหรับตรวจหน้าตาเท่านั้น ไม่ใช่ข้อมูลสำหรับเฝ้าระวังจริง</span></div>
+
+    <nav class="pages" aria-label="เลือกหน้าที่ต้องการตรวจ">
+      <button type="button" data-page="pm25" aria-pressed="true">PM2.5 <small>5 ระดับ</small></button>
+      <button type="button" data-page="weather" aria-pressed="false">Weather <small>10 สภาพ</small></button>
+    </nav>
+
+    <section class="review" aria-labelledby="preview-title">
+      <div class="review-head">
+        <div><span class="eyebrow">PREVIEW</span><h2 id="preview-title" aria-live="polite">PM2.5 · ดีมาก</h2></div>
+        <div class="zoom" aria-label="ขนาดภาพตัวอย่าง">
+          <button type="button" data-zoom="fit" aria-pressed="true">พอดีจอ</button>
+          <button type="button" data-zoom="native" aria-pressed="false">432 × 40</button>
+          <button type="button" data-zoom="double" aria-pressed="false">ขยาย 2×</button>
+        </div>
+      </div>
+      <div class="preview-viewport" id="preview-viewport" tabindex="0" aria-label="ภาพตัวอย่างป้าย เลื่อนแนวนอนได้เมื่อขยายภาพ">
+        <div class="preview-stage" id="preview-stage"><div class="loading" id="loading">กำลังโหลดตัวอย่าง…</div></div>
+      </div>
+      <div class="preview-foot"><span id="scale-note">พอดีกับความกว้างหน้าจอ</span><span>ภาพในป้ายใช้ไฟล์และรูปแบบเดียวกับหน้าใช้งานจริง</span></div>
+      <p id="error" class="error" role="alert" hidden></p>
+    </section>
+
+    <section class="selector" aria-labelledby="choose-title">
+      <div class="selector-head"><div><span class="eyebrow">CHOOSE A STATE</span><h2 id="choose-title">เลือกระดับค่าฝุ่น</h2></div><span id="count">1 / 5</span></div>
+      <div class="choices" id="choices" aria-label="เลือกสถานะตัวอย่าง"></div>
+      <p class="hint" id="hint">แตะสถานะเพื่อเปลี่ยนตัวอย่างทันที · เมื่อขยายภาพ สามารถเลื่อนซ้าย–ขวาเพื่อตรวจรายละเอียด</p>
+    </section>
+    <footer><a href="../">หน้าจอใช้งานจริง</a><a href="https://github.com/aase7en/webapp-widget#readme">README และเครดิตข้อมูล</a></footer>
+  </main>
+</body>
+</html>
