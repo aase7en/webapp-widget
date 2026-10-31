@@ -12,7 +12,7 @@ function setup(rows=[H],opts={}) {
  const ContentService={MimeType:{TEXT:'text',JSON:'json',JAVASCRIPT:'js'},createTextOutput:text=>({text,setMimeType(type){this.type=type;return this}})};
  const ctx={Date:MockDate,JSON,Math,Array,Object,String,Number,isFinite,encodeURIComponent,Error,ContentService,
   BackendApi:{loadConfig:()=>cfg,locationFingerprint:()=> 'abc123',isOwnerSession:()=>!!opts.owner,getCachedPm:()=>{calls.fetches++;if(opts.pmThrow)throw Error('PM offline');return {status:'ok',value:22,observedAt:new Date(now).toISOString()}}},
-  PropertiesService:{getScriptProperties:()=>({getProperty:k=>properties.has(k)?properties.get(k):null,setProperty:(k,v)=>properties.set(k,v)})},CacheService:{getScriptCache:()=>({get:k=>cache.get(k)||null,put:(k,v)=>cache.set(k,v)})},SpreadsheetApp:{openById:()=>book},ScriptApp:{getProjectTriggers:()=>[]},LockService:{getScriptLock:()=>({tryLock:()=>true,releaseLock(){}})},Utilities:{formatDate:()=> '2026-10-30'},UrlFetchApp:{fetch(url){calls.fetches++;if(opts.forecast&&String(url).includes('api.open-meteo.com'))return {getResponseCode:()=>200,getContentText:()=>JSON.stringify(opts.forecast)};throw Error('offline')}}};
+  PropertiesService:{getScriptProperties:()=>({getProperty:k=>properties.has(k)?properties.get(k):null,setProperty:(k,v)=>properties.set(k,v)})},CacheService:{getScriptCache:()=>({get:k=>cache.get(k)||null,put:(k,v)=>cache.set(k,v)})},SpreadsheetApp:{openById:()=>book},ScriptApp:{getProjectTriggers:()=>[]},LockService:{getScriptLock:()=>({tryLock:()=>true,releaseLock(){}})},Utilities:{formatDate:()=> '2026-10-30'},UrlFetchApp:{fetch(url){calls.fetches++;if(opts.forecastHttpStatus&&String(url).includes('api.open-meteo.com'))return {getResponseCode:()=>opts.forecastHttpStatus,getContentText:()=>'{"secret":"must not escape"}'};if(opts.forecast&&String(url).includes('api.open-meteo.com'))return {getResponseCode:()=>200,getContentText:()=>JSON.stringify(opts.forecast)};throw Error('offline')}}};
  vm.runInNewContext(source,ctx);return{api:ctx.HourlySnapshot,data,calls};
 }
 const row=(channel,time,payload={value:22})=>['widget_snapshot_v1','uthai','abc123',channel,time,time,JSON.stringify(payload)];
@@ -21,6 +21,21 @@ test('snapshot read is read-only and rejects stale or wrong-location observation
 test('pruning removes only valid expired rows and preserves unknown or malformed data',()=>{const old=new Date(now-91*86400000).toISOString(),fresh=new Date(now-3600000).toISOString(),unknown=row('pm25',old);unknown[0]='unknown';const broken=row('weather',old);broken[6]='bad';const h=setup([H,row('pm25',old),unknown,broken,row('pm25',fresh)]);h.api.prune({deleteRows:(i,n)=>{h.calls.deletions.push([i,n]);h.data.splice(i-1,n)}},h.data.map(r=>r.slice()),now);assert.equal(h.data.length,4);assert.equal(h.data[1][0],'unknown');assert.equal(h.data[2][6],'bad');assert.equal(h.calls.deletions.length,1)});
 
 test('failed weather forecast does not trigger repeated provider calls within an hour',()=>{const h=setup([H],{owner:true});const first=h.api.collect({});assert.equal(first.written,1);assert.equal(h.calls.fetches,2);const second=h.api.collect({});assert.equal(second.reason,'attempt_throttled');assert.equal(h.calls.fetches,2);assert.equal(h.calls.appends,1)});
+
+test('weather HTTP failures expose only safe status metadata without retrying',()=>{
+ const h=setup([H],{owner:true,forecastHttpStatus:429});
+ assert.equal(h.api.collect({}).written,1);
+ const d=h.api.read(now).weatherDiagnostic;
+ assert.equal(d.status,'failed');assert.equal(d.httpStatus,429);assert.equal(d.attemptedAt,new Date(now).toISOString());
+ assert.doesNotMatch(JSON.stringify(d),/secret|must not escape/);
+ assert.equal(h.api.collect({}).reason,'attempt_throttled');assert.equal(h.calls.fetches,2);
+});
+
+test('weather transport failure is distinguishable without leaking exception text',()=>{
+ const h=setup([H],{owner:true});h.api.collect({});
+ const d=h.api.read(now).weatherDiagnostic;
+ assert.equal(d.status,'failed');assert.equal(d.httpStatus,null);assert.doesNotMatch(JSON.stringify(d),/offline/);
+});
 
 test('public JSONP read rejects executable callbacks and never calls providers',()=>{const fresh=new Date(now-3600000).toISOString(),h=setup([H,row('pm25',fresh)]);let result=h.api.web({parameter:{callback:'x);alert(1)//'}});assert.equal(result.type,'text');assert.equal(result.text,'Invalid callback');result=h.api.web({parameter:{callback:'widget_cb'}});assert.equal(result.type,'js');assert.match(result.text,/^widget_cb\(/);assert.equal(h.calls.fetches,0);assert.equal(h.calls.appends,0)});
 
