@@ -200,8 +200,8 @@ test('approved moods land on the PM slide from real-derived states',()=>{
     ['good','ดีมาก','ทำกิจกรรมได้ตามปกติ','✓','pm-good',false],
     ['moderate','ดี','กลุ่มเสี่ยงเฝ้าระวังตัวเอง','✓','good',false],
     ['unhealthy','ปานกลาง','เลี่ยงกิจกรรมกลางแจ้งที่ใช้แรงมาก','!','watch',true],
-    ['protective','เริ่มมีผลกระทบ','ลดหรือจำกัดกิจกรรมนอกบ้าน','!','danger',true],
-    ['severe','มีผลกระทบ','งดกิจกรรมนอกบ้าน สวมหน้ากาก N95','!','critical',true],
+    ['protective','เริ่มมีผลต่อสุขภาพ','ลดหรือจำกัดกิจกรรมนอกบ้าน','!','danger',true],
+    ['severe','มีผลต่อสุขภาพ','งดกิจกรรมนอกบ้าน สวมหน้ากาก N95','!','critical',true],
     ['unavailable','รอข้อมูล','รอข้อมูล PM2.5','?','unavailable',false],
   ];
   for(const [mood,badge,note,glyph,sev,diamond] of cases){
@@ -270,7 +270,7 @@ test('normalized payload end-to-end drives the boot paint pipeline',()=>{
   api.paintWater();
   assert.equal(reg['pm-value'].textContent,'120');
   assert.equal(reg['slide-pm'].dataset.pmMood,'severe');
-  assert.equal(reg['pm-badge'].textContent,'มีผลกระทบ');
+  assert.equal(reg['pm-badge'].textContent,'มีผลต่อสุขภาพ');
   assert.equal(reg['slide-weather'].dataset.heat,'danger'); /* HI(35,60) ≈ 43-49 */
   assert.ok(reg['wx-hi'].textContent.endsWith('°'));
 });

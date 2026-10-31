@@ -11,11 +11,12 @@
  * Freshness authority is each channel's observedAt: missing/unparseable,
  * future > 5 min or age > 3 h renders that channel unavailable — generatedAt
  * is the response time and is NEVER used as a freshness fallback.
- * PM band criteria are inherited verbatim from the legacy Apps Script
- * Code.gs cutoffs (>=91 unhealthy, >=51 unhealthy_sensitive, >=38 moderate,
- * >=26 good, else very_good); they are legacy criteria, not an externally
- * verified official standard. A payload band string that disagrees with the
- * local same-cutoff derivation fails closed.
+ * PM tier colors follow the 2026 criteria (ดีมาก ≤15 · ดี 15.1–25 · ปานกลาง
+ * 25.1–37.5 · เริ่มมีผลกระทบต่อสุขภาพ 37.6–75 · มีผลต่อสุขภาพ >75 µg/m³)
+ * applied to the GISTDA 24-hour average: the backend-emitted band string
+ * (derived from the rounded pm25Avg24hr) is preferred; the local 2026
+ * cutoffs are the fallback. A band string that disagrees with the known
+ * vocabulary fails closed.
  */
 (function(root){
 'use strict';
@@ -71,14 +72,23 @@ function freshHeat(reading,nowMs){
   return reading;
 }
 
-/* ---------- PM band derivation (legacy Code.gs cutoffs, local authority) ---------- */
-const PM_BAND_CUTOFFS=[[91,'unhealthy'],[51,'unhealthy_sensitive'],[38,'moderate'],[26,'good']];
+/* ---------- PM band derivation (2026 thresholds, local fallback) ----------
+ * Owner-validated option A (2026-10-31): color tiers come from the GISTDA
+ * 24-hour average (backend band, derived from the rounded pm25Avg24hr, is
+ * authoritative). These local 2026 cutoffs are the fallback only, applied to
+ * the emitted avg24h when the band string is absent, else the hourly value
+ * (legacy payloads). Exclusive lower bounds: ≤15 very_good, 15.1–25 good,
+ * 25.1–37.5 moderate, 37.6–75 unhealthy_sensitive, >75 unhealthy — same
+ * table as v2/pm25-tier.js. A band string outside the vocabulary fails
+ * closed. */
+const PM_BAND_CUTOFFS=[[75,'unhealthy'],[37.5,'unhealthy_sensitive'],[25,'moderate'],[15,'good']];
 function pmBandKey(value){
   if(!finite(value)||value<0)return null;
-  for(const cut of PM_BAND_CUTOFFS)if(value>=cut[0])return cut[1];
+  for(const cut of PM_BAND_CUTOFFS)if(value>cut[0])return cut[1];
   return 'very_good';
 }
 const PM_MOOD={very_good:'good',good:'moderate',moderate:'unhealthy',unhealthy_sensitive:'protective',unhealthy:'severe'};
+const PM_BAND_VOCAB=['very_good','good','moderate','unhealthy_sensitive','unhealthy'];
 
 /* ---------- multi-location + provenance (additive, canonical 2026-10-17) ----------
  * The active location is selected server-side from Google Sheet config; the
@@ -169,13 +179,22 @@ function normalizePayload(raw,nowMs){
   else if(p.unit!==PM_UNIT){errors.push('pm25-unit');}
   else if(!staleTime(p.observedAt,nowMs)){errors.push('pm25-observedAt');}
   else{
-    const bandKey=pmBandKey(p.value);
-    if(bandKey===null){errors.push('pm25-value');}
-    else if(typeof p.band==='string'&&p.band!==''&&p.band!==bandKey){
+    /* 2026 option A: mood/band from the 24h average. The hourly value must
+     * still be a valid reading (fail closed); the backend band string is
+     * authoritative for the mood when in the vocabulary, else local 2026
+     * cutoffs classify the emitted avg24h, else the hourly value (legacy
+     * payloads). A non-empty band outside the vocabulary fails closed. */
+    const hasBand=typeof p.band==='string'&&PM_BAND_VOCAB.indexOf(p.band)>=0;
+    const avg24=finite(p.avg24h)&&p.avg24h>=0?p.avg24h:null;
+    if(!finite(p.value)||p.value<0){errors.push('pm25-value');}
+    else if(typeof p.band==='string'&&p.band!==''&&!hasBand){
       errors.push('pm25-band-conflict:'+p.band); /* fail closed: tampered/buggy band string */
     }
-    else pm={status:'ok',value:p.value,moodKey:PM_MOOD[bandKey],observedAt:p.observedAt||null,
+    else{
+      const bandKey=hasBand?p.band:(avg24!==null?pmBandKey(avg24):pmBandKey(p.value));
+      pm={status:'ok',value:p.value,moodKey:PM_MOOD[bandKey],observedAt:p.observedAt||null,
       source:sanitizeText(p.source,80),provenance:normalizeProvenance(p.provenance)};
+    }
   }
   let wx={status:'unavailable',tempC:null,hiC:null,code:null,rainPct:null,source:null,provenance:null};
   const wch=raw.weather;

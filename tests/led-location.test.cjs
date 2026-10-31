@@ -111,7 +111,7 @@ test('payload carries sanitized location + per-channel provenance alongside unch
   assert.equal(s.location.label,'ต.อุทัย จ.อุทัยธานี');
   assert.equal(s.location.lat,14.36147);
   assert.equal(s.pm.status,'ok');          /* unchanged channel semantics */
-  assert.equal(s.pm.moodKey,'good');
+  assert.equal(s.pm.moodKey,'moderate'); /* 22.4 hourly fallback -> 2026 'good' band -> ดี mood */
   assert.equal(s.pm.source,'GISTDA');
   assert.equal(s.pm.provenance.agency,'GISTDA');
   assert.equal(s.pm.provenance.stationId,'1414');
@@ -127,7 +127,7 @@ test('older contract without location root keeps valid readings and degrades lab
   delete raw.pm25.provenance;
   const s=w.normalizePayload(raw,now);
   assert.equal(s.pm.status,'ok');
-  assert.equal(s.pm.moodKey,'good');
+  assert.equal(s.pm.moodKey,'moderate'); /* 2026: 22.4 -> 'good' band -> ดี mood */
   assert.equal(s.pm.provenance,null);
   assert.deepEqual(s.location,{id:null,label:null,lat:null,lon:null});
   assert.deepEqual(s.errors,[]);

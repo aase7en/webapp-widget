@@ -113,7 +113,15 @@ var BackendApi = (function () {
   var PM_PROVIDER_ENUM = ['gistda'];
   var WEATHER_PROVIDER_ENUM = ['open-meteo'];
   var WATER_PROVIDER_ENUM = ['', 'none'];
-  var PM_BANDS = [[91, 'unhealthy'], [51, 'unhealthy_sensitive'], [38, 'moderate'], [26, 'good']];
+  /* PM banding, owner-validated option A (2026-10-31): GISTDA 24-hour rolling
+   * average (pm25Avg24hr) is banded, NOT the hourly reading. Thresholds in
+   * µg/m³, applied to the value ALREADY rounded to 1 decimal half-up:
+   *   ≤15.0 'very_good' ดีมาก · 15.1–25.0 'good' ดี · 25.1–37.5 'moderate'
+   *   ปานกลาง · 37.6–75.0 'unhealthy_sensitive' เริ่มมีผลกระทบต่อสุขภาพ ·
+   *   >75 'unhealthy' มีผลต่อสุขภาพ. Cutoffs are EXCLUSIVE lower bounds
+   * (15.0 stays very_good, 37.5 stays moderate) so they agree with the
+   * frontend v2/pm25-tier.js tier table. */
+  var PM_BANDS = [[75, 'unhealthy'], [37.5, 'unhealthy_sensitive'], [25, 'moderate'], [15, 'good']];
   var SLOT_JITTER_H = 2; /* batch records only within configuredHour ± 2h */
   var LEGACY_HISTORY_HANDLERS = ['main', 'logGistdaData'];
   var OWNED_HISTORY_HANDLER = 'BackendApiHistoryBatch_';
@@ -230,10 +238,21 @@ var BackendApi = (function () {
     return ms;
   }
 
+  /* Cutoffs are EXCLUSIVE lower bounds (value > cutoff): 15.0 → very_good,
+   * 37.5 → moderate, 75.0 → unhealthy_sensitive, matching the 2026 table and
+   * v2/pm25-tier.js. Callers pass a value ALREADY rounded to 1 decimal. */
   function band(value) {
     if (typeof value !== 'number' || !isFinite(value) || value < 0) return null;
-    for (var i = 0; i < PM_BANDS.length; i++) if (value >= PM_BANDS[i][0]) return PM_BANDS[i][1];
+    for (var i = 0; i < PM_BANDS.length; i++) if (value > PM_BANDS[i][0]) return PM_BANDS[i][1];
     return 'very_good';
+  }
+
+  /* 1 decimal, half-up, epsilon-guarded double round — same pattern as
+   * v2/pm25-tier.js round1 (37.549 → 37.5 stays 37.5, never
+   * 37.499999999999996). Applied BEFORE banding per the 2026 policy. */
+  function round1HalfUp(v) {
+    var r = Math.round((v + Number.EPSILON) * 10) / 10;
+    return Math.round(r * 10) / 10;
   }
 
   function freshness(obsMs, now) {
@@ -533,7 +552,7 @@ var BackendApi = (function () {
   }
 
   function pm25Missing() {
-    return { status: 'missing', value: null, unit: PM_UNIT, observedAt: null, source: '', band: null, provenance: null, _err: null };
+    return { status: 'missing', value: null, avg24h: null, unit: PM_UNIT, observedAt: null, source: '', band: null, provenance: null, _err: null };
   }
 
   function pm25Base(cfg) {
@@ -597,6 +616,13 @@ var BackendApi = (function () {
       var item = matches[0];
       var raw = asNumber(item.pm25);
       if (raw === null || raw < 0) { base._err = err('pm25', 'PARSE', 'invalid pm25 value'); return base; }
+      /* 24-hour rolling average from the SAME GISTDA row (pm25Avg24hr).
+       * Owner-validated option A: the COLOR band comes from this average.
+       * Must be a finite number >= 0 — null/NaN/negative/string garbage
+       * means the average is ABSENT this refresh: emit avg24h null and NO
+       * band (frontend fails closed to grey). Never zero-filled. */
+      var rawAvg = asNumber(item.pm25Avg24hr);
+      var avg24h = (rawAvg !== null && rawAvg >= 0) ? round1HalfUp(rawAvg) : null;
       var obsMs = gistdaObservedMs(item, payload);
       if (obsMs === null) { base._err = err('pm25', 'OBSERVED_AT', 'no usable source timestamp on row/payload'); return base; }
       var fresh = freshness(obsMs, now);
@@ -607,8 +633,12 @@ var BackendApi = (function () {
       }
       var value = Math.round(raw * 10) / 10;
       return {
-        status: fresh === 'stale' ? 'stale' : 'ok', value: value, unit: PM_UNIT,
-        observedAt: bangkokIsoObserved(obsMs), source: base.source, band: band(value),
+        status: fresh === 'stale' ? 'stale' : 'ok', value: value, avg24h: avg24h, unit: PM_UNIT,
+        observedAt: bangkokIsoObserved(obsMs), source: base.source,
+        /* band = 2026 thresholds on the ROUNDED 24h average; the emitted
+         * `value` keeps its hourly display role. observedAt/staleness are
+         * the row's own source time, identical for value and average. */
+        band: avg24h === null ? null : band(avg24h),
         provenance: prov, _err: null,
       };
     } catch (x) {

@@ -24,12 +24,14 @@ function gistdaBody(opts = {}) {
     mk('ไผ่จำศีล', 'Phai Cham Sin', 141403, 40.2),
     mk('ที่ว่าง', 'Thi Wang', 141404, 39.7),
     mk('บางเดี่ยว', 'Bang Diao', 141405, 38.9),
-    mk('บ้านแถว', 'Ban Thaeo', 141406, 38.0),
+    mk('บ้านแถว', 'Ban Thaeo', 141411, 38.0),
     mk('สำโรง', 'Sam Rong', 141407, 37.4),
     mk('หนองน้อย', 'Nong Noi', 141408, 36.8),
     mk('บ้านเลน', 'Ban Len', 141409, 35.5),
   ];
-  const target = Object.assign(mk('อุทัย', 'U Thai', 141411, opts.pm25 != null ? opts.pm25 : 20.9), opts.target || {});
+  /* Real GISTDA tambon id for ต.อุทัย is 141406 (spec item 6, 2026-10-31);
+   * 141411 belongs to บ้านแถว. */
+  const target = Object.assign(mk('อุทัย', 'U Thai', 141406, opts.pm25 != null ? opts.pm25 : 20.9), opts.target || {});
   const data = opts.data != null ? opts.data : [...others.slice(0, 4), target, ...others.slice(4)];
   return JSON.stringify({
     status: 200,

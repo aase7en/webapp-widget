@@ -5,7 +5,7 @@
 const $=s=>document.querySelector(s);
 const NUM=n=>typeof n==='number'&&Number.isFinite(n);
 const box=$('#pm'),core=$('.mascot'),hero=$('.pm-num');
-const cutoffs=[0,26,38,51,91,151];
+const cutoffs=[0,15,25,37.5,75,151];
 function arrowPercent(v){
   if(!NUM(v)||v<0)return null;
   let segment=0;
@@ -14,12 +14,29 @@ function arrowPercent(v){
   let ratio=Math.max(0,Math.min(1,(v-cutoffs[segment])/(cutoffs[segment+1]-cutoffs[segment])));
   return Math.min(99,Math.max(1,(segment+ratio)*20));
 }
+/* 2026 option A: badge/mascot band from the GISTDA 24-hour average. A
+ * backend band string in the vocabulary is authoritative (it is derived
+ * from the rounded pm25Avg24hr); otherwise the 2026 cutoffs classify the
+ * emitted avg24h. No usable average and no band -> null (grey/unavailable);
+ * the hourly number still renders — never zero-filled. */
+const BAND_TO_BASE={very_good:'good',good:'moderate',moderate:'unhealthy',unhealthy_sensitive:'protective',unhealthy:'severe'};
+const MOODS={
+ good:{base:'good',text:'ดีมาก',advice:'สภาพอากาศโดยรวมดี',color:'#77efa6',masked:false},
+ moderate:{base:'moderate',text:'ดี',advice:'ทำกิจกรรมได้ทั่วไป',color:'#ffe16b',masked:false},
+ unhealthy:{base:'unhealthy',text:'ปานกลาง',advice:'กลุ่มเสี่ยงควรระวัง',color:'#ffc958',masked:false},
+ protective:{base:'protective',text:'เริ่มมีผลต่อสุขภาพ',advice:'ลดกิจกรรมกลางแจ้ง',color:'#ffad53',masked:true},
+ severe:{base:'severe',text:'มีผลต่อสุขภาพ',advice:'ลดกิจกรรมกลางแจ้ง',color:'#ff737d',masked:true}
+};
 function mood(v){
-  if(v>=91)return{base:'severe',text:'มีผลกระทบ',advice:'ลดกิจกรรมกลางแจ้ง',color:'#ff737d',masked:true};
-  if(v>=51)return{base:'protective',text:'เริ่มมีผลกระทบ',advice:'ลดกิจกรรมกลางแจ้ง',color:'#ffad53',masked:true};
-  if(v>=38)return{base:'unhealthy',text:'ปานกลาง',advice:'กลุ่มเสี่ยงควรระวัง',color:'#ffc958',masked:false};
-  if(v>=26)return{base:'moderate',text:'ดี',advice:'ทำกิจกรรมได้ทั่วไป',color:'#ffe16b',masked:false};
-  return{base:'good',text:'ดีมาก',advice:'สภาพอากาศโดยรวมดี',color:'#77efa6',masked:false};
+  if(v>75)return MOODS.severe;
+  if(v>37.5)return MOODS.protective;
+  if(v>25)return MOODS.unhealthy;
+  if(v>15)return MOODS.moderate;
+  return MOODS.good;
+}
+function pmMood(p){
+  if(typeof p.band==='string'&&BAND_TO_BASE[p.band])return MOODS[BAND_TO_BASE[p.band]];
+  return NUM(p.avg24h)&&p.avg24h>=0?mood(p.avg24h):null;
 }
 function mascot(m){
  const files='../assets/icons3d/rig/';
@@ -68,17 +85,25 @@ function resetPm(message){
 function paintPm(d){
  const p=d.pm25||{};
  if(p.status!=='latest'||!NUM(p.value)){resetPm('PM2.5: UNAVAILABLE · ไม่มีค่าที่สดและตรวจสอบได้');return}
- const m=mood(p.value);
- hero.textContent=p.value.toFixed(1);
- hero.style.color=m.color;
- mascot(m);
- $('.pm-status .pill').lastChild.textContent=' '+m.text;
- $('.pm-status .pill i').textContent=['good','moderate'].includes(m.base)?'✓':m.base==='unhealthy'?'•':'!';
- $('.pm-status .sub').textContent=m.advice;
+ hero.textContent=p.value.toFixed(1); /* big number stays the latest hourly reading */
+ const m=pmMood(p); /* 2026: band/mascot from the 24h average, null = unavailable */
+ if(m){
+  hero.style.color=m.color;
+  mascot(m);
+  $('.pm-status .pill').lastChild.textContent=' '+m.text;
+  $('.pm-status .pill i').textContent=['good','moderate'].includes(m.base)?'✓':m.base==='unhealthy'?'•':'!';
+  $('.pm-status .sub').textContent=m.advice;
+ }else{ /* avg24h absent this refresh: grey/unavailable tier, hourly number unchanged */
+  mascot({base:'unavailable',masked:false});
+  hero.style.color='#cbd8e2';
+  $('.pm-status .pill').lastChild.textContent=' รอข้อมูล';
+  $('.pm-status .pill i').textContent='?';
+  $('.pm-status .sub').textContent='รอค่าเฉลี่ย 24 ชม.';
+ }
  const pct=arrowPercent(p.value);
  $('.scalePM .levels').style.setProperty('--marker-pos',pct+'%');
  $('.scalePM .levels').style.setProperty('--marker-show','1');
- $('.scalePM .levels').title='PM2.5 '+p.value.toFixed(1)+' µg/m³ · เกณฑ์ในแอป: <26 / 26–37 / 38–50 / 51–90 / ≥91';
+ $('.scalePM .levels').title='PM2.5 '+p.value.toFixed(1)+' µg/m³ · เกณฑ์สีจากค่าเฉลี่ย 24 ชม.: ≤15 / 15.1–25 / 25.1–37.5 / 37.6–75 / >75';
  $('#pm-provenance').textContent='LATEST · '+(p.source||'GISTDA')+' · วัด '+new Date(p.observedAt).toLocaleTimeString('th-TH',{timeZone:'Asia/Bangkok',hour:'2-digit',minute:'2-digit'});
 }
 function paintWeatherSmall(d){

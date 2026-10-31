@@ -74,7 +74,12 @@ async function live(opts){
    out.location={id:'uthai',lat:loc.lat,lon:loc.lon};
    const pm=payload.pm25||{};
    if(pm.status==='ok'&&finite(pm.value,0,1000)&&pm.unit==='µg/m³'&&freshBy(pm.observedAt,tnow,STALE_KEEP_MS)){
-    out.pm25={status:'latest',value:pm.value,observedAt:pm.observedAt,source:text(pm.source,240),unit:pm.unit};
+    // 2026 option A: pass the 24h average + backend band through the strict
+    // whitelist. avg24h invalid -> null (never 0); consumers fail closed to
+    // grey. The big number remains the hourly value.
+    const band=['very_good','good','moderate','unhealthy_sensitive','unhealthy'].includes(pm.band)?pm.band:null;
+    out.pm25={status:'latest',value:pm.value,avg24h:finite(pm.avg24h,0,1000)?pm.avg24h:null,band,
+     observedAt:pm.observedAt,source:text(pm.source,240),unit:pm.unit};
    }
    const w=payload.weather||{};
    if(w.status==='ok'&&finite(w.temperatureC,-40,65)&&finite(w.humidityPct,0,100)&&freshBy(w.observedAt,tnow,STALE_KEEP_MS)){

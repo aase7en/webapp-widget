@@ -71,9 +71,10 @@ test('data route happy path: canonical envelope shape', () => {
   assert.ok(typeof body.generatedAt === 'string');
   assert.equal(body.pm25.status, 'ok');
   assert.equal(body.pm25.value, 20.9);
+  assert.equal(body.pm25.avg24h, 18.9); /* pm25Avg24hr from the SAME GISTDA row */
   assert.equal(body.pm25.unit, 'µg/m³');
   assert.equal(body.pm25.observedAt, '2026-10-17T06:05+07:00');
-  assert.equal(body.pm25.band, 'very_good');
+  assert.equal(body.pm25.band, 'good'); /* 2026 band from the ROUNDED 24h average, not the hourly value */
   assert.ok(body.pm25.source.length > 0);
   assert.equal(body.weather.status, 'ok');
   assert.equal(body.weather.temperatureC, 29.4);
@@ -109,16 +110,50 @@ test('data route happy path: canonical envelope shape', () => {
 
 /* ---------- band cutoffs ---------- */
 
-test('band boundaries and fractional gaps (Code.gs descending minima)', () => {
+test('band boundaries and fractional gaps (2026 GISTDA 24h-average criteria, exclusive lower bounds)', () => {
   const h = makeContext({ loadCodeGs: false });
   const b = h.ctx.BackendApi_band_;
   const cases = [
-    [0, 'very_good'], [25, 'very_good'], [25.99, 'very_good'], [26, 'good'], [26.01, 'good'],
-    [37.99, 'good'], [38, 'moderate'], [38.5, 'moderate'], [50.99, 'moderate'],
-    [51, 'unhealthy_sensitive'], [90.99, 'unhealthy_sensitive'], [91, 'unhealthy'],
-    [120.4, 'unhealthy'], [-1, null], [null, null], ['x', null],
+    [0, 'very_good'], [15, 'very_good'], [15.01, 'good'], [25, 'good'], [25.01, 'moderate'],
+    [37.5, 'moderate'], [37.51, 'unhealthy_sensitive'], [75, 'unhealthy_sensitive'],
+    [75.01, 'unhealthy'], [120.4, 'unhealthy'], [-1, null], [null, null], ['x', null],
   ];
   for (const [v, want] of cases) assert.equal(b(v), want, 'value=' + v);
+});
+
+/* ---------- pm25Avg24hr -> avg24h (owner-validated option A) ---------- */
+
+test('valid avg24h flows to the payload and drives the band; rounding happens BEFORE banding', () => {
+  /* raw 15.049 -> rounded 15.0 -> very_good (blue); raw 15.05 -> 15.1 -> good
+   * (green). Half-up at exactly .05, epsilon-guarded. */
+  for (const [rawAvg, wantRounded, wantBand] of [[15.049, 15, 'very_good'], [15.05, 15.1, 'good'], [37.549, 37.5, 'moderate'], [37.55, 37.6, 'unhealthy_sensitive'], [75.049, 75, 'unhealthy_sensitive'], [75.05, 75.1, 'unhealthy']]) {
+    const h = makeContext({ fetchQueue: [{ body: gistdaBody({ target: { pm25Avg24hr: rawAvg } }) }, { body: openMeteoBody() }] });
+    doGet(h, { action: 'data', v: '1' });
+    const body = JSON.parse(h.outputs()[0].text);
+    assert.equal(body.pm25.status, 'ok', 'rawAvg=' + rawAvg);
+    assert.equal(body.pm25.avg24h, wantRounded, 'rawAvg=' + rawAvg);
+    assert.equal(body.pm25.band, wantBand, 'rawAvg=' + rawAvg);
+  }
+});
+
+test('null/NaN/negative pm25Avg24hr -> no avg24h and NO band (frontend fails closed to grey)', () => {
+  for (const bad of [null, NaN, 'abc', '', -0.5]) {
+    const h = makeContext({ fetchQueue: [{ body: gistdaBody({ target: { pm25Avg24hr: bad } }) }, { body: openMeteoBody() }] });
+    doGet(h, { action: 'data', v: '1' });
+    const body = JSON.parse(h.outputs()[0].text);
+    assert.equal(body.pm25.status, 'ok', 'bad=' + bad);
+    assert.equal(body.pm25.value, 20.9, 'hourly value unaffected, bad=' + bad);
+    assert.equal(body.pm25.avg24h, null, 'avg absent, never zero, bad=' + bad);
+    assert.equal(body.pm25.band, null, 'band omitted this refresh, bad=' + bad);
+  }
+});
+
+test('fixture uses the real GISTDA tambon id 141406 for ต.อุทัย', () => {
+  const rows = JSON.parse(gistdaBody()).data;
+  const target = rows.filter(r => r.tb_tn === 'อุทัย');
+  assert.equal(target.length, 1);
+  assert.equal(target[0].tb_idn, 141406);
+  assert.ok(!rows.some(r => r.tb_idn === 141406 && r.tb_tn !== 'อุทัย'), 'id must be unique in the fixture');
 });
 
 /* ---------- GISTDA datetimeThai Buddhist conversion ---------- */
@@ -141,6 +176,7 @@ test('unparseable observedAt -> pm25 missing, never generatedAt substitution', (
   const body = JSON.parse(h.outputs()[0].text);
   assert.equal(body.pm25.status, 'missing');
   assert.equal(body.pm25.observedAt, null);
+  assert.equal(body.pm25.avg24h, null);
   assert.equal(body.pm25.band, null);
 });
 
@@ -691,7 +727,8 @@ test('repo Code.gs + BackendApi.gs co-load: doGet data route serves through the 
   const body = JSON.parse(h.outputs()[0].text);
   assert.equal(body.schema, 1);
   assert.equal(body.pm25.status, 'ok');
-  assert.equal(body.pm25.band, 'very_good');
+  assert.equal(body.pm25.band, 'good'); /* 2026: from the rounded 24h average (18.9) */
+  assert.equal(body.pm25.avg24h, 18.9);
 });
 
 test('guarded createDailyTrigger: anonymous refused even with spoofed args; owner delegates to owned installer', () => {
@@ -1022,8 +1059,8 @@ test('substring/similar tambon names never match (exact NFC equality only)', () 
 });
 
 test('duplicate tambon rows -> ambiguous -> missing', () => {
-  const row = { tb_tn: 'อุทัย', tb_idn: 141411, pm25: 20.9, dt: '2026-10-17T06:05:00.000Z' };
-  const h = makeContext({ fetchQueue: [{ body: gistdaBody({ data: [row, Object.assign({}, row, { tb_idn: 141412 })] }) }, { body: openMeteoBody() }] });
+  const row = { tb_tn: 'อุทัย', tb_idn: 141406, pm25: 20.9, dt: '2026-10-17T06:05:00.000Z' };
+  const h = makeContext({ fetchQueue: [{ body: gistdaBody({ data: [row, Object.assign({}, row, { tb_idn: 141407 })] }) }, { body: openMeteoBody() }] });
   doGet(h, { action: 'data', v: '1' });
   assert.equal(JSON.parse(h.outputs()[0].text).pm25.status, 'missing');
 });

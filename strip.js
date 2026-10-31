@@ -128,7 +128,8 @@ function paintPM(pm) {
   }
   if (unit) unit.textContent = 'µg/m³';
   if (badge) badge.textContent = mood === 'unavailable' ? 'รอข้อมูล'
-    : ({ good: 'ดีมาก', moderate: 'ดี', unhealthy: 'ปานกลาง', protective: 'เริ่มมีผลกระทบ', severe: 'มีผลกระทบ' })[mood];
+    /* 2026 tier labels (same five strings as the PM live page) */
+    : ({ good: 'ดีมาก', moderate: 'ดี', unhealthy: 'ปานกลาง', protective: 'เริ่มมีผลต่อสุขภาพ', severe: 'มีผลต่อสุขภาพ' })[mood];
   if (note) note.textContent = PM_STATUS_NOTE[mood];
   const slide = $('slide-pm');
   const symbol = slide && slide.querySelector('.status-symbol');

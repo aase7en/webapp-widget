@@ -9,6 +9,10 @@ const path = require('path');
 const { makeContext, doGet, defaultFetchQueue, gistdaBody, openMeteoBody, NOW_MS } = require('./backend-harness.cjs');
 
 const frontend = require(path.join(__dirname, '..', 'led-rotation.js'));
+const pm25Tier = require(path.join(__dirname, '..', 'v2', 'pm25-tier.js'));
+
+/* Backend band key -> 2026 tier key, the exact vocabulary Map pm25-live.js uses. */
+const BAND_VOCABULARY = new Map([['very_good', 'blue'], ['good', 'green'], ['moderate', 'yellow'], ['unhealthy_sensitive', 'orange'], ['unhealthy', 'red']]);
 
 function backendPayload(h) {
   doGet(h, { action: 'data', v: '1' });
@@ -22,10 +26,11 @@ test('frontend normalizePayload accepts a real fresh BackendApi payload', () => 
   const raw = backendPayload(h);
   const state = frontend.normalizePayload(raw, NOW_MS);
   assert.deepEqual(state.errors, []);
-  /* PM: 20.9 -> very_good -> mood good */
+  /* PM: hourly 20.9 stays the display value; band comes from the 24h average
+   * 18.9 -> good (2026) -> mood moderate */
   assert.equal(state.pm.status, 'ok');
   assert.equal(state.pm.value, 20.9);
-  assert.equal(state.pm.moodKey, 'good');
+  assert.equal(state.pm.moodKey, 'moderate');
   assert.equal(state.pm.observedAt, '2026-10-17T06:05+07:00');
   /* weather: temp+rh -> frontend derives HI locally */
   assert.equal(state.weather.status, 'ok');
@@ -58,22 +63,37 @@ test('frontend normalizer fail-closes a real MISSING weather channel', () => {
   assert.equal(state.weather.status, 'unavailable');
 });
 
-test('band agreement: backend band always equals frontend pmBandKey on the EMITTED value', () => {
-  for (const pm of [10, 25.9, 26, 37.5, 38.2, 51, 75, 91, 130]) {
-    const h = makeContext({ fetchQueue: [{ body: gistdaBody({ pm25: pm }) }, { body: openMeteoBody() }] });
+test('band agreement: backend band equals the frontend 2026 band key on the rounded 24h average at every relevant point', () => {
+  const points = [10, 15, 15.1, 16, 25, 25.1, 26, 37.5, 37.6, 38, 75, 75.1, 76, 130];
+  for (const pm of points) {
+    const h = makeContext({ fetchQueue: [{ body: gistdaBody({ pm25: pm, target: { pm25Avg24hr: pm } }) }, { body: openMeteoBody() }] });
     const raw = backendPayload(h);
     assert.equal(raw.pm25.status, 'ok', 'pm=' + pm);
-    assert.equal(raw.pm25.band, frontend.pmBandKey(raw.pm25.value), 'band drift at pm=' + pm);
+    assert.equal(raw.pm25.avg24h, pm, 'rounded avg passthrough at pm=' + pm);
+    /* backend band == frontend local 2026 derivation on the EMITTED avg */
+    assert.equal(raw.pm25.band, frontend.pmBandKey(raw.pm25.avg24h), 'band drift at avg=' + pm);
+    /* and the backend band passes PM25Tier.classify without conflict, landing
+     * on the vocabulary's tier key (what pm25-live.js renders) */
+    const cls = pm25Tier.classify(
+      { value: raw.pm25.avg24h, observedAt: raw.pm25.observedAt, status: 'latest', unit: 'µg/m³', band: raw.pm25.band },
+      { now: NOW_MS, bandVocabulary: BAND_VOCABULARY });
+    assert.equal(cls.conflict, false, 'band-conflict at avg=' + pm);
+    assert.equal(cls.key, BAND_VOCABULARY.get(raw.pm25.band), 'tier key mismatch at avg=' + pm);
+    assert.equal(cls.isHealthTier, true, 'health tier at avg=' + pm);
+    /* hourly value may legitimately band differently from the average — the
+     * frontend normalizer must NOT raise a conflict about it */
     const state = frontend.normalizePayload(raw, NOW_MS);
     assert.equal(state.pm.status, 'ok', 'frontend accepts pm=' + pm);
     assert.deepEqual(state.errors, [], 'no band-conflict at pm=' + pm);
+    const moodByBand = { very_good: 'good', good: 'moderate', moderate: 'unhealthy', unhealthy_sensitive: 'protective', unhealthy: 'severe' };
+    assert.equal(state.pm.moodKey, moodByBand[raw.pm25.band], 'mood mapping at avg=' + pm);
   }
 });
 
-test('tampered band string in an otherwise valid payload fails closed (both sides pin this)', () => {
+test('tampered band string (outside the 2026 vocabulary) fails closed (both sides pin this)', () => {
   const h = makeContext({ fetchQueue: defaultFetchQueue() });
   const raw = backendPayload(h);
-  raw.pm25.band = 'good'; /* tampered: value 20.9 is very_good */
+  raw.pm25.band = 'hazard'; /* not in the vocabulary: very_good/good/moderate/unhealthy_sensitive/unhealthy */
   const state = frontend.normalizePayload(raw, NOW_MS);
   assert.equal(state.pm.status, 'unavailable');
   assert.ok(state.errors.some(e => e.includes('pm25-band-conflict')));

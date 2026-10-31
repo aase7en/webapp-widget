@@ -76,12 +76,12 @@ test('stale heat-model readings expire regardless of refresh timers',()=>{
   assert.match(fs.readFileSync(path.join(__dirname,'../strip.js'),'utf8'),/visibilitychange/);
 });
 
-/* ---------- PM band derivation: legacy Code.gs cutoffs incl. fractional edges ---------- */
-test('PM bands inherit the legacy Code.gs cutoffs with exact fractional edges',()=>{
+/* ---------- PM band derivation: 2026 criteria incl. fractional edges ---------- */
+test('PM bands use the 2026 cutoffs with exclusive lower bounds and exact fractional edges',()=>{
   const cases=[
-    [0,'very_good'],[25,'very_good'],[25.9,'very_good'],[26,'good'],[37.9,'good'],
-    [38,'moderate'],[50.9,'moderate'],[51,'unhealthy_sensitive'],[90.9,'unhealthy_sensitive'],
-    [91,'unhealthy'],[120,'unhealthy']
+    [0,'very_good'],[15,'very_good'],[15.1,'good'],[25,'good'],[25.1,'moderate'],
+    [37.5,'moderate'],[37.6,'unhealthy_sensitive'],[75,'unhealthy_sensitive'],
+    [75.1,'unhealthy'],[120,'unhealthy']
   ];
   for(const [v,band] of cases)assert.equal(w.pmBandKey(v),band,String(v));
   for(const bad of [null,undefined,NaN,Infinity,-1,-0.1,'30'])assert.equal(w.pmBandKey(bad),null,String(bad));
@@ -120,23 +120,39 @@ test('payload source/provenance reach render state only as sanitized text (no li
   assert.equal(s2.pm.provenance.sourceUrl,null); /* unsafe schemes dropped outright */
   assert.equal(s2.pm.provenance.termsUrl,null);
 });
-test('PM mood mapping covers all five legacy bands',()=>{
-  for(const [v,mood] of [[10,'good'],[30,'moderate'],[45,'unhealthy'],[70,'protective'],[120,'severe']]){
-    const raw=payload(); raw.pm25.value=v; raw.pm25.band=null; /* local authority decides */
+test('PM mood mapping covers all five 2026 tiers, decided by the 24h average',()=>{
+  for(const [avg,mood] of [[10,'good'],[18,'moderate'],[30,'unhealthy'],[45,'protective'],[120,'severe']]){
+    const raw=payload(); raw.pm25.value=avg; raw.pm25.avg24h=avg; raw.pm25.band=null;
     const got=w.normalizePayload(raw,now);
-    assert.equal(got.pm.moodKey,mood,String(v));
+    assert.equal(got.pm.moodKey,mood,'avg='+avg);
   }
 });
-test('a payload band string conflicting with the local derivation fails closed',()=>{
-  const raw=payload(); raw.pm25.value=40; raw.pm25.band='good'; /* local says moderate */
+test('a band string outside the 2026 vocabulary fails closed; in-vocabulary bands are preferred',()=>{
+  const raw=payload(); raw.pm25.band='hazard'; /* not in very_good/good/moderate/unhealthy_sensitive/unhealthy */
   const s=w.normalizePayload(raw,now);
   assert.equal(s.pm.status,'unavailable');
   assert.equal(s.pm.value,null);
-  assert.ok(s.errors.some(e=>String(e).startsWith('pm25-band-conflict:good')));
+  assert.ok(s.errors.some(e=>String(e).startsWith('pm25-band-conflict:hazard')));
+  /* a backend band in the vocabulary is authoritative (derived from the
+   * rounded 24h average) even when it differs from the hourly derivation */
   const okRaw=payload(); okRaw.pm25.value=40; okRaw.pm25.band='moderate';
-  assert.equal(w.normalizePayload(okRaw,now).pm.status,'ok');
+  const ok=w.normalizePayload(okRaw,now);
+  assert.equal(ok.pm.status,'ok');
+  assert.equal(ok.pm.moodKey,'unhealthy'); /* moderate -> ปานกลาง mood */
   const noBand=payload(); noBand.pm25.band=null;
-  assert.equal(w.normalizePayload(noBand,now).pm.status,'ok'); /* local authority decides */
+  assert.equal(w.normalizePayload(noBand,now).pm.status,'ok'); /* local 2026 cutoffs decide */
+});
+test('without a band, the fallback classifies the emitted avg24h, then the hourly value',()=>{
+  const byAvg=payload(); byAvg.pm25.band=null; byAvg.pm25.avg24h=80; /* hourly 22.4 would be 'good' */
+  const s=w.normalizePayload(byAvg,now);
+  assert.equal(s.pm.status,'ok');
+  assert.equal(s.pm.moodKey,'severe'); /* 80 > 75 -> unhealthy -> severe */
+  const byHourly=payload(); byHourly.pm25.band=null; byHourly.pm25.avg24h=null; /* legacy payload */
+  assert.equal(w.normalizePayload(byHourly,now).pm.moodKey,'moderate'); /* 22.4 -> good (2026) -> moderate mood */
+  const nothing=payload(); nothing.pm25.band=null; nothing.pm25.avg24h=-1; nothing.pm25.value=null;
+  const s3=w.normalizePayload(nothing,now);
+  assert.equal(s3.pm.status,'unavailable'); /* nothing usable -> fail closed, no zero */
+  assert.ok(s3.errors.includes('pm25-value'));
 });
 test('PM unit, value sanity and null handling never fabricate a reading',()=>{
   for(const [mutate,err] of [

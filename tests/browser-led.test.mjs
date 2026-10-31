@@ -123,7 +123,7 @@ test('Chrome: all six PM moods render from controlled fresh payloads', {skip: br
   try {
     const cases = [
       ['good', 'ดีมาก', '18'], ['moderate', 'ดี', '30'], ['unhealthy', 'ปานกลาง', '45'],
-      ['protective', 'เริ่มมีผลกระทบ', '70'], ['severe', 'มีผลกระทบ', '120'],
+      ['protective', 'เริ่มมีผลต่อสุขภาพ', '70'], ['severe', 'มีผลต่อสุขภาพ', '120'],
       ['unavailable', 'รอข้อมูล', '—'],
     ];
     for (const [mood, badge, text] of cases) {
