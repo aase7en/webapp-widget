@@ -920,12 +920,15 @@ var BackendApi = (function () {
 
   /* Scheduled every hour; preserve existing triggers and append each actual
    * observation once. Failed or repeated observations never invent a row. */
-  function hourlyHistory(event) {
+  function isHourlyAuthorized(event) {
     var uid = event && event.triggerUid != null ? String(event.triggerUid) : '';
     var scheduled = uid !== '' && ScriptApp.getProjectTriggers().some(function(t){
       return t.getHandlerFunction() === 'BackendApiPm25Hourly_' && String(t.getUniqueId()) === uid;
     });
-    if (!scheduled && !isOwnerSession()) throw new Error('hourly trigger not authorized');
+    return scheduled || isOwnerSession();
+  }
+  function hourlyHistory(event) {
+    if (!isHourlyAuthorized(event)) throw new Error('hourly trigger not authorized');
     var cfg = loadConfigSafe(); if (!cfg.ok) return;
     var lock = LockService.getScriptLock(); if (!lock.tryLock(15000)) return;
     try {
@@ -1462,7 +1465,7 @@ var BackendApi = (function () {
     canonicalLocationLabel: canonicalLocationLabel,
     parseThaiDateTime: parseThaiDateTime, gistdaObservedMs: gistdaObservedMs, band: band, freshness: freshness,
     loadConfig: loadConfigSafe, buildChannels: buildChannels, getCachedPm: function(cfg,now){return stripInternal(getChannelCached(cfg,'pm25',channelPm25,pm25Base,PM_TTL_S,now,false));},
-    doGet: doGet, historyBatch: historyBatch, hourlyHistory: hourlyHistory, installHourlyTrigger: installHourlyTrigger, gistdaPayload: gistdaPayload, setupSheets: setupSheets,
+    doGet: doGet, historyBatch: historyBatch, hourlyHistory: hourlyHistory, isHourlyAuthorized: isHourlyAuthorized, installHourlyTrigger: installHourlyTrigger, gistdaPayload: gistdaPayload, setupSheets: setupSheets,
     refreshCharts: refreshCharts, ensureChartsTab: ensureChartsTab,
     CHART_WINDOW_DAYS: CHART_WINDOW_DAYS,
     installTriggers: installTriggers,
@@ -1586,6 +1589,7 @@ function ledOwnerDiagnostics() {
 }
 
 function BackendApiPm25Hourly_(event) {
+  if (!BackendApi.isHourlyAuthorized(event)) throw new Error('hourly trigger not authorized');
   var result;
   try { result=BackendApi.hourlyHistory(event); }
   catch (e) { Logger.log('PM hourly history failed'); result={status:'unavailable'}; }
