@@ -13,7 +13,7 @@
 (function(root){
 'use strict';
 const SHEET_WATER='https://script.google.com/macros/s/AKfycbwwUQCeJoz4N0P9UuRJF39pt17mBjPz0_yMDDxTO7BoiUiTQaO7Yay0UKq80EvE6dk/exec?action=water_history';
-const FORECAST='https://api.open-meteo.com/v1/forecast';
+const SHEET_SNAPSHOT='https://script.google.com/macros/s/AKfycbwwUQCeJoz4N0P9UuRJF39pt17mBjPz0_yMDDxTO7BoiUiTQaO7Yay0UKq80EvE6dk/exec?action=snapshot_v1';
 const BKK_MS=7*60*60*1000;
 const stations={HDA004:471583,S5:2607};
 const LIVE_TTL_MS=180000,WATER_TTL_MS=15*60000,RETRY_AFTER_FAIL_MS=45000,STALE_KEEP_MS=3*3600000;
@@ -28,12 +28,6 @@ function freshBy(iso,tnow,maxAge){
  if(typeof iso!=='string')return false;
  const ms=Date.parse(iso);
  return Number.isFinite(ms)&&ms<=tnow+5*60000&&tnow-ms<=maxAge;
-}
-async function fetchJson(url,timeoutMs,tnow){
- const ctl=new AbortController(),timer=setTimeout(()=>ctl.abort(),timeoutMs);
- try{const res=await fetch(url,{cache:'no-store',signal:ctl.signal});
-  if(!res.ok)throw Error('source unavailable');return await res.json();
- }finally{clearTimeout(timer)}
 }
 function unavailableLive(){
  return {location:{id:'uthai'},pm25:{status:'unavailable'},weather:{status:'unavailable'},forecast:{status:'unavailable',hours:[]}};
@@ -70,13 +64,12 @@ async function live(opts){
  cache.livePending=(async()=>{
   const out=unavailableLive();let fcFrom=0;
   try{
-   // This is the repository's existing canonical fixed endpoint, including the
-   // tested one-shot JSONP fallback for CORS failures.
-   const D=root.UthaiLEDRotation;
-   if(!D||typeof D.requestBackendData!=='function')throw Error('no trusted backend');
-   const response=await D.requestBackendData(root.fetch.bind(root),tnow,{timeoutMs:12000});
-   if(!response.ok||!response.raw)throw Error('backend unavailable');
-   const payload=response.raw,loc=payload.location||{};
+   // Read only the fixed, owner-bound Sheet snapshot. No direct provider fallback.
+   const snapshot=await sheetsJsonp(12000,SHEET_SNAPSHOT);
+   if(!snapshot||snapshot.schema!==1||!snapshot.location||!snapshot.channels)throw Error('snapshot unavailable');
+   const channels=snapshot.channels;
+   const channel=name=>{const c=channels[name];return c&&freshBy(c.observedAt,tnow,STALE_KEEP_MS)&&freshBy(c.savedAt,tnow,STALE_KEEP_MS)&&c.data&&typeof c.data==='object'?c.data:null};
+   const payload={location:snapshot.location,pm25:channel('pm25'),weather:channel('weather')},loc=payload.location;
    if(loc.id!=='uthai'||!finite(loc.lat,14,15)||!finite(loc.lon,100,101))throw Error('wrong locality');
    out.location={id:'uthai',lat:loc.lat,lon:loc.lon};
    const pm=payload.pm25||{};
@@ -91,10 +84,7 @@ async function live(opts){
    }
    // Hourly forecast is a separate MODEL source; its failure cannot invalidate PM.
    try{
-    const q=new URLSearchParams({latitude:String(loc.lat),longitude:String(loc.lon),
-     current:'wind_speed_10m,is_day',hourly:'temperature_2m,precipitation_probability,weather_code',
-     daily:'sunrise,sunset',forecast_days:'2',timezone:'Asia/Bangkok'});
-    const f=await fetchJson(FORECAST+'?'+q.toString(),12000,tnow);
+    const f=channel('forecast');
     const hourly=f&&f.hourly?f.hourly:null;
     if(f&&f.timezone==='Asia/Bangkok'&&hourly&&Array.isArray(hourly.time)){
      const next=new Date(Math.floor((tnow+BKK_MS)/3600000)*3600000+3600000-BKK_MS);
@@ -151,7 +141,7 @@ function numeric(raw,lo,hi){
    JSONP handles ContentService redirects/CORS; callback id is generated here,
    and the response is strictly validated before any display. */
 let sheetSeq=0;
-function sheetsJsonp(timeoutMs){
+function sheetsJsonp(timeoutMs,endpoint){
  return new Promise((resolve,reject)=>{
   if(!root.document)return reject(Error('no DOM'));
   const cb='__uthWaterHistoryCb'+Date.now().toString(36)+(sheetSeq++).toString(36);
@@ -163,7 +153,7 @@ function sheetsJsonp(timeoutMs){
   root[cb]=payload=>done(null,payload);
   const timer=setTimeout(()=>done(Error('sheet timeout')),timeoutMs);
   script.onerror=()=>done(Error('sheet unavailable'));
-  script.src=SHEET_WATER+'&callback='+cb;
+  script.src=(endpoint||SHEET_WATER)+'&callback='+cb;
   root.document.head.appendChild(script);
  });
 }

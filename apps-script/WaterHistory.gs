@@ -81,13 +81,40 @@ var WaterHistory = (function () {
     var hour=Number(Utilities.formatDate(new Date(now),'Asia/Bangkok','H'));
     return Math.abs(hour-morning)<=2?'morning':Math.abs(hour-evening)<=2?'evening':null;
   }
-  function sync_(){
+  function pruneOwned_(sh,now){
+    /* Refuse row deletion if any other columns contain data. Only known
+       scheduled rows for the two stations may be removed; legacy/backfill,
+       malformed records and unknown statuses stay untouched. */
+    if(sh.getLastColumn()!==HEAD.length)return 0;
+    var last=sh.getLastRow(); if(last<2)return 0;
+    var rows=sh.getRange(2,1,last-1,HEAD.length).getValues(),end=-1,removed=0;
+    for(var i=rows.length-1;i>=-1;i--){
+      var r=i>=0?rows[i]:null,meta=r&&HII[String(r[4])],t=r&&obs_(r[8]);
+      var date=r&&(Object.prototype.toString.call(r[1])==='[object Date]'?Utilities.formatDate(r[1],'Asia/Bangkok','yyyy-MM-dd'):String(r[1])),slot=r&&String(r[2]);
+      var level=r&&num_(r[7],-50,200),bank=r&&num_(r[13],-50,200),ground=r&&num_(r[14],-100,200);
+      var fetched=r&&Date.parse(String(r[9])),saved=r&&Date.parse(String(r[17]));
+      // Only future rows marked by this hourly collector are owned. Existing
+      // mixed/manual/backfill records have no reliable ownership marker.
+      var eligible=!!(r&&meta&&slot==='hourly_v1'&&/^\d{4}-\d\d-\d\d$/.test(date)&&r[0]===date+':'+slot&&Number(r[5])===meta.id&&r[6]===meta.name&&r[3]==='uthai'&&r[11]==='ThaiWater/HII'&&r[12]===URL&&r[15]==='MSL'&&r[16]==='reference_station_not_hospital_sensor'&&['LATEST','HISTORICAL'].indexOf(r[10])>=0&&level!==null&&bank!==null&&ground!==null&&ground<bank&&isFinite(fetched)&&isFinite(saved)&&t&&fetched>=t.utcMs&&saved>=fetched&&saved-fetched<=300000&&t.utcMs<now-90*86400000&&saved<now-90*86400000);
+      if(eligible){if(end<0)end=i;}
+      else if(end>=0){sh.deleteRows(i+3,end-i);removed+=end-i;end=-1;}
+    }
+    return removed;
+  }
+  function sync_(hourly){
     var lock=LockService.getScriptLock();
     if(!lock.tryLock(20000))throw Error('SYNC_BUSY');
     try {
-      var now=Date.now(),slot=slot_(now);
+      var now=Date.now(),slot=hourly ? 'hourly_v1' : slot_(now);
       if(!slot)throw Error('OUTSIDE_APPROVED_2_DAILY_SLOTS');
       var sh=sheet_(),found={},errors=[];
+      /* Shared durable gate covers both the legacy twice-daily handler and
+         the hourly collector; failed requests also consume the hourly slot. */
+      var props=PropertiesService.getScriptProperties(), key='widget_water_attempt_ms_v1', raw=props.getProperty(key), last=raw===null?null:Number(raw);
+      if(raw!==null&&(!isFinite(last)||last>now+120000))throw Error('INVALID_WATER_ATTEMPT');
+      if(last!==null&&Math.floor(now/3600000)===Math.floor(last/3600000))return {stored:0,verified:0,sourceErrors:0,reason:'attempt_throttled'};
+      props.setProperty(key,String(now));
+      pruneOwned_(sh,now);
       // Fetch only canonical ThaiWater/HII. On API error, preserve already stored Sheet rows.
       // Never introduce a second upstream source or write a cached replay as a new observation.
       [URL].forEach(function(url){
@@ -167,6 +194,6 @@ var WaterHistory = (function () {
     }
     return ContentService.createTextOutput(j).setMimeType(ContentService.MimeType.JSON);
   }
-  return {parse:parse_,read:read_,web:web_,sync:sync_};
+  return {parse:parse_,read:read_,web:web_,sync:function(){return sync_(false)},syncHourly:function(){return sync_(true)}};
 })();
 function waterHistoryRead_(e){ return WaterHistory.web(e); }

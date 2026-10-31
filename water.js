@@ -2,7 +2,7 @@
    Measured local water levels remain UNAVAILABLE until an approved station API exists. */
 (function(root) {
   'use strict';
-  const ENDPOINT = 'https://flood-api.open-meteo.com/v1/flood';
+  const ENDPOINT = 'https://script.google.com/macros/s/AKfycbwwUQCeJoz4N0P9UuRJF39pt17mBjPz0_yMDDxTO7BoiUiTQaO7Yay0UKq80EvE6dk/exec?action=snapshot_v1';
   const REFRESH_MS = 30 * 60 * 1000;
   const ROTATE_MS = 10 * 1000;
   const STATIONS = [
@@ -40,25 +40,28 @@
                  typeof lon === 'number' && Number.isFinite(lon) ? [lat,lon] : null;
     return {state:'MODELLED',value:v,date:today,grid,reason:''};
   }
-  function forecastUrl() {
-    const u = new URL(ENDPOINT);
-    for (const [k,v] of Object.entries({
-      latitude:'14.36147', longitude:'100.64424', daily:'river_discharge',
-      forecast_days:'3', timezone:'Asia/Bangkok'
-    })) u.searchParams.set(k,v);
-    return u.toString();
+  function forecastUrl() { return ENDPOINT; }
+  let callbackSequence=0;
+  function snapshotJsonp() {
+    if(!root.document)return Promise.reject(Error('no document'));
+    return new Promise((resolve,reject)=>{
+      const callback='__uthFloodSnapshot'+Date.now().toString(36)+(callbackSequence++).toString(36),script=root.document.createElement('script');
+      let done=false;const finish=(err,data)=>{if(done)return;done=true;clearTimeout(timer);delete root[callback];script.remove();err?reject(err):resolve(data)};
+      const timer=setTimeout(()=>finish(Error('snapshot timeout')),12000);
+      root[callback]=data=>finish(null,data);script.onerror=()=>finish(Error('snapshot unavailable'));
+      script.src=ENDPOINT+'&callback='+callback;root.document.head.appendChild(script);
+    });
   }
   async function fetchForecast(request, clock) {
-    const ctl = new AbortController();
-    const timeout = setTimeout(() => ctl.abort(),12000);
     try {
-      const response = await request(forecastUrl(), {signal:ctl.signal,cache:'no-store'});
-      if (!response.ok) throw Error('Remote API failure');
-      const payload = await response.json();
-      return normalizeForecast(payload,clock());
-    } catch {
-      return {state:'UNAVAILABLE',value:null,date:null,grid:null,reason:'ดึงแบบจำลองไม่ได้'};
-    } finally {clearTimeout(timeout);}
+      let snapshot;
+      try { const response=await request(forecastUrl(),{cache:'no-store'});if(!response.ok)throw Error('snapshot HTTP error');snapshot=await response.json(); }
+      catch (e) { if(!(e instanceof TypeError))throw e;snapshot=await snapshotJsonp(); }
+      const forecast=snapshot&&snapshot.schema===1&&snapshot.location&&snapshot.location.id==='uthai'&&snapshot.channels&&snapshot.channels.forecast;
+      const flood=forecast&&forecast.data&&forecast.data.widgetFlood, now=clock(), stamp=flood&&Date.parse(flood.fetchedAt);
+      if(!flood||!Number.isFinite(stamp)||stamp>now.getTime()+120000||now.getTime()-stamp>3*3600000)throw Error('snapshot stale');
+      return normalizeForecast(flood.data,now);
+    } catch { return {state:'UNAVAILABLE',value:null,date:null,grid:null,reason:'ดึงแบบจำลองไม่ได้'}; }
   }
   function formatFlow(model) {
     return model.state === 'MODELLED' ? model.value.toFixed(1)+' m³/s' : 'ไม่มีข้อมูล';
