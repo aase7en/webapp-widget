@@ -15,17 +15,21 @@
 
 /* V4: center the warning below the reading and improve contrast behind the icon. */
 .temp{left:537px}.feel{left:537px;width:144px;justify-content:center;white-space:nowrap}
-/* Each CSS board pixel is one third of a native 432x40 LED pixel. */
-.icon{left:330px;top:-20px;width:211px;height:211px;filter:drop-shadow(0 1px 4px rgba(0,0,0,.68)) drop-shadow(0 0 8px rgba(2,8,20,.58)) drop-shadow(0 0 19px rgba(0,5,15,.52))}
-.icon[data-condition="night"]{left:333px;top:-7px;width:205px;height:205px}
-.icon[data-condition="cloudy"]{left:333px;top:-32px;width:205px;height:205px}
-.icon[data-condition="fog"]{left:330px;top:-35px;width:211px;height:211px}
-.icon[data-condition="wind"]{left:330px;top:-37px;width:211px;height:211px}
-.icon[data-condition="rain"],.icon[data-condition="thunderstorm"]{left:350px;top:-28px;width:170px;height:170px}
-.icon[data-condition="night-rain"],.icon[data-condition="night-thunderstorm"]{left:350px;top:-24px;width:170px;height:170px}
-.icon[data-condition="night-wind"]{left:333px;top:-24px;width:206px;height:206px}
+/* Each CSS board pixel is one third of a native 432x40 LED pixel.
+   Every condition's artwork spans y 8..100 — the exact height of the big
+   temperature reading (.temp top:8px, 92px line) — measured from each
+   poster's alpha bounds; boxes compensate artwork padding and stay clear
+   of the clock halo (x<262) and the reading (x>530). */
+.icon{left:346px;top:-2px;width:179px;height:179px;filter:drop-shadow(0 1px 4px rgba(0,0,0,.68)) drop-shadow(0 0 8px rgba(2,8,20,.58)) drop-shadow(0 0 19px rgba(0,5,15,.52))}
+.icon[data-condition="night"]{left:305px;top:-39px;width:262px;height:262px}
+.icon[data-condition="cloudy"]{left:213px;top:-155px;width:393px;height:393px}
+.icon[data-condition="fog"]{left:224px;top:-149px;width:380px;height:380px}
+.icon[data-condition="wind"]{left:292px;top:-117px;width:302px;height:302px}
+.icon[data-condition="rain"],.icon[data-condition="thunderstorm"]{left:353px;top:-46px;width:164px;height:164px}
+.icon[data-condition="night-rain"],.icon[data-condition="night-thunderstorm"]{left:370px;top:-15px;width:129px;height:129px}
+.icon[data-condition="night-wind"]{left:353px;top:-11px;width:155px;height:155px}
 
 html,body{margin:0;width:432px;height:40px;overflow:hidden;background:#000}.board{left:0;top:0;transform:scale(0.3333333333)}</style></head><body><section class="board" id="board" aria-label="สภาพอากาศจากแบบจำลอง Open-Meteo"><img class="scene" id="scene" alt=""><div class="clock"><span class="date" id="date"></span><span class="time" id="time"></span></div><img class="icon" id="icon" alt=""><img class="icon icon-poster" id="poster" alt=""><span class="heading">สภาพอากาศ</span><div class="temp"><span id="temp">—</span><small>°C</small></div><div class="feel"><span class="feel-value">รู้สึก <b id="feels">—</b></span><span class="heat-tag" id="advice" hidden></span></div><div class="stats"><div class="stat rain" aria-label="โอกาสฝน"><span class="rain-symbol" aria-hidden="true"><img src="weather-assets/drop.png" alt=""><img src="weather-assets/drop.png" alt=""><img src="weather-assets/drop.png" alt=""></span><b id="rain">—</b></div><div class="stat humidity" aria-label="ความชื้น"><img src="weather-assets/drop.png" alt=""><b id="humidity">—</b></div><div class="stat high" aria-label="อุณหภูมิสูงสุด"><img src="weather-assets/thermometer.png" alt=""><b id="high">—</b></div><div class="stat low" aria-label="อุณหภูมิต่ำสุด"><img src="weather-assets/thermometer.png" alt=""><b id="low">—</b></div></div><div class="forecast"><div class="forecast-title">พยากรณ์ 7 วัน · โอกาสฝนรายวัน*</div><div class="days" id="days"></div><svg class="graph" viewBox="0 0 350 20" preserveAspectRatio="none"><defs><linearGradient id="graphfill" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="350" y2="0"></linearGradient><linearGradient id="fade" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="white" stop-opacity=".85"/><stop offset="100%" stop-color="white" stop-opacity=".05"/></linearGradient><mask id="graphfade"><rect width="350" height="20" fill="url(#fade)"/></mask></defs><path id="area" mask="url(#graphfade)"/><path id="line" fill="none"/><g id="points"></g></svg></div></section>
 <script src="weather-snapshot.js"></script>
-<script src="weather-luxury.js?v=20261031-final-ui-4"></script>
+<script src="weather-luxury.js?v=20261101-final-ui-5"></script>
 </body></html>
