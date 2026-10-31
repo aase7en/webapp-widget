@@ -43,10 +43,13 @@ var HourlySnapshot = (function () {
     if (!f || f.timezone!=='Asia/Bangkok' || !f.current || !f.hourly || !Array.isArray(f.hourly.time) || !f.daily || !Array.isArray(f.daily.time)) throw Error('invalid forecast');
     return f;
   }
-  function collect(event) {
+  function authorized(event) {
     var uid=event && event.triggerUid != null ? String(event.triggerUid) : '';
     var scheduled=uid!=='' && ScriptApp.getProjectTriggers().some(function(t){return ['BackendApiSnapshotHourly_','BackendApiPm25Hourly_'].indexOf(t.getHandlerFunction())>=0 && String(t.getUniqueId())===uid;});
-    if (!scheduled && !BackendApi.isOwnerSession()) throw Error('snapshot caller not authorized');
+    return scheduled || BackendApi.isOwnerSession();
+  }
+  function collect(event) {
+    if (!authorized(event)) throw Error('snapshot caller not authorized');
     var cfg=BackendApi.loadConfig(); if (!cfg.ok || cfg.active.id!=='uthai') throw Error('snapshot config invalid');
     /* A durable attempt gate prevents duplicate provider requests even after a
        failed request or CacheService eviction. Lock only around the gate; the
@@ -127,11 +130,14 @@ var HourlySnapshot = (function () {
     return cb===undefined ? ContentService.createTextOutput(json).setMimeType(ContentService.MimeType.JSON) :
       ContentService.createTextOutput(cb+'('+json+');').setMimeType(ContentService.MimeType.JAVASCRIPT);
   }
-  return {collect:collect,read:read,web:web,validRow:validRow,prune:prune,HEADER:HEADER};
+  return {collect:collect,authorized:authorized,read:read,web:web,validRow:validRow,prune:prune,HEADER:HEADER};
 })();
 function BackendApiSnapshotHourly_(event) {
-  var result=HourlySnapshot.collect(event);
-  if(result.reason==='attempt_throttled')return result;
+  if(!HourlySnapshot.authorized(event))throw Error('snapshot caller not authorized');
+  var result;
+  try { result=HourlySnapshot.collect(event); } catch (_) { result={status:'unavailable'}; }
+  // Water has its own durable hourly gate; attempt even if the snapshot tab
+  // is unavailable, while preserving the same authorization boundary.
   try { result.water=WaterHistory.syncHourly(); } catch (_) { result.water={status:'unavailable'}; }
   return result;
 }

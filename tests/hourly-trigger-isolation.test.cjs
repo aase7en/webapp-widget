@@ -7,3 +7,9 @@ test('PM history exception does not prevent the weather and water snapshot colle
  let calls=0;const context={BackendApi:{hourlyHistory(){throw Error('sheet failure')}},BackendApiSnapshotHourly_(){calls++},Logger:{log(){}}};
  vm.runInNewContext(source.slice(start,end),context);let result=context.BackendApiPm25Hourly_({triggerUid:'fixture'});assert.equal(calls,1);assert.equal(result.status,'unavailable');
 });
+
+const snapshotSource=fs.readFileSync('apps-script/HourlySnapshot.gs','utf8');
+const snapshotStart=snapshotSource.indexOf('function BackendApiSnapshotHourly_(event) {');
+const snapshotEnd=snapshotSource.indexOf('\n/* Owner-only staged cutover',snapshotStart);
+test('snapshot storage failure does not suppress authorized water collection',()=>{let calls=0;const ctx={HourlySnapshot:{authorized:()=>true,collect(){throw Error('schema mismatch')}},WaterHistory:{syncHourly(){calls++;return {stored:1}}}};vm.runInNewContext(snapshotSource.slice(snapshotStart,snapshotEnd),ctx);let result=ctx.BackendApiSnapshotHourly_({triggerUid:'fixture'});assert.equal(calls,1);assert.equal(result.water.stored,1)});
+test('unauthorized caller cannot invoke water collection',()=>{let calls=0;const ctx={HourlySnapshot:{authorized:()=>false},WaterHistory:{syncHourly(){calls++}}};vm.runInNewContext(snapshotSource.slice(snapshotStart,snapshotEnd),ctx);assert.throws(()=>ctx.BackendApiSnapshotHourly_({}),/not authorized/);assert.equal(calls,0)});
