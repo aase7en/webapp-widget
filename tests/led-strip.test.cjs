@@ -133,8 +133,9 @@ test('approved documents are updated without touching backend surfaces',()=>{
   assert.doesNotMatch(led,/iframe source exactly unchanged/);
   const water=read('WATER-LED.md');
   assert.ok(water.length>0);
-  /* backend + README are NOT ours to touch in this wave */
-  assert.match(read('README.md'),/wrapper ที่ฝัง iframe/);
+  /* The current README describes the actual LED size and data sources. */
+  assert.match(read('README.md'),/432 × 40/);
+  assert.match(read('README.md'),/GISTDA/);
 });
 
 /* ---------- boot harness: real strip.js + real led-rotation.js, stub DOM ---------- */
