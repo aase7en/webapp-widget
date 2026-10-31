@@ -31,6 +31,10 @@ PM2.5 · สภาพอากาศ · ระดับน้ำสถานี�
 
 ### PM2.5 — ห้าระดับสี
 
+[<img src="docs/readme/brands/gistda.png" alt="โลโก้ GISTDA" width="105">](https://www.gistda.or.th/)
+
+**เครดิตข้อมูลหน้า PM2.5:** [GISTDA — เช็คฝุ่น](https://pm25.gistda.or.th/) ให้ข้อมูลค่าฝุ่นประมาณระดับพื้นที่; กราฟใช้ประวัติที่บันทึกใน Google Sheet ของโครงการ [ดูหน้า Widget](https://aase7en.github.io/webapp-widget/)
+
 | ฟ้า · ดีมาก | เขียว · ดี |
 | --- | --- |
 | ![ตัวอย่าง PM2.5 สีฟ้า ค่าจำลอง](docs/readme/screenshots/pm25-blue.png) | ![ตัวอย่าง PM2.5 สีเขียว ค่าจำลอง](docs/readme/screenshots/pm25-green.png) |
@@ -40,6 +44,10 @@ PM2.5 · สภาพอากาศ · ระดับน้ำสถานี�
 | ![ตัวอย่าง PM2.5 สีแดง ค่าจำลอง](docs/readme/screenshots/pm25-red.png) | |
 
 ### Weather — ไอคอนและฉากตามสภาพอากาศ
+
+[<img src="docs/readme/brands/open-meteo.png" alt="โลโก้ Open-Meteo" width="75">](https://open-meteo.com/)
+
+**เครดิตข้อมูลหน้า Weather:** [Open-Meteo Weather API](https://open-meteo.com/en/docs) ให้ข้อมูลและพยากรณ์จากแบบจำลอง โดยข้อมูลเผยแพร่ภายใต้ [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/) และอยู่ภายใต้ [เงื่อนไขบริการ](https://open-meteo.com/en/terms) [ดูหน้า Weather](https://aase7en.github.io/webapp-widget/v2/weather-luxury.html)
 
 ค่าทุกภาพในส่วนนี้เป็น **ข้อมูลจำลอง** เพื่อแสดงสภาพอากาศและหน้าตาแต่ละแบบ
 
@@ -55,7 +63,7 @@ PM2.5 · สภาพอากาศ · ระดับน้ำสถานี�
 
 </details>
 
-<details><summary><strong>สภาพอากาศกลางคืน — กดเพื่อดู</strong></summary>
+<details open><summary><strong>สภาพอากาศกลางคืน — กดเพื่อดู</strong></summary>
 
 | กลางคืน | ฝนกลางคืน |
 | --- | --- |
@@ -69,9 +77,13 @@ PM2.5 · สภาพอากาศ · ระดับน้ำสถานี�
 
 ### ระดับน้ำ — สถานีอ้างอิง
 
+[<img src="docs/readme/brands/hii.png" alt="โลโก้สถาบันสารสนเทศทรัพยากรน้ำ" width="110">](https://www.hii.or.th/)
+
+**เครดิตข้อมูลหน้าระดับน้ำ:** [ThaiWater / สถาบันสารสนเทศทรัพยากรน้ำ (HII)](https://www.thaiwater.net/) ให้บริการข้อมูลสถานีอ้างอิง HDA004 และ S.5 ผ่าน API; ประวัติที่แสดงอ่านผ่าน Google Sheet ของโครงการ [ดูหน้าระดับน้ำ](https://aase7en.github.io/webapp-widget/v2/water-luxury-live.html)
+
 ![ตัวอย่างหน้าระดับน้ำ บันทึกเมื่อ 31 ตุลาคม 2569](docs/readme/screenshots/water-live.png)
 
-<details><summary><strong>ตัวอย่างสถานะน้ำ — ข้อมูลจำลอง กดเพื่อดู</strong></summary>
+<details open><summary><strong>ตัวอย่างสถานะน้ำ — ข้อมูลจำลอง กดเพื่อดู</strong></summary>
 
 | ต่ำกว่าตลิ่ง | ถึงตลิ่ง |
 | --- | --- |
