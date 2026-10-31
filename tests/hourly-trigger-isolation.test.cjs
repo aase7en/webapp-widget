@@ -15,3 +15,8 @@ test('snapshot storage failure does not suppress authorized water collection',()
 test('unauthorized caller cannot invoke water collection',()=>{let calls=0;const ctx={HourlySnapshot:{authorized:()=>false},WaterHistory:{syncHourly(){calls++}}};vm.runInNewContext(snapshotSource.slice(snapshotStart,snapshotEnd),ctx);assert.throws(()=>ctx.BackendApiSnapshotHourly_({}),/not authorized/);assert.equal(calls,0)});
 
 test('untrusted PM trigger cannot start either collector',()=>{let pm=0,snapshot=0;const ctx={BackendApi:{isHourlyAuthorized:()=>false,hourlyHistory(){pm++}},BackendApiSnapshotHourly_(){snapshot++},Logger:{log(){}}};vm.runInNewContext(source.slice(start,end),ctx);assert.throws(()=>ctx.BackendApiPm25Hourly_({}),/not authorized/);assert.equal(pm,0);assert.equal(snapshot,0)});
+test('manual snapshot entry requires trusted owner before collector',()=>{
+ const start=snapshotSource.indexOf('function runWidgetSnapshotNow() {'),end=snapshotSource.indexOf('\nfunction enableWidgetSnapshotMode',start);let calls=0;
+ const ctx={BackendApi:{assertTrustedCaller(){throw Error('owner required')}},BackendApiSnapshotHourly_(){calls++}};
+ vm.runInNewContext(snapshotSource.slice(start,end),ctx);assert.throws(()=>ctx.runWidgetSnapshotNow(),/owner required/);assert.equal(calls,0);
+});

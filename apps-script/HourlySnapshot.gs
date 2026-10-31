@@ -155,3 +155,10 @@ function BackendApiDisableSnapshotMode_() {
   PropertiesService.getScriptProperties().deleteProperty('widget_snapshot_mode_v1');
   return {enabled:false};
 }
+
+/* Explicit owner-only editor entry points for a staged, verifiable rollout. */
+function runWidgetSnapshotNow() {
+  BackendApi.assertTrustedCaller('runWidgetSnapshotNow',true);
+  return BackendApiSnapshotHourly_();
+}
+function enableWidgetSnapshotMode() { return BackendApiEnableSnapshotMode_(); }
