@@ -52,6 +52,10 @@ var HourlySnapshot = (function () {
   function forecast(loc) {
     /* A public, hourly GitHub transport cache avoids the shared-IP limits of
        Apps Script. Sheet snapshots remain canonical; clients never call it.
+       The cache is accepted up to 4 h after ITS fetch: data currency is
+       governed by the payload's own observed_at (≤3 h, checked here and by
+       every consumer), never by fetched_at, so provider outages and missed
+       publisher runs degrade data age honestly instead of blanking the page.
        If the feed is absent or stale, make bounded direct attempts with
        backoff, re-checking the transport cache before each retry so a
        publisher that lands mid-run is preferred over hammering the provider.
@@ -68,7 +72,7 @@ var HourlySnapshot = (function () {
         if(cachedResponse.getResponseCode()===200){
           var feed=JSON.parse(cachedResponse.getContentText()),received=feed && Date.parse(feed.fetchedAt),f=feed && feed.data,now=Date.now();
           var observed=f && f.current && typeof f.current.time==='string' && /^\d{4}-\d\d-\d\dT\d\d:\d\d$/.test(f.current.time) ? Date.parse(f.current.time+'+07:00') : NaN;
-          if(feed && feed.schema===1 && feed.requestedLocation && feed.requestedLocation.lat===loc.lat && feed.requestedLocation.lon===loc.lon && isFinite(received) && received<=now+FUTURE_MS && now-received<=90*60000 && isFinite(observed) && observed<=now+FUTURE_MS && now-observed<=3*3600000 && validForecast(f)){
+          if(feed && feed.schema===1 && feed.requestedLocation && feed.requestedLocation.lat===loc.lat && feed.requestedLocation.lon===loc.lon && isFinite(received) && received<=now+FUTURE_MS && now-received<=4*3600000 && isFinite(observed) && observed<=now+FUTURE_MS && now-observed<=3*3600000 && validForecast(f)){
             f.widgetTransport={source:'Open-Meteo',via:'GitHub hourly transport cache',fetchedAt:feed.fetchedAt};
             return f;
           }

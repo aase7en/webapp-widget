@@ -54,7 +54,7 @@ test('fresh location-bound transport feed supplies weather without a direct fore
 
 test('wrong-location or stale transport feed is rejected and direct forecast remains available',()=>{
  const f={timezone:'Asia/Bangkok',current_units:{temperature_2m:'°C',relative_humidity_2m:'%'},current:{time:'2026-10-30T17:00',temperature_2m:30,relative_humidity_2m:70,weather_code:3},hourly:{time:[]},daily:{time:['2026-10-30']}};
- for(const cacheFeed of [{schema:1,requestedLocation:{lat:0,lon:0},fetchedAt:new Date(now).toISOString(),data:f},{schema:1,requestedLocation:{lat:14.36147,lon:100.64424},fetchedAt:new Date(now-91*60000).toISOString(),data:f}]){
+ for(const cacheFeed of [{schema:1,requestedLocation:{lat:0,lon:0},fetchedAt:new Date(now).toISOString(),data:f},{schema:1,requestedLocation:{lat:14.36147,lon:100.64424},fetchedAt:new Date(now-5*3600000).toISOString(),data:f}]){
   const h=setup([H],{owner:true,cacheFeed,forecast:f});assert.equal(h.api.collect({}).written,3);assert.equal(h.calls.fetches,4);assert.doesNotMatch(h.data.find(r=>r[3]==='forecast')[6],/GitHub hourly transport cache/);
  }
 });
