@@ -62,3 +62,11 @@ test('graph styling follows the PM tier and points stay compact',()=>{const x=st
 test('hourly reading colors the number and moves the marker independently of 24h status',()=>{const x=start();x.send({pm25:{status:'latest',value:32.2,avg24h:21.3,observedAt:freshISO(),unit:'µg/m³',band:'good'}});assert.equal(x.get('.badge').textContent,'ดี');assert.equal(x.get('#board').dataset.tier,'green');assert.equal(x.get('#board').style['--number-dark'],'#dba912');assert.ok(Math.abs(parseFloat(x.get('.scale-arrow').style.left)-51.52)<0.01);});
 
 test('unavailable hourly data removes the previous hourly number color',()=>{const x=start();x.send({pm25:{status:'latest',value:32.2,avg24h:21.3,observedAt:freshISO(),unit:'µg/m³'}});x.send({pm25:{status:'unavailable'}});assert.equal(x.get('#board').style['--number-dark'],'#778a9b');assert.equal(x.get('.scale-arrow').hidden,true)});
+
+test('value number paints above the PM2.5 watermark (label z4 < readout feathers z2 < number-line z6 < frame z7)',()=>{
+ const css=fs.readFileSync('v2/pm25-live.html','utf8');
+ assert.match(css,/\.pm-label\{position:absolute;z-index:4;/,'watermark stays at z 4');
+ assert.match(css,/\.readout\{z-index:auto;isolation:auto\}/,'readout must not stay a stacking context or it pins the number under the label');
+ assert.match(css,/\.readout::before\{z-index:2\}/,'readout feather keeps its old effective layer (above scene, below watermark)');
+ assert.match(css,/\.number-line\{z-index:6\}/,'number-line tops the watermark at every value and shrink-to-fit state');
+});
