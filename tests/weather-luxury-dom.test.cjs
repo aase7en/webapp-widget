@@ -184,14 +184,14 @@ test('a degraded payload after a good one keeps lastGood on screen (no blanking)
   assert.equal(r['#graphfill'].children.length, 7);
 });
 
-test('transport-cache workflow keeps two schedule chances plus push recovery', () => {
+test('transport-cache workflow keeps spread schedule chances plus push recovery', () => {
   const wf = fs.readFileSync(WORKFLOW, 'utf8');
   const crons = wf.match(/cron: '[0-9*, ]+'/g) || [];
-  assert.ok(crons.length >= 2, 'at least two cron chances per hour');
-  assert.match(wf, /cron: '23 \* \* \* \*'/);
-  assert.match(wf, /cron: '49 \* \* \* \*'/);
-  assert.match(wf, /push:\s*\n\s*branches: \[main\]/, 'every main push retries the cache when the hour has no feed');
+  assert.ok(crons.length >= 4, 'at least four spread cron chances per hour');
+  for (const minute of ['6', '21', '36', '51']) assert.match(wf, new RegExp(`cron: '${minute} \\* \\* \\* \\*'`), ':' + minute + ' chance present');
+  assert.match(wf, /push:\s*\n\s*branches: \[main\]/, 'every main push retries the cache when the feed is stale');
   assert.match(wf, /workflow_dispatch/, 'owner can force a refresh');
   const gate = fs.readFileSync(path.join(__dirname, '..', 'scripts', 'build-weather-feed.mjs'), 'utf8');
-  assert.match(gate, /isFreshSameHour/, 'hourly gate dedupes provider fetches');
+  assert.match(gate, /isFreshEnough/, 'age-based gate dedupes provider fetches');
+  assert.match(gate, /fetchForecastWithRetry/, 'transport failures retry with backoff');
 });
