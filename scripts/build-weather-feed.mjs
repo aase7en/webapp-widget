@@ -24,15 +24,43 @@ export function validateForecast(f,now=Date.now()){
  if(!Number.isFinite(f.latitude)||!Number.isFinite(f.longitude)||Math.abs(f.latitude-LAT)>.3||Math.abs(f.longitude-LON)>.3)throw Error('provider grid is too far from requested location');
  if(JSON.stringify(f).length>44000)throw Error('forecast exceeds Sheet cell budget');return f;
 }
-export function isFreshSameHour(feed,now=Date.now()){
- const t=Date.parse(feed?.fetchedAt);if(feed?.schema!==1||feed?.requestedLocation?.lat!==LAT||feed?.requestedLocation?.lon!==LON||!Number.isFinite(t)||t>now+120000||Math.floor(t/3600000)!==Math.floor(now/3600000))return false;
+/* Freshness gate for re-fetching: a prior SUCCESS keeps the feed fresh for
+ * 50 minutes (consumers accept ≤90). Age-based, NOT clock-hour based:
+ * GitHub drops scheduled runs for hours at a time (2026-11-01 outage), so
+ * a success from the previous clock hour must not block a recovery fetch
+ * now, and a failed attempt must never block a retry that a later trigger
+ * manages to fire. Provider load stays bounded: at most one real fetch per
+ * ~50 minutes no matter how many triggers land. */
+export function isFreshEnough(feed,now=Date.now()){
+ const t=Date.parse(feed?.fetchedAt);if(feed?.schema!==1||feed?.requestedLocation?.lat!==LAT||feed?.requestedLocation?.lon!==LON||!Number.isFinite(t)||t>now+120000||now-t>50*60000)return false;
  try{validateForecast(feed.data,now);return true}catch(_){return false}
+}
+export async function fetchForecast(deps={}){
+ const doFetch=deps.fetch||((u,o)=>fetch(u,o));
+ const ctrl=new AbortController(),timer=setTimeout(()=>ctrl.abort(),20000);
+ try{const res=await doFetch(URL,{signal:ctrl.signal,headers:{accept:'application/json'}});
+  if(!res.ok)throw Error('Open-Meteo HTTP '+res.status);
+  return await res.json();
+ }finally{clearTimeout(timer)}
+}
+/* Transport failures (HTTP errors, timeouts) retry with backoff; deterministic
+ * validation failures do not (a malformed feed will not heal by hammering). */
+export async function fetchForecastWithRetry(deps={}){
+ const attempts=deps.attempts||3,wait=deps.sleep||(ms=>new Promise(r=>setTimeout(r,ms))),backoff=deps.backoff||[20000,40000];
+ let lastError;
+ for(let i=0;i<attempts;i++){
+  let raw;
+  try{raw=await fetchForecast(deps)}
+  catch(e){lastError=e;if(i===attempts-1)throw e;await wait(backoff[i]??backoff[backoff.length-1]);continue}
+  return validateForecast(raw,deps.now);
+ }
+ throw lastError;
 }
 export async function main(){
  const dest=process.argv[2],old=process.argv[3];if(!dest)throw Error('output path required');
- if(old){try{const last=JSON.parse(await readFile(old,'utf8'));if(isFreshSameHour(last)){console.log('Already fetched in this clock hour; retaining previous feed.');return}}catch(_){/* absent first run */}}
- const ctrl=new AbortController(),timer=setTimeout(()=>ctrl.abort(),20000);let res;try{res=await fetch(URL,{signal:ctrl.signal,headers:{accept:'application/json'}})}finally{clearTimeout(timer)}
- if(!res.ok)throw Error('Open-Meteo HTTP '+res.status);
- const f=validateForecast(await res.json()),feed={schema:1,requestedLocation:{lat:LAT,lon:LON},fetchedAt:new Date().toISOString(),data:f};await writeFile(dest,JSON.stringify(feed)+'\n','utf8');console.log('Validated Open-Meteo feed:',f.current.time);
+ let prior=null;try{prior=JSON.parse(await readFile(old,'utf8'))}catch(_){/* absent first run */}
+ if(isFreshEnough(prior)){console.log('Feed is still fresh ('+prior.fetchedAt+'); retaining it.');return}
+ const f=await fetchForecastWithRetry(),feed={schema:1,requestedLocation:{lat:LAT,lon:LON},fetchedAt:new Date().toISOString(),data:f};
+ await writeFile(dest,JSON.stringify(feed)+'\n','utf8');console.log('Validated Open-Meteo feed:',f.current.time);
 }
 if(process.argv[1]&&import.meta.url===pathToFileURL(process.argv[1]).href)main().catch(e=>{console.error('Weather feed not updated:',e.message);process.exitCode=1});

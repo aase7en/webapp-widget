@@ -1,13 +1,16 @@
 name: Uthai weather transport cache
 on:
   schedule:
-    # Two chances per hour: GitHub drops scheduled runs under load (this
-    # outage began when every :23 run was discarded for ~6 h on 2026-11-01),
-    # and Apps Script reads near :56. The one-attempt-per-hour gate in
-    # build-weather-feed.mjs keeps provider load at one fetch per clock hour
-    # no matter how often the workflow fires.
-    - cron: '23 * * * *'
-    - cron: '49 * * * *'
+    # Four chances per hour: GitHub drops or delays scheduled runs for hours
+    # at a time (2026-11-01: zero deliveries 06:32Z→10:58Z despite :23/:49),
+    # and Apps Script reads near :56. Two independent safety nets keep provider
+    # load tiny: build-weather-feed.mjs skips a firing while the feed is under
+    # 50 minutes old, and each run retries a failed provider request at most
+    # twice. Spread away from :56 and off the crowded quarter-hour marks.
+    - cron: '6 * * * *'
+    - cron: '21 * * * *'
+    - cron: '36 * * * *'
+    - cron: '51 * * * *'
   push:
     branches: [main]
   workflow_dispatch:

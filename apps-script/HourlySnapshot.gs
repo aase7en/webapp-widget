@@ -52,27 +52,38 @@ var HourlySnapshot = (function () {
   function forecast(loc) {
     /* A public, hourly GitHub transport cache avoids the shared-IP limits of
        Apps Script. Sheet snapshots remain canonical; clients never call it.
-       If the feed is absent or stale, make one normal direct attempt. */
-    try {
-      var cachedResponse=UrlFetchApp.fetch(WEATHER_FEED_URL,{muteHttpExceptions:true,followRedirects:true});
-      if(cachedResponse.getResponseCode()===200){
-        var feed=JSON.parse(cachedResponse.getContentText()),received=feed && Date.parse(feed.fetchedAt),f=feed && feed.data,now=Date.now();
-        var observed=f && f.current && typeof f.current.time==='string' && /^\d{4}-\d\d-\d\dT\d\d:\d\d$/.test(f.current.time) ? Date.parse(f.current.time+'+07:00') : NaN;
-        if(feed && feed.schema===1 && feed.requestedLocation && feed.requestedLocation.lat===loc.lat && feed.requestedLocation.lon===loc.lon && isFinite(received) && received<=now+FUTURE_MS && now-received<=90*60000 && isFinite(observed) && observed<=now+FUTURE_MS && now-observed<=3*3600000 && validForecast(f)){
-          f.widgetTransport={source:'Open-Meteo',via:'GitHub hourly transport cache',fetchedAt:feed.fetchedAt};
-          return f;
-        }
-      }
-    } catch (_) { /* direct path remains available */ }
+       If the feed is absent or stale, make bounded direct attempts with
+       backoff, re-checking the transport cache before each retry so a
+       publisher that lands mid-run is preferred over hammering the provider.
+       A 200 body with an invalid shape is deterministic and fails fast. */
     var url=FORECAST_URL+'?latitude='+encodeURIComponent(String(loc.lat))+'&longitude='+encodeURIComponent(String(loc.lon))+
       '&current=temperature_2m,relative_humidity_2m,weather_code,wind_speed_10m,is_day,apparent_temperature,uv_index,wind_gusts_10m'+
       '&hourly=temperature_2m,relative_humidity_2m,apparent_temperature,precipitation_probability,weather_code,uv_index,wind_speed_10m,wind_gusts_10m'+
       '&daily=sunrise,sunset,temperature_2m_max,temperature_2m_min,uv_index_max,precipitation_probability_max,weather_code&forecast_days=7&timezone=Asia%2FBangkok';
-    var response=UrlFetchApp.fetch(url,{muteHttpExceptions:true,followRedirects:true});
-    if (response.getResponseCode()!==200) { var failure=Error('forecast unavailable'); failure.httpStatus=response.getResponseCode(); throw failure; }
-    var f=JSON.parse(response.getContentText());
-    if (!validForecast(f)) throw Error('invalid forecast');
-    return f;
+    var lastFailure=null;
+    for (var attempt=0;attempt<3;attempt++) {
+      if (attempt) Utilities.sleep(attempt===1?20000:40000);
+      try {
+        var cachedResponse=UrlFetchApp.fetch(WEATHER_FEED_URL,{muteHttpExceptions:true,followRedirects:true});
+        if(cachedResponse.getResponseCode()===200){
+          var feed=JSON.parse(cachedResponse.getContentText()),received=feed && Date.parse(feed.fetchedAt),f=feed && feed.data,now=Date.now();
+          var observed=f && f.current && typeof f.current.time==='string' && /^\d{4}-\d\d-\d\dT\d\d:\d\d$/.test(f.current.time) ? Date.parse(f.current.time+'+07:00') : NaN;
+          if(feed && feed.schema===1 && feed.requestedLocation && feed.requestedLocation.lat===loc.lat && feed.requestedLocation.lon===loc.lon && isFinite(received) && received<=now+FUTURE_MS && now-received<=90*60000 && isFinite(observed) && observed<=now+FUTURE_MS && now-observed<=3*3600000 && validForecast(f)){
+            f.widgetTransport={source:'Open-Meteo',via:'GitHub hourly transport cache',fetchedAt:feed.fetchedAt};
+            return f;
+          }
+        }
+      } catch (_) { /* direct path remains available */ }
+      var response=null;
+      try { response=UrlFetchApp.fetch(url,{muteHttpExceptions:true,followRedirects:true}); }
+      catch (e) { lastFailure=e; continue; }
+      var code=response.getResponseCode();
+      if (code!==200) { lastFailure=Error('forecast unavailable'); lastFailure.httpStatus=code; continue; }
+      var direct=JSON.parse(response.getContentText());
+      if (!validForecast(direct)) throw Error('invalid forecast');
+      return direct;
+    }
+    throw lastFailure || Error('forecast unavailable');
   }
   function authorized(event) {
     var uid=event && event.triggerUid != null ? String(event.triggerUid) : '';
