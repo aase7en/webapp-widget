@@ -14,6 +14,24 @@ test('physical 432x40 water-only view contains two reference stations with no fi
  assert.doesNotMatch(ui+js,/(?:numberSample|statusSample|แสดงค่าตัวอย่าง|TEST_FIXTURE|2\.87\s*ม\.|3\.17\s*ม\.)/);
  assert.doesNotMatch(js,/(?:fetch\(['"]https:\/\/api-v3|new XMLHttpRequest|localStorage)/);
 });
+test('water css version stays in sync across its page link and the rotation embed',()=>{
+ const frame=rot.match(/water-luxury-live\.html\?v=([\w-]+)/),sheet=ui.match(/water-luxury-live\.css\?v=([\w-]+)/);
+ assert.ok(frame&&sheet,'both water embeds must be versioned');assert.equal(frame[1],sheet[1]);
+});
+test('clock paints above all gate and foam animation layers from the initial stylesheet render',()=>{
+ const rules=(css.match(/[^{}]+\{[^}]*\}/g)||[]).map(rule=>{const b=rule.indexOf('{');
+  return{sel:rule.slice(0,b).trim(),body:rule.slice(b)}});
+ const zOf=sel=>rules.filter(r=>r.sel.split(',').map(s=>s.trim()).includes(sel))
+  .flatMap(r=>(r.body.match(/z-index:(-?\d+)/g)||[]).map(v=>Number(v.slice(8))));
+ const clockZ=zOf('.widget.v3 .clock');
+ assert.ok(clockZ.length>=2,'clock must declare its stacking order');
+ for(const layer of['.widget.v3 .foam-front','.widget.v3 #stationA','.widget.v3 #stationB','.widget.v3 .station .art-zone']){
+  const zs=zOf(layer);
+  assert.ok(zs.length>=1,layer+' must declare z-index');
+  assert.ok(Math.min(...clockZ)>Math.max(...zs),layer+' ('+Math.max(...zs)+') must stay under the clock ('+Math.min(...clockZ)+')');
+ }
+ assert.doesNotMatch(js,/zIndex|insertBefore|replaceChild/); // static CSS decides layering before any script runs
+});
 test('client uses only canonical old bounded Sheet backend and never claims live or flood safety',()=>{
  assert.match(ui,/api-client\.js/);assert.match(js,/UthApiClient\.getWater\(\)/);
  assert.match(js,/reading\.observedAt/);assert.match(js,/historical/);

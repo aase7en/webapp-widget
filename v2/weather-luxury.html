@@ -6,32 +6,54 @@
 .heading{display:none}.temp{top:8px;left:489px;font-size:92px;letter-spacing:-6px;line-height:1;background:linear-gradient(180deg,#fff 0%,#c9f9ff 42%,#42c6ed 100%);-webkit-background-clip:text;background-clip:text;color:transparent;text-shadow:none}.temp small{font-size:25px;letter-spacing:0;vertical-align:14px}
 .feel{left:491px;bottom:5px;display:flex;gap:5px;align-items:center;font-size:14px}.feel-value,.heat-tag{border-radius:6px;padding:2px 6px;line-height:1.15;font-weight:850}.feel-value{background:#06223c;border:1px solid #3c8db3;color:#d4f4ff}.feel-value b{color:#ffbb95}.heat-tag{background:#61340b;border:1px solid #e4a340;color:#ffdda2}.heat-tag[hidden]{display:none}
 .stats{left:704px;top:9px;width:200px;height:102px;gap:0;grid-template-columns:1fr 1fr}.stat{border-left:1px solid #377795;display:flex;flex-direction:row;align-items:center;justify-content:flex-start;padding-left:7px;gap:3px}.stat:nth-child(n+3){border-top:1px solid #377795}.stat img{height:31px;width:23px;object-fit:contain}.stat b{font-size:23px;line-height:1;letter-spacing:-1px;text-shadow:none}.stat.rain b{color:#8ee9ff}.stat.humidity b{color:#7ce7df}.stat.high b{color:#ff9c7c}.stat.low b{color:#8ad8ff}.stat.low img{filter:hue-rotate(175deg) saturate(1.25)}
-.forecast{left:919px;right:10px;top:7px;bottom:7px;padding:4px 5px;background:#06182db5}.forecast-title{display:none}.days{height:100%;position:relative;z-index:2}.day{font-size:11px;line-height:1.05}.day .forecast-icon{display:block;width:32px;height:27px;object-fit:contain;margin:0 auto}.day b{font-size:13px;color:#ffad8a;line-height:1}.day .rain-chance{position:absolute;bottom:2px;transform:translateX(-50%);font-size:10px;color:#b7eaff;white-space:nowrap}.day .rain-chance img{width:8px;height:11px;vertical-align:-2px;object-fit:contain}.graph{left:10px;right:10px;top:61px;bottom:auto;width:calc(100% - 20px);height:20px;z-index:1}.graph path#area{fill:url(#graphfill)}.graph path#line{stroke:url(#graphfill);stroke-width:2.5}.graph circle{fill:#f7ffff;stroke:#7be6ff;stroke-width:1}
+.forecast{left:919px;right:10px;top:7px;bottom:7px;padding:4px 5px;background:#06182db5}.forecast-title{display:none}.days{height:100%;position:relative;z-index:2}.day{font-size:11px;line-height:1.05}.day .forecast-icon{display:block;height:26px;margin:0 auto;background-repeat:no-repeat}.day b{font-size:13px;color:#ffad8a;line-height:1}.day .rain-chance{position:absolute;bottom:2px;transform:translateX(-50%);font-size:10px;color:#b7eaff;white-space:nowrap}.day .rain-chance img{width:8px;height:11px;vertical-align:-2px;object-fit:contain}.graph{left:10px;right:10px;top:61px;bottom:auto;width:calc(100% - 20px);height:20px;z-index:1}.graph path#area{fill:url(#graphfill)}.graph path#line{stroke:url(#graphfill);stroke-width:2.5}.graph circle{fill:#f7ffff;stroke:#7be6ff;stroke-width:1}
 
 /* V3: bring the reading and weather art closer to the rain column. */
 .temp{left:525px}.feel{left:527px}.icon{left:354px}
 .rain-symbol{width:23px;height:32px;position:relative;flex:none}.stat .rain-symbol img{position:absolute;object-fit:contain;width:12px;height:16px}.rain-symbol img:nth-child(1){left:0;top:6px}.rain-symbol img:nth-child(2){left:7px;top:0}.rain-symbol img:nth-child(3){left:13px;top:9px}
 .stat.humidity img{filter:hue-rotate(270deg) saturate(1.7) brightness(1.12)}
 
+/* V5: forecast mini icons reuse the same luxury 3D poster assets, fitted to
+   each poster's alpha bounds so the visible art fills a uniform 26px slot
+   instead of shrinking inside the 128px transparent canvas (object-fit at
+   32x27 showed cloudy/fog/wind art only ~6-8px tall). Wide flat arts cap at
+   48.5px column width and anchor to the slot bottom. JS sets the condition;
+   these rules crop the exact art region via background-size/position. */
+.day .forecast-icon[data-condition="partly-cloudy"]{width:30.3px;background-image:url(weather-assets/partly-cloudy-poster.png);background-size:49.7px;background-position:-9.7px -2.3px}
+.day .forecast-icon[data-condition="cloudy"]{width:48.5px;background-image:url(weather-assets/cloudy-poster.png);background-size:79.6px;background-position:-15.5px -25.6px}
+.day .forecast-icon[data-condition="fog"]{width:48.5px;background-image:url(weather-assets/fog-poster.png);background-size:79.6px;background-position:-15.5px -26.2px}
+.day .forecast-icon[data-condition="night"]{width:39px;background-image:url(weather-assets/night-poster.png);background-size:64px;background-position:-12.5px -8px}
+.day .forecast-icon[data-condition="night-rain"]{width:20.7px;background-image:url(weather-assets/night-rain-poster.png);background-size:34px;background-position:-6.4px -4.2px}
+.day .forecast-icon[data-condition="night-thunderstorm"]{width:20.7px;background-image:url(weather-assets/night-thunderstorm-poster.png);background-size:34px;background-position:-6.4px -4.2px}
+.day .forecast-icon[data-condition="night-wind"]{width:34.1px;background-image:url(weather-assets/night-wind-poster.png);background-size:43.2px;background-position:0 -5.1px}
+.day .forecast-icon[data-condition="rain"]{width:28.2px;background-image:url(weather-assets/rain-poster.png);background-size:46.2px;background-position:-8.7px -15.2px}
+.day .forecast-icon[data-condition="thunderstorm"]{width:28.2px;background-image:url(weather-assets/thunderstorm-poster.png);background-size:46.2px;background-position:-8.7px -15.2px}
+.day .forecast-icon[data-condition="wind"]{width:48.5px;background-image:url(weather-assets/wind-poster.png);background-size:61.5px;background-position:0 -18.2px}
+
 /* V4: center the warning below the reading and improve contrast behind the icon. */
 .temp{left:537px}.feel{left:537px;width:144px;justify-content:center;white-space:nowrap}
 /* Each CSS board pixel is one third of a native 432x40 LED pixel.
    Boxes come from each poster's alpha bounds. Sun-and-cloud art grew 20%
-   over the 179px original (215px box). The four rain ensembles are larger
-   again and their visible art now starts near y14.5 — roughly two native
-   display pixels lower than before — while every bottom edge stays above
-   y119 inside the 120px board. Boxes stay clear of the clock halo (x<262)
-   and the reading (x>530). */
+   over the 179px original (215px box). Boxes stay clear of the clock halo
+   (x<262) and the reading (x>530). Night rain/thunderstorm and night wind
+   were measured across all 96 APNG frames (alpha>=25 union): the rain
+   pair's art already spans y6.4..118.9 of the 120px board, so the requested
+   +30% (146px art height) cannot fit at any offset — it is 26px taller
+   than the board; the owner then explicitly approved the max-fit
+   unclipped alternative: 147→156 (+6.1%) with every mid/solid row
+   inside the clip (art 0.5..119.9, center shifted up 6 board px). Night wind art spans y8.4..100.4, so
+   155→200 (+29%) fits with its visible art center moved down exactly
+   2 native px (54.4→60.4; art 1.0..119.8). */
 .icon{left:328px;top:-4px;width:215px;height:215px;filter:drop-shadow(0 1px 4px rgba(0,0,0,.68)) drop-shadow(0 0 8px rgba(2,8,20,.58)) drop-shadow(0 0 19px rgba(0,5,15,.52))}
 .icon[data-condition="night"]{left:305px;top:-39px;width:262px;height:262px}
 .icon[data-condition="cloudy"]{left:213px;top:-155px;width:393px;height:393px}
 .icon[data-condition="fog"]{left:224px;top:-149px;width:380px;height:380px}
 .icon[data-condition="wind"]{left:292px;top:-117px;width:302px;height:302px}
 .icon[data-condition="rain"],.icon[data-condition="thunderstorm"]{left:343px;top:-46px;width:185px;height:185px}
-.icon[data-condition="night-rain"],.icon[data-condition="night-thunderstorm"]{left:362px;top:-12px;width:147px;height:147px}
-.icon[data-condition="night-wind"]{left:353px;top:-11px;width:155px;height:155px}
+.icon[data-condition="night-rain"],.icon[data-condition="night-thunderstorm"]{left:358px;top:-19px;width:156px;height:156px}
+.icon[data-condition="night-wind"]{left:329px;top:-24px;width:200px;height:200px}
 
 html,body{margin:0;width:432px;height:40px;overflow:hidden;background:#000}.board{left:0;top:0;transform:scale(0.3333333333)}</style></head><body><section class="board" id="board" aria-label="สภาพอากาศจากแบบจำลอง Open-Meteo"><img class="scene" id="scene" alt=""><div class="clock"><span class="date" id="date"></span><span class="time" id="time"></span></div><img class="icon" id="icon" alt=""><img class="icon icon-poster" id="poster" alt=""><span class="heading">สภาพอากาศ</span><div class="temp"><span id="temp">—</span><small>°C</small></div><div class="feel"><span class="feel-value">รู้สึก <b id="feels">—</b></span><span class="heat-tag" id="advice" hidden></span></div><div class="stats"><div class="stat rain" aria-label="โอกาสฝน"><span class="rain-symbol" aria-hidden="true"><img src="weather-assets/drop.png" alt=""><img src="weather-assets/drop.png" alt=""><img src="weather-assets/drop.png" alt=""></span><b id="rain">—</b></div><div class="stat humidity" aria-label="ความชื้น"><img src="weather-assets/drop.png" alt=""><b id="humidity">—</b></div><div class="stat high" aria-label="อุณหภูมิสูงสุด"><img src="weather-assets/thermometer.png" alt=""><b id="high">—</b></div><div class="stat low" aria-label="อุณหภูมิต่ำสุด"><img src="weather-assets/thermometer.png" alt=""><b id="low">—</b></div></div><div class="forecast"><div class="forecast-title">พยากรณ์ 7 วัน · โอกาสฝนรายวัน*</div><div class="days" id="days"></div><svg class="graph" viewBox="0 0 350 20" preserveAspectRatio="none"><defs><linearGradient id="graphfill" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="350" y2="0"></linearGradient><linearGradient id="fade" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="white" stop-opacity=".85"/><stop offset="100%" stop-color="white" stop-opacity=".05"/></linearGradient><mask id="graphfade"><rect width="350" height="20" fill="url(#fade)"/></mask></defs><path id="area" mask="url(#graphfade)"/><path id="line" fill="none"/><g id="points"></g></svg></div></section>
 <script src="weather-snapshot.js"></script>
-<script src="weather-luxury.js?v=20261101-final-ui-7"></script>
+<script src="weather-luxury.js?v=20261101-live-fix-1"></script>
 </body></html>
