@@ -38,7 +38,7 @@ function makeEl(tag) {
   return el;
 }
 
-function harness(initialFixture) {
+function harness(initialFixture, seedStorage) {
   const registry = {};
   for (const sel of ['#temp', '#feels', '#advice', '#rain', '#humidity', '#high', '#low',
     '#days', '#graphfill', '#line', '#area', '#points', '#time', '#date', '.temp',
@@ -62,6 +62,13 @@ function harness(initialFixture) {
     Date, Math, console, Intl,
     addEventListener() {},
   };
+  const storage = new Map();
+  if (seedStorage) for (const [k, v] of seedStorage) storage.set(k, v);
+  ctx.localStorage = {
+    getItem: k => storage.has(k) ? storage.get(k) : null,
+    setItem: (k, v) => storage.set(k, String(v)),
+    removeItem: k => storage.delete(k),
+  };
   ctx.window = ctx;
   ctx.globalThis = ctx;
   doc.head.appendChild = node => {
@@ -73,10 +80,16 @@ function harness(initialFixture) {
   vm.runInContext(fs.readFileSync(LUXURY_SRC, 'utf8'), ctx, { filename: 'weather-luxury.js' });
   const flush = () => Promise.all([new Promise(r => setImmediate(r)), new Promise(r => setImmediate(r))]);
   return {
-    registry, flush,
+    registry, storage, flush,
     setFixture(next) { fixture = next; },
     refresh: () => { const r = intervals.find(x => x.ms === 300000); assert.ok(r, 'refresh interval registered'); return r.fn(); },
   };
+}
+
+/* Boot a fresh instance with pre-seeded storage (simulates a reload during a
+ * backend outage): no refresh is driven, only the boot path. */
+function bootWithStorage(storage) {
+  return harness(degradedPayload(Date.now()), storage);
 }
 
 /* Payload builders use the REAL backend envelope (schema 1, channels map,
@@ -184,11 +197,51 @@ test('a degraded payload after a good one keeps lastGood on screen (no blanking)
   assert.equal(r['#graphfill'].children.length, 7);
 });
 
+test('a good payload is persisted to localStorage for reload survival', async () => {
+  const h = harness(degradedPayload(Date.now()));
+  await h.flush();
+  h.setFixture(goodPayload(Date.now()));
+  h.refresh();
+  await h.flush();
+  const raw = h.storage.get('uth-weather-last-good');
+  assert.ok(raw, 'last good payload stored');
+  const parsed = JSON.parse(raw);
+  assert.equal(parsed.channels.weather.data.temperatureC, 31.6);
+  const blank = harness(degradedPayload(Date.now()));
+  await blank.flush();
+  assert.equal(blank.storage.has('uth-weather-last-good'), false, 'degraded payloads are never stored');
+});
+
+test('a fresh persisted payload paints at boot before any refresh', async () => {
+  const good = goodPayload(Date.now());
+  const storage = new Map([['uth-weather-last-good', JSON.stringify(good)]]);
+  const originalHarness = harness;
+  const h = bootWithStorage(storage);
+  await h.flush();
+  const r = h.registry;
+  assert.equal(r['#temp'].textContent, '32', 'restored last good weather at boot');
+  assert.equal(r['#icon'].dataset.condition, 'rain');
+  assert.equal(r['#graphfill'].children.length, 7);
+});
+
+test('a stale persisted payload is ignored, never presented as current', async () => {
+  const stale = goodPayload(Date.now() - 4 * 3600000);
+  const h = bootWithStorage(new Map([['uth-weather-last-good', JSON.stringify(stale)]]));
+  await h.flush();
+  assert.equal(h.registry['#temp'].textContent, '—', 'parse freshness gate rejects stale storage');
+});
+
+test('corrupt stored JSON is ignored', async () => {
+  const h = bootWithStorage(new Map([['uth-weather-last-good', '{not json']]));
+  await h.flush();
+  assert.equal(h.registry['#temp'].textContent, '—');
+});
+
 test('transport-cache workflow keeps spread schedule chances plus push recovery', () => {
   const wf = fs.readFileSync(WORKFLOW, 'utf8');
   const crons = wf.match(/cron: '[0-9*, ]+'/g) || [];
   assert.ok(crons.length >= 4, 'at least four spread cron chances per hour');
-  for (const minute of ['6', '21', '36', '51']) assert.match(wf, new RegExp(`cron: '${minute} \\* \\* \\* \\*'`), ':' + minute + ' chance present');
+  for (const minute of ['06', '21', '36', '51']) assert.match(wf, new RegExp(`cron: '${minute} \\* \\* \\* \\*'`), ':' + minute + ' chance present');
   assert.match(wf, /push:\s*\n\s*branches: \[main\]/, 'every main push retries the cache when the feed is stale');
   assert.match(wf, /workflow_dispatch/, 'owner can force a refresh');
   const gate = fs.readFileSync(path.join(__dirname, '..', 'scripts', 'build-weather-feed.mjs'), 'utf8');

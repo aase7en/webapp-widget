@@ -7,7 +7,7 @@ on:
     # load tiny: build-weather-feed.mjs skips a firing while the feed is under
     # 50 minutes old, and each run retries a failed provider request at most
     # twice. Spread away from :56 and off the crowded quarter-hour marks.
-    - cron: '6 * * * *'
+    - cron: '06 * * * *'
     - cron: '21 * * * *'
     - cron: '36 * * * *'
     - cron: '51 * * * *'
