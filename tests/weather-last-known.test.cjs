@@ -58,3 +58,19 @@ test('historical parser never accepts unknown status or missing source observati
  r.channels.weather.data.status='ok';r.channels.weather.observedAt='invalid';
  assert.equal(parse(r,now,{allowHistorical:true}).temperatureC,null);
 });
+
+
+test('transport is robust to harmless coordinate rounding but rejects inconsistent daily array sizes',()=>{
+ const f=feed();
+ f.requestedLocation.lat=14.36147001;f.requestedLocation.lon=100.64423999;
+ assert.ok(fromTransport(f,now));
+ f.data.daily.weather_code.pop();
+ assert.equal(fromTransport(f,now),null);
+});
+test('missing humidity stays unknown rather than dropping a valid observed temperature',()=>{
+ const f=feed(),r=fromTransport(f,now);
+ r.channels.weather.data.humidityPct=null;
+ const d=parse(r,now,{allowHistorical:true});
+ assert.equal(d.temperatureC,28.4);
+ assert.equal(d.humidityPct,null);
+});

@@ -19,10 +19,11 @@ function clock(){let d=new Date();$('#time').textContent=new Intl.DateTimeFormat
 function heat(t,rh){if(!Number.isFinite(t)||!Number.isFinite(rh))return null;let f=t*9/5+32,h=(.5*(f+61+1.2*(f-68)+.094*rh)+f)/2;if(h>=80){h=-42.379+2.04901523*f+10.14333127*rh-.22475541*f*rh-.00683783*f*f-.05481717*rh*rh+.00122874*f*f*rh+.00085282*f*rh*rh-.00000199*f*f*rh*rh;if(rh<13&&f>=80&&f<=112)h-=(13-rh)/4*Math.sqrt((17-Math.abs(f-95))/17);if(rh>85&&f>=80&&f<=87)h+=(rh-85)/10*((87-f)/5)}return (h-32)*5/9}
 function paint(d){
  const stamp=$('#source-at'),old=!!d.historical&&!!d.observedAt;
- if(stamp){stamp.hidden=!old;stamp.textContent=old?'ข้อมูล ณ '+new Intl.DateTimeFormat('th-TH',{timeZone:'Asia/Bangkok',day:'2-digit',month:'2-digit',year:'2-digit',hour:'2-digit',minute:'2-digit',hour12:false}).format(new Date(d.observedAt)):'';}
+ const observedLabel=d.observedAt?new Intl.DateTimeFormat('th-TH',{timeZone:'Asia/Bangkok',day:'2-digit',month:'2-digit',year:'2-digit',hour:'2-digit',minute:'2-digit',hour12:false}).format(new Date(d.observedAt)):'';
+ if(stamp){stamp.hidden=!old;stamp.textContent=old?'ข้อมูล ณ '+observedLabel:'';}
  const feeling=$('.feel-value');if(feeling)feeling.hidden=old;
  const board=$('#board');if(board){board.dataset.freshness=old?'HISTORICAL':Number.isFinite(d.temperatureC)?'MODEL_LATEST':'UNAVAILABLE';
-  board.setAttribute('aria-label',Number.isFinite(d.temperatureC)?'สภาพอากาศแบบจำลอง Open-Meteo ข้อมูล ณ '+d.observedAt:'สภาพอากาศยังไม่มีข้อมูล');}
+  board.setAttribute('aria-label',Number.isFinite(d.temperatureC)?'สภาพอากาศแบบจำลอง Open-Meteo ข้อมูล ณ '+observedLabel:'สภาพอากาศยังไม่มีข้อมูล');}
  const digits=Number.isFinite(d.temperatureC)?String(Math.round(d.temperatureC)).length:1;$('.temp').style.fontSize=(digits>=4?60:digits>=3?70:92)+'px';const h=heat(d.temperatureC,d.humidityPct);d.advice=d.historical?null:h>=40?'ระวังร้อนจัด':h>=33?'ระวังร้อน':null;draw(d);const id=d.icon;if(id&&scenes[id]){if($('#icon').dataset.condition!==id){$('#scene').src='weather-assets/'+scenes[id]+'.webp';$('#icon').src='weather-assets/'+id+'.apng';$('#poster').src='weather-assets/'+id+'-poster.png';$('#icon').dataset.condition=id;$('#poster').dataset.condition=id}}else{$('#scene').removeAttribute('src');$('#icon').removeAttribute('src');$('#poster').removeAttribute('src');delete $('#icon').dataset.condition;delete $('#poster').dataset.condition}}
 const LAST_GOOD_KEY='uth-weather-last-good';
 const FEED_URL='https://raw.githubusercontent.com/aase7en/webapp-widget/weather-data/weather.json';
@@ -87,6 +88,7 @@ async function refresh(){
    const response=await snapshotJsonp(),parsed=UthWeatherSnapshot.parse(response,Date.now());
    sheetIsFresh=isNumber(parsed.temperatureC);
    accept(response);
+   display(); // Paint any valid Sheet observation immediately; do not wait for a slow fallback.
   }catch(_){/* a failed JSONP read is not a new zero or unavailable value */}
   // A successful owner-bound Sheet read always wins when fresh. The published
   // weather-data branch is a bounded, read-only transport continuity fallback,

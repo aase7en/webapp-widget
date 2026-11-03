@@ -22,7 +22,9 @@ function parse(raw,now,options){
   observedAt:raw.channels.weather.observedAt,
   provenance:'Open-Meteo weather model',
   historical:now-Date.parse(raw.channels.weather.observedAt)>FRESH};
- if(d.temperatureC===null||d.humidityPct===null)return none;
+ // A valid temperature is useful even when humidity is genuinely absent:
+ // preserve the last measured/modelled field and leave unknown humidity null.
+ if(d.temperatureC===null)return none;
  if(!f||f.timezone!=='Asia/Bangkok')return d;
  let cur=f.current||{},daily=f.daily||{},hourly=f.hourly||{};
  if((f.current_units||{}).temperature_2m!=='°C'||(f.current_units||{}).relative_humidity_2m!=='%')return d;
@@ -54,7 +56,7 @@ function parse(raw,now,options){
  * Preserve the model observation time instead of pretending the cache is live. */
 function fromTransport(feed,now){
  const loc=feed&&feed.requestedLocation,f=feed&&feed.data,c=f&&f.current;
- if(feed?.schema!==1||!loc||loc.lat!==14.36147||loc.lon!==100.64424||!f||
+ if(feed?.schema!==1||!loc||!Number.isFinite(loc.lat)||!Number.isFinite(loc.lon)||Math.abs(loc.lat-14.36147)>1e-4||Math.abs(loc.lon-100.64424)>1e-4||!f||
    f.timezone!=='Asia/Bangkok'||!c||!f.current_units||!f.daily||!f.hourly||
    f.current_units.temperature_2m!=='°C'||f.current_units.relative_humidity_2m!=='%')return null;
  const fetched=Date.parse(feed.fetchedAt);
@@ -69,7 +71,11 @@ function fromTransport(feed,now){
  if(!Array.isArray(f.daily.time)||!Array.isArray(f.hourly.time)||!Array.isArray(f.daily.temperature_2m_max)||
    !Array.isArray(f.daily.temperature_2m_min)||!Array.isArray(f.daily.precipitation_probability_max)||
    !Array.isArray(f.daily.weather_code)||!Array.isArray(f.hourly.precipitation_probability)||
-   f.hourly.time.length!==f.hourly.precipitation_probability.length||f.hourly.time.length===0)return null;
+   f.hourly.time.length!==f.hourly.precipitation_probability.length||f.hourly.time.length===0||
+   f.daily.time.length!==f.daily.temperature_2m_max.length||
+   f.daily.time.length!==f.daily.temperature_2m_min.length||
+   f.daily.time.length!==f.daily.precipitation_probability_max.length||
+   f.daily.time.length!==f.daily.weather_code.length)return null;
  const iso=new Date(observed).toISOString();
  return {schema:1,location:{id:'uthai',lat:loc.lat,lon:loc.lon},
   channels:{weather:{observedAt:iso,savedAt:feed.fetchedAt,data:{
