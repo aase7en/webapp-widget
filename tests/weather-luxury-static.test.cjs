@@ -63,17 +63,17 @@ test('paint() sets dataset.condition on the reduced-motion poster too',()=>{
  assert.match(js,/\$\('#icon'\)\.dataset\.condition=id/);
 });
 
-test('cache versions bumped to 20261101-live-fix-4 across the embed chain',()=>{
-  assert.match(html,/weather-luxury\.js\?v=20261101-live-fix-4/,'weather-luxury.js embed in its own page');
+test('cache versions bumped to 20261104-lastknown-1 across the embed chain',()=>{
+  assert.match(html,/weather-luxury\.js\?v=20261104-lastknown-1/,'weather-luxury.js embed in its own page');
   assert.match(html,/src="weather-snapshot\.js"/,'snapshot adapter stays unversioned (pinned by tests)');
   const screen=fs.readFileSync(path.join(ROOT,'v2/index.html'),'utf8');
-  assert.match(screen,/weather-luxury\.html\?v=20261101-live-fix-4/,'v2/index.html weather embed');
+  assert.match(screen,/weather-luxury\.html\?v=20261104-lastknown-1/,'v2/index.html weather embed');
   const root=fs.readFileSync(path.join(ROOT,'index.html'),'utf8');
-  assert.match(root,/v2\/index\.html\?display=led&amp;v=20261101-live-fix-4/,'root index.html switcher embed');
+  assert.match(root,/v2\/index\.html\?display=led&amp;v=20261104-lastknown-1/,'root index.html switcher embed');
   const demoHtml=fs.readFileSync(path.join(ROOT,'demo/final-ui-review.html'),'utf8');
-  assert.match(demoHtml,/final-ui-review\.js\?v=20261101-live-fix-4/,'demo page script embed');
+  assert.match(demoHtml,/final-ui-review\.js\?v=20261104-lastknown-1/,'demo page script embed');
   const demo=fs.readFileSync(path.join(ROOT,'demo/final-ui-review.js'),'utf8');
-  assert.match(demo,/\.\.\/v2\/weather-luxury\.html\?v=20261101-live-fix-4/,'demo fetches the current weather document');
+  assert.match(demo,/\.\.\/v2\/weather-luxury\.html\?v=20261104-lastknown-1/,'demo fetches the current weather document');
 });
 
 test('temperature trend renders with fewer than seven days after midnight',()=>{

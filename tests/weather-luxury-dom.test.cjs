@@ -224,11 +224,13 @@ test('a fresh persisted payload paints at boot before any refresh', async () => 
   assert.equal(r['#graphfill'].children.length, 7);
 });
 
-test('a stale persisted payload is ignored, never presented as current', async () => {
+test('a stale persisted payload remains visible with its original observation time', async () => {
   const stale = goodPayload(Date.now() - 4 * 3600000);
   const h = bootWithStorage(new Map([['uth-weather-last-good', JSON.stringify(stale)]]));
   await h.flush();
-  assert.equal(h.registry['#temp'].textContent, '—', 'parse freshness gate rejects stale storage');
+  assert.equal(h.registry['#temp'].textContent, '32', 'last observed model value stays visible');
+  assert.equal(h.registry['#board'].dataset.freshness,'HISTORICAL','stale is never labeled live');
+  assert.equal(h.registry['#source-at'].hidden,false,'observation-time cue appears instead of a stale warning');
 });
 
 test('corrupt stored JSON is ignored', async () => {

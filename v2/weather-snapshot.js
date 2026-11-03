@@ -3,7 +3,7 @@
 'use strict';
 const FRESH=3*3600000, FUTURE=5*60000;
 const number=(v,lo,hi)=>typeof v==='number'&&Number.isFinite(v)&&v>=lo&&v<=hi?v:null;
-function fresh(v,now){const t=typeof v==='string'?Date.parse(v):NaN;return Number.isFinite(t)&&t<=now+FUTURE&&now-t<=FRESH;}
+function fresh(v,now,allowHistorical=false){const t=typeof v==='string'?Date.parse(v):NaN;return Number.isFinite(t)&&t<=now+FUTURE&&(allowHistorical||now-t<=FRESH);}
 function condition(c,day,wind){
  if(!Number.isInteger(c)||![0,1,2,3,45,48,51,53,55,56,57,61,63,65,66,67,80,81,82,95,96,99].includes(c))return null;
  const rain=c>=51&&c<=82, storm=c>=95;
@@ -11,19 +11,24 @@ function condition(c,day,wind){
  if(day!==1)return null;
  return storm?'thunderstorm':rain?'rain':c===45||c===48?'fog':number(wind,0,300)!==null&&wind>=40?'wind':c===3?'cloudy':'partly-cloudy';
 }
-function parse(raw,now){
+function parse(raw,now,options){
+ const allowHistorical=options&&options.allowHistorical===true;
  const none={temperatureC:null,humidityPct:null,feelsC:null,rainPct:null,high:null,low:null,icon:null,days:[]};
  if(!raw||raw.schema!==1||(!raw.location||raw.location.id!=='uthai')||number(raw.location.lat,14,15)===null||number(raw.location.lon,100,101)===null||!raw.channels)return none;
- const channel=n=>{let c=raw.channels[n];return c&&fresh(c.observedAt,now)&&fresh(c.savedAt,now)&&c.data&&typeof c.data==='object'?c.data:null};
+ const channel=n=>{let c=raw.channels[n];return c&&fresh(c.observedAt,now,allowHistorical)&&fresh(c.savedAt,now,allowHistorical)&&c.data&&typeof c.data==='object'?c.data:null};
  let w=channel('weather'), f=channel('forecast');
- if(!w||w.status!=='ok'||!fresh(w.observedAt,now))return none;
- let d={...none,temperatureC:number(w.temperatureC,-40,65),humidityPct:number(w.humidityPct,0,100)};
+ if(!w||w.status!=='ok'||!fresh(w.observedAt,now,allowHistorical))return none;
+ let d={...none,temperatureC:number(w.temperatureC,-40,65),humidityPct:number(w.humidityPct,0,100),
+  observedAt:raw.channels.weather.observedAt,
+  provenance:'Open-Meteo weather model',
+  historical:now-Date.parse(raw.channels.weather.observedAt)>FRESH};
+ if(d.temperatureC===null||d.humidityPct===null)return none;
  if(!f||f.timezone!=='Asia/Bangkok')return d;
  let cur=f.current||{},daily=f.daily||{},hourly=f.hourly||{};
  if((f.current_units||{}).temperature_2m!=='°C'||(f.current_units||{}).relative_humidity_2m!=='%')return d;
  const currentTime=typeof cur.time==='string'&&/^\d{4}-\d\d-\d\dT\d\d:\d\d$/.test(cur.time)?cur.time:null;
  const observed=currentTime?Date.parse(currentTime+'+07:00'):NaN;
- if(!Number.isFinite(observed)||observed>now+FUTURE||now-observed>FRESH||Math.abs(observed-Date.parse(w.observedAt))>15*60000)return d;
+ if(!Number.isFinite(observed)||observed>now+FUTURE||(!allowHistorical&&now-observed>FRESH)||Math.abs(observed-Date.parse(w.observedAt))>15*60000)return d;
  d.feelsC=number(cur.apparent_temperature,-50,80);
  d.icon=condition(w.weatherCode,cur.is_day,cur.wind_speed_10m);
  // Hourly probability describes the displayed Bangkok clock hour, even
@@ -44,5 +49,35 @@ function parse(raw,now){
  }
  d.high=d.days.length?d.days[0].hi:null;d.low=d.days.length?d.days[0].lo:null;return d;
 }
-const api={parse,condition};if(typeof module!=='undefined'&&module.exports)module.exports=api;else root.UthWeatherSnapshot=api;
+/* The public GitHub weather-data branch is a read-only transport fallback;
+ * the canonical operational store remains the existing Google Sheet.
+ * Preserve the model observation time instead of pretending the cache is live. */
+function fromTransport(feed,now){
+ const loc=feed&&feed.requestedLocation,f=feed&&feed.data,c=f&&f.current;
+ if(feed?.schema!==1||!loc||loc.lat!==14.36147||loc.lon!==100.64424||!f||
+   f.timezone!=='Asia/Bangkok'||!c||!f.current_units||!f.daily||!f.hourly||
+   f.current_units.temperature_2m!=='°C'||f.current_units.relative_humidity_2m!=='%')return null;
+ const fetched=Date.parse(feed.fetchedAt);
+ if(!Number.isFinite(fetched)||fetched>now+FUTURE)return null;
+ if(typeof c.time!=='string'||!/^\d{4}-\d\d-\d\dT\d\d:\d\d$/.test(c.time))return null;
+ const observed=Date.parse(c.time+'+07:00');
+ if(!Number.isFinite(observed)||observed>now+FUTURE||observed>fetched+FUTURE)return null;
+ if(number(c.temperature_2m,-40,65)===null||number(c.relative_humidity_2m,0,100)===null||
+   !Number.isInteger(c.weather_code)||c.weather_code<0||c.weather_code>99)return null;
+ if(!Number.isFinite(f.latitude)||!Number.isFinite(f.longitude)||
+   Math.abs(f.latitude-loc.lat)>.3||Math.abs(f.longitude-loc.lon)>.3)return null;
+ if(!Array.isArray(f.daily.time)||!Array.isArray(f.hourly.time)||!Array.isArray(f.daily.temperature_2m_max)||
+   !Array.isArray(f.daily.temperature_2m_min)||!Array.isArray(f.daily.precipitation_probability_max)||
+   !Array.isArray(f.daily.weather_code)||!Array.isArray(f.hourly.precipitation_probability)||
+   f.hourly.time.length!==f.hourly.precipitation_probability.length||f.hourly.time.length===0)return null;
+ const iso=new Date(observed).toISOString();
+ return {schema:1,location:{id:'uthai',lat:loc.lat,lon:loc.lon},
+  channels:{weather:{observedAt:iso,savedAt:feed.fetchedAt,data:{
+   status:'ok',temperatureC:c.temperature_2m,humidityPct:c.relative_humidity_2m,
+   weatherCode:c.weather_code,observedAt:iso,source:'Open-Meteo weather model via GitHub transport cache'}},
+   forecast:{observedAt:iso,savedAt:feed.fetchedAt,data:f}},
+  transport:'github-weather-data',originalObservation:iso};
+}
+
+const api={parse,condition,fromTransport};if(typeof module!=='undefined'&&module.exports)module.exports=api;else root.UthWeatherSnapshot=api;
 })(typeof window==='undefined'?globalThis:window);

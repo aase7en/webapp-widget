@@ -60,7 +60,7 @@
 
   async function buildWeatherPreview() {
     if(weatherTemplate) return weatherTemplate;
-    const htmlUrl=new URL('../v2/weather-luxury.html?v=20261101-live-fix-4',location.href), response=await fetch(htmlUrl);
+    const htmlUrl=new URL('../v2/weather-luxury.html?v=20261104-lastknown-1',location.href), response=await fetch(htmlUrl);
     if(!response.ok)throw Error('weather document unavailable');
     const html=await response.text();
     const tag=html.match(/<script\s+src="(weather-luxury\.js(?:\?[^"]*)?)"><\/script>/);
