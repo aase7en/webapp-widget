@@ -38,7 +38,7 @@ function makeEl(tag) {
   return el;
 }
 
-function harness(initialFixture, seedStorage) {
+function harness(initialFixture, seedStorage, fetchImpl) {
   const registry = {};
   for (const sel of ['#temp', '#feels', '#advice', '#rain', '#humidity', '#high', '#low',
     '#days', '#graphfill', '#line', '#area', '#points', '#time', '#date', '.temp',
@@ -62,6 +62,7 @@ function harness(initialFixture, seedStorage) {
     Date, Math, console, Intl,
     addEventListener() {},
   };
+  if (fetchImpl) ctx.fetch = fetchImpl;
   const storage = new Map();
   if (seedStorage) for (const [k, v] of seedStorage) storage.set(k, v);
   ctx.localStorage = {
@@ -224,11 +225,13 @@ test('a fresh persisted payload paints at boot before any refresh', async () => 
   assert.equal(r['#graphfill'].children.length, 7);
 });
 
-test('a stale persisted payload is ignored, never presented as current', async () => {
+test('a stale persisted payload remains visible with its original observation time', async () => {
   const stale = goodPayload(Date.now() - 4 * 3600000);
   const h = bootWithStorage(new Map([['uth-weather-last-good', JSON.stringify(stale)]]));
   await h.flush();
-  assert.equal(h.registry['#temp'].textContent, '—', 'parse freshness gate rejects stale storage');
+  assert.equal(h.registry['#temp'].textContent, '32', 'last observed model value stays visible');
+  assert.equal(h.registry['#board'].dataset.freshness,'HISTORICAL','stale is never labeled live');
+  assert.equal(h.registry['#source-at'].hidden,false,'observation-time cue appears instead of a stale warning');
 });
 
 test('corrupt stored JSON is ignored', async () => {
@@ -247,4 +250,40 @@ test('transport-cache workflow keeps spread schedule chances plus push recovery'
   const gate = fs.readFileSync(path.join(__dirname, '..', 'scripts', 'build-weather-feed.mjs'), 'utf8');
   assert.match(gate, /isFreshEnough/, 'age-based gate dedupes provider fetches');
   assert.match(gate, /fetchForecastWithRetry/, 'transport failures retry with backoff');
+});
+
+
+test('cold-start with a degraded Sheet uses older validated public transport as historical, then fresh Sheet wins', async () => {
+  const now = Date.now(), oldNow = now - 8*3600000;
+  const forecast = goodPayload(oldNow).channels.forecast.data;
+  forecast.latitude = 14.376099; forecast.longitude = 100.66667;
+  forecast.current.temperature_2m = 31.6;
+  forecast.current.relative_humidity_2m = 61;
+  forecast.current.weather_code = 63;
+  const feed = { schema:1, requestedLocation:{lat:14.36147,lon:100.64424},
+    fetchedAt:new Date(oldNow+60000).toISOString(),data:forecast };
+  let fetchCalls=0;
+  const h = harness(degradedPayload(now), null, async () => {
+    fetchCalls++;
+    return {ok:true,json:async()=>feed};
+  });
+  await h.flush(); await h.flush();
+  assert.equal(h.registry['#temp'].textContent,'32','historical temperature from real-shaped transport');
+  assert.equal(h.registry['#board'].dataset.freshness,'HISTORICAL');
+  assert.equal(h.registry['#source-at'].hidden,false);
+  assert.equal(fetchCalls,1,'only one fallback read, no direct weather provider calls');
+  h.setFixture(goodPayload(Date.now()));
+  h.refresh();
+  await h.flush(); await h.flush();
+  assert.equal(h.registry['#temp'].textContent,'32');
+  assert.equal(h.registry['#board'].dataset.freshness,'MODEL_LATEST');
+  assert.equal(h.registry['#source-at'].hidden,true);
+  assert.equal(fetchCalls,1,'fresh canonical Sheet wins without extra transport request');
+});
+test('stale-but-valid Sheet snapshot is painted before a slow fallback completes',async()=>{
+  const stale=goodPayload(Date.now()-8*3600000);
+  const h=harness(stale,null,()=>new Promise(()=>{}));
+  await h.flush();
+  assert.equal(h.registry['#temp'].textContent,'32','show latest available from Sheet immediately');
+  assert.equal(h.registry['#board'].dataset.freshness,'HISTORICAL');
 });

@@ -17,22 +17,90 @@ const API='https://script.google.com/macros/s/AKfycbwwUQCeJoz4N0P9UuRJF39pt17mBj
 const scenes={'partly-cloudy':'clear',cloudy:'cloudy',rain:'rain',thunderstorm:'thunderstorm',fog:'fog',wind:'cloudy',night:'night','night-rain':'night','night-wind':'night','night-thunderstorm':'night'};
 function clock(){let d=new Date();$('#time').textContent=new Intl.DateTimeFormat('th-TH',{timeZone:'Asia/Bangkok',hour:'2-digit',minute:'2-digit',hour12:false}).format(d);$('#date').textContent=new Intl.DateTimeFormat('th-TH',{timeZone:'Asia/Bangkok',weekday:'short',day:'numeric',month:'short',year:'2-digit'}).format(d)}
 function heat(t,rh){if(!Number.isFinite(t)||!Number.isFinite(rh))return null;let f=t*9/5+32,h=(.5*(f+61+1.2*(f-68)+.094*rh)+f)/2;if(h>=80){h=-42.379+2.04901523*f+10.14333127*rh-.22475541*f*rh-.00683783*f*f-.05481717*rh*rh+.00122874*f*f*rh+.00085282*f*rh*rh-.00000199*f*f*rh*rh;if(rh<13&&f>=80&&f<=112)h-=(13-rh)/4*Math.sqrt((17-Math.abs(f-95))/17);if(rh>85&&f>=80&&f<=87)h+=(rh-85)/10*((87-f)/5)}return (h-32)*5/9}
-function paint(d){const digits=Number.isFinite(d.temperatureC)?String(Math.round(d.temperatureC)).length:1;$('.temp').style.fontSize=(digits>=4?60:digits>=3?70:92)+'px';const h=heat(d.temperatureC,d.humidityPct);d.advice=h>=40?'ระวังร้อนจัด':h>=33?'ระวังร้อน':null;draw(d);const id=d.icon;if(id&&scenes[id]){if($('#icon').dataset.condition!==id){$('#scene').src='weather-assets/'+scenes[id]+'.webp';$('#icon').src='weather-assets/'+id+'.apng';$('#poster').src='weather-assets/'+id+'-poster.png';$('#icon').dataset.condition=id;$('#poster').dataset.condition=id}}else{$('#scene').removeAttribute('src');$('#icon').removeAttribute('src');$('#poster').removeAttribute('src');delete $('#icon').dataset.condition;delete $('#poster').dataset.condition}}
+function paint(d){
+ const stamp=$('#source-at'),old=!!d.historical&&!!d.observedAt;
+ const observedLabel=d.observedAt?new Intl.DateTimeFormat('th-TH',{timeZone:'Asia/Bangkok',day:'2-digit',month:'2-digit',year:'2-digit',hour:'2-digit',minute:'2-digit',hour12:false}).format(new Date(d.observedAt)):'';
+ if(stamp){stamp.hidden=!old;stamp.textContent=old?'ข้อมูล ณ '+observedLabel:'';}
+ const feeling=$('.feel-value');if(feeling)feeling.hidden=old;
+ const board=$('#board');if(board){board.dataset.freshness=old?'HISTORICAL':Number.isFinite(d.temperatureC)?'MODEL_LATEST':'UNAVAILABLE';
+  board.setAttribute('aria-label',Number.isFinite(d.temperatureC)?'สภาพอากาศแบบจำลอง Open-Meteo ข้อมูล ณ '+observedLabel:'สภาพอากาศยังไม่มีข้อมูล');}
+ const digits=Number.isFinite(d.temperatureC)?String(Math.round(d.temperatureC)).length:1;$('.temp').style.fontSize=(digits>=4?60:digits>=3?70:92)+'px';const h=heat(d.temperatureC,d.humidityPct);d.advice=d.historical?null:h>=40?'ระวังร้อนจัด':h>=33?'ระวังร้อน':null;draw(d);const id=d.icon;if(id&&scenes[id]){if($('#icon').dataset.condition!==id){$('#scene').src='weather-assets/'+scenes[id]+'.webp';$('#icon').src='weather-assets/'+id+'.apng';$('#poster').src='weather-assets/'+id+'-poster.png';$('#icon').dataset.condition=id;$('#poster').dataset.condition=id}}else{$('#scene').removeAttribute('src');$('#icon').removeAttribute('src');$('#poster').removeAttribute('src');delete $('#icon').dataset.condition;delete $('#poster').dataset.condition}}
 const LAST_GOOD_KEY='uth-weather-last-good';
-function store(data){try{localStorage.setItem(LAST_GOOD_KEY,JSON.stringify(data))}catch(_){/* storage optional; in-memory lastGood still covers the session */}}
-function stored(){try{const raw=localStorage.getItem(LAST_GOOD_KEY),data=raw&&JSON.parse(raw);return data&&UthWeatherSnapshot.parse(data,Date.now()).temperatureC!==null?data:null}catch(_){return null}}
-let pending=false,seq=0,lastGood=null,revalidateTimer=null;
-function revalidate(){
- clearTimeout(revalidateTimer);
- if(!lastGood)return;
- const now=Date.now();paint(UthWeatherSnapshot.parse(lastGood,now));
- const channels=lastGood.channels||{},weather=channels.weather||{},forecast=channels.forecast||{},data=weather.data||{},current=(forecast.data||{}).current||{};
- const times=[weather.observedAt,weather.savedAt,data.observedAt,forecast.observedAt,forecast.savedAt];
- if(typeof current.time==='string'&&/^\d{4}-\d\d-\d\dT\d\d:\d\d$/.test(current.time))times.push(current.time+'+07:00');
- const deadlines=times.map(t=>Date.parse(t)+3*3600000+1).filter(t=>Number.isFinite(t)&&t>now);
- deadlines.push((Math.floor(now/3600000)+1)*3600000+1);
- revalidateTimer=setTimeout(revalidate,Math.max(1,Math.min(...deadlines)-now));
+const FEED_URL='https://raw.githubusercontent.com/aase7en/webapp-widget/weather-data/weather.json';
+const isNumber=x=>typeof x==='number'&&Number.isFinite(x);
+function anySnapshot(raw,now){
+ const fresh=UthWeatherSnapshot.parse(raw,now);
+ return isNumber(fresh.temperatureC)?fresh:UthWeatherSnapshot.parse(raw,now,{allowHistorical:true});
 }
-document.addEventListener('visibilitychange',()=>{if(!document.hidden)revalidate()});window.addEventListener('pageshow',revalidate);
-async function refresh(){if(pending)return;pending=true;try{let data=await new Promise((resolve,reject)=>{const id='__uthWeather'+Date.now().toString(36)+(seq++).toString(36),script=document.createElement('script');let timer;function done(error,value){clearTimeout(timer);script.remove();delete window[id];error?reject(error):resolve(value)}window[id]=value=>done(null,value);script.onerror=()=>done(Error('snapshot unavailable'));timer=setTimeout(()=>done(Error('snapshot timeout')),12000);script.src=API+'&callback='+id;document.head.appendChild(script)});let parsed=UthWeatherSnapshot.parse(data,Date.now());if(parsed.temperatureC!==null){lastGood=data;store(data)}else if(lastGood)parsed=UthWeatherSnapshot.parse(lastGood,Date.now());paint(parsed);revalidate()}catch(e){if(lastGood)revalidate();else paint({days:[]})}finally{pending=false}}
-clock();setInterval(clock,30000);lastGood=stored();paint(lastGood?UthWeatherSnapshot.parse(lastGood,Date.now()):{days:[]});refresh();setInterval(refresh,300000);
+function observedMs(raw){const time=raw?.channels?.weather?.observedAt;return typeof time==='string'?Date.parse(time):NaN}
+function better(candidate,current,now){
+ const next=anySnapshot(candidate,now),stamp=observedMs(candidate),prev=observedMs(current);
+ if(!isNumber(next.temperatureC)||!Number.isFinite(stamp))return false;
+ if(!current||!Number.isFinite(prev))return true;
+ if(stamp>prev)return true;
+ return stamp===prev&&candidate.channels?.forecast&&!current.channels?.forecast;
+}
+function store(data){try{localStorage.setItem(LAST_GOOD_KEY,JSON.stringify(data))}catch(_){/* localStorage is optional */}}
+function stored(){
+ try{const raw=localStorage.getItem(LAST_GOOD_KEY),data=raw&&JSON.parse(raw);
+ return data&&isNumber(anySnapshot(data,Date.now()).temperatureC)?data:null}catch(_){return null}
+}
+let pending=false,seq=0,lastGood=null,revalidateTimer=null;
+function display(){paint(lastGood?anySnapshot(lastGood,Date.now()):{days:[]})}
+function accept(candidate){
+ if(better(candidate,lastGood,Date.now())){lastGood=candidate;store(candidate);return true}
+ return false;
+}
+function revalidate(){
+ clearTimeout(revalidateTimer);display();
+ // At each Bangkok hour recompute the forecast probability. Preserve historical
+ // model values instead of treating a clock tick as new observations.
+ const now=Date.now();
+ revalidateTimer=setTimeout(revalidate,Math.max(1000,(Math.floor(now/3600000)+1)*3600000-now+1));
+}
+function snapshotJsonp(){
+ return new Promise((resolve,reject)=>{
+  const id='__uthWeather'+Date.now().toString(36)+(seq++).toString(36),script=document.createElement('script');
+  let timer,settled=false;
+  function done(error,value){if(settled)return;settled=true;clearTimeout(timer);script.remove();delete window[id];error?reject(error):resolve(value)}
+  window[id]=value=>done(null,value);
+  script.onerror=()=>done(Error('snapshot unavailable'));
+  timer=setTimeout(()=>done(Error('snapshot timeout')),12000);
+  script.src=API+'&callback='+id;document.head.appendChild(script);
+ });
+}
+async function fallbackTransport(){
+ if(typeof fetch!=='function')return null;
+ const ctrl=typeof AbortController==='function'?new AbortController():null;
+ const timer=setTimeout(()=>{if(ctrl)ctrl.abort()},9000);
+ try{
+  const response=await fetch(FEED_URL,{cache:'no-store',...(ctrl?{signal:ctrl.signal}:{})});
+  if(!response.ok)return null;
+  return UthWeatherSnapshot.fromTransport(await response.json(),Date.now());
+ }catch(_){return null}finally{clearTimeout(timer)}
+}
+async function refresh(){
+ if(pending)return;
+ pending=true;
+ try{
+  let sheetIsFresh=false;
+  try{
+   const response=await snapshotJsonp(),parsed=UthWeatherSnapshot.parse(response,Date.now());
+   sheetIsFresh=isNumber(parsed.temperatureC);
+   accept(response);
+   display(); // Paint any valid Sheet observation immediately; do not wait for a slow fallback.
+  }catch(_){/* a failed JSONP read is not a new zero or unavailable value */}
+  // A successful owner-bound Sheet read always wins when fresh. The published
+  // weather-data branch is a bounded, read-only transport continuity fallback,
+  // never a separate canonical datastore or another provider API request.
+  if(!sheetIsFresh){
+   const candidate=await fallbackTransport();
+   if(candidate)accept(candidate);
+  }
+  display();revalidate();
+ }finally{pending=false}
+}
+document.addEventListener('visibilitychange',()=>{if(!document.hidden){revalidate();refresh()}});
+window.addEventListener('pageshow',()=>{revalidate();refresh()});
+clock();setInterval(clock,30000);
+lastGood=stored();display();revalidate();refresh();setInterval(refresh,300000);
