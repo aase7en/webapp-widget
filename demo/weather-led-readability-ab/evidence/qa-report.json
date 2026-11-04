@@ -1,0 +1,238 @@
+{
+  "at": "2026-11-04T14:55:09.125Z",
+  "cases": [
+    {
+      "label": "A-normal-7",
+      "native": {
+        "width": 432,
+        "height": 40
+      },
+      "dayCount": 7,
+      "dayIndices": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+      ],
+      "maxCellRight": 430.984375,
+      "maxCellBottom": 39,
+      "clipped": [],
+      "fontSizeRain": "10.5px",
+      "fontSizeTemps": "10.3px",
+      "zoomFrame": {
+        "width": 1728,
+        "height": 160
+      }
+    },
+    {
+      "label": "B-normal-4",
+      "native": {
+        "width": 432,
+        "height": 40
+      },
+      "dayCount": 4,
+      "dayIndices": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "maxCellRight": 431,
+      "maxCellBottom": 39,
+      "clipped": [],
+      "fontSizeRain": "13px",
+      "fontSizeTemps": "14.3px",
+      "zoomFrame": {
+        "width": 1728,
+        "height": 160
+      }
+    },
+    {
+      "label": "B-normal-3",
+      "native": {
+        "width": 432,
+        "height": 40
+      },
+      "dayCount": 3,
+      "dayIndices": [
+        4,
+        5,
+        6
+      ],
+      "maxCellRight": 431,
+      "maxCellBottom": 39,
+      "clipped": [],
+      "fontSizeRain": "13px",
+      "fontSizeTemps": "14.3px",
+      "zoomFrame": {
+        "width": 1728,
+        "height": 160
+      }
+    },
+    {
+      "label": "edge-A-0",
+      "native": {
+        "width": 432,
+        "height": 40
+      },
+      "dayCount": 7,
+      "dayIndices": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+      ],
+      "maxCellRight": 430.984375,
+      "maxCellBottom": 39,
+      "clipped": [],
+      "fontSizeRain": "10.5px",
+      "fontSizeTemps": "10.3px",
+      "zoomFrame": {
+        "width": 1728,
+        "height": 160
+      }
+    },
+    {
+      "label": "edge-B-0",
+      "native": {
+        "width": 432,
+        "height": 40
+      },
+      "dayCount": 4,
+      "dayIndices": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "maxCellRight": 431,
+      "maxCellBottom": 39,
+      "clipped": [],
+      "fontSizeRain": "13px",
+      "fontSizeTemps": "14.3px",
+      "zoomFrame": {
+        "width": 1728,
+        "height": 160
+      }
+    },
+    {
+      "label": "edge-B-1",
+      "native": {
+        "width": 432,
+        "height": 40
+      },
+      "dayCount": 3,
+      "dayIndices": [
+        4,
+        5,
+        6
+      ],
+      "maxCellRight": 431,
+      "maxCellBottom": 39,
+      "clipped": [],
+      "fontSizeRain": "13px",
+      "fontSizeTemps": "14.3px",
+      "zoomFrame": {
+        "width": 1728,
+        "height": 160
+      }
+    },
+    {
+      "label": "missing-A-0",
+      "native": {
+        "width": 432,
+        "height": 40
+      },
+      "dayCount": 7,
+      "dayIndices": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+      ],
+      "maxCellRight": 430.984375,
+      "maxCellBottom": 39,
+      "clipped": [],
+      "fontSizeRain": "10.5px",
+      "fontSizeTemps": "10.3px",
+      "zoomFrame": {
+        "width": 1728,
+        "height": 160
+      }
+    },
+    {
+      "label": "missing-B-0",
+      "native": {
+        "width": 432,
+        "height": 40
+      },
+      "dayCount": 4,
+      "dayIndices": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "maxCellRight": 431,
+      "maxCellBottom": 39,
+      "clipped": [],
+      "fontSizeRain": "13px",
+      "fontSizeTemps": "14.3px",
+      "zoomFrame": {
+        "width": 1728,
+        "height": 160
+      }
+    },
+    {
+      "label": "missing-B-1",
+      "native": {
+        "width": 432,
+        "height": 40
+      },
+      "dayCount": 3,
+      "dayIndices": [
+        4,
+        5,
+        6
+      ],
+      "maxCellRight": 431,
+      "maxCellBottom": 39,
+      "clipped": [],
+      "fontSizeRain": "13px",
+      "fontSizeTemps": "14.3px",
+      "zoomFrame": {
+        "width": 1728,
+        "height": 160
+      }
+    },
+    {
+      "label": "auto-rotation-9s",
+      "passed": true
+    },
+    {
+      "label": "mobile-390x844",
+      "vw": 390,
+      "innerW": 390,
+      "stageW": 432,
+      "stageH": 40,
+      "scrollable": true,
+      "zoomScrollable": true
+    },
+    {
+      "label": "reduced-motion",
+      "paused": true
+    }
+  ],
+  "errors": [],
+  "httpRequests": [],
+  "result": "PASS"
+}
