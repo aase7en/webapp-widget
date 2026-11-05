@@ -33,6 +33,13 @@ const {pathToFileURL}=require("node:url");
     });
   }
   const initial=await geom();
+  const crisp=await page.evaluate(()=>{
+    const root=document.querySelector("#native-stage").shadowRoot;
+    return {shadows:[...root.querySelectorAll(".hybrid-value")].map(el=>getComputedStyle(el).textShadow),filters:[...root.querySelectorAll(".hybrid-metric svg")].map(el=>getComputedStyle(el).filter)};
+  });
+  assert.ok(crisp.shadows.length===4&&crisp.shadows.every(x=>x==="none"),"All four numeric values have no glow blur");
+  assert.ok(crisp.filters.length===4&&crisp.filters.every(x=>x==="none"),"All four pictograms have no bloom blur");
+  report.cases.push({label:"metric-legibility-no-glow",crisp});
   assert.equal(initial.state.visual,"hybrid");
   assert.equal(initial.state.mode,"B");
   assert.deepEqual(initial.stage,[432,40]);

@@ -2,6 +2,23 @@
   "result": "PASS",
   "cases": [
     {
+      "label": "metric-legibility-no-glow",
+      "crisp": {
+        "shadows": [
+          "none",
+          "none",
+          "none",
+          "none"
+        ],
+        "filters": [
+          "none",
+          "none",
+          "none",
+          "none"
+        ]
+      }
+    },
+    {
       "label": "hybrid-initial-A-to-B-4days",
       "initial": {
         "stage": [
@@ -102,7 +119,7 @@
           "20%"
         ],
         "overflow": [],
-        "clockText": "17:41",
+        "clockText": "18:13",
         "sceneLoaded": true,
         "animationLoaded": true,
         "posterLoaded": true
@@ -207,7 +224,7 @@
           "20%"
         ],
         "overflow": [],
-        "clockText": "17:41",
+        "clockText": "18:13",
         "sceneLoaded": true,
         "animationLoaded": true,
         "posterLoaded": true
@@ -324,5 +341,5 @@
   ],
   "errors": [],
   "requests": [],
-  "at": "2026-11-05T10:41:15.922Z"
+  "at": "2026-11-05T11:13:23.604Z"
 }
