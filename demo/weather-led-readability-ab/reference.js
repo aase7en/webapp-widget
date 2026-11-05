@@ -116,5 +116,5 @@
    return board;
  }
  function clock(target,time){const board=cache.get(target);if(board)board.querySelector(".rf-clock").textContent=time}
- window.WeatherReferenceRenderer=Object.freeze({render,clock,tone,heat});
+ window.WeatherReferenceRenderer=Object.freeze({render,clock,tone,heat,pictogram,metricIcon,drop,selectIcon});
 })();

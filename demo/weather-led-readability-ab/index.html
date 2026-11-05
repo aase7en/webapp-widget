@@ -10,6 +10,7 @@
   <link rel="stylesheet" href="./style.css">
   <script defer src="./production-luxury-template.js"></script>
   <script defer src="./reference.js"></script>
+  <script defer src="./hybrid.js"></script>
   <script defer src="./app.js"></script>
 </head>
 <body>
@@ -24,15 +25,16 @@
       <div class="control-left">
         <div class="control-label">ดีไซน์จอ LED</div>
         <div class="segmented" role="group" aria-label="เลือกดีไซน์">
-          <button type="button" id="visual-reference" class="selected" aria-pressed="true"><b>R</b> ตัวเลขใหญ่ + Icon + Graph</button>
+          <button type="button" id="visual-hybrid" class="selected" aria-pressed="true">Luxury + Icons 4+3</button>
+          <button type="button" id="visual-reference" aria-pressed="false"><b>R</b> ตัวเลขใหญ่ + Icon + Graph</button>
           <button type="button" id="visual-luxury" aria-pressed="false">Luxury เดิม</button>
         </div>
       </div>
       <div class="control-left">
         <div class="control-label">รูปแบบพยากรณ์</div>
         <div class="segmented" role="group" aria-label="เลือก Option">
-          <button type="button" id="opt-a" class="selected" aria-pressed="true"><b>A</b> ครบ 7 วัน</button>
-          <button type="button" id="opt-b" aria-pressed="false"><b>B</b> สลับ 4 + 3 วัน</button>
+          <button type="button" id="opt-a" aria-pressed="false" disabled><b>A</b> ครบ 7 วัน</button>
+          <button type="button" id="opt-b" class="selected" aria-pressed="true"><b>B</b> สลับ 4 + 3 วัน</button>
         </div>
       </div>
       <div class="control-right">
@@ -53,7 +55,7 @@
       <div class="stage-scroll"><div id="native-stage" class="led-stage" role="img" aria-label="Weather LED ข้อมูลจำลอง 432 คูณ 40 พิกเซล"></div></div>
       <div class="screen-footer">
         <div class="footnote"><span class="dot"></span> ภาพนี้มีขนาด CSS จริง 432×40 · บน iPhone เลื่อนแนวนอนเพื่อดูเต็มความกว้าง</div>
-        <div id="page-status" class="page-status" aria-live="polite">แสดงครบ 7 วัน</div>
+        <div id="page-status" class="page-status" aria-live="polite">สลับ 4 + 3 วัน</div>
       </div>
     </section>
     <section class="inspector-panel" aria-labelledby="zoom-heading">

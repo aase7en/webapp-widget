@@ -1,0 +1,328 @@
+{
+  "result": "PASS",
+  "cases": [
+    {
+      "label": "hybrid-initial-A-to-B-4days",
+      "initial": {
+        "stage": [
+          432,
+          40
+        ],
+        "state": {
+          "mode": "B",
+          "page": 0,
+          "scenario": "normal",
+          "seconds": 9,
+          "paused": false,
+          "zoom": 4,
+          "effects": true,
+          "compact": true,
+          "visual": "hybrid",
+          "dayCount": 7,
+          "visibleDays": 4,
+          "source": "SIMULATED / LOCAL FIXTURE",
+          "observedAt": null,
+          "productionTemplateSha256": "e0cf3d2aadc267b90e7e8696088b15d225cdc992f75e34326bda05996bae3e48"
+        },
+        "clock": {
+          "x": 6.67,
+          "y": 11.59,
+          "w": 55,
+          "h": 20.48,
+          "right": 61.67,
+          "display": "block"
+        },
+        "scene": {
+          "x": 27.33,
+          "y": 0,
+          "w": 128.33,
+          "h": 40,
+          "right": 155.67,
+          "display": "block"
+        },
+        "icon": {
+          "x": 92.33,
+          "y": -15.33,
+          "w": 61.67,
+          "h": 61.67,
+          "right": 154,
+          "display": "block"
+        },
+        "temp": {
+          "x": 158,
+          "y": 2.67,
+          "w": 43.47,
+          "h": 30.67,
+          "right": 201.47,
+          "display": "block"
+        },
+        "forecast": {
+          "x": 202,
+          "y": 1,
+          "w": 229,
+          "h": 38,
+          "right": 431,
+          "display": "grid"
+        },
+        "graph": {
+          "x": -116,
+          "y": -498.08,
+          "w": 0,
+          "h": 0,
+          "right": -116,
+          "display": "none"
+        },
+        "reference": {
+          "x": -116,
+          "y": -498.08,
+          "w": 0,
+          "h": 0,
+          "right": -116,
+          "display": "none"
+        },
+        "dayCount": 4,
+        "days": [
+          "0",
+          "1",
+          "2",
+          "3"
+        ],
+        "icons": 4,
+        "metricIcons": 4,
+        "metrics": [
+          "40%",
+          "72%",
+          "36°",
+          "26°"
+        ],
+        "rain": [
+          "60%",
+          "40%",
+          "70%",
+          "20%"
+        ],
+        "overflow": [],
+        "clockText": "17:41",
+        "sceneLoaded": true,
+        "animationLoaded": true,
+        "posterLoaded": true
+      }
+    },
+    {
+      "label": "hybrid-last3",
+      "last": {
+        "stage": [
+          432,
+          40
+        ],
+        "state": {
+          "mode": "B",
+          "page": 1,
+          "scenario": "normal",
+          "seconds": 9,
+          "paused": false,
+          "zoom": 4,
+          "effects": true,
+          "compact": true,
+          "visual": "hybrid",
+          "dayCount": 7,
+          "visibleDays": 3,
+          "source": "SIMULATED / LOCAL FIXTURE",
+          "observedAt": null,
+          "productionTemplateSha256": "e0cf3d2aadc267b90e7e8696088b15d225cdc992f75e34326bda05996bae3e48"
+        },
+        "clock": {
+          "x": 6.67,
+          "y": 11.59,
+          "w": 55,
+          "h": 20.48,
+          "right": 61.67,
+          "display": "block"
+        },
+        "scene": {
+          "x": 27.33,
+          "y": 0,
+          "w": 128.33,
+          "h": 40,
+          "right": 155.67,
+          "display": "block"
+        },
+        "icon": {
+          "x": 92.33,
+          "y": -15.33,
+          "w": 61.67,
+          "h": 61.67,
+          "right": 154,
+          "display": "block"
+        },
+        "temp": {
+          "x": 158,
+          "y": 2.67,
+          "w": 43.47,
+          "h": 30.67,
+          "right": 201.47,
+          "display": "block"
+        },
+        "forecast": {
+          "x": 202,
+          "y": 1,
+          "w": 229,
+          "h": 38,
+          "right": 431,
+          "display": "grid"
+        },
+        "graph": {
+          "x": -116,
+          "y": 12.92,
+          "w": 0,
+          "h": 0,
+          "right": -116,
+          "display": "none"
+        },
+        "reference": {
+          "x": -116,
+          "y": 12.92,
+          "w": 0,
+          "h": 0,
+          "right": -116,
+          "display": "none"
+        },
+        "dayCount": 3,
+        "days": [
+          "4",
+          "5",
+          "6"
+        ],
+        "icons": 3,
+        "metricIcons": 4,
+        "metrics": [
+          "40%",
+          "72%",
+          "36°",
+          "26°"
+        ],
+        "rain": [
+          "20%",
+          "10%",
+          "20%"
+        ],
+        "overflow": [],
+        "clockText": "17:41",
+        "sceneLoaded": true,
+        "animationLoaded": true,
+        "posterLoaded": true
+      }
+    },
+    {
+      "label": "automatic-8s-hybrid-rotation",
+      "passed": true
+    },
+    {
+      "label": "original-clock-fixed-and-left-shift",
+      "legacy": {
+        "clock": {
+          "x": 6.67,
+          "y": 11.59,
+          "w": 55,
+          "h": 20.48,
+          "right": 61.67,
+          "display": "block"
+        },
+        "icon": {
+          "x": 114.33,
+          "y": -15.33,
+          "w": 61.67,
+          "h": 61.67,
+          "right": 176,
+          "display": "block"
+        },
+        "temp": {
+          "x": 179,
+          "y": 2.67,
+          "w": 43.47,
+          "h": 30.67,
+          "right": 222.47,
+          "display": "block"
+        },
+        "scene": {
+          "x": 27.33,
+          "y": 0,
+          "w": 158.33,
+          "h": 40,
+          "right": 185.67,
+          "display": "block"
+        }
+      },
+      "hybrid": {
+        "clock": {
+          "x": 6.67,
+          "y": 11.59,
+          "w": 55,
+          "h": 20.48,
+          "right": 61.67,
+          "display": "block"
+        },
+        "icon": {
+          "x": 92.33,
+          "y": -15.33,
+          "w": 61.67,
+          "h": 61.67,
+          "right": 154,
+          "display": "block"
+        },
+        "temp": {
+          "x": 158,
+          "y": 2.67,
+          "w": 43.47,
+          "h": 30.67,
+          "right": 201.47,
+          "display": "block"
+        },
+        "scene": {
+          "x": 27.33,
+          "y": 0,
+          "w": 128.33,
+          "h": 40,
+          "right": 155.67,
+          "display": "block"
+        }
+      }
+    },
+    {
+      "label": "edge-100pct-negative-and-heat-colors",
+      "metrics": [
+        "100%",
+        "100%",
+        "45°",
+        "-9°"
+      ]
+    },
+    {
+      "label": "missing-versus-zero",
+      "metrics": [
+        "0%",
+        "—",
+        "—",
+        "25°"
+      ]
+    },
+    {
+      "label": "iphone-mobile-scroll",
+      "mobile": {
+        "width": 432,
+        "pan": true
+      }
+    },
+    {
+      "label": "reduced-motion",
+      "motion": {
+        "paused": true,
+        "icon": "none",
+        "poster": "block"
+      }
+    }
+  ],
+  "errors": [],
+  "requests": [],
+  "at": "2026-11-05T10:41:15.922Z"
+}

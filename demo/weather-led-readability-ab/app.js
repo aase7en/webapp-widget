@@ -10,7 +10,7 @@
     edge:{condition:"thunderstorm",current:{temp:42,feels:48,rain:100,humidity:100,high:45,low:-9},forecast:[[45,-9,100],[41,29,100],[40,28,99],[39,25,100],[44,31,100],[42,-8,0],[38,25,87]]},
     missing:{condition:"cloudy",current:{temp:null,feels:null,rain:0,humidity:null,high:null,low:25},forecast:[[null,25,null],[0,0,0],[32,null,10],[null,null,null],[33,25,0],[null,-2,100],[28,21,45]]}
   });
-  const state={mode:"A",page:0,scenario:"normal",seconds:9,paused:window.matchMedia("(prefers-reduced-motion: reduce)").matches,zoom:4,effects:true,compact:true,visual:"reference"};
+  const state={mode:"B",page:0,scenario:"normal",seconds:9,paused:window.matchMedia("(prefers-reduced-motion: reduce)").matches,zoom:4,effects:true,compact:true,visual:"hybrid"};
   const boards=new WeakMap();
   let deadline=Date.now()+9000;
   const fmt=(n,u="")=>Number.isFinite(n)?Math.round(n)+u:"—";
@@ -84,7 +84,8 @@
     board.dataset.mode=state.mode;
     board.style.setProperty("--forecast-columns",String(days.length));
     board.classList.toggle("effects-off",!state.effects);
-    board.classList.toggle("layout-compact",state.compact);
+    board.classList.toggle("layout-compact",state.visual==="luxury"&&state.compact);
+    board.classList.toggle("layout-hybrid",state.visual==="hybrid");
     const set=(id,value)=>{board.querySelector("#"+id).textContent=value;};
     set("temp",fmt(d.temp));set("feels",fmt(d.feels,"°"));
     set("rain",fmt(d.rain,"%"));set("humidity",fmt(d.humidity,"%"));
@@ -116,7 +117,9 @@
     board.querySelector("#days").replaceChildren(...cells);
     drawGraph(board,fixture,days);
     target.classList.toggle("view-reference",state.visual==="reference");
+    target.classList.toggle("view-hybrid",state.visual==="hybrid");
     window.WeatherReferenceRenderer.render(target,{fixture,days,mode:state.mode,effects:state.effects,dayName:dayNameEN});
+    window.WeatherHybridRenderer.render(target,{fixture,days,page:state.page,dayName:dayNameEN,effects:state.effects});
     target.setAttribute("aria-label","Weather Luxury · SIMULATED ข้อมูลจำลอง · "+days.map(i=>localDay(i)+" "+fmt(fixture.forecast[i][0],"°")+" ฝน "+fmt(fixture.forecast[i][2],"%")).join(" · "));
   }
   function renderTable(){
@@ -130,11 +133,15 @@
   function renderControls(){
     const b=state.mode==="B";
     const ref=state.visual==="reference";
+    const hybrid=state.visual==="hybrid";
+    $("visual-hybrid").classList.toggle("selected",hybrid);
+    $("visual-hybrid").setAttribute("aria-pressed",String(hybrid));
     $("visual-reference").classList.toggle("selected",ref);
     $("visual-luxury").classList.toggle("selected",!ref);
     $("visual-reference").setAttribute("aria-pressed",String(ref));
     $("visual-luxury").setAttribute("aria-pressed",String(!ref));
-    $("layout").disabled=ref;
+    $("layout").disabled=ref||hybrid;
+    $("opt-a").disabled=hybrid;
     $("opt-a").classList.toggle("selected",!b);$("opt-b").classList.toggle("selected",b);
     $("opt-a").setAttribute("aria-pressed",String(!b));$("opt-b").setAttribute("aria-pressed",String(b));
     for(const id of ["prev","next","pause"])$(id).disabled=!b;
@@ -148,13 +155,13 @@
   }
   function render(){paint($("native-stage"));paint($("zoom-stage"));clock();renderTable();renderControls();}
   function reset(){deadline=Date.now()+state.seconds*1000;}
-  function setMode(mode){if(!["A","B"].includes(mode))return;state.mode=mode;state.page=0;reset();render();}
+  function setMode(mode){if(!["A","B"].includes(mode)||(state.visual==="hybrid"&&mode==="A"))return;state.mode=mode;state.page=0;reset();render();}
   function setPage(page){if(state.mode!=="B")return;state.page=page===1?1:0;reset();render();}
   function setScenario(v){if(!Object.hasOwn(cases,v))return;state.scenario=v;$("scenario").value=v;reset();render();}
   function setPaused(v){state.paused=!!v;reset();renderControls();}
   function setEffects(v){state.effects=!!v;render();}
   function setCompact(v){state.compact=!!v;render();}
-  function setVisual(v){if(v!=="reference"&&v!=="luxury")return;state.visual=v;render();}
+  function setVisual(v){if(!["reference","luxury","hybrid"].includes(v))return;state.visual=v;if(v==="hybrid"){state.mode="B";state.page=0;reset();}render();}
   function setIntervalSeconds(v){if(![8,9,10].includes(Number(v)))return;state.seconds=Number(v);$("interval").value=String(v);reset();renderControls();}
   function setZoom(v){
     state.zoom=Math.max(1,Math.min(8,Math.round(Number(v)||1)));
@@ -171,6 +178,7 @@
   $("pause").addEventListener("click",()=>setPaused(!state.paused));
   $("effects").addEventListener("click",()=>setEffects(!state.effects));
   $("layout").addEventListener("click",()=>setCompact(!state.compact));
+  $("visual-hybrid").addEventListener("click",()=>setVisual("hybrid"));
   $("visual-reference").addEventListener("click",()=>setVisual("reference"));
   $("visual-luxury").addEventListener("click",()=>setVisual("luxury"));
   $("scenario").addEventListener("change",e=>setScenario(e.target.value));

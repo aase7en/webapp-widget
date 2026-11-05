@@ -95,3 +95,15 @@ The normal fixture now matches the sample image numbers: 32°C, feels 38°, chan
 A/B retains all 7 days in A and 4+3 days rotating 8/9/10 sec in B, manual paging, pause, 1-8x Zoom Inspector, Mobile scroll, and a complete numeric table. Display warm-color design thresholds are >=35°C and hot-red thresholds are >=38°C; these are visual choices and NOT clinical heat alerts or heat-index classifications.
 
 Chrome/Puppeteer Browser QA: 24 cases PASS, covering original Luxury regression, reference geometry 432x40, SVG icon and line-graph counts, high-temp color/edge values, missing != 0, A/B rotation, Mobile 390, reduced-motion poster, no JS errors or external requests. Evidence: evidence/Reference-*.png and evidence/qa-report.json. Physical LED readability and iPhone Safari remain UNVERIFIED. No production merge, production deploy, Apps Script or Google Sheet change.
+
+## Owner-approved design direction: Luxury + Icons 4+3 (2026-11-05)
+
+**This is a visual DEMO candidate, not Production authorization.** It retains the exact live-Production Luxury board, glowing frame, date/time clock at the same native 432×40 position and size, original scenic WebP and animated APNG (static poster for reduced motion). New default hybrid view uses the original Luxury clock and current temperature, but makes more space for daily forecasts:
+- Current temperature and original animated weather icon shift LEFT by 21 and 22 native CSS pixels, respectively. Panoramic background shrinks from 158.33 to 128.33 native pixels (30px narrower). The original clock remains x=6.67 native pixels, without translation, resizing, or replacing it.
+- Four metrics Rain / Humidity / High / Low are recreated using **the same SVG pictograms, palette and near-native font hierarchy from Demo R**. Their values remain readable and use the SIMULATED local fixture.
+- **No chart is visible in hybrid mode.** The metrics + 4/3 forecast occupy the remaining width; each day displays an SVG weather condition icon and high/low temperatures and precipitation chance, with 4 days then 3 days switching automatically every 8, 9 (default), or 10 seconds. The old A and legacy R/Luxury modes remain available for comparison, but Option A is disabled in the new hybrid view.
+- No weather API/Google Sheet/Apps Script reads. Data status SIMULATED, observedAt=null, and missing is not zero. Visual symbol selection is illustrative rather than a real forecast.
+
+**Verified via Mac Chrome/Puppeteer:** Hybrid visual/geometry/clock and 8-second timer, edge 100%, missing vs zero, mobile 390px, and reduced-motion all PASS (8 checks) with screenshots and hybrid-qa-report.json. Existing R/Luxury suite: 24 regression cases PASS after accounting for the new default visual and 4+3 mode. Real outdoor LED viewing distance and iPhone Safari are still UNVERIFIED.
+
+**SAFE:** Only files under demo/weather-led-readability-ab are changed. The original live Production 1296×120 template, production weather page, Water Level, PM2.5, Google Sheet, Apps Script, and release configuration are NOT modified. PR remains DRAFT; NO merge/Production deploy before owner Visual Approval.

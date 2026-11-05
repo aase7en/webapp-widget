@@ -17,7 +17,7 @@ const puppeteer=require("puppeteer");
   await page.setViewport({width:1280,height:800,deviceScaleFactor:1});
   await page.goto(pathToFileURL(path.join(__dirname,"index.html")).href,{waitUntil:"load"});
   await page.waitForFunction(()=>!!window.WeatherLedDemo);
-  await page.evaluate(()=>WeatherLedDemo.setVisual("luxury"));
+  await page.evaluate(()=>{WeatherLedDemo.setVisual("luxury");WeatherLedDemo.setMode("A");});
   await page.waitForFunction(()=>{const root=document.querySelector("#native-stage").shadowRoot;return root&&[...root.querySelectorAll("#scene,#icon,#poster")].every(x=>x.complete&&x.naturalWidth>0)});
   await page.waitForFunction(()=>Number.parseFloat(getComputedStyle(document.querySelector("#native-stage").shadowRoot.querySelector(".day-rain")).fontSize)>=15);
   const baseline=await page.evaluate(()=>WeatherLedDemo.getState());
@@ -135,7 +135,7 @@ const puppeteer=require("puppeteer");
   await reduced.close();report.cases.push({label:"reduced-motion-fallback",reduction});
   // Visual-reference mode is the default and preserves Luxury mode as a regression baseline.
   await page.setViewport({width:1280,height:800,deviceScaleFactor:1});
-  await page.evaluate(()=>{WeatherLedDemo.setScenario("normal");WeatherLedDemo.setMode("A");WeatherLedDemo.setVisual("reference");WeatherLedDemo.setEffects(true)});
+  await page.evaluate(()=>{WeatherLedDemo.setScenario("normal");WeatherLedDemo.setVisual("reference");WeatherLedDemo.setMode("A");WeatherLedDemo.setEffects(true)});
   await page.waitForFunction(()=>getComputedStyle(document.querySelector("#native-stage").shadowRoot.querySelector(".rf-day-name")).fontSize==="6.2px");
   const referenceMetrics=await page.evaluate(()=>{
     const stage=document.querySelector("#native-stage"),root=stage.shadowRoot,board=root.querySelector(".rf-board");
@@ -220,6 +220,7 @@ const puppeteer=require("puppeteer");
   const reducedRefPage=await browser.newPage();
   await reducedRefPage.emulateMediaFeatures([{name:"prefers-reduced-motion",value:"reduce"}]);
   await reducedRefPage.goto(pathToFileURL(path.join(__dirname,"index.html")).href,{waitUntil:"load"});
+  await reducedRefPage.evaluate(()=>WeatherLedDemo.setVisual("reference"));
   await reducedRefPage.waitForFunction(()=>getComputedStyle(document.querySelector("#native-stage").shadowRoot.querySelector(".rf-board")).display==="grid");
   const reducedReference=await reducedRefPage.evaluate(()=>{
     const root=document.querySelector("#native-stage").shadowRoot;
