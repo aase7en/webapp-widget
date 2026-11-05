@@ -17,6 +17,7 @@ const puppeteer=require("puppeteer");
   await page.setViewport({width:1280,height:800,deviceScaleFactor:1});
   await page.goto(pathToFileURL(path.join(__dirname,"index.html")).href,{waitUntil:"load"});
   await page.waitForFunction(()=>!!window.WeatherLedDemo);
+  await page.evaluate(()=>WeatherLedDemo.setVisual("luxury"));
   await page.waitForFunction(()=>{const root=document.querySelector("#native-stage").shadowRoot;return root&&[...root.querySelectorAll("#scene,#icon,#poster")].every(x=>x.complete&&x.naturalWidth>0)});
   await page.waitForFunction(()=>Number.parseFloat(getComputedStyle(document.querySelector("#native-stage").shadowRoot.querySelector(".day-rain")).fontSize)>=15);
   const baseline=await page.evaluate(()=>WeatherLedDemo.getState());
@@ -132,6 +133,105 @@ const puppeteer=require("puppeteer");
   });
   assert.equal(reduction.paused,true);assert.equal(reduction.animated,"none");assert.notEqual(reduction.poster,"none");
   await reduced.close();report.cases.push({label:"reduced-motion-fallback",reduction});
+  // Visual-reference mode is the default and preserves Luxury mode as a regression baseline.
+  await page.setViewport({width:1280,height:800,deviceScaleFactor:1});
+  await page.evaluate(()=>{WeatherLedDemo.setScenario("normal");WeatherLedDemo.setMode("A");WeatherLedDemo.setVisual("reference");WeatherLedDemo.setEffects(true)});
+  await page.waitForFunction(()=>getComputedStyle(document.querySelector("#native-stage").shadowRoot.querySelector(".rf-day-name")).fontSize==="6.2px");
+  const referenceMetrics=await page.evaluate(()=>{
+    const stage=document.querySelector("#native-stage"),root=stage.shadowRoot,board=root.querySelector(".rf-board");
+    const frame=stage.getBoundingClientRect();
+    const rect=q=>{const n=board.querySelector(q),r=n.getBoundingClientRect();return{x:+(r.left-frame.left).toFixed(2),y:+(r.top-frame.top).toFixed(2),w:+r.width.toFixed(2),h:+r.height.toFixed(2),txt:n.textContent}};
+    return {
+      frame:{w:frame.width,h:frame.height},visible:getComputedStyle(board).display,
+      clock:rect(".rf-clock"),hero:rect(".rf-hero"),rain:rect('.rf-metric[data-kind="rain"]'),
+      forecast:rect(".rf-forecast"),dayCount:board.querySelectorAll(".rf-day").length,
+      icons:board.querySelectorAll(".rf-weather-svg").length,graphPoints:board.querySelectorAll(".rf-dot").length,
+      graphSegments:board.querySelectorAll(".rf-line").length,
+      current:board.querySelector(".rf-temp-number").textContent,
+      high:board.querySelector('.rf-metric[data-kind="high"] .rf-metric-value').textContent,
+      humidity:board.querySelector('.rf-metric[data-kind="humidity"] .rf-metric-value').textContent,
+      rainText:board.querySelector('.rf-metric[data-kind="rain"] .rf-metric-value').textContent,
+      scenario:WeatherLedDemo.getState().scenario,
+      source:WeatherLedDemo.getState().source,
+      observedAt:WeatherLedDemo.getState().observedAt,
+      load:[...board.querySelectorAll(".rf-scene,.rf-hero-weather")].map(n=>({url:n.getAttribute("src"),loaded:n.complete&&n.naturalWidth>0}))
+    };
+  });
+  assert.deepEqual(referenceMetrics.frame,{w:432,h:40},"reference native 432x40");
+  assert.equal(referenceMetrics.visible,"grid");
+  assert.ok(referenceMetrics.hero.x>=0&&referenceMetrics.hero.w>=131);
+  assert.ok(referenceMetrics.forecast.x>=230&&referenceMetrics.forecast.x<=233);
+  assert.equal(referenceMetrics.current,"32");assert.equal(referenceMetrics.rainText,"40%");
+  assert.equal(referenceMetrics.humidity,"72%");assert.equal(referenceMetrics.high,"36°");
+  assert.equal(referenceMetrics.dayCount,7);assert.equal(referenceMetrics.icons,7);
+  assert.equal(referenceMetrics.graphPoints,7);assert.equal(referenceMetrics.graphSegments,6);
+  const graphY=await page.evaluate(()=>[...document.querySelector("#native-stage").shadowRoot.querySelectorAll(".rf-dot")].map(el=>({y:Number(el.getAttribute("cy")),x:Number(el.getAttribute("cx")),color:el.getAttribute("fill")})));
+  assert.ok(graphY[5].y<graphY[2].y,"higher temperature is plotted higher on graph");
+  assert.notEqual(graphY[2].color,graphY[5].color,"line/dot coloring changes with temperature");
+  report.cases.push({label:"reference-chart-high-temperature-axis-and-color",graphY});
+  assert.ok(referenceMetrics.clock.txt.includes(":"));
+  assert.equal(referenceMetrics.source,"SIMULATED / LOCAL FIXTURE");
+  assert.equal(referenceMetrics.observedAt,null);
+  assert.ok(referenceMetrics.load.every(x=>x.loaded),"reference preserves scenic/APNG/poster assets");
+  await (await page.$("#native-stage")).screenshot({path:path.join(out,"Reference-A-7days-432x40.png")});
+  report.cases.push({label:"reference-visual-native-A-7",referenceMetrics});
+  await page.click("#opt-b");
+  assert.equal(await page.evaluate(()=>WeatherLedDemo.getState().visibleDays),4);
+  const firstPage=await page.evaluate(()=>document.querySelector("#native-stage").shadowRoot.querySelectorAll(".rf-day").length);
+  assert.equal(firstPage,4);
+  await (await page.$("#native-stage")).screenshot({path:path.join(out,"Reference-B-first4-432x40.png")});
+  await page.click("#next");
+  const secondPage=await page.evaluate(()=>document.querySelector("#native-stage").shadowRoot.querySelectorAll(".rf-day").length);
+  assert.equal(secondPage,3);
+  await (await page.$("#native-stage")).screenshot({path:path.join(out,"Reference-B-last3-432x40.png")});
+  report.cases.push({label:"reference-visual-B-4+3",counts:[firstPage,secondPage]});
+  await page.evaluate(()=>{WeatherLedDemo.setScenario("edge");WeatherLedDemo.setMode("A")});
+  const extreme=await page.evaluate(()=>{
+    const root=document.querySelector("#native-stage").shadowRoot,ref=root.querySelector(".rf-board");
+    return{heat:ref.dataset.heat,temp:ref.querySelector(".rf-temp-number").textContent,
+      rain:ref.querySelector('.rf-metric[data-kind="rain"] .rf-metric-value').textContent,
+      red:ref.querySelectorAll(".rf-day-high[data-heat=hot]").length,
+      graphPoints:ref.querySelectorAll(".rf-dot").length};
+  });
+  assert.equal(extreme.heat,"hot");assert.equal(extreme.temp,"42");assert.equal(extreme.rain,"100%");
+  assert.ok(extreme.red>=1&&extreme.graphPoints===7);
+  await (await page.$("#native-stage")).screenshot({path:path.join(out,"Reference-edge-432x40.png")});
+  report.cases.push({label:"reference-heat-color-thresholds",extreme});
+  await page.evaluate(()=>WeatherLedDemo.setScenario("missing"));
+  const missingRef=await page.evaluate(()=>{
+    const ref=document.querySelector("#native-stage").shadowRoot.querySelector(".rf-board");
+    return{zero:[...ref.querySelectorAll(".rf-rain")].some(x=>x.textContent==="0%"),
+      unknown:[...ref.querySelectorAll(".rf-day-high")].some(x=>x.textContent==="—"),
+      graphPoints:ref.querySelectorAll(".rf-dot").length,
+      firstIcon:ref.querySelector(".rf-weather-svg")!==null};
+  });
+  assert.ok(missingRef.zero&&missingRef.unknown&&missingRef.graphPoints<7&&missingRef.firstIcon);
+  report.cases.push({label:"reference-unknown-not-zero",missingRef});
+  await page.evaluate(()=>{WeatherLedDemo.setScenario("normal");WeatherLedDemo.setMode("A")});
+  await page.setViewport({width:390,height:844,deviceScaleFactor:1,isMobile:true,hasTouch:true});
+  await page.screenshot({path:path.join(out,"Reference-mobile-390.png"),fullPage:true});
+  const refMobile=await page.evaluate(()=>({stage:document.querySelector("#native-stage").getBoundingClientRect().width,scrollable:document.querySelector(".stage-scroll").scrollWidth>document.querySelector(".stage-scroll").clientWidth,zoom:document.querySelector("#zoom-frame").getBoundingClientRect().width}));
+  assert.equal(refMobile.stage,432);assert.ok(refMobile.scrollable);report.cases.push({label:"reference-mobile-390",refMobile});
+  await page.click("#visual-luxury");
+  assert.equal(await page.evaluate(()=>WeatherLedDemo.getState().visual),"luxury");
+  await page.click("#visual-reference");
+  assert.equal(await page.evaluate(()=>WeatherLedDemo.getState().visual),"reference");
+  report.cases.push({label:"reference-vs-luxury-view-toggle",passed:true});
+  const reducedRefPage=await browser.newPage();
+  await reducedRefPage.emulateMediaFeatures([{name:"prefers-reduced-motion",value:"reduce"}]);
+  await reducedRefPage.goto(pathToFileURL(path.join(__dirname,"index.html")).href,{waitUntil:"load"});
+  await reducedRefPage.waitForFunction(()=>getComputedStyle(document.querySelector("#native-stage").shadowRoot.querySelector(".rf-board")).display==="grid");
+  const reducedReference=await reducedRefPage.evaluate(()=>{
+    const root=document.querySelector("#native-stage").shadowRoot;
+    const ref=root.querySelector(".rf-board");
+    return{animated:getComputedStyle(ref.querySelector(".rf-hero-weather:not(.rf-hero-poster)")).display,
+      poster:getComputedStyle(ref.querySelector(".rf-hero-poster")).display,paused:WeatherLedDemo.getState().paused};
+  });
+  assert.equal(reducedReference.animated,"none");
+  assert.notEqual(reducedReference.poster,"none");
+  assert.equal(reducedReference.paused,true);
+  await reducedRefPage.close();
+  report.cases.push({label:"reference-reduced-motion",reducedReference});
   assert.deepEqual(report.errors,[],"no console/page errors");
   assert.deepEqual(report.externalRequests,[],"no backend/external requests");
   report.result="PASS";

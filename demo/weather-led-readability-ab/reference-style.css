@@ -1,0 +1,70 @@
+
+/* Reference-inspired 432x40 LED visualization; isolated Demo only.
+   Exact source image is 1204x265 (~4.54:1), native output 432x40 (10.8:1).
+   Hierarchy is adapted without claiming pixel-for-pixel fidelity. */
+:host(.view-reference)>.board{display:none!important}
+:host(.view-reference)>.rf-board{display:grid}
+:host(:not(.view-reference))>.rf-board{display:none}
+.rf-board{
+  box-sizing:border-box;
+  position:absolute;inset:0;width:432px;height:40px;z-index:3;
+  display:none;grid-template-columns:132px 98px 202px;
+  isolation:isolate;overflow:hidden;
+  border:1px solid #348bce;border-radius:6px;
+  background:#030d20;color:#e8f8ff;
+  box-shadow:inset 0 0 0 1px #113758,inset 0 0 7px #0daafa;
+  font-family:Arial,Tahoma,sans-serif;font-variant-numeric:tabular-nums;
+  text-rendering:geometricPrecision;-webkit-font-smoothing:antialiased;
+}
+.rf-board::before{content:"";position:absolute;left:8px;right:8px;top:0;height:1px;z-index:10;background:linear-gradient(90deg,transparent,#7aeaff,#137ee3,#7aeaff,transparent);filter:drop-shadow(0 0 2px #11d7ff);pointer-events:none}
+.rf-board::after{content:"";position:absolute;inset:0;z-index:10;border-radius:6px;pointer-events:none;box-shadow:inset 0 0 6px #1398ef99,inset 0 0 1px #c8fdff7a}
+.rf-hero{position:relative;height:38px;overflow:hidden;border-right:1px solid #5eb2e38a;background:radial-gradient(ellipse at 48% 35%,#125a8e8f,#041c37 74%)}
+.rf-scene{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.35;filter:saturate(1.5) contrast(1.16);-webkit-mask-image:linear-gradient(90deg,#000 0%,#000a 46%,transparent 96%);mask-image:linear-gradient(90deg,#000 0%,#000a 46%,transparent 96%)}
+.rf-hero-glow{position:absolute;inset:0;pointer-events:none;background:linear-gradient(180deg,#0b386012,#000b2999 91%);box-shadow:inset -6px 0 12px #030e22b0}
+.rf-clock{position:absolute;left:5px;top:1px;z-index:3;font-size:5px;line-height:6px;font-weight:850;color:#a2e4ff;text-shadow:0 0 3px #0078e8}
+.rf-sim{position:absolute;top:1px;right:4px;z-index:4;font-size:4.8px;line-height:6px;font-weight:900;color:#ffc77e;text-shadow:0 0 3px #070e23}
+.rf-hero-weather{position:absolute;top:-4px;right:5px;width:43px;height:43px;object-fit:contain;opacity:.43;filter:drop-shadow(0 0 5px #17baff);z-index:1}
+.rf-hero-poster{display:none}
+.rf-main-temperature{position:absolute;left:5px;top:5px;height:29px;display:flex;align-items:baseline;gap:0;z-index:2;font-weight:950;letter-spacing:-2.8px;line-height:30px;white-space:nowrap;filter:drop-shadow(0 0 3px #22baff88)}
+.rf-temp-number{font-size:34px;line-height:31px;color:#eafbff;text-shadow:0 0 3px #f8ffff,0 0 7px #008dec;font-family:Arial,Tahoma,sans-serif}
+.rf-temp-unit{font-size:15px;letter-spacing:-.7px;line-height:19px;margin-left:2px;align-self:flex-start;margin-top:3px;color:#cdf5ff;text-shadow:0 0 3px #08a1ff}
+.rf-board[data-heat="warm"] .rf-temp-number{color:#fff7dd;text-shadow:0 0 5px #ff9e48,0 0 10px #db623a}
+.rf-board[data-heat="hot"] .rf-temp-number{color:#ffe0c7;text-shadow:0 0 5px #fc8042,0 0 11px #fa2c35}
+.rf-feels{position:absolute;bottom:2px;left:6px;z-index:3;min-width:54px;height:10px;display:flex;gap:3px;align-items:center;justify-content:center;padding:0 5px;border-radius:10px;border:1px solid #53bbf4;
+  box-shadow:inset 0 0 4px #054eb9,0 0 4px #20b7ff99;background:#082746d1;color:#b6e6fc;white-space:nowrap;font-size:5.9px;line-height:8px;font-weight:900}
+.rf-feels strong{font-size:9px;color:#ffc0a0;text-shadow:0 0 3px #ff6544}
+.rf-high-badge{position:absolute;bottom:2px;right:6px;z-index:3;max-width:58px;height:10px;display:flex;align-items:center;gap:2px;justify-content:center;padding:0 4px;border-radius:10px;border:1px solid #f5bd6480;background:linear-gradient(180deg,#8d581c,#482d18c9);box-shadow:0 0 4px #f0ab3680;color:#ffe7bc;font-size:6.2px;font-weight:900;white-space:nowrap}
+.rf-high-badge svg{width:8px;height:8px;fill:#fff1c4}
+.rf-board[data-heat="cool"] .rf-high-badge{border-color:#298da2;background:#0d3b56;color:#8de3ff;box-shadow:none}
+.rf-metrics{display:grid;grid-template-columns:1fr 1fr;grid-template-rows:repeat(2,minmax(0,1fr));height:38px;min-width:0;border-right:1px solid #5bade5a3;background:linear-gradient(145deg,#051e36,#07152b)}
+.rf-metric{min-width:0;display:grid;grid-template-columns:14px 1fr;grid-template-rows:7px 11px;align-items:center;padding:1px 2px 0 2px;border-right:1px solid #6382a477;border-bottom:1px solid #6382a477;column-gap:1px;overflow:hidden}
+.rf-metric:nth-child(2n){border-right:0}.rf-metric:nth-child(n+3){border-bottom:0}
+.rf-metric svg{grid-row:1/3;grid-column:1;width:13px;height:16px;overflow:visible;filter:drop-shadow(0 0 2px currentColor)}
+.rf-metric-label{font-size:6.5px;line-height:7px;font-weight:800;letter-spacing:.03em;color:#d5efff}
+.rf-metric-value{font-size:12.3px;line-height:11px;font-weight:950;letter-spacing:-.4px;white-space:nowrap;text-shadow:0 0 4px currentColor}
+.rf-metric[data-kind="rain"]{color:#58e5ff}.rf-metric[data-kind="humidity"]{color:#5ef4dc}
+.rf-metric[data-kind="high"]{color:#ff8b72}.rf-metric[data-kind="low"]{color:#75c9ff}
+.rf-metric[data-kind="high"][data-heat="hot"] .rf-metric-value{color:#ff654f}
+.rf-metric[data-kind="high"][data-heat="warm"] .rf-metric-value{color:#ffb66c}
+.rf-forecast{height:38px;position:relative;overflow:hidden;min-width:0;background:linear-gradient(180deg,#061b38,#041329 58%,#071c32)}
+.rf-day-grid{position:absolute;inset:0;display:grid;grid-template-columns:repeat(var(--rf-days),minmax(0,1fr))}
+.rf-day{min-width:0;height:38px;position:relative;overflow:hidden;border-right:1px solid #76a9cc43}
+.rf-day:last-child{border-right:0}
+.rf-day-name{position:absolute;top:1px;left:0;right:0;height:6px;text-align:center;font-size:6.2px;line-height:6px;font-weight:900;color:#d1edff;white-space:nowrap}
+.rf-weather-svg{position:absolute;top:6px;left:50%;transform:translateX(-50%);width:20px;height:12px;overflow:visible;filter:drop-shadow(0 0 2px #239dec88)}
+.rf-temps{position:absolute;left:0;right:0;top:18px;height:8px;display:flex;gap:2px;justify-content:center;align-items:center;font-size:7.4px;line-height:8px;font-weight:950;letter-spacing:-.35px;white-space:nowrap;text-shadow:0 0 2px #09162c}
+.rf-day-high{color:#ffd19a}.rf-day-low{color:#95ddff}.rf-divider{font-size:5.5px;color:#90b4ca}
+.rf-day-high[data-heat="hot"]{color:#ff796b}.rf-day-high[data-heat="warm"]{color:#ffc36a}
+.rf-forecast-chart{position:absolute;left:2px;right:2px;top:26px;height:9px;z-index:3;overflow:visible;pointer-events:none}
+.rf-forecast-chart .rf-line{fill:none;stroke-width:2.65;stroke-linecap:round;stroke-linejoin:round;filter:drop-shadow(0 0 2px #1acbff) drop-shadow(0 0 1px #91f4ff)}
+.rf-forecast-chart .rf-dot{stroke:#e9ffff;stroke-width:.65;filter:drop-shadow(0 0 1px #75dfff)}
+.rf-forecast-chart .rf-guide{stroke:#4689b855;stroke-width:.65;stroke-dasharray:1 1}
+.rf-forecast-chart .rf-area{opacity:.44;stroke:none}
+.rf-rain{position:absolute;left:0;right:0;bottom:1px;height:5.5px;display:flex;justify-content:center;align-items:center;gap:1px;font-size:6.1px;line-height:6px;white-space:nowrap;font-weight:850;color:#b9e5ff}
+.rf-rain svg{height:6px;width:5px;fill:#48dfff;filter:drop-shadow(0 0 1px #009aef)}
+.rf-board[data-mode="B"] .rf-weather-svg{width:25px;height:14px;top:5px}
+.rf-board[data-mode="B"] .rf-day-name{font-size:7.2px}
+.rf-board[data-mode="B"] .rf-temps{top:19px;font-size:9px}
+.rf-board[data-mode="B"] .rf-rain{font-size:7px}
+.rf-board.effects-off .rf-scene,.rf-board.effects-off .rf-hero-weather,.rf-board.effects-off .rf-hero-poster{display:none}
+@media(prefers-reduced-motion:reduce){.rf-hero-weather{display:none}.rf-hero-poster{display:block}}

@@ -9,6 +9,7 @@
   <link rel="icon" href="data:,">
   <link rel="stylesheet" href="./style.css">
   <script defer src="./production-luxury-template.js"></script>
+  <script defer src="./reference.js"></script>
   <script defer src="./app.js"></script>
 </head>
 <body>
@@ -21,6 +22,13 @@
     </header>
     <section class="control-panel" aria-label="ตัวเลือกการเปรียบเทียบ">
       <div class="control-left">
+        <div class="control-label">ดีไซน์จอ LED</div>
+        <div class="segmented" role="group" aria-label="เลือกดีไซน์">
+          <button type="button" id="visual-reference" class="selected" aria-pressed="true"><b>R</b> ตัวเลขใหญ่ + Icon + Graph</button>
+          <button type="button" id="visual-luxury" aria-pressed="false">Luxury เดิม</button>
+        </div>
+      </div>
+      <div class="control-left">
         <div class="control-label">รูปแบบพยากรณ์</div>
         <div class="segmented" role="group" aria-label="เลือก Option">
           <button type="button" id="opt-a" class="selected" aria-pressed="true"><b>A</b> ครบ 7 วัน</button>
@@ -30,7 +38,7 @@
       <div class="control-right">
         <label for="scenario">ข้อมูลทดสอบ</label>
         <select id="scenario">
-          <option value="normal">ตัวเลขทั่วไป</option>
+          <option value="normal">ตามภาพอ้างอิง 32°C (จำลอง)</option>
           <option value="edge">ตัวเลขยาว / 100%</option>
           <option value="missing">ข้อมูลขาด / ค่า 0 จริง</option>
         </select>

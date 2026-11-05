@@ -6,11 +6,11 @@
   if(!layout)throw Error("Production Luxury template not loaded");
   const $=id=>document.getElementById(id);
   const cases=Object.freeze({
-    normal:{condition:"rain",current:{temp:28,feels:34,rain:54,humidity:85,high:33,low:25},forecast:[[33,25,81],[33,24,92],[31,24,87],[32,25,71],[32,25,84],[32,24,31],[30,23,6]]},
+    normal:{condition:"rain",current:{temp:32,feels:38,rain:40,humidity:72,high:36,low:26},forecast:[[33,26,60],[32,25,40],[31,25,70],[32,25,20],[33,26,20],[34,26,10],[34,27,20]]},
     edge:{condition:"thunderstorm",current:{temp:42,feels:48,rain:100,humidity:100,high:45,low:-9},forecast:[[45,-9,100],[41,29,100],[40,28,99],[39,25,100],[44,31,100],[42,-8,0],[38,25,87]]},
     missing:{condition:"cloudy",current:{temp:null,feels:null,rain:0,humidity:null,high:null,low:25},forecast:[[null,25,null],[0,0,0],[32,null,10],[null,null,null],[33,25,0],[null,-2,100],[28,21,45]]}
   });
-  const state={mode:"A",page:0,scenario:"normal",seconds:9,paused:window.matchMedia("(prefers-reduced-motion: reduce)").matches,zoom:4,effects:true,compact:true};
+  const state={mode:"A",page:0,scenario:"normal",seconds:9,paused:window.matchMedia("(prefers-reduced-motion: reduce)").matches,zoom:4,effects:true,compact:true,visual:"reference"};
   const boards=new WeakMap();
   let deadline=Date.now()+9000;
   const fmt=(n,u="")=>Number.isFinite(n)?Math.round(n)+u:"—";
@@ -36,6 +36,7 @@
   function localDay(i){
     return new Intl.DateTimeFormat("th-TH",{weekday:"short",timeZone:"Asia/Bangkok"}).format(new Date(Date.now()+i*86400000));
   }
+  function dayNameEN(i){return new Intl.DateTimeFormat("en-US",{weekday:"short",timeZone:"Asia/Bangkok"}).format(new Date(Date.now()+i*86400000)).toUpperCase();}
   function clock(){
     const now=new Date();
     const time=new Intl.DateTimeFormat("th-TH",{timeZone:"Asia/Bangkok",hour:"2-digit",minute:"2-digit",hour12:false}).format(now);
@@ -44,6 +45,7 @@
       const board=boardFor(target);
       board.querySelector("#time").textContent=time;
       board.querySelector("#date").textContent=date;
+      if(window.WeatherReferenceRenderer)window.WeatherReferenceRenderer.clock(target,time);
     }
   }
   function color(x){
@@ -113,6 +115,8 @@
     });
     board.querySelector("#days").replaceChildren(...cells);
     drawGraph(board,fixture,days);
+    target.classList.toggle("view-reference",state.visual==="reference");
+    window.WeatherReferenceRenderer.render(target,{fixture,days,mode:state.mode,effects:state.effects,dayName:dayNameEN});
     target.setAttribute("aria-label","Weather Luxury · SIMULATED ข้อมูลจำลอง · "+days.map(i=>localDay(i)+" "+fmt(fixture.forecast[i][0],"°")+" ฝน "+fmt(fixture.forecast[i][2],"%")).join(" · "));
   }
   function renderTable(){
@@ -125,6 +129,12 @@
   }
   function renderControls(){
     const b=state.mode==="B";
+    const ref=state.visual==="reference";
+    $("visual-reference").classList.toggle("selected",ref);
+    $("visual-luxury").classList.toggle("selected",!ref);
+    $("visual-reference").setAttribute("aria-pressed",String(ref));
+    $("visual-luxury").setAttribute("aria-pressed",String(!ref));
+    $("layout").disabled=ref;
     $("opt-a").classList.toggle("selected",!b);$("opt-b").classList.toggle("selected",b);
     $("opt-a").setAttribute("aria-pressed",String(!b));$("opt-b").setAttribute("aria-pressed",String(b));
     for(const id of ["prev","next","pause"])$(id).disabled=!b;
@@ -144,6 +154,7 @@
   function setPaused(v){state.paused=!!v;reset();renderControls();}
   function setEffects(v){state.effects=!!v;render();}
   function setCompact(v){state.compact=!!v;render();}
+  function setVisual(v){if(v!=="reference"&&v!=="luxury")return;state.visual=v;render();}
   function setIntervalSeconds(v){if(![8,9,10].includes(Number(v)))return;state.seconds=Number(v);$("interval").value=String(v);reset();renderControls();}
   function setZoom(v){
     state.zoom=Math.max(1,Math.min(8,Math.round(Number(v)||1)));
@@ -160,6 +171,8 @@
   $("pause").addEventListener("click",()=>setPaused(!state.paused));
   $("effects").addEventListener("click",()=>setEffects(!state.effects));
   $("layout").addEventListener("click",()=>setCompact(!state.compact));
+  $("visual-reference").addEventListener("click",()=>setVisual("reference"));
+  $("visual-luxury").addEventListener("click",()=>setVisual("luxury"));
   $("scenario").addEventListener("change",e=>setScenario(e.target.value));
   $("interval").addEventListener("change",e=>setIntervalSeconds(e.target.value));
   $("zoom").addEventListener("input",e=>setZoom(e.target.value));
@@ -169,7 +182,7 @@
   window.WeatherLedDemo=Object.freeze({
     getState:()=>({...state,dayCount:7,visibleDays:state.mode==="A"?7:state.page===0?4:3,
       source:"SIMULATED / LOCAL FIXTURE",observedAt:null,productionTemplateSha256:layout.productionSha256}),
-    setMode,setPage,setScenario,setPaused,setEffects,setCompact,setIntervalSeconds,setZoom
+    setMode,setPage,setScenario,setPaused,setEffects,setCompact,setVisual,setIntervalSeconds,setZoom
   });
   setZoom(state.zoom);render();
 })();
