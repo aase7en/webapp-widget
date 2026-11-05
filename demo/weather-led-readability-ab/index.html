@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="color-scheme" content="dark">
+  <meta name="description" content="Demo A/B สำหรับจอ LED Weather 432×40 px — ใช้ข้อมูลจำลองเท่านั้น ไม่เปลี่ยน Production">
+  <title>UTH Weather LED • A/B Readability Lab</title>
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="./style.css">
+  <script defer src="./production-luxury-template.js"></script>
+  <script defer src="./reference.js"></script>
+  <script defer src="./hybrid.js"></script>
+  <script defer src="./app.js"></script>
+</head>
+<body>
+  <main class="shell">
+    <header class="page-head">
+      <p class="eyebrow">UTH[AI] · VISUAL EXPERIMENT / WEATHER</p>
+      <h1>อ่านอากาศให้ชัด <em>แม้จอสูงเพียง 40px</em></h1>
+      <p class="intro">เปรียบเทียบแบบแสดง 7 วันพร้อมกันกับแบบสลับ 4+3 วัน บนจอ LED จริง 432 × 40 พิกเซล โดยไม่แตะหน้า Production</p>
+      <div class="notice" role="note"><strong>SIMULATED · ข้อมูลจำลอง</strong><span>ตัวเลขและวันที่ใช้ทดสอบการอ่านเท่านั้น ไม่ใช่สภาพอากาศปัจจุบันหรือข้อมูลที่วัดจากโรงพยาบาล</span></div>
+    </header>
+    <section class="control-panel" aria-label="ตัวเลือกการเปรียบเทียบ">
+      <div class="control-left">
+        <div class="control-label">ดีไซน์จอ LED</div>
+        <div class="segmented" role="group" aria-label="เลือกดีไซน์">
+          <button type="button" id="visual-hybrid" class="selected" aria-pressed="true">Luxury + Icons 4+3</button>
+          <button type="button" id="visual-reference" aria-pressed="false"><b>R</b> ตัวเลขใหญ่ + Icon + Graph</button>
+          <button type="button" id="visual-luxury" aria-pressed="false">Luxury เดิม</button>
+        </div>
+      </div>
+      <div class="control-left">
+        <div class="control-label">รูปแบบพยากรณ์</div>
+        <div class="segmented" role="group" aria-label="เลือก Option">
+          <button type="button" id="opt-a" aria-pressed="false" disabled><b>A</b> ครบ 7 วัน</button>
+          <button type="button" id="opt-b" class="selected" aria-pressed="true"><b>B</b> สลับ 4 + 3 วัน</button>
+        </div>
+      </div>
+      <div class="control-right">
+        <label for="scenario">ข้อมูลทดสอบ</label>
+        <select id="scenario">
+          <option value="normal">ตามภาพอ้างอิง 32°C (จำลอง)</option>
+          <option value="edge">ตัวเลขยาว / 100%</option>
+          <option value="missing">ข้อมูลขาด / ค่า 0 จริง</option>
+        </select>
+        <label for="interval">สลับทุก</label>
+        <select id="interval"><option value="8">8 วินาที</option><option value="9" selected>9 วินาที</option><option value="10">10 วินาที</option></select>
+        <button type="button" id="effects" class="secondary fx-toggle" aria-pressed="true">ภาพฉาก + Animation: เปิด</button>
+        <button type="button" id="layout" class="secondary fx-toggle" aria-pressed="true">จัดวาง: ขยับซ้าย</button>
+      </div>
+    </section>
+    <section class="screen-panel" aria-labelledby="real-heading">
+      <div class="panel-heading"><div><p class="kicker">01 · NATIVE DISPLAY</p><h2 id="real-heading">ขนาดแสดงผลจริง</h2></div><span class="size-token">432 × 40 CSS px · 1:1</span></div>
+      <div class="stage-scroll"><div id="native-stage" class="led-stage" role="img" aria-label="Weather LED ข้อมูลจำลอง 432 คูณ 40 พิกเซล"></div></div>
+      <div class="screen-footer">
+        <div class="footnote"><span class="dot"></span> ภาพนี้มีขนาด CSS จริง 432×40 · บน iPhone เลื่อนแนวนอนเพื่อดูเต็มความกว้าง</div>
+        <div id="page-status" class="page-status" aria-live="polite">สลับ 4 + 3 วัน</div>
+      </div>
+    </section>
+    <section class="inspector-panel" aria-labelledby="zoom-heading">
+      <div class="panel-heading"><div><p class="kicker">02 · PIXEL INSPECTOR</p><h2 id="zoom-heading">ซูมตรวจความคมและพื้นที่ตัวเลข</h2></div>
+        <div class="zoom-controls"><label for="zoom">ขยาย <output id="zoom-value" for="zoom">4×</output></label><input type="range" id="zoom" min="1" max="8" step="1" value="4"></div>
+      </div>
+      <div class="zoom-viewport" id="zoom-viewport" tabindex="0" aria-label="จอขยาย เลื่อนแนวนอนเพื่อตรวจรายละเอียด">
+        <div class="zoom-frame" id="zoom-frame"><div id="zoom-stage" class="led-stage" aria-hidden="true"></div></div>
+      </div>
+      <div class="transport">
+        <button id="prev" type="button" class="secondary" disabled>ก่อนหน้า</button>
+        <button id="pause" type="button" class="secondary" disabled>หยุดสลับ</button>
+        <button id="next" type="button" class="secondary" disabled>ถัดไป</button>
+        <span id="rotation-status" class="transport-note">โหมด A แสดงครบ 7 วันพร้อมกัน</span>
+      </div>
+    </section>
+    <section class="details" aria-labelledby="details-heading">
+      <div><p class="kicker">03 · DATA & EVIDENCE</p><h2 id="details-heading">รายละเอียดตัวเลข 7 วัน</h2>
+      <p class="detail-note">ค่าบน LED ถูกจัดรูปแบบให้สั้นเพื่อการมองไกล ตารางนี้แสดงความหมายเต็มโดยไม่ลดทอนข้อมูล</p></div>
+      <div class="table-scroll"><table><caption class="sr-only">รายละเอียดข้อมูลพยากรณ์จำลอง</caption><thead><tr><th scope="col">วัน</th><th scope="col">สูงสุด °C</th><th scope="col">ต่ำสุด °C</th><th scope="col">โอกาสฝน %</th></tr></thead><tbody id="details-body"></tbody></table></div>
+      <div class="provenance"><div><span>สถานะ</span><strong>SIMULATED · LOCAL FIXTURE</strong></div><div><span>Source</span><strong>Local visual-test fixtures · ไม่มี API call</strong></div><div><span>observedAt</span><strong>ไม่มี (null) · ไม่ใช่ข้อมูลตรวจวัดจริง</strong></div><div><span>หมายเหตุ</span><strong>— หมายถึงไม่มีข้อมูล; 0% คือศูนย์จริงในชุดจำลอง</strong></div></div>
+    </section>
+    <footer class="site-footer">Weather LED A/B Readability Demo · Isolated design review · ไม่ใช่ Production / ไม่ใช้ตัดสินใจด้านความปลอดภัย</footer>
+  </main>
+</body>
+</html>

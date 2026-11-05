@@ -1,0 +1,37 @@
+/* Hybrid LED candidate · original 1296×120 Luxury board is scaled to native 432×40. */
+:host(.view-hybrid)>.board{display:block}
+:host(.view-hybrid)>.hybrid-panel{display:grid}
+:host(:not(.view-hybrid))>.hybrid-panel{display:none}
+.board.layout-hybrid .scene{width:385px} /* 128.3px, 30px less than Production */
+.board.layout-hybrid .icon,.board.layout-hybrid .icon-poster{transform:translateX(-66px)}
+.board.layout-hybrid .temp,.board.layout-hybrid .feel{transform:translateX(-63px)}
+.board.layout-hybrid .stats,.board.layout-hybrid .forecast{visibility:hidden!important}
+.board.layout-hybrid .graph{display:none!important}
+.hybrid-panel{position:absolute;left:202px;top:1px;width:229px;height:38px;z-index:7;grid-template-columns:86px 143px;overflow:hidden;border-radius:3px;background:#07152b}
+.hybrid-metrics{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));grid-template-rows:repeat(2,minmax(0,1fr));min-width:0;border-left:1px solid #5fbdea9a;border-right:1px solid #5fbdea9a}
+.hybrid-metric{display:grid;grid-template-columns:12px minmax(0,1fr);grid-template-rows:7px 11px;gap:0 1px;align-items:center;overflow:hidden;padding:0 1px;background:linear-gradient(120deg,#06182c,#112941);border-right:1px solid #628cad76;border-bottom:1px solid #628cad76}
+.hybrid-metric:nth-child(2n){border-right:0}.hybrid-metric:nth-child(n+3){border-bottom:0}
+.hybrid-metric svg{grid-column:1;grid-row:1/3;width:11px;height:15px;filter:none}
+.hybrid-label{font:800 6px/7px Arial,Tahoma,sans-serif;color:#d5eaff;white-space:nowrap}
+.hybrid-value{font:950 11.7px/10px Arial,Tahoma,sans-serif;white-space:nowrap;letter-spacing:-.4px;text-shadow:none}
+.hybrid-metric[data-kind="rain"]{color:#57dfff}.hybrid-metric[data-kind="humidity"]{color:#69ead7}
+.hybrid-metric[data-kind="high"]{color:#ff9381}.hybrid-metric[data-kind="low"]{color:#8cd5ff}
+.hybrid-metric[data-kind="high"][data-heat="warm"] .hybrid-value{color:#ffc36a}
+.hybrid-metric[data-kind="high"][data-heat="hot"] .hybrid-value{color:#ff6a58}
+.hybrid-days{display:grid;grid-template-columns:repeat(var(--hybrid-day-count),minmax(0,1fr));height:38px;min-width:0;overflow:hidden;background:linear-gradient(180deg,#071f3c,#06152b)}
+.hybrid-day{display:flex;flex-direction:column;align-items:center;justify-content:flex-start;height:38px;min-width:0;overflow:hidden;border-right:1px solid #5d96b966}
+.hybrid-day:last-child{border-right:0}
+.hybrid-day-name{font:900 7px/8px Arial,Tahoma,sans-serif;color:#d6eafd;white-space:nowrap;height:8px;padding-top:1px}
+.hybrid-day-icon{width:26px;height:14px;flex:none;filter:drop-shadow(0 0 2px #0d93d2)}
+.hybrid-day-temp{display:flex;justify-content:center;align-items:center;gap:1px;font:950 9px/10px Arial,Tahoma,sans-serif;white-space:nowrap;height:10px;letter-spacing:-.4px}
+.hybrid-high{color:#ffbf8f}.hybrid-low{color:#97d9ff;font-size:8.4px}.hybrid-slash{color:#76aec9;font-size:6px}
+.hybrid-high[data-heat="warm"]{color:#ffd36d}.hybrid-high[data-heat="hot"]{color:#ff7059}
+.hybrid-rain{height:6px;display:flex;align-items:center;justify-content:center;gap:1px;font:900 7px/6px Arial,Tahoma,sans-serif;color:#acdfff;white-space:nowrap}
+.hybrid-rain svg{width:5px;height:6px;fill:#40d8ff}
+.hybrid-panel[data-page="1"] .hybrid-day-icon{width:30px;height:14px}
+.hybrid-panel[data-page="1"] .hybrid-day-temp{font-size:10.8px}
+.hybrid-panel[data-page="1"] .hybrid-low{font-size:9.5px}
+.hybrid-panel[data-page="1"] .hybrid-rain{font-size:8px}
+
+.hybrid-days .rf-weather-svg{position:static;left:auto;top:auto;transform:none;overflow:visible;width:26px;height:14px;flex:none}
+.hybrid-panel[data-page="1"] .hybrid-days .rf-weather-svg{width:30px;height:14px}
