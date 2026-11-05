@@ -1,27 +1,87 @@
 {
-  "at": "2026-11-05T07:13:47.202Z",
+  "checkedAt": "2026-11-05T07:44:14.958Z",
+  "result": "PASS",
   "cases": [
     {
-      "label": "original-scene-apng-icon-graph-toggle",
-      "artwork": {
-        "scene": "./assets/rain.webp",
-        "animation": "./assets/rain.apng",
-        "poster": "./assets/rain-poster.png",
-        "metrics": 11,
-        "graph": true,
-        "motion": "block",
-        "on": true
-      },
-      "passed": true
-    },
-    {
-      "label": "A-normal-7",
-      "native": {
+      "label": "A-7days-luxury",
+      "size": {
         "width": 432,
         "height": 40
       },
+      "clock": {
+        "x": 3.6666641235351562,
+        "y": 3,
+        "w": 60.00000762939453,
+        "h": 34.333343505859375,
+        "text": "พฤหัส 5 พ.ย. 6914:44",
+        "font": "10px",
+        "visible": true
+      },
+      "time": {
+        "x": 6.666664123535156,
+        "y": 11.59375,
+        "w": 55.00000762939453,
+        "h": 20.479156494140625,
+        "text": "14:44",
+        "font": "64px",
+        "visible": true
+      },
+      "date": {
+        "x": 6.666664123535156,
+        "y": 5.260406494140625,
+        "w": 55.00000762939453,
+        "h": 5.66668701171875,
+        "text": "พฤหัส 5 พ.ย. 69",
+        "font": "17px",
+        "visible": true
+      },
+      "scene": {
+        "x": 27.333328247070312,
+        "y": 0,
+        "w": 158.33335876464844,
+        "h": 40,
+        "text": "",
+        "font": "10px",
+        "visible": true
+      },
+      "icon": {
+        "x": 114.33334350585938,
+        "y": -15.333343505859375,
+        "w": 61.666656494140625,
+        "h": 61.66668701171875,
+        "text": "",
+        "font": "10px",
+        "visible": true
+      },
+      "temp": {
+        "x": 179,
+        "y": 2.666656494140625,
+        "w": 43.46875,
+        "h": 30.66668701171875,
+        "text": "28°C",
+        "font": "92px",
+        "visible": true
+      },
+      "stats": {
+        "x": 234.66668701171875,
+        "y": 3,
+        "w": 66.66665649414062,
+        "h": 34,
+        "text": "54%85%33°25°",
+        "font": "10px",
+        "visible": true
+      },
+      "forecast": {
+        "x": 306.3333435058594,
+        "y": 2.333343505859375,
+        "w": 122.33334350585938,
+        "h": 35.33331298828125,
+        "text": "พยากรณ์ 7 วัน · โอกาสฝนรายวัน*พฤหัส33°/25°81%ศุกร์33°/24°92%เสาร์31°/24°87%อาทิตย์32°/25°71%จันทร์32°/25°84%อังคาร32°/24°31%พุธ30°/23°6%",
+        "font": "10px",
+        "visible": true
+      },
       "dayCount": 7,
-      "dayIndices": [
+      "days": [
         0,
         1,
         2,
@@ -30,69 +90,306 @@
         5,
         6
       ],
-      "maxCellRight": 430.984375,
-      "maxCellBottom": 39,
-      "clipped": [],
-      "fontSizeRain": "10.5px",
-      "fontSizeTemps": "10.3px",
-      "zoomFrame": {
-        "width": 1728,
-        "height": 160
-      }
+      "rainFont": "15.5px",
+      "overflow": [],
+      "graphPath": "M0.00 5.20 L58.33 5.20 L116.67 11.60 L175.00 8.40 L233.33 8.40 L291.67 8.40 L350.00 14.80",
+      "sceneLoaded": true,
+      "iconLoaded": true,
+      "posterLoaded": true,
+      "iconCondition": "rain",
+      "simBadge": "SIM",
+      "shownTemps": [
+        "33°",
+        "33°",
+        "31°",
+        "32°",
+        "32°",
+        "32°",
+        "30°"
+      ]
     },
     {
-      "label": "B-normal-4",
-      "native": {
+      "label": "B-first4-luxury",
+      "size": {
         "width": 432,
         "height": 40
       },
+      "clock": {
+        "x": 3.6666641235351562,
+        "y": 3,
+        "w": 60.00000762939453,
+        "h": 34.333343505859375,
+        "text": "พฤหัส 5 พ.ย. 6914:44",
+        "font": "10px",
+        "visible": true
+      },
+      "time": {
+        "x": 6.666664123535156,
+        "y": 11.59375,
+        "w": 55.00000762939453,
+        "h": 20.479156494140625,
+        "text": "14:44",
+        "font": "64px",
+        "visible": true
+      },
+      "date": {
+        "x": 6.666664123535156,
+        "y": 5.260406494140625,
+        "w": 55.00000762939453,
+        "h": 5.66668701171875,
+        "text": "พฤหัส 5 พ.ย. 69",
+        "font": "17px",
+        "visible": true
+      },
+      "scene": {
+        "x": 27.333328247070312,
+        "y": 0,
+        "w": 158.33335876464844,
+        "h": 40,
+        "text": "",
+        "font": "10px",
+        "visible": true
+      },
+      "icon": {
+        "x": 114.33334350585938,
+        "y": -15.333343505859375,
+        "w": 61.666656494140625,
+        "h": 61.66668701171875,
+        "text": "",
+        "font": "10px",
+        "visible": true
+      },
+      "temp": {
+        "x": 179,
+        "y": 2.666656494140625,
+        "w": 43.46875,
+        "h": 30.66668701171875,
+        "text": "28°C",
+        "font": "92px",
+        "visible": true
+      },
+      "stats": {
+        "x": 234.66668701171875,
+        "y": 3,
+        "w": 66.66665649414062,
+        "h": 34,
+        "text": "54%85%33°25°",
+        "font": "10px",
+        "visible": true
+      },
+      "forecast": {
+        "x": 306.3333435058594,
+        "y": 2.333343505859375,
+        "w": 122.33334350585938,
+        "h": 35.33331298828125,
+        "text": "พยากรณ์ 7 วัน · โอกาสฝนรายวัน*พฤหัส33°/25°81%ศุกร์33°/24°92%เสาร์31°/24°87%อาทิตย์32°/25°71%",
+        "font": "10px",
+        "visible": true
+      },
       "dayCount": 4,
-      "dayIndices": [
+      "days": [
         0,
         1,
         2,
         3
       ],
-      "maxCellRight": 431,
-      "maxCellBottom": 39,
-      "clipped": [],
-      "fontSizeRain": "13px",
-      "fontSizeTemps": "14.3px",
-      "zoomFrame": {
-        "width": 1728,
-        "height": 160
-      }
+      "rainFont": "24px",
+      "overflow": [],
+      "graphPath": "M0.00 6.00 L116.67 6.00 L233.33 14.00 L350.00 10.00",
+      "sceneLoaded": true,
+      "iconLoaded": true,
+      "posterLoaded": true,
+      "iconCondition": "rain",
+      "simBadge": "SIM",
+      "shownTemps": [
+        "33°",
+        "33°",
+        "31°",
+        "32°"
+      ]
     },
     {
-      "label": "B-normal-3",
-      "native": {
+      "label": "B-last3-luxury",
+      "size": {
         "width": 432,
         "height": 40
       },
+      "clock": {
+        "x": 3.6666641235351562,
+        "y": 3,
+        "w": 60.00000762939453,
+        "h": 34.333343505859375,
+        "text": "พฤหัส 5 พ.ย. 6914:44",
+        "font": "10px",
+        "visible": true
+      },
+      "time": {
+        "x": 6.666664123535156,
+        "y": 11.59375,
+        "w": 55.00000762939453,
+        "h": 20.479156494140625,
+        "text": "14:44",
+        "font": "64px",
+        "visible": true
+      },
+      "date": {
+        "x": 6.666664123535156,
+        "y": 5.260406494140625,
+        "w": 55.00000762939453,
+        "h": 5.66668701171875,
+        "text": "พฤหัส 5 พ.ย. 69",
+        "font": "17px",
+        "visible": true
+      },
+      "scene": {
+        "x": 27.333328247070312,
+        "y": 0,
+        "w": 158.33335876464844,
+        "h": 40,
+        "text": "",
+        "font": "10px",
+        "visible": true
+      },
+      "icon": {
+        "x": 114.33334350585938,
+        "y": -15.333343505859375,
+        "w": 61.666656494140625,
+        "h": 61.66668701171875,
+        "text": "",
+        "font": "10px",
+        "visible": true
+      },
+      "temp": {
+        "x": 179,
+        "y": 2.666656494140625,
+        "w": 43.46875,
+        "h": 30.66668701171875,
+        "text": "28°C",
+        "font": "92px",
+        "visible": true
+      },
+      "stats": {
+        "x": 234.66668701171875,
+        "y": 3,
+        "w": 66.66665649414062,
+        "h": 34,
+        "text": "54%85%33°25°",
+        "font": "10px",
+        "visible": true
+      },
+      "forecast": {
+        "x": 306.3333435058594,
+        "y": 2.333343505859375,
+        "w": 122.33334350585938,
+        "h": 35.33331298828125,
+        "text": "พยากรณ์ 7 วัน · โอกาสฝนรายวัน*จันทร์32°/25°84%อังคาร32°/24°31%พุธ30°/23°6%",
+        "font": "10px",
+        "visible": true
+      },
       "dayCount": 3,
-      "dayIndices": [
+      "days": [
         4,
         5,
         6
       ],
-      "maxCellRight": 431,
-      "maxCellBottom": 39,
-      "clipped": [],
-      "fontSizeRain": "13px",
-      "fontSizeTemps": "14.3px",
-      "zoomFrame": {
-        "width": 1728,
-        "height": 160
-      }
+      "rainFont": "24px",
+      "overflow": [],
+      "graphPath": "M0.00 6.00 L175.00 6.00 L350.00 14.00",
+      "sceneLoaded": true,
+      "iconLoaded": true,
+      "posterLoaded": true,
+      "iconCondition": "rain",
+      "simBadge": "SIM",
+      "shownTemps": [
+        "32°",
+        "32°",
+        "30°"
+      ]
+    },
+    {
+      "label": "effects-toggle",
+      "passed": true
     },
     {
       "label": "edge-A-0",
-      "native": {
+      "size": {
         "width": 432,
         "height": 40
       },
+      "clock": {
+        "x": 3.6666641235351562,
+        "y": 3,
+        "w": 60.00000762939453,
+        "h": 34.333343505859375,
+        "text": "พฤหัส 5 พ.ย. 6914:44",
+        "font": "10px",
+        "visible": true
+      },
+      "time": {
+        "x": 6.666664123535156,
+        "y": 11.59375,
+        "w": 55.00000762939453,
+        "h": 20.479156494140625,
+        "text": "14:44",
+        "font": "64px",
+        "visible": true
+      },
+      "date": {
+        "x": 6.666664123535156,
+        "y": 5.260406494140625,
+        "w": 55.00000762939453,
+        "h": 5.66668701171875,
+        "text": "พฤหัส 5 พ.ย. 69",
+        "font": "17px",
+        "visible": true
+      },
+      "scene": {
+        "x": 27.333328247070312,
+        "y": 0,
+        "w": 158.33335876464844,
+        "h": 40,
+        "text": "",
+        "font": "10px",
+        "visible": true
+      },
+      "icon": {
+        "x": 114.33334350585938,
+        "y": -15.333343505859375,
+        "w": 61.666656494140625,
+        "h": 61.66668701171875,
+        "text": "",
+        "font": "10px",
+        "visible": true
+      },
+      "temp": {
+        "x": 179,
+        "y": 2.666656494140625,
+        "w": 43.46875,
+        "h": 30.66668701171875,
+        "text": "42°C",
+        "font": "92px",
+        "visible": true
+      },
+      "stats": {
+        "x": 234.66668701171875,
+        "y": 3,
+        "w": 66.66665649414062,
+        "h": 34,
+        "text": "100%100%45°-9°",
+        "font": "10px",
+        "visible": true
+      },
+      "forecast": {
+        "x": 306.3333435058594,
+        "y": 2.333343505859375,
+        "w": 122.33334350585938,
+        "h": 35.33331298828125,
+        "text": "พยากรณ์ 7 วัน · โอกาสฝนรายวัน*พฤหัส45°/-9°100%ศุกร์41°/29°100%เสาร์40°/28°99%อาทิตย์39°/25°100%จันทร์44°/31°100%อังคาร42°/-8°0%พุธ38°/25°87%",
+        "font": "10px",
+        "visible": true
+      },
       "dayCount": 7,
-      "dayIndices": [
+      "days": [
         0,
         1,
         2,
@@ -101,69 +398,302 @@
         5,
         6
       ],
-      "maxCellRight": 430.984375,
-      "maxCellBottom": 39,
-      "clipped": [],
-      "fontSizeRain": "10.5px",
-      "fontSizeTemps": "10.3px",
-      "zoomFrame": {
-        "width": 1728,
-        "height": 160
-      }
+      "rainFont": "15.5px",
+      "overflow": [],
+      "graphPath": "M0.00 3.78 L58.33 10.89 L116.67 12.67 L175.00 14.44 L233.33 5.56 L291.67 9.11 L350.00 16.22",
+      "sceneLoaded": true,
+      "iconLoaded": true,
+      "posterLoaded": true,
+      "iconCondition": "thunderstorm",
+      "simBadge": "SIM",
+      "shownTemps": [
+        "45°",
+        "41°",
+        "40°",
+        "39°",
+        "44°",
+        "42°",
+        "38°"
+      ]
     },
     {
       "label": "edge-B-0",
-      "native": {
+      "size": {
         "width": 432,
         "height": 40
       },
+      "clock": {
+        "x": 3.6666641235351562,
+        "y": 3,
+        "w": 60.00000762939453,
+        "h": 34.333343505859375,
+        "text": "พฤหัส 5 พ.ย. 6914:44",
+        "font": "10px",
+        "visible": true
+      },
+      "time": {
+        "x": 6.666664123535156,
+        "y": 11.59375,
+        "w": 55.00000762939453,
+        "h": 20.479156494140625,
+        "text": "14:44",
+        "font": "64px",
+        "visible": true
+      },
+      "date": {
+        "x": 6.666664123535156,
+        "y": 5.260406494140625,
+        "w": 55.00000762939453,
+        "h": 5.66668701171875,
+        "text": "พฤหัส 5 พ.ย. 69",
+        "font": "17px",
+        "visible": true
+      },
+      "scene": {
+        "x": 27.333328247070312,
+        "y": 0,
+        "w": 158.33335876464844,
+        "h": 40,
+        "text": "",
+        "font": "10px",
+        "visible": true
+      },
+      "icon": {
+        "x": 114.33334350585938,
+        "y": -15.333343505859375,
+        "w": 61.666656494140625,
+        "h": 61.66668701171875,
+        "text": "",
+        "font": "10px",
+        "visible": true
+      },
+      "temp": {
+        "x": 179,
+        "y": 2.666656494140625,
+        "w": 43.46875,
+        "h": 30.66668701171875,
+        "text": "42°C",
+        "font": "92px",
+        "visible": true
+      },
+      "stats": {
+        "x": 234.66668701171875,
+        "y": 3,
+        "w": 66.66665649414062,
+        "h": 34,
+        "text": "100%100%45°-9°",
+        "font": "10px",
+        "visible": true
+      },
+      "forecast": {
+        "x": 306.3333435058594,
+        "y": 2.333343505859375,
+        "w": 122.33334350585938,
+        "h": 35.33331298828125,
+        "text": "พยากรณ์ 7 วัน · โอกาสฝนรายวัน*พฤหัส45°/-9°100%ศุกร์41°/29°100%เสาร์40°/28°99%อาทิตย์39°/25°100%",
+        "font": "10px",
+        "visible": true
+      },
       "dayCount": 4,
-      "dayIndices": [
+      "days": [
         0,
         1,
         2,
         3
       ],
-      "maxCellRight": 431,
-      "maxCellBottom": 39,
-      "clipped": [],
-      "fontSizeRain": "13px",
-      "fontSizeTemps": "14.3px",
-      "zoomFrame": {
-        "width": 1728,
-        "height": 160
-      }
+      "rainFont": "24px",
+      "overflow": [],
+      "graphPath": "M0.00 4.00 L116.67 12.00 L233.33 14.00 L350.00 16.00",
+      "sceneLoaded": true,
+      "iconLoaded": true,
+      "posterLoaded": true,
+      "iconCondition": "thunderstorm",
+      "simBadge": "SIM",
+      "shownTemps": [
+        "45°",
+        "41°",
+        "40°",
+        "39°"
+      ]
     },
     {
       "label": "edge-B-1",
-      "native": {
+      "size": {
         "width": 432,
         "height": 40
       },
+      "clock": {
+        "x": 3.6666641235351562,
+        "y": 3,
+        "w": 60.00000762939453,
+        "h": 34.333343505859375,
+        "text": "พฤหัส 5 พ.ย. 6914:44",
+        "font": "10px",
+        "visible": true
+      },
+      "time": {
+        "x": 6.666664123535156,
+        "y": 11.59375,
+        "w": 55.00000762939453,
+        "h": 20.479156494140625,
+        "text": "14:44",
+        "font": "64px",
+        "visible": true
+      },
+      "date": {
+        "x": 6.666664123535156,
+        "y": 5.260406494140625,
+        "w": 55.00000762939453,
+        "h": 5.66668701171875,
+        "text": "พฤหัส 5 พ.ย. 69",
+        "font": "17px",
+        "visible": true
+      },
+      "scene": {
+        "x": 27.333328247070312,
+        "y": 0,
+        "w": 158.33335876464844,
+        "h": 40,
+        "text": "",
+        "font": "10px",
+        "visible": true
+      },
+      "icon": {
+        "x": 114.33334350585938,
+        "y": -15.333343505859375,
+        "w": 61.666656494140625,
+        "h": 61.66668701171875,
+        "text": "",
+        "font": "10px",
+        "visible": true
+      },
+      "temp": {
+        "x": 179,
+        "y": 2.666656494140625,
+        "w": 43.46875,
+        "h": 30.66668701171875,
+        "text": "42°C",
+        "font": "92px",
+        "visible": true
+      },
+      "stats": {
+        "x": 234.66668701171875,
+        "y": 3,
+        "w": 66.66665649414062,
+        "h": 34,
+        "text": "100%100%45°-9°",
+        "font": "10px",
+        "visible": true
+      },
+      "forecast": {
+        "x": 306.3333435058594,
+        "y": 2.333343505859375,
+        "w": 122.33334350585938,
+        "h": 35.33331298828125,
+        "text": "พยากรณ์ 7 วัน · โอกาสฝนรายวัน*จันทร์44°/31°100%อังคาร42°/-8°0%พุธ38°/25°87%",
+        "font": "10px",
+        "visible": true
+      },
       "dayCount": 3,
-      "dayIndices": [
+      "days": [
         4,
         5,
         6
       ],
-      "maxCellRight": 431,
-      "maxCellBottom": 39,
-      "clipped": [],
-      "fontSizeRain": "13px",
-      "fontSizeTemps": "14.3px",
-      "zoomFrame": {
-        "width": 1728,
-        "height": 160
-      }
+      "rainFont": "24px",
+      "overflow": [],
+      "graphPath": "M0.00 4.00 L175.00 8.00 L350.00 16.00",
+      "sceneLoaded": true,
+      "iconLoaded": true,
+      "posterLoaded": true,
+      "iconCondition": "thunderstorm",
+      "simBadge": "SIM",
+      "shownTemps": [
+        "44°",
+        "42°",
+        "38°"
+      ]
     },
     {
       "label": "missing-A-0",
-      "native": {
+      "size": {
         "width": 432,
         "height": 40
       },
+      "clock": {
+        "x": 3.6666641235351562,
+        "y": 3,
+        "w": 60.00000762939453,
+        "h": 34.333343505859375,
+        "text": "พฤหัส 5 พ.ย. 6914:44",
+        "font": "10px",
+        "visible": true
+      },
+      "time": {
+        "x": 6.666664123535156,
+        "y": 11.59375,
+        "w": 55.00000762939453,
+        "h": 20.479156494140625,
+        "text": "14:44",
+        "font": "64px",
+        "visible": true
+      },
+      "date": {
+        "x": 6.666664123535156,
+        "y": 5.260406494140625,
+        "w": 55.00000762939453,
+        "h": 5.66668701171875,
+        "text": "พฤหัส 5 พ.ย. 69",
+        "font": "17px",
+        "visible": true
+      },
+      "scene": {
+        "x": 27.333328247070312,
+        "y": 0,
+        "w": 158.33335876464844,
+        "h": 40,
+        "text": "",
+        "font": "10px",
+        "visible": true
+      },
+      "icon": {
+        "x": 71,
+        "y": -51.666656494140625,
+        "w": 131,
+        "h": 130.99996948242188,
+        "text": "",
+        "font": "10px",
+        "visible": true
+      },
+      "temp": {
+        "x": 179,
+        "y": 2.666656494140625,
+        "w": 42.020843505859375,
+        "h": 30.66668701171875,
+        "text": "—°C",
+        "font": "92px",
+        "visible": true
+      },
+      "stats": {
+        "x": 234.66668701171875,
+        "y": 3,
+        "w": 66.66665649414062,
+        "h": 34,
+        "text": "0%——25°",
+        "font": "10px",
+        "visible": true
+      },
+      "forecast": {
+        "x": 306.3333435058594,
+        "y": 2.333343505859375,
+        "w": 122.33334350585938,
+        "h": 35.33331298828125,
+        "text": "พยากรณ์ 7 วัน · โอกาสฝนรายวัน*พฤหัส—/25°—ศุกร์0°/0°0%เสาร์32°/—10%อาทิตย์—/——จันทร์33°/25°0%อังคาร—/-2°100%พุธ28°/21°45%",
+        "font": "10px",
+        "visible": true
+      },
       "dayCount": 7,
-      "dayIndices": [
+      "days": [
         0,
         1,
         2,
@@ -172,85 +702,255 @@
         5,
         6
       ],
-      "maxCellRight": 430.984375,
-      "maxCellBottom": 39,
-      "clipped": [],
-      "fontSizeRain": "10.5px",
-      "fontSizeTemps": "10.3px",
-      "zoomFrame": {
-        "width": 1728,
-        "height": 160
-      }
+      "rainFont": "15.5px",
+      "overflow": [],
+      "graphPath": "M58.33 17.54 L116.67 2.91 M233.33 2.46 M350.00 4.74",
+      "sceneLoaded": true,
+      "iconLoaded": true,
+      "posterLoaded": true,
+      "iconCondition": "cloudy",
+      "simBadge": "SIM",
+      "shownTemps": [
+        "—",
+        "0°",
+        "32°",
+        "—",
+        "33°",
+        "—",
+        "28°"
+      ]
     },
     {
       "label": "missing-B-0",
-      "native": {
+      "size": {
         "width": 432,
         "height": 40
       },
+      "clock": {
+        "x": 3.6666641235351562,
+        "y": 3,
+        "w": 60.00000762939453,
+        "h": 34.333343505859375,
+        "text": "พฤหัส 5 พ.ย. 6914:44",
+        "font": "10px",
+        "visible": true
+      },
+      "time": {
+        "x": 6.666664123535156,
+        "y": 11.59375,
+        "w": 55.00000762939453,
+        "h": 20.479156494140625,
+        "text": "14:44",
+        "font": "64px",
+        "visible": true
+      },
+      "date": {
+        "x": 6.666664123535156,
+        "y": 5.260406494140625,
+        "w": 55.00000762939453,
+        "h": 5.66668701171875,
+        "text": "พฤหัส 5 พ.ย. 69",
+        "font": "17px",
+        "visible": true
+      },
+      "scene": {
+        "x": 27.333328247070312,
+        "y": 0,
+        "w": 158.33335876464844,
+        "h": 40,
+        "text": "",
+        "font": "10px",
+        "visible": true
+      },
+      "icon": {
+        "x": 71,
+        "y": -51.666656494140625,
+        "w": 131,
+        "h": 130.99996948242188,
+        "text": "",
+        "font": "10px",
+        "visible": true
+      },
+      "temp": {
+        "x": 179,
+        "y": 2.666656494140625,
+        "w": 42.020843505859375,
+        "h": 30.66668701171875,
+        "text": "—°C",
+        "font": "92px",
+        "visible": true
+      },
+      "stats": {
+        "x": 234.66668701171875,
+        "y": 3,
+        "w": 66.66665649414062,
+        "h": 34,
+        "text": "0%——25°",
+        "font": "10px",
+        "visible": true
+      },
+      "forecast": {
+        "x": 306.3333435058594,
+        "y": 2.333343505859375,
+        "w": 122.33334350585938,
+        "h": 35.33331298828125,
+        "text": "พยากรณ์ 7 วัน · โอกาสฝนรายวัน*พฤหัส—/25°—ศุกร์0°/0°0%เสาร์32°/—10%อาทิตย์—/——",
+        "font": "10px",
+        "visible": true
+      },
       "dayCount": 4,
-      "dayIndices": [
+      "days": [
         0,
         1,
         2,
         3
       ],
-      "maxCellRight": 431,
-      "maxCellBottom": 39,
-      "clipped": [],
-      "fontSizeRain": "13px",
-      "fontSizeTemps": "14.3px",
-      "zoomFrame": {
-        "width": 1728,
-        "height": 160
-      }
+      "rainFont": "24px",
+      "overflow": [],
+      "graphPath": "M116.67 17.53 L233.33 2.47",
+      "sceneLoaded": true,
+      "iconLoaded": true,
+      "posterLoaded": true,
+      "iconCondition": "cloudy",
+      "simBadge": "SIM",
+      "shownTemps": [
+        "—",
+        "0°",
+        "32°",
+        "—"
+      ]
     },
     {
       "label": "missing-B-1",
-      "native": {
+      "size": {
         "width": 432,
         "height": 40
       },
+      "clock": {
+        "x": 3.6666641235351562,
+        "y": 3,
+        "w": 60.00000762939453,
+        "h": 34.333343505859375,
+        "text": "พฤหัส 5 พ.ย. 6914:44",
+        "font": "10px",
+        "visible": true
+      },
+      "time": {
+        "x": 6.666664123535156,
+        "y": 11.59375,
+        "w": 55.00000762939453,
+        "h": 20.479156494140625,
+        "text": "14:44",
+        "font": "64px",
+        "visible": true
+      },
+      "date": {
+        "x": 6.666664123535156,
+        "y": 5.260406494140625,
+        "w": 55.00000762939453,
+        "h": 5.66668701171875,
+        "text": "พฤหัส 5 พ.ย. 69",
+        "font": "17px",
+        "visible": true
+      },
+      "scene": {
+        "x": 27.333328247070312,
+        "y": 0,
+        "w": 158.33335876464844,
+        "h": 40,
+        "text": "",
+        "font": "10px",
+        "visible": true
+      },
+      "icon": {
+        "x": 71,
+        "y": -51.666656494140625,
+        "w": 131,
+        "h": 130.99996948242188,
+        "text": "",
+        "font": "10px",
+        "visible": true
+      },
+      "temp": {
+        "x": 179,
+        "y": 2.666656494140625,
+        "w": 42.020843505859375,
+        "h": 30.66668701171875,
+        "text": "—°C",
+        "font": "92px",
+        "visible": true
+      },
+      "stats": {
+        "x": 234.66668701171875,
+        "y": 3,
+        "w": 66.66665649414062,
+        "h": 34,
+        "text": "0%——25°",
+        "font": "10px",
+        "visible": true
+      },
+      "forecast": {
+        "x": 306.3333435058594,
+        "y": 2.333343505859375,
+        "w": 122.33334350585938,
+        "h": 35.33331298828125,
+        "text": "พยากรณ์ 7 วัน · โอกาสฝนรายวัน*จันทร์33°/25°0%อังคาร—/-2°100%พุธ28°/21°45%",
+        "font": "10px",
+        "visible": true
+      },
       "dayCount": 3,
-      "dayIndices": [
+      "days": [
         4,
         5,
         6
       ],
-      "maxCellRight": 431,
-      "maxCellBottom": 39,
-      "clipped": [],
-      "fontSizeRain": "13px",
-      "fontSizeTemps": "14.3px",
-      "zoomFrame": {
-        "width": 1728,
-        "height": 160
+      "rainFont": "24px",
+      "overflow": [],
+      "graphPath": "M0.00 4.29 M350.00 15.71",
+      "sceneLoaded": true,
+      "iconLoaded": true,
+      "posterLoaded": true,
+      "iconCondition": "cloudy",
+      "simBadge": "SIM",
+      "shownTemps": [
+        "33°",
+        "—",
+        "28°"
+      ]
+    },
+    {
+      "label": "missing-vs-zero",
+      "missing": {
+        "dash": true,
+        "zero": true,
+        "currentZero": "0%"
       }
     },
     {
-      "label": "auto-rotation-9s",
+      "label": "9-second-automatic-rotation",
       "passed": true
     },
     {
-      "label": "mobile-390x844",
-      "vw": 390,
-      "innerW": 390,
-      "stageW": 432,
-      "stageH": 40,
-      "scrollable": true,
-      "zoomScrollable": true
+      "label": "mobile-390",
+      "mobile": {
+        "stage": 432,
+        "scrollable": true,
+        "zoomScrollable": true
+      },
+      "zoom": {
+        "w": 2592,
+        "h": 240
+      }
     },
     {
-      "label": "reduced-motion",
-      "paused": true,
-      "reducedArtwork": {
-        "animation": "none",
-        "poster": "block",
-        "scene": "block"
+      "label": "reduced-motion-fallback",
+      "reduction": {
+        "paused": true,
+        "animated": "none",
+        "poster": "block"
       }
     }
   ],
   "errors": [],
-  "httpRequests": [],
-  "result": "PASS"
+  "externalRequests": []
 }

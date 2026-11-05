@@ -50,3 +50,19 @@ Conditions are **visual examples only**: normal→rain, edge→thunderstorm, mis
 **Browser QA rerun (13 cases, Chrome/Puppeteer on 2026-11-05): PASS.** Includes original scene/APNG/poster asset loading, SVG symbols, graph, effect toggle, 7/4/3 day counts, 9s paging, missing vs zero, 100% edge values, 432×40 geometry, 390px mobile scrolling, no text clipping, reduced-motion poster, and no external data requests. See `evidence/qa-report.json` and updated screenshots.
 
 **Not yet verified:** physical LED controller, outdoor viewing distance, actual iPhone Safari GPU rendering, independent visual approval, and authorized Production release.
+
+## Production Luxury fidelity correction — 2026-11-05
+
+**Reason:** A/B demo's earlier custom layout removed the large clock, relocated the panoramic scene/animation and current temperature, and did not look like approved Production Luxury. The owner requested fidelity to the actual live website.
+
+**Verified source:** `https://aase7en.github.io/webapp-widget/v2/weather-luxury.html`, downloaded and SHA-256 matched to `origin/main:v2/weather-luxury.html`: `e0cf3d2aadc267b90e7e8696088b15d225cdc992f75e34326bda05996bae3e48`. The Mac root worktree's Weather HTML differs from the live original; it was **not** used as visual authority.
+
+**Implementation:** `production-luxury-template.js` carries the live Production board and CSS (asset paths rebased to local copies). Each 432×40 Demo stage renders this board in an isolated Shadow DOM, preserving the exact original 1296×120 scaled-by-1/3 composition: large Asia/Bangkok clock, scenic background, animated weather icon + reduced-motion poster, large current temperature, feels-like badge, four icon metrics, original luminous border and temperature trend. Only the forecast panel inside its original ~122px footprint is varied between A and B using `luxury-overrides.css`. The Demo makes zero Weather API calls.
+
+**Readability trade-off:** In A, seven compact daily forecast cells show day, high and rain; individual daily lows remain in the full seven-day table below the LED because the 122px section cannot display all fields legibly at once. In B, four then three larger forecast cells show day, high/low and rain. The four current conditions (rain, humidity, high, low) remain on the main LED in both modes. This keeps the original Luxury composition rather than replacing it with full-width numbers.
+
+**Data integrity:** The clock/date are actual formatted device time in `Asia/Bangkok`; all Weather values/conditions/forecast and the graph are explicitly `SIMULATED`, `observedAt:null`, and never represented as real current readings. “—” remains distinct from 0.
+
+**Browser QA — 2026-11-05:** PASS on Chrome/Puppeteer: 14 checks for original geometry (clock at x≈7, large temperature x≈179, scenic background x≈27, stats x≈235, forecast x≈306), A=7 and B=4+3, 9s timer, 100%/negative and missing vs zero, no clipped daily cells, original scene/APNG/poster loaded, mobile 390px/zoom, and reduced-motion fallback. Full evidence and screenshots are in `evidence/`. Production main and the approved Water / PM2.5 / Google Sheet / Apps Script are untouched.
+
+**Not yet verified:** physical LED viewing distance, actual iPhone Safari and independent visual approval. PR remains draft. No production merge/deploy.

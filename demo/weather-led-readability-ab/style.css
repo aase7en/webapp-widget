@@ -65,3 +65,8 @@ h1{font-size:clamp(26px,3.6vw,43px);line-height:1.13;letter-spacing:-.04em;margi
 .effects-off .today-scene,.effects-off .today-animation,.effects-off .today-poster,.effects-off .mini-trend{display:none}
 .effects-off .today-block{background:#102336}
 @media(prefers-reduced-motion:reduce){.today-animation{display:none}.today-poster{display:block}.effects-off .today-poster{display:none}}
+
+/* The original live Production Weather 1296x120 board is rendered INSIDE each
+   .led-stage shadow root at native scale(1/3). This host has no new skin. */
+.led-stage{display:block!important;position:relative!important;flex:none!important;border:0!important;border-radius:0!important;background:#020917!important;box-shadow:none!important;overflow:hidden!important;isolation:isolate!important}
+.led-stage::after{display:none!important}
