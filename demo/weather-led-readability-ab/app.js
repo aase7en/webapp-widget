@@ -10,7 +10,7 @@
     edge:{condition:"thunderstorm",current:{temp:42,feels:48,rain:100,humidity:100,high:45,low:-9},forecast:[[45,-9,100],[41,29,100],[40,28,99],[39,25,100],[44,31,100],[42,-8,0],[38,25,87]]},
     missing:{condition:"cloudy",current:{temp:null,feels:null,rain:0,humidity:null,high:null,low:25},forecast:[[null,25,null],[0,0,0],[32,null,10],[null,null,null],[33,25,0],[null,-2,100],[28,21,45]]}
   });
-  const state={mode:"A",page:0,scenario:"normal",seconds:9,paused:window.matchMedia("(prefers-reduced-motion: reduce)").matches,zoom:4,effects:true};
+  const state={mode:"A",page:0,scenario:"normal",seconds:9,paused:window.matchMedia("(prefers-reduced-motion: reduce)").matches,zoom:4,effects:true,compact:true};
   const boards=new WeakMap();
   let deadline=Date.now()+9000;
   const fmt=(n,u="")=>Number.isFinite(n)?Math.round(n)+u:"—";
@@ -82,6 +82,7 @@
     board.dataset.mode=state.mode;
     board.style.setProperty("--forecast-columns",String(days.length));
     board.classList.toggle("effects-off",!state.effects);
+    board.classList.toggle("layout-compact",state.compact);
     const set=(id,value)=>{board.querySelector("#"+id).textContent=value;};
     set("temp",fmt(d.temp));set("feels",fmt(d.feels,"°"));
     set("rain",fmt(d.rain,"%"));set("humidity",fmt(d.humidity,"%"));
@@ -130,6 +131,8 @@
     $("pause").textContent=state.paused?"เริ่มสลับ":"หยุดสลับ";
     $("effects").textContent=state.effects?"ภาพฉาก + Animation: เปิด":"ภาพฉาก + Animation: ปิด";
     $("effects").setAttribute("aria-pressed",String(state.effects));
+    $("layout").textContent=state.compact?"จัดวาง: ขยับซ้าย":"จัดวาง: ต้นฉบับ";
+    $("layout").setAttribute("aria-pressed",String(state.compact));
     $("page-status").textContent=b?"Option B · หน้า "+(state.page+1)+"/2 · "+(state.page===0?"วัน 1–4":"วัน 5–7"):"Option A · ครบ 7 วัน";
     $("rotation-status").textContent=b?(state.paused?"หยุดสลับชั่วคราว":"สลับทุก "+state.seconds+" วินาที"):"โหมด A แสดง 7 วันพร้อมกัน";
   }
@@ -140,6 +143,7 @@
   function setScenario(v){if(!Object.hasOwn(cases,v))return;state.scenario=v;$("scenario").value=v;reset();render();}
   function setPaused(v){state.paused=!!v;reset();renderControls();}
   function setEffects(v){state.effects=!!v;render();}
+  function setCompact(v){state.compact=!!v;render();}
   function setIntervalSeconds(v){if(![8,9,10].includes(Number(v)))return;state.seconds=Number(v);$("interval").value=String(v);reset();renderControls();}
   function setZoom(v){
     state.zoom=Math.max(1,Math.min(8,Math.round(Number(v)||1)));
@@ -155,6 +159,7 @@
   $("next").addEventListener("click",()=>setPage(1-state.page));
   $("pause").addEventListener("click",()=>setPaused(!state.paused));
   $("effects").addEventListener("click",()=>setEffects(!state.effects));
+  $("layout").addEventListener("click",()=>setCompact(!state.compact));
   $("scenario").addEventListener("change",e=>setScenario(e.target.value));
   $("interval").addEventListener("change",e=>setIntervalSeconds(e.target.value));
   $("zoom").addEventListener("input",e=>setZoom(e.target.value));
@@ -164,7 +169,7 @@
   window.WeatherLedDemo=Object.freeze({
     getState:()=>({...state,dayCount:7,visibleDays:state.mode==="A"?7:state.page===0?4:3,
       source:"SIMULATED / LOCAL FIXTURE",observedAt:null,productionTemplateSha256:layout.productionSha256}),
-    setMode,setPage,setScenario,setPaused,setEffects,setIntervalSeconds,setZoom
+    setMode,setPage,setScenario,setPaused,setEffects,setCompact,setIntervalSeconds,setZoom
   });
   setZoom(state.zoom);render();
 })();

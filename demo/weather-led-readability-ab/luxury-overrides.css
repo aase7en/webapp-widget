@@ -23,3 +23,25 @@
 .board.effects-off .scene,.board.effects-off .icon,.board.effects-off .icon-poster{display:none!important}
 .board .heat-tag{background:#2b3e57;border-color:#54a7c6;color:#c7ecf9}
 @media(prefers-reduced-motion:reduce){.board .icon{display:none!important}.board .icon-poster{display:block!important}.board.effects-off .icon-poster{display:none!important}}
+
+/* Compact composition candidate: all offsets below are board pixels before
+   native 1/3 scaling. Original mode has no changes and remains reviewable.
+   Clock stays fixed; luxury artwork, lighting, animation and colors remain. */
+.board.layout-compact .scene{
+  width:427px; /* originally 475px: shorten scene by 16 native px */
+}
+.board.layout-compact .icon,
+.board.layout-compact .icon-poster{
+  transform:translateX(-30px); /* animated icon 10 native px left */
+}
+.board.layout-compact .temp,
+.board.layout-compact .feel{
+  transform:translateX(-30px); /* hero temperature & feel badge 10px left */
+}
+.board.layout-compact .stats{
+  left:664px; /* 700 -> 664, metrics 12 native px left */
+}
+.board.layout-compact .forecast{
+  left:883px; /* 919 -> 883; original right edge unchanged */
+  right:10px; /* width gains 12 native px (122.3 -> 134.3) */
+}

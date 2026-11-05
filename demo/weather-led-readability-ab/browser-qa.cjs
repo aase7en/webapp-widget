@@ -46,10 +46,28 @@ const puppeteer=require("puppeteer");
     assert.equal(data.dayCount,count,label+": day count");
     assert.ok(data.time.x>=5&&data.time.x<=9&&data.time.w>=50,label+": original clock x");
     assert.match(data.time.text,/^\d\d:\d\d$/,label+": working actual clock");
-    assert.ok(data.temp.x>=175&&data.temp.x<=185,label+": original hero temperature location");
-    assert.ok(data.scene.x>=25&&data.scene.x<=31,label+": original panorama geometry");
-    assert.ok(data.stats.x>=232&&data.stats.x<=238,label+": original weather stats location");
-    assert.ok(data.forecast.x>=303&&data.forecast.x<=309,label+": original forecast location");
+    assert.ok(data.scene.x>=25&&data.scene.x<=31,label+": original panorama anchor");
+    if(state.compact){
+      assert.ok(data.temp.x>=165&&data.temp.x<=173,label+": hero temperature shifted left");
+      assert.ok(data.scene.w>=140&&data.scene.w<=145,label+": scenic footprint 16px narrower");
+      if(data.iconCondition==="cloudy"){
+        assert.ok(data.icon.x>=59&&data.icon.x<=65,label+": preserve large cloudy animation placement");
+      }else{
+        assert.ok(data.icon.x>=101&&data.icon.x<=108,label+": animated icon shifted left");
+        assert.ok(data.icon.x+data.icon.w<=data.temp.x+0.5,label+": compact icon not over hero");
+      }
+      assert.ok(data.stats.x>=219&&data.stats.x<=225,label+": metric block shifted left");
+      assert.ok(data.forecast.x>=292&&data.forecast.x<=297,label+": forecast expanded to left");
+      assert.ok(data.forecast.w>=133&&data.forecast.w<=136,label+": forecast width expanded");
+      // Cloudy APNG intentionally contains transparent overscan; validate its actual visual in screenshots.
+      assert.ok(data.temp.x+data.temp.w<=data.stats.x,label+": hero not over metrics");
+      assert.ok(data.stats.x+data.stats.w<=data.forecast.x,label+": metrics not over forecast");
+    }else{
+      assert.ok(data.temp.x>=175&&data.temp.x<=185,label+": original hero temperature location");
+      assert.ok(data.scene.w>=157&&data.scene.w<=160,label+": original panoramic width");
+      assert.ok(data.stats.x>=232&&data.stats.x<=238,label+": original weather stats location");
+      assert.ok(data.forecast.x>=303&&data.forecast.x<=309,label+": original forecast location");
+    }
     assert.ok(data.sceneLoaded&&data.iconLoaded&&data.posterLoaded,label+": original assets load");
     assert.equal(data.simBadge,"SIM",label+": demo is labeled");
     assert.equal(data.overflow.length,0,label+": no visible forecast text clipping: "+JSON.stringify(data.overflow));
@@ -57,8 +75,17 @@ const puppeteer=require("puppeteer");
     report.cases.push({label,...data});
     return data;
   }
-  const a=await verify("A-7days-luxury", "A",7,"A-7days-432x40.png");
+  const a=await verify("A-7days-compact", "A",7,"A-7days-432x40.png");
   assert.ok(a.graphPath&&a.graphPath.includes("L"),"original forecast line is retained");
+  await page.evaluate(()=>WeatherLedDemo.setCompact(false));
+  const original=await verify("A-7days-original-comparison","A",7,"A-original-432x40.png");
+  assert.ok(a.forecast.w-original.forecast.w>=11.5,"compact gains at least 11.5px forecast width");
+  assert.ok(original.temp.x-a.temp.x>=9.5,"hero moves left by around 10 native pixels");
+  assert.ok(original.stats.x-a.stats.x>=11.5,"metrics move left by around 12 native pixels");
+  assert.ok(Math.abs(original.time.x-a.time.x)<0.2,"clock unchanged across layout choices");
+  await page.evaluate(()=>WeatherLedDemo.setCompact(true));
+  assert.equal(await page.$eval("#layout",e=>e.getAttribute("aria-pressed")),"true","layout switch restored Compact");
+  report.cases.push({label:"compact-original-toggle-and-geometry",originalForecast:original.forecast,compactForecast:a.forecast,passed:true});
   await page.evaluate(()=>WeatherLedDemo.setMode("B"));
   const b=await verify("B-first4-luxury","B",4,"B-first4-432x40.png");
   assert.ok(Number.parseFloat(b.rainFont)>Number.parseFloat(a.rainFont),"B daily rain font is larger than A");

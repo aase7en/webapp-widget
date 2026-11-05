@@ -66,3 +66,20 @@ Conditions are **visual examples only**: normal→rain, edge→thunderstorm, mis
 **Browser QA — 2026-11-05:** PASS on Chrome/Puppeteer: 14 checks for original geometry (clock at x≈7, large temperature x≈179, scenic background x≈27, stats x≈235, forecast x≈306), A=7 and B=4+3, 9s timer, 100%/negative and missing vs zero, no clipped daily cells, original scene/APNG/poster loaded, mobile 390px/zoom, and reduced-motion fallback. Full evidence and screenshots are in `evidence/`. Production main and the approved Water / PM2.5 / Google Sheet / Apps Script are untouched.
 
 **Not yet verified:** physical LED viewing distance, actual iPhone Safari and independent visual approval. PR remains draft. No production merge/deploy.
+
+## Compact left-shift visual candidate · 2026-11-05
+
+Owner-requested **isolated Demo** refinement after reviewing the restored live Luxury composition. Default is **Compact / ขยับซ้าย**, and the button **จัดวาง: ขยับซ้าย / ต้นฉบับ** switches between Compact and the previous **unchanged original Luxury positions** on both native 432×40 and Zoom Inspector screens.
+
+The source of the Luxury template and its SHA-256 remain identical; only an opt-in `.board.layout-compact` override changes board-space geometry. Physical shifts below are **native 432×40 CSS pixels** (the original board is authored at 1296×120 and rendered at 1/3 scale):
+
+- Clock/date and luminous frame: **unchanged**.
+- Scenic panorama crop: width 158.33 → 142.33 (**−16**), same left position, same original background image and fade.
+- Condition APNG/poster: **−10** horizontal; original animation and reduced-motion poster retained.
+- Current temperature / feels-like badge: **−10**.
+- Four metrics: x 234.67 → 221.33 (**−13.33**).
+- Forecast: x 306.33 → 294.33 (**−12**); width 122.33 → 134.33 (**+12**, **+9.8%**) with the original right edge intact.
+
+The candidate is a visual trade-off, **not** a guaranteed physical LED readability improvement. Cloudy sprite has intentional transparent overscan, so its bounding image can extend near the clock/temperature even when painted cloud pixels do not obscure the digits; inspect on the real display. No weather data requests or live claims: weather fixture is always **SIMULATED**, `observedAt:null`.
+
+**QA:** Chrome/Puppeteer on Mac — **16 checks PASS**, including original/compact toggle, original clock x≈6.67 unchanged, left-shift geometry, A=7 / B=4+3, extreme/missing scenarios, 9-second rotation, 390px mobile scroll, Zoom, no numeric-cell overflow, reduced-motion fallback and zero external API calls. See `evidence/qa-report.json`, `evidence/A-7days-432x40.png`, `evidence/A-original-432x40.png`, `evidence/B-first4-432x40.png`, and `evidence/mobile-390.png`. Safari iPhone hardware / physical LED approval remain **UNVERIFIED**. No change to Production, Water Level, PM2.5, Google Sheet or Apps Script.
