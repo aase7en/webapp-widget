@@ -21,6 +21,24 @@ const {pathToFileURL}=require("node:url");
     await page.setViewport({width:1280,height:800,deviceScaleFactor:1});
     await page.goto(pathToFileURL(path.join(__dirname,"index.html")).href,{waitUntil:"load"});
     await page.waitForFunction(()=>!!window.WeatherLedDemo);
+    await page.waitForFunction(()=>[...document.querySelectorAll("#native-stage .today-scene,#native-stage .today-animation,#native-stage .today-poster")].length===3 &&
+      [...document.querySelectorAll("#native-stage .today-scene,#native-stage .today-animation,#native-stage .today-poster")].every(x=>x.complete&&x.naturalWidth>0));
+    const artwork=await page.evaluate(()=>({
+      scene:document.querySelector("#native-stage .today-scene").getAttribute("src"),
+      animation:document.querySelector("#native-stage .today-animation").getAttribute("src"),
+      poster:document.querySelector("#native-stage .today-poster").getAttribute("src"),
+      metrics:document.querySelectorAll("#native-stage .metric-symbol").length,
+      graph:!!document.querySelector("#native-stage .mini-trend"),
+      motion:getComputedStyle(document.querySelector("#native-stage .today-animation")).display,
+      on:WeatherLedDemo.getState().effects
+    }));
+    assert.ok(artwork.scene.endsWith("rain.webp")&&artwork.animation.endsWith("rain.apng")&&artwork.poster.endsWith("rain-poster.png"),"production scene and APNG/poster reused");
+    assert.ok(artwork.metrics>=11&&artwork.graph&&artwork.motion!=="none"&&artwork.on,"rich visual layers rendered");
+    await page.evaluate(()=>WeatherLedDemo.setEffects(false));
+    assert.equal(await page.$eval("#native-stage .today-scene",n=>getComputedStyle(n).display),"none","effects off hides scene");
+    await page.evaluate(()=>WeatherLedDemo.setEffects(true));
+    assert.notEqual(await page.$eval("#native-stage .today-scene",n=>getComputedStyle(n).display),"none","effects on restores scene");
+    report.cases.push({label:"original-scene-apng-icon-graph-toggle",artwork,passed:true});
     async function measure(label,expectCount,screenshot){
       const geom=await page.evaluate(()=>{
         const box=document.querySelector("#native-stage");
@@ -57,6 +75,8 @@ const {pathToFileURL}=require("node:url");
     await measure("B-normal-3",3,"B-last3-432x40.png");
     for(const scenario of ["edge","missing"]){
       await page.evaluate(s=>WeatherLedDemo.setScenario(s),scenario);
+      const currentArt=await page.$eval("#native-stage .today-animation",n=>n.getAttribute("src"));
+      assert.ok(currentArt.endsWith((scenario==="edge"?"thunderstorm":"cloudy")+".apng"),"fixture condition chooses approved animated asset");
       for(const [mode,pageIndex,count] of [["A",0,7],["B",0,4],["B",1,3]]){
         await page.evaluate(({mode,pageIndex})=>{WeatherLedDemo.setMode(mode);if(mode==="B")WeatherLedDemo.setPage(pageIndex);},{mode,pageIndex});
         await measure(scenario+"-"+mode+"-"+pageIndex,count,null);
@@ -95,7 +115,15 @@ const {pathToFileURL}=require("node:url");
     await reduced.goto(pathToFileURL(path.join(__dirname,"index.html")).href,{waitUntil:"load"});
     const state=await reduced.evaluate(()=>WeatherLedDemo.getState());
     assert.equal(state.paused,true,"reduced-motion default paused");
-    report.cases.push({label:"reduced-motion",paused:state.paused});
+    const reducedArtwork=await reduced.evaluate(()=>({
+      animation:getComputedStyle(document.querySelector("#native-stage .today-animation")).display,
+      poster:getComputedStyle(document.querySelector("#native-stage .today-poster")).display,
+      scene:getComputedStyle(document.querySelector("#native-stage .today-scene")).display
+    }));
+    assert.equal(reducedArtwork.animation,"none","reduced-motion hides animated APNG");
+    assert.notEqual(reducedArtwork.poster,"none","reduced-motion shows original poster fallback");
+    assert.notEqual(reducedArtwork.scene,"none","reduced-motion retains scenic backdrop");
+    report.cases.push({label:"reduced-motion",paused:state.paused,reducedArtwork});
     await reduced.close();
     assert.deepEqual(report.errors,[],"browser errors");
     assert.deepEqual(report.httpRequests,[],"demo must never fetch remote data");

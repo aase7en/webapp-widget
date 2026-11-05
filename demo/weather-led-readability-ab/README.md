@@ -6,7 +6,7 @@
 
 ## How to preview
 
-Open `demo/weather-led-readability-ab/index.html` from a static web server (e.g. `python3 -m http.server 8000` at repository root). No build, npm install, external assets, environment variables or network data requests are needed.
+Open `demo/weather-led-readability-ab/index.html` from a static web server (e.g. `python3 -m http.server 8000` at repository root). No build, npm install, remote assets, environment variables or weather-data network requests are needed. Original artwork is bundled locally in assets/.
 
 - **A:** all seven days simultaneously in a native **432 × 40 CSS-pixel** strip.
 - **B:** first four days, then last three days, swapping every 8, 9 (default) or 10 seconds.
@@ -33,3 +33,20 @@ Executed with real Google Chrome headless and Puppeteer; results in `evidence/qa
 Run: `NODE_PATH=<path-to-installed-puppeteer-node_modules> PREVIEW_CHROME_PATH=<Chrome-executable> node demo/weather-led-readability-ab/browser-qa.cjs`.
 
 **UNVERIFIED:** physical LED controller mapping, real viewing distance/readability, Safari/iPhone hardware render, independent design approval and production rollout.
+
+
+## Visual asset restoration · 2026-11-05
+
+The owner explicitly asked to retain the original scenic background and weather icon animations, not create a text-only LED. This iteration reuses the exact existing `v2/weather-assets` source artwork (no regeneration or re-encoding):
+
+- Weather panorama: `rain.webp`, `thunderstorm.webp`, `cloudy.webp`.
+- Original animated icons: `rain.apng`, `thunderstorm.apng`, `cloudy.apng` (96-frame APNG each).
+- Original static fallback: matching `*-poster.png` when `prefers-reduced-motion: reduce`.
+- Filled SVG symbols replace the words for today's rain, humidity, high and low; a subtle trend line uses only the displayed fixture highs and does not bridge missing values.
+- The “ภาพฉาก + Animation” switch toggles decorative visual layers on/off so reviewers can compare readability without changing any measurements or data provenance.
+
+Conditions are **visual examples only**: normal→rain, edge→thunderstorm, missing→cloudy. They do not assert current meteorological observations, and every value remains **SIMULATED**, `observedAt=null`. The weather scene/animation is never required for reading numbers; reduced-motion and no-effects states retain the data.
+
+**Browser QA rerun (13 cases, Chrome/Puppeteer on 2026-11-05): PASS.** Includes original scene/APNG/poster asset loading, SVG symbols, graph, effect toggle, 7/4/3 day counts, 9s paging, missing vs zero, 100% edge values, 432×40 geometry, 390px mobile scrolling, no text clipping, reduced-motion poster, and no external data requests. See `evidence/qa-report.json` and updated screenshots.
+
+**Not yet verified:** physical LED controller, outdoor viewing distance, actual iPhone Safari GPU rendering, independent visual approval, and authorized Production release.

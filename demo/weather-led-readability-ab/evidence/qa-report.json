@@ -1,6 +1,19 @@
 {
-  "at": "2026-11-04T15:06:18.309Z",
+  "at": "2026-11-05T07:13:47.202Z",
   "cases": [
+    {
+      "label": "original-scene-apng-icon-graph-toggle",
+      "artwork": {
+        "scene": "./assets/rain.webp",
+        "animation": "./assets/rain.apng",
+        "poster": "./assets/rain-poster.png",
+        "metrics": 11,
+        "graph": true,
+        "motion": "block",
+        "on": true
+      },
+      "passed": true
+    },
     {
       "label": "A-normal-7",
       "native": {
@@ -229,7 +242,12 @@
     },
     {
       "label": "reduced-motion",
-      "paused": true
+      "paused": true,
+      "reducedArtwork": {
+        "animation": "none",
+        "poster": "block",
+        "scene": "block"
+      }
     }
   ],
   "errors": [],

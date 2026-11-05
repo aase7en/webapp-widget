@@ -32,3 +32,36 @@ h1{font-size:clamp(26px,3.6vw,43px);line-height:1.13;letter-spacing:-.04em;margi
 .provenance{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:16px}.provenance>div{background:#0a1825;border:1px solid #223f50;border-radius:9px;padding:10px;display:flex;flex-direction:column;gap:6px;min-width:0}.provenance span{font-size:11px;color:#8ab0c1}.provenance strong{font-size:12px;overflow-wrap:anywhere;color:#e0edf2}.site-footer{font-size:11px;color:#8199a8;padding:14px 2px;text-align:center}.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
 @media(max-width:660px){.shell{padding:19px 12px}.control-panel,.screen-panel,.inspector-panel,.details{padding:14px;border-radius:12px}.segmented button{flex:1;padding:9px 11px}.control-right{gap:7px}.control-right label{width:100%;margin-top:3px}select{flex:1;min-width:125px}.provenance{grid-template-columns:1fr}.zoom-viewport{padding:12px}.transport-note{width:100%;margin:6px 0 0}.size-token{font-size:10px}}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{transition:none!important;animation:none!important;scroll-behavior:auto!important}}
+/* Weather luxury visual restoration — scoped to isolated demo; never production.
+   Original assets are copied without re-encoding from v2/weather-assets. */
+.led-stage{background:linear-gradient(155deg,#061b2b 0%,#0a1f35 58%,#050d1a 100%);border-color:#4ca5c5;box-shadow:inset 0 0 8px #42aade44}
+.today-block{position:relative;isolation:isolate;background:#061b2c}
+.today-scene{position:absolute;inset:0;width:121px;height:38px;object-fit:cover;object-position:50% 50%;opacity:.58;filter:saturate(1.2);-webkit-mask-image:linear-gradient(90deg,#000 0%,#000 32%,transparent 100%);mask-image:linear-gradient(90deg,#000 0%,#000 32%,transparent 100%);z-index:0}
+.today-block::after{content:"";position:absolute;inset:0;z-index:1;pointer-events:none;background:linear-gradient(90deg,#06162666,#091c29b5 40%,#081727ee 100%)}
+.today-main,.today-metrics{position:relative;z-index:2}
+.today-main{justify-content:flex-end;align-items:flex-start;padding:0 0 1px 2px}
+.today-tag{position:absolute;top:2px;left:2px;z-index:4;color:#ffe0a0;font-size:6.5px;text-shadow:0 1px 3px #07121e}
+.today-temp{position:relative;z-index:3;font-size:22px;line-height:23px;color:#e8fcff;text-shadow:0 1px 4px #001222,0 0 7px #0a587f}
+.today-animation,.today-poster{position:absolute;right:-2px;top:-7px;width:32px;height:32px;object-fit:contain;z-index:2;filter:drop-shadow(0 1px 2px #0006)}
+.today-poster{display:none}
+.today-metrics{background:linear-gradient(90deg,#0b1c2cbf,#0a2131e8)}
+.metric-label{display:flex;align-items:center;justify-content:center;height:9px;line-height:9px}
+.metric-symbol{display:block;width:9px;height:9px;fill:currentColor}
+.metric[data-kind="rain"] .metric-symbol{color:#55dcff}
+.metric[data-kind="humidity"] .metric-symbol{color:#84e5c5}
+.metric[data-kind="high"] .metric-symbol{color:#ffb27a}
+.metric[data-kind="low"] .metric-symbol{color:#94dbff}
+.metric-value{text-shadow:0 1px 2px #000b}
+.forecast-grid{position:relative;background:radial-gradient(ellipse at 45% 0%,#17415b72,transparent 86%),linear-gradient(180deg,#081f32,#071528)}
+.day-cell{position:relative;z-index:1;background:#09213866;border-right-color:#36708c70}
+.day-cell:nth-child(2n){background:#1530477a}
+.day-rain{display:flex;justify-content:center;align-items:center;white-space:nowrap;gap:1px}
+.day-rain .metric-symbol{width:7px;height:7px;min-width:7px;color:#65bde9}
+.mode-b .day-rain .metric-symbol{width:8px;height:8px;min-width:8px}
+.mini-trend{position:absolute;left:5px;bottom:3px;width:calc(100% - 10px);height:13px;opacity:.19;pointer-events:none;z-index:0;overflow:visible}
+.mini-trend path{fill:none;stroke:#80e6fa;stroke-width:2;vector-effect:non-scaling-stroke;stroke-linejoin:round;stroke-linecap:round}
+.fx-toggle{font-size:12px;white-space:nowrap}
+.fx-toggle[aria-pressed="true"]{color:#b2eaf6;border-color:#368ca1;background:#123e50}
+.effects-off .today-scene,.effects-off .today-animation,.effects-off .today-poster,.effects-off .mini-trend{display:none}
+.effects-off .today-block{background:#102336}
+@media(prefers-reduced-motion:reduce){.today-animation{display:none}.today-poster{display:block}.effects-off .today-poster{display:none}}
