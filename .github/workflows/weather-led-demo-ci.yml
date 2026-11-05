@@ -1,0 +1,24 @@
+name: Weather LED demo CI
+on:
+  pull_request:
+    paths:
+      - 'demo/weather-led-readability-ab/**'
+      - '.github/workflows/weather-led-demo-ci.yml'
+jobs:
+  verify-demo:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate demo JavaScript syntax
+        run: |
+          for file in demo/weather-led-readability-ab/*.js demo/weather-led-readability-ab/*.cjs; do
+            node --check "$file"
+          done
+      - name: Repository regression tests
+        run: node --test tests/*.test.cjs
