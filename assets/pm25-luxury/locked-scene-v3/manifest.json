@@ -1,0 +1,1726 @@
+{
+  "schema": 3,
+  "kind": "UTH_LUXURY_PM25_ENVIRONMENT_ANIMATION",
+  "assetStatus": "REVIEW_ONLY_NOT_PRODUCTION",
+  "repo": "aase7en/webapp-widget",
+  "sourceProvenance": "Five images explicitly supplied in ChatGPT conversation, 2026-10-27",
+  "canvas": {
+    "logicalWidth": 432,
+    "logicalHeight": 40,
+    "renderScale": 3,
+    "physicalFrameWidth": 1296,
+    "physicalFrameHeight": 120
+  },
+  "animation": {
+    "framesPerTier": 16,
+    "frameMs": 100,
+    "fps": 10.0,
+    "gridColumns": 4,
+    "gridRows": 4,
+    "loop": true
+  },
+  "important": [
+    "The user-supplied source contact sheets have 12 blue cells and 10 each of green/yellow/orange/red, NOT 16 original cells each.",
+    "We preserve every original cell, then author exactly 16 animation frames using a single locked scene master and independent procedural transparent effects.",
+    "Original fake grids cannot be treated as temporally coherent camera footage; no rigid background reframe, no changing horizon.",
+    "All visual scenes are artistic illustrations, never measured PM2.5/precipitation levels; PM category and rain activation must use verified external data.",
+    "Rain layer is disabled by default and only meant for verified Weather precipitation events, not tied to PM2.5 severity.",
+    "Frames do not contain a clock, measured numbers, risk wording, or hospital-specific identifying text; DOM overlays should use verified data."
+  ],
+  "tiers": {
+    "blue": {
+      "sourceFile": "11D8EEE5-F7BA-433C-B47C-8226E57F61B6.jpeg",
+      "originalSHA256": "cc3cb9a79f012d203d70f3c48c2e5d6e0b606156b549193ded62e10309c592c2",
+      "sourceFrameCount": 12,
+      "sourceOriginalCells": [
+        {
+          "path": "source_frames/blue/original-cell-01.webp",
+          "originalGridRow": 0,
+          "originalGridColumn": 0,
+          "pixels": [
+            754,
+            82
+          ],
+          "sha256": "e188d7eebb300185444f2b442394259a97289ab83ecce0021c27575704d9c3b3"
+        },
+        {
+          "path": "source_frames/blue/original-cell-02.webp",
+          "originalGridRow": 0,
+          "originalGridColumn": 1,
+          "pixels": [
+            755,
+            82
+          ],
+          "sha256": "04a7cf704f180ef6cb323807b0feb5c2c2b44323a4a20ed7b36a707532498035"
+        },
+        {
+          "path": "source_frames/blue/original-cell-03.webp",
+          "originalGridRow": 1,
+          "originalGridColumn": 0,
+          "pixels": [
+            754,
+            75
+          ],
+          "sha256": "0afe2a3f38176c8015e01309aab99f94e47bcd452339d68a71b28ea5c76fa26e"
+        },
+        {
+          "path": "source_frames/blue/original-cell-04.webp",
+          "originalGridRow": 1,
+          "originalGridColumn": 1,
+          "pixels": [
+            755,
+            75
+          ],
+          "sha256": "3cea0411cbdb33d508dbd6e2226bef58c975c0ec1862f27d0db096816fe96f99"
+        },
+        {
+          "path": "source_frames/blue/original-cell-05.webp",
+          "originalGridRow": 2,
+          "originalGridColumn": 0,
+          "pixels": [
+            754,
+            75
+          ],
+          "sha256": "b5aaf3e78aa6255ef41e2ccfb040aba26b62b9b149aaf8198457143e2daaa87c"
+        },
+        {
+          "path": "source_frames/blue/original-cell-06.webp",
+          "originalGridRow": 2,
+          "originalGridColumn": 1,
+          "pixels": [
+            755,
+            75
+          ],
+          "sha256": "344ad8176a9d5dd5155979fdee066372cbaf02c482f84a958bc28e4ee4d5e20e"
+        },
+        {
+          "path": "source_frames/blue/original-cell-07.webp",
+          "originalGridRow": 3,
+          "originalGridColumn": 0,
+          "pixels": [
+            754,
+            71
+          ],
+          "sha256": "ee47a8226d60b155d3bcd18ac1f46109a80101b0d7ac5bc2cf4b05b6353e3cbe"
+        },
+        {
+          "path": "source_frames/blue/original-cell-08.webp",
+          "originalGridRow": 3,
+          "originalGridColumn": 1,
+          "pixels": [
+            755,
+            71
+          ],
+          "sha256": "9bcad6f4f39fba73b9fdceb8a1d3c68699a4cbed368c9985cae32d9a6b0adf68"
+        },
+        {
+          "path": "source_frames/blue/original-cell-09.webp",
+          "originalGridRow": 4,
+          "originalGridColumn": 0,
+          "pixels": [
+            754,
+            80
+          ],
+          "sha256": "0ee63ad68fa363b39b7ecbcc0645a39948459797c62d29d5d320fd60072a32ce"
+        },
+        {
+          "path": "source_frames/blue/original-cell-10.webp",
+          "originalGridRow": 4,
+          "originalGridColumn": 1,
+          "pixels": [
+            755,
+            80
+          ],
+          "sha256": "a6cdf1bfd0d3b2e3590950086eed5d55b0830e70efcd4dc38be432b2b1f55920"
+        },
+        {
+          "path": "source_frames/blue/original-cell-11.webp",
+          "originalGridRow": 5,
+          "originalGridColumn": 0,
+          "pixels": [
+            754,
+            105
+          ],
+          "sha256": "662dedc68079cc071cd8e0e70f769e94e118c5c91f2bd7ebb65421a5bdfe68d8"
+        },
+        {
+          "path": "source_frames/blue/original-cell-12.webp",
+          "originalGridRow": 5,
+          "originalGridColumn": 1,
+          "pixels": [
+            755,
+            105
+          ],
+          "sha256": "38fe4253d46cd9934e51f978bc7d87c862cdf40171644fba6a3963ff172f1361"
+        }
+      ],
+      "master": {
+        "path": "master/blue.webp",
+        "sha256": "2f7240523e6d7d7838dfed5cb00c465be1aa451cfa046f4521c5700f7d5d0685",
+        "pixels": [
+          1296,
+          120
+        ]
+      },
+      "effects": {
+        "sunshafts": {
+          "path": "effects/sunshafts/blue-16f.webp",
+          "sha256": "33f2889f98e5dbc7f837bde6a25c69286c1188a8d84bf826431f3c82e3f7f34f",
+          "pixels": [
+            5184,
+            480
+          ],
+          "tilePixels": [
+            1296,
+            120
+          ],
+          "grid": [
+            4,
+            4
+          ],
+          "frameCount": 16,
+          "bytes": 190560
+        },
+        "clouds": {
+          "path": "effects/clouds/blue-16f.webp",
+          "sha256": "4f5fe2572094c728fcd3c3d23b8330d6eaccaf09047a980dceb2e94f8653333c",
+          "pixels": [
+            5184,
+            480
+          ],
+          "tilePixels": [
+            1296,
+            120
+          ],
+          "grid": [
+            4,
+            4
+          ],
+          "frameCount": 16,
+          "bytes": 162768
+        },
+        "fog": {
+          "path": "effects/fog/blue-16f.webp",
+          "sha256": "487944896fab568ad46e12b9c48df50e759ca7aa25c62f7a5ce962ffe3e69c10",
+          "pixels": [
+            5184,
+            480
+          ],
+          "tilePixels": [
+            1296,
+            120
+          ],
+          "grid": [
+            4,
+            4
+          ],
+          "frameCount": 16,
+          "bytes": 34982
+        },
+        "smoke": {
+          "path": "effects/smoke/blue-16f.webp",
+          "sha256": "78ece1168a2d816cfdae530af3e2c4bce8e6a1792cdebf413640b6f20dee7d09",
+          "pixels": [
+            5184,
+            480
+          ],
+          "tilePixels": [
+            1296,
+            120
+          ],
+          "grid": [
+            4,
+            4
+          ],
+          "frameCount": 16,
+          "bytes": 24490
+        },
+        "dust": {
+          "path": "effects/dust/blue-16f.webp",
+          "sha256": "60f92eeb4d6a61486963d30e609098ed4115b8cb91f701f6fd6f326fcd8e10f0",
+          "pixels": [
+            5184,
+            480
+          ],
+          "tilePixels": [
+            1296,
+            120
+          ],
+          "grid": [
+            4,
+            4
+          ],
+          "frameCount": 16,
+          "bytes": 58772
+        },
+        "airflow": {
+          "path": "effects/airflow/blue-16f.webp",
+          "sha256": "374a36b4b27d3058e406fcb29db660a4dffa26971050d4ce146cf709ef7451ea",
+          "pixels": [
+            5184,
+            480
+          ],
+          "tilePixels": [
+            1296,
+            120
+          ],
+          "grid": [
+            4,
+            4
+          ],
+          "frameCount": 16,
+          "bytes": 169308
+        },
+        "leaves": {
+          "path": "effects/leaves/blue-16f.webp",
+          "sha256": "1e80bf3e382b259acd87a4ee79ee9659fd57d1276f8da2fab397f35964754de4",
+          "pixels": [
+            5184,
+            480
+          ],
+          "tilePixels": [
+            1296,
+            120
+          ],
+          "grid": [
+            4,
+            4
+          ],
+          "frameCount": 16,
+          "bytes": 42242
+        },
+        "birds": {
+          "path": "effects/birds/blue-16f.webp",
+          "sha256": "88dcdc7bc3ed719be55b9e64f982e8421b9c62504b0e49911fcf5bbfe74727dd",
+          "pixels": [
+            5184,
+            480
+          ],
+          "tilePixels": [
+            1296,
+            120
+          ],
+          "grid": [
+            4,
+            4
+          ],
+          "frameCount": 16,
+          "bytes": 9670
+        },
+        "water_reflections": {
+          "path": "effects/water_reflections/blue-16f.webp",
+          "sha256": "e7fe89862eb49ab9e1437bafb3b07e6c9ef67107b6151008a7aa7573ffec409f",
+          "pixels": [
+            5184,
+            480
+          ],
+          "tilePixels": [
+            1296,
+            120
+          ],
+          "grid": [
+            4,
+            4
+          ],
+          "frameCount": 16,
+          "bytes": 58900
+        },
+        "light_rain": {
+          "path": "effects/light_rain/blue-weather-16f.webp",
+          "sha256": "37efe0477bb82e3e6a2290593f566afe17e53257e48aff56c7105149967edf66",
+          "pixels": [
+            5184,
+            480
+          ],
+          "tilePixels": [
+            1296,
+            120
+          ],
+          "grid": [
+            4,
+            4
+          ],
+          "frameCount": 16,
+          "bytes": 151760
+        }
+      },
+      "loop": {
+        "path": "loops/blue-16f.webp",
+        "sha256": "6f25d647a10b8eabfa78480f2a7ff5b5b243146a2605a31cb7b4515c9a93fa42",
+        "frameCount": 16,
+        "durationMs": 100,
+        "pixels": [
+          1296,
+          120
+        ],
+        "bytes": 255318
+      },
+      "riskArtParameters": {
+        "sun": 1.0,
+        "dust": 0.18,
+        "fog": 0.09,
+        "smoke": 0.04,
+        "wind": 1.0,
+        "cloud": 0.65,
+        "birds": 1.0
+      },
+      "compositeAtlas": {
+        "path": "atlases/blue-composite-16f.webp",
+        "sha256": "b4708b98d1382630b273a0389ef2577a83b345fdb739c36a21d4ce73a0c2ab40",
+        "dimensions": [
+          5184,
+          480
+        ],
+        "frameSize": [
+          1296,
+          120
+        ],
+        "frameCount": 16,
+        "grid": [
+          4,
+          4
+        ]
+      }
+    },
+    "green": {
+      "sourceFile": "B813DE0D-2580-4812-82D3-B56625221C3A.jpeg",
+      "originalSHA256": "bf713bdbb98f3b68958b55b295220e1a223a415bc59f1b53c0e6bdb0ac396956",
+      "sourceFrameCount": 10,
+      "sourceOriginalCells": [
+        {
+          "path": "source_frames/green/original-cell-01.webp",
+          "originalGridRow": 0,
+          "originalGridColumn": 0,
+          "pixels": [
+            754,
+            83
+          ],
+          "sha256": "c05633fa405c2634395a6d270758108a52837751dc56cc211d624234e9be8925"
+        },
+        {
+          "path": "source_frames/green/original-cell-02.webp",
+          "originalGridRow": 0,
+          "originalGridColumn": 1,
+          "pixels": [
+            755,
+            83
+          ],
+          "sha256": "533b708c2bfb6cfb6f907ad38fedf8f5fff98bf787dfef378d842b6a2067e8d1"
+        },
+        {
+          "path": "source_frames/green/original-cell-03.webp",
+          "originalGridRow": 1,
+          "originalGridColumn": 0,
+          "pixels": [
+            754,
+            77
+          ],
+          "sha256": "ea05e820d34249b334e30c1367a5047c99f849e5bb0501ae0bdf396c6d0a63c4"
+        },
+        {
+          "path": "source_frames/green/original-cell-04.webp",
+          "originalGridRow": 1,
+          "originalGridColumn": 1,
+          "pixels": [
+            755,
+            77
+          ],
+          "sha256": "7efaaffbf580341b2c169cb2dc245d97549880d4169f4efd16668886e2474afc"
+        },
+        {
+          "path": "source_frames/green/original-cell-05.webp",
+          "originalGridRow": 2,
+          "originalGridColumn": 0,
+          "pixels": [
+            754,
+            77
+          ],
+          "sha256": "682d08c8cb77af6c38a3cf82b5d99e4c371c05d060c031215df5591f3139736f"
+        },
+        {
+          "path": "source_frames/green/original-cell-06.webp",
+          "originalGridRow": 2,
+          "originalGridColumn": 1,
+          "pixels": [
+            755,
+            77
+          ],
+          "sha256": "b2621f0ae01f82a7a8309f44c16a1ae62fc67a2e7f95b1852dc71b09b6cf1165"
+        },
+        {
+          "path": "source_frames/green/original-cell-07.webp",
+          "originalGridRow": 3,
+          "originalGridColumn": 0,
+          "pixels": [
+            754,
+            81
+          ],
+          "sha256": "a304260429b8f8276df1401530d70cadaeb0928a36ca5ae179df527dfaf2f856"
+        },
+        {
+          "path": "source_frames/green/original-cell-08.webp",
+          "originalGridRow": 3,
+          "originalGridColumn": 1,
+          "pixels": [
+            755,
+            81
+          ],
+          "sha256": "4d982ae7802a57dc4986b8b8088cab4ff585ac8ce3144c87800cbb5e65b75f02"
+        },
+        {
+          "path": "source_frames/green/original-cell-09.webp",
+          "originalGridRow": 4,
+          "originalGridColumn": 0,
+          "pixels": [
+            754,
+            127
+          ],
+          "sha256": "a1cecacbe459872b9ddc85f02edf8dbec95c38a94d32847761767ade675158b5"
+        },
+        {
+          "path": "source_frames/green/original-cell-10.webp",
+          "originalGridRow": 4,
+          "originalGridColumn": 1,
+          "pixels": [
+            755,
+            127
+          ],
+          "sha256": "50719ef066ec54cff6ee3d1d0e7e6bbb363e307ed941c1e74295a270ba73d865"
+        }
+      ],
+      "master": {
+        "path": "master/green.webp",
+        "sha256": "c9313d1e16b40c56029893de2739b18b7ca965f3ac7e9bdbe142f42050f79d79",
+        "pixels": [
+          1296,
+          120
+        ]
+      },
+      "effects": {
+        "sunshafts": {
+          "path": "effects/sunshafts/green-16f.webp",
+          "sha256": "b28b6d17ee20ccbd51fa4396f2230c7c856157b5e489f7f73a14a0b435bcb599",
+          "pixels": [
+            5184,
+            480
+          ],
+          "tilePixels": [
+            1296,
+            120
+          ],
+          "grid": [
+            4,
+            4
+          ],
+          "frameCount": 16,
+          "bytes": 183402
+        },
+        "clouds": {
+          "path": "effects/clouds/green-16f.webp",
+          "sha256": "3556674cc82b4972869c3ea928ecc4d9ff7ab1cf0ca6110bd286e36104d6ef82",
+          "pixels": [
+            5184,
+            480
+          ],
+          "tilePixels": [
+            1296,
+            120
+          ],
+          "grid": [
+            4,
+            4
+          ],
+          "frameCount": 16,
+          "bytes": 163754
+        },
+        "fog": {
+          "path": "effects/fog/green-16f.webp",
+          "sha256": "a55ded8c9257e57944df11810faadd5bb369e3811fb765503710004a53916a48",
+          "pixels": [
+            5184,
+            480
+          ],
+          "tilePixels": [
+            1296,
+            120
+          ],
+          "grid": [
+            4,
+            4
+          ],
+          "frameCount": 16,
+          "bytes": 40740
+        },
+        "smoke": {
+          "path": "effects/smoke/green-16f.webp",
+          "sha256": "087724dd05c743e44fd0675631684b81798ccf30c364187e67ece091d3be5c78",
+          "pixels": [
+            5184,
+            480
+          ],
+          "tilePixels": [
+            1296,
+            120
+          ],
+          "grid": [
+            4,
+            4
+          ],
+          "frameCount": 16,
+          "bytes": 48184
+        },
+        "dust": {
+          "path": "effects/dust/green-16f.webp",
+          "sha256": "fafc2e47f5d935f28a552ccd9d2a5d12dd7a0dc28e6a60b342a7596010b05d1b",
+          "pixels": [
+            5184,
+            480
+          ],
+          "tilePixels": [
+            1296,
+            120
+          ],
+          "grid": [
+            4,
+            4
+          ],
+          "frameCount": 16,
+          "bytes": 62886
+        },
+        "airflow": {
+          "path": "effects/airflow/green-16f.webp",
+          "sha256": "2bf41775dcddaede78a10d04da53bd359b75ccb85bfc9076de0bfeba0052cd82",
+          "pixels": [
+            5184,
+            480
+          ],
+          "tilePixels": [
+            1296,
+            120
+          ],
+          "grid": [
+            4,
+            4
+          ],
+          "frameCount": 16,
+          "bytes": 160202
+        },
+        "leaves": {
+          "path": "effects/leaves/green-16f.webp",
+          "sha256": "1e80bf3e382b259acd87a4ee79ee9659fd57d1276f8da2fab397f35964754de4",
+          "pixels": [
+            5184,
+            480
+          ],
+          "tilePixels": [
+            1296,
+            120
+          ],
+          "grid": [
+            4,
+            4
+          ],
+          "frameCount": 16,
+          "bytes": 42242
+        },
+        "birds": {
+          "path": "effects/birds/green-16f.webp",
+          "sha256": "08ea4db73b3441638ebc160aab47229e3f64775c47dc0904ec44f037b2f590b5",
+          "pixels": [
+            5184,
+            480
+          ],
+          "tilePixels": [
+            1296,
+            120
+          ],
+          "grid": [
+            4,
+            4
+          ],
+          "frameCount": 16,
+          "bytes": 9686
+        },
+        "water_reflections": {
+          "path": "effects/water_reflections/green-16f.webp",
+          "sha256": "e7fe89862eb49ab9e1437bafb3b07e6c9ef67107b6151008a7aa7573ffec409f",
+          "pixels": [
+            5184,
+            480
+          ],
+          "tilePixels": [
+            1296,
+            120
+          ],
+          "grid": [
+            4,
+            4
+          ],
+          "frameCount": 16,
+          "bytes": 58900
+        },
+        "light_rain": {
+          "path": "effects/light_rain/green-weather-16f.webp",
+          "sha256": "37efe0477bb82e3e6a2290593f566afe17e53257e48aff56c7105149967edf66",
+          "pixels": [
+            5184,
+            480
+          ],
+          "tilePixels": [
+            1296,
+            120
+          ],
+          "grid": [
+            4,
+            4
+          ],
+          "frameCount": 16,
+          "bytes": 151760
+        }
+      },
+      "loop": {
+        "path": "loops/green-16f.webp",
+        "sha256": "3fd9e144da2ff7ad451314f1d96c23c689b0fab706b73b25878ffd199e19fb21",
+        "frameCount": 16,
+        "durationMs": 100,
+        "pixels": [
+          1296,
+          120
+        ],
+        "bytes": 226938
+      },
+      "riskArtParameters": {
+        "sun": 0.87,
+        "dust": 0.26,
+        "fog": 0.16,
+        "smoke": 0.13,
+        "wind": 0.85,
+        "cloud": 0.74,
+        "birds": 0.8
+      },
+      "compositeAtlas": {
+        "path": "atlases/green-composite-16f.webp",
+        "sha256": "a0d434668cef95cbb06539c88c35da8a0f6f570960805eef86810fa01c103cb5",
+        "dimensions": [
+          5184,
+          480
+        ],
+        "frameSize": [
+          1296,
+          120
+        ],
+        "frameCount": 16,
+        "grid": [
+          4,
+          4
+        ]
+      }
+    },
+    "yellow": {
+      "sourceFile": "6E2935B0-DEE8-433E-A3A0-2F248755024E.jpeg",
+      "originalSHA256": "a638bc381db44300081e428bd038b0787e41d112cab08341339737e94c878d44",
+      "sourceFrameCount": 10,
+      "sourceOriginalCells": [
+        {
+          "path": "source_frames/yellow/original-cell-01.webp",
+          "originalGridRow": 0,
+          "originalGridColumn": 0,
+          "pixels": [
+            754,
+            87
+          ],
+          "sha256": "32dca695b954ecedd21193200d99d183cdd06958384a26a70003d16efb5d0979"
+        },
+        {
+          "path": "source_frames/yellow/original-cell-02.webp",
+          "originalGridRow": 0,
+          "originalGridColumn": 1,
+          "pixels": [
+            755,
+            87
+          ],
+          "sha256": "7b597c9d75c005f52941dc9e728054927170196bdf0660388b5423aefc0c506f"
+        },
+        {
+          "path": "source_frames/yellow/original-cell-03.webp",
+          "originalGridRow": 1,
+          "originalGridColumn": 0,
+          "pixels": [
+            754,
+            84
+          ],
+          "sha256": "1c0e19cb862a782e5986ea29cbf23e15f1ea3f983287c926be05d54a498b2831"
+        },
+        {
+          "path": "source_frames/yellow/original-cell-04.webp",
+          "originalGridRow": 1,
+          "originalGridColumn": 1,
+          "pixels": [
+            755,
+            84
+          ],
+          "sha256": "2947b012c5a0230c44f53570316136319a17dbed7fb3056db8ff319414feddad"
+        },
+        {
+          "path": "source_frames/yellow/original-cell-05.webp",
+          "originalGridRow": 2,
+          "originalGridColumn": 0,
+          "pixels": [
+            754,
+            90
+          ],
+          "sha256": "c8b87e9bb9f5dcbcf2f3216fdae788dbe5c75bd9c89a6704d6371429a8db0374"
+        },
+        {
+          "path": "source_frames/yellow/original-cell-06.webp",
+          "originalGridRow": 2,
+          "originalGridColumn": 1,
+          "pixels": [
+            755,
+            90
+          ],
+          "sha256": "d47df84781920ab2bb9374f457552c2a9ebc2b54bf86220eca262dc9621e8b65"
+        },
+        {
+          "path": "source_frames/yellow/original-cell-07.webp",
+          "originalGridRow": 3,
+          "originalGridColumn": 0,
+          "pixels": [
+            754,
+            87
+          ],
+          "sha256": "5ffe266693f6e1ae5ec57eba4dfcdda9c1452fc2408086ca4391021619906c67"
+        },
+        {
+          "path": "source_frames/yellow/original-cell-08.webp",
+          "originalGridRow": 3,
+          "originalGridColumn": 1,
+          "pixels": [
+            755,
+            87
+          ],
+          "sha256": "d99d1fe343c68eb8ce036065dbd1a4d62cf5c7473f15d0c805bbc2521ee3c86c"
+        },
+        {
+          "path": "source_frames/yellow/original-cell-09.webp",
+          "originalGridRow": 4,
+          "originalGridColumn": 0,
+          "pixels": [
+            754,
+            97
+          ],
+          "sha256": "9526b2e261801cbb959c6b0423be456f97bb89e9226b10cc721746eeddd0bf25"
+        },
+        {
+          "path": "source_frames/yellow/original-cell-10.webp",
+          "originalGridRow": 4,
+          "originalGridColumn": 1,
+          "pixels": [
+            755,
+            97
+          ],
+          "sha256": "63706aec7f83672ae240df9b5736dc29a0daeebb3e9603fb6acea10293d564fc"
+        }
+      ],
+      "master": {
+        "path": "master/yellow.webp",
+        "sha256": "a72cb2aa5d8d95f7c612275b1d54e4672fb245310aa39a84a0037b77559edca4",
+        "pixels": [
+          1296,
+          120
+        ]
+      },
+      "effects": {
+        "sunshafts": {
+          "path": "effects/sunshafts/yellow-16f.webp",
+          "sha256": "de6f3840d3e296f0c3eb61b2de4bb95d70ade693c1d9f676ae183d4360aae8e0",
+          "pixels": [
+            5184,
+            480
+          ],
+          "tilePixels": [
+            1296,
+            120
+          ],
+          "grid": [
+            4,
+            4
+          ],
+          "frameCount": 16,
+          "bytes": 163752
+        },
+        "clouds": {
+          "path": "effects/clouds/yellow-16f.webp",
+          "sha256": "3e93cc1db4d428bf4b711324dae549a587d77dfe88c26686dc154ff4ba3960f5",
+          "pixels": [
+            5184,
+            480
+          ],
+          "tilePixels": [
+            1296,
+            120
+          ],
+          "grid": [
+            4,
+            4
+          ],
+          "frameCount": 16,
+          "bytes": 163436
+        },
+        "fog": {
+          "path": "effects/fog/yellow-16f.webp",
+          "sha256": "5e6b6d044e285a12a7b1751fd565b341500e6d951cb88969cc4d52099dc5f876",
+          "pixels": [
+            5184,
+            480
+          ],
+          "tilePixels": [
+            1296,
+            120
+          ],
+          "grid": [
+            4,
+            4
+          ],
+          "frameCount": 16,
+          "bytes": 61118
+        },
+        "smoke": {
+          "path": "effects/smoke/yellow-16f.webp",
+          "sha256": "792fa4a4ab6189d9cc8e94605a66169c3699b50d0bbd30f564ab72260a50ad80",
+          "pixels": [
+            5184,
+            480
+          ],
+          "tilePixels": [
+            1296,
+            120
+          ],
+          "grid": [
+            4,
+            4
+          ],
+          "frameCount": 16,
+          "bytes": 89834
+        },
+        "dust": {
+          "path": "effects/dust/yellow-16f.webp",
+          "sha256": "343b4c9b39a42cd4fdac3872d6bd8c7cbf2ff4a963cb4a647f52717e452ec2b9",
+          "pixels": [
+            5184,
+            480
+          ],
+          "tilePixels": [
+            1296,
+            120
+          ],
+          "grid": [
+            4,
+            4
+          ],
+          "frameCount": 16,
+          "bytes": 87960
+        },
+        "airflow": {
+          "path": "effects/airflow/yellow-16f.webp",
+          "sha256": "4e101aff2d5c1ed97aaf8abe696f409e042165002e9e9918dd918ed7c1ddddb6",
+          "pixels": [
+            5184,
+            480
+          ],
+          "tilePixels": [
+            1296,
+            120
+          ],
+          "grid": [
+            4,
+            4
+          ],
+          "frameCount": 16,
+          "bytes": 156954
+        },
+        "leaves": {
+          "path": "effects/leaves/yellow-16f.webp",
+          "sha256": "0b6435e2ba46f8f44579053c5c7a1a040a6731ea21227f51772709239ee31255",
+          "pixels": [
+            5184,
+            480
+          ],
+          "tilePixels": [
+            1296,
+            120
+          ],
+          "grid": [
+            4,
+            4
+          ],
+          "frameCount": 16,
+          "bytes": 40012
+        },
+        "birds": {
+          "path": "effects/birds/yellow-16f.webp",
+          "sha256": "5cab0d8eb535aedd9357936ce2610c075a6d8875cfccacb32402bbae894f4c88",
+          "pixels": [
+            5184,
+            480
+          ],
+          "tilePixels": [
+            1296,
+            120
+          ],
+          "grid": [
+            4,
+            4
+          ],
+          "frameCount": 16,
+          "bytes": 9412
+        },
+        "water_reflections": {
+          "path": "effects/water_reflections/yellow-16f.webp",
+          "sha256": "e2fdc0758da6cea1f629b8b8fbca670e0d7a9469fdd675a6ecd21ddaaacad8c2",
+          "pixels": [
+            5184,
+            480
+          ],
+          "tilePixels": [
+            1296,
+            120
+          ],
+          "grid": [
+            4,
+            4
+          ],
+          "frameCount": 16,
+          "bytes": 58810
+        },
+        "light_rain": {
+          "path": "effects/light_rain/yellow-weather-16f.webp",
+          "sha256": "37efe0477bb82e3e6a2290593f566afe17e53257e48aff56c7105149967edf66",
+          "pixels": [
+            5184,
+            480
+          ],
+          "tilePixels": [
+            1296,
+            120
+          ],
+          "grid": [
+            4,
+            4
+          ],
+          "frameCount": 16,
+          "bytes": 151760
+        }
+      },
+      "loop": {
+        "path": "loops/yellow-16f.webp",
+        "sha256": "a77dfee51659774aed6640a360c504f5dc7c8bf2a0af961bdc614931d0a934bd",
+        "frameCount": 16,
+        "durationMs": 100,
+        "pixels": [
+          1296,
+          120
+        ],
+        "bytes": 192332
+      },
+      "riskArtParameters": {
+        "sun": 0.59,
+        "dust": 0.48,
+        "fog": 0.4,
+        "smoke": 0.42,
+        "wind": 0.63,
+        "cloud": 0.85,
+        "birds": 0.53
+      },
+      "compositeAtlas": {
+        "path": "atlases/yellow-composite-16f.webp",
+        "sha256": "c6bd2ce2a30af5d65820bbb135e685f27024b9176a6e9edc1297f78ec19f7163",
+        "dimensions": [
+          5184,
+          480
+        ],
+        "frameSize": [
+          1296,
+          120
+        ],
+        "frameCount": 16,
+        "grid": [
+          4,
+          4
+        ]
+      }
+    },
+    "orange": {
+      "sourceFile": "D28AAB6C-51CB-4CC9-9D20-FDA23E0CF092.jpeg",
+      "originalSHA256": "3dd2d58d113a157102460e64cca24114c9ae7f1a15fcd5c1be303a276907d194",
+      "sourceFrameCount": 10,
+      "sourceOriginalCells": [
+        {
+          "path": "source_frames/orange/original-cell-01.webp",
+          "originalGridRow": 0,
+          "originalGridColumn": 0,
+          "pixels": [
+            754,
+            83
+          ],
+          "sha256": "7e5dd75aa94d3fab2a2899e60af26ee413a41ab33803295b29cfc71a10129eba"
+        },
+        {
+          "path": "source_frames/orange/original-cell-02.webp",
+          "originalGridRow": 0,
+          "originalGridColumn": 1,
+          "pixels": [
+            755,
+            83
+          ],
+          "sha256": "ec547dc0403e41dab2b3f6c679f1fd374536152549d09e8c77bc80100ed76bbb"
+        },
+        {
+          "path": "source_frames/orange/original-cell-03.webp",
+          "originalGridRow": 1,
+          "originalGridColumn": 0,
+          "pixels": [
+            754,
+            78
+          ],
+          "sha256": "8318ee89d2704fbf78abaa8fbab8ada62fecbb6123c957f5bc4dd6cb58558adc"
+        },
+        {
+          "path": "source_frames/orange/original-cell-04.webp",
+          "originalGridRow": 1,
+          "originalGridColumn": 1,
+          "pixels": [
+            755,
+            78
+          ],
+          "sha256": "2363390709f908a08c6b456234a144ed23b12a49468a5244e928274b99f70a3f"
+        },
+        {
+          "path": "source_frames/orange/original-cell-05.webp",
+          "originalGridRow": 2,
+          "originalGridColumn": 0,
+          "pixels": [
+            754,
+            81
+          ],
+          "sha256": "829f6c18ae04bea88ab42a61a5b075d5b5b06ea543feabaceefdd746506f6c66"
+        },
+        {
+          "path": "source_frames/orange/original-cell-06.webp",
+          "originalGridRow": 2,
+          "originalGridColumn": 1,
+          "pixels": [
+            755,
+            81
+          ],
+          "sha256": "55a190c03d27230de8f746f62a45351c10a68cda5796c9bf746041e8465a9d1b"
+        },
+        {
+          "path": "source_frames/orange/original-cell-07.webp",
+          "originalGridRow": 3,
+          "originalGridColumn": 0,
+          "pixels": [
+            754,
+            81
+          ],
+          "sha256": "4435fdc0bf455f9168984305534aba9671a790483a44a2575401be81284085a3"
+        },
+        {
+          "path": "source_frames/orange/original-cell-08.webp",
+          "originalGridRow": 3,
+          "originalGridColumn": 1,
+          "pixels": [
+            755,
+            81
+          ],
+          "sha256": "aa3cecb2ee9bf509f46ad4cbdbe0f167188d2bfce1d1b7cb9cddd850f1086759"
+        },
+        {
+          "path": "source_frames/orange/original-cell-09.webp",
+          "originalGridRow": 4,
+          "originalGridColumn": 0,
+          "pixels": [
+            754,
+            122
+          ],
+          "sha256": "0dbb0d8f8e2400ca23ccfd2d508be88eecb4bccf3a3f788d1cf2e2ff51dc8a45"
+        },
+        {
+          "path": "source_frames/orange/original-cell-10.webp",
+          "originalGridRow": 4,
+          "originalGridColumn": 1,
+          "pixels": [
+            755,
+            122
+          ],
+          "sha256": "9831d04d733d59ed9e3dfffc2f89835ca8290c67438b58a2445ae24b6f826079"
+        }
+      ],
+      "master": {
+        "path": "master/orange.webp",
+        "sha256": "d80efebb054363afac3d7ac35cc0ce6d258506e123fc959bd6f107d601396725",
+        "pixels": [
+          1296,
+          120
+        ]
+      },
+      "effects": {
+        "sunshafts": {
+          "path": "effects/sunshafts/orange-16f.webp",
+          "sha256": "f53361a3bade8a36617ac5395799fa2116289f9e103517e8e7b7d5d90288b9b0",
+          "pixels": [
+            5184,
+            480
+          ],
+          "tilePixels": [
+            1296,
+            120
+          ],
+          "grid": [
+            4,
+            4
+          ],
+          "frameCount": 16,
+          "bytes": 113668
+        },
+        "clouds": {
+          "path": "effects/clouds/orange-16f.webp",
+          "sha256": "afbad471642473cafacafa1c856a3b2a2871c2c3adaa261daf26b69c73ad3510",
+          "pixels": [
+            5184,
+            480
+          ],
+          "tilePixels": [
+            1296,
+            120
+          ],
+          "grid": [
+            4,
+            4
+          ],
+          "frameCount": 16,
+          "bytes": 154490
+        },
+        "fog": {
+          "path": "effects/fog/orange-16f.webp",
+          "sha256": "5f0e7e8f97d9e1569542896878d9d8bd9f26cb4ac5c678f03d5c582878f3f04a",
+          "pixels": [
+            5184,
+            480
+          ],
+          "tilePixels": [
+            1296,
+            120
+          ],
+          "grid": [
+            4,
+            4
+          ],
+          "frameCount": 16,
+          "bytes": 79336
+        },
+        "smoke": {
+          "path": "effects/smoke/orange-16f.webp",
+          "sha256": "400854da451389ceecb92a0e934635ded6f4c85ec2124052be0ec683c35d0a42",
+          "pixels": [
+            5184,
+            480
+          ],
+          "tilePixels": [
+            1296,
+            120
+          ],
+          "grid": [
+            4,
+            4
+          ],
+          "frameCount": 16,
+          "bytes": 123496
+        },
+        "dust": {
+          "path": "effects/dust/orange-16f.webp",
+          "sha256": "30ca325dce786abf94e68ca44a75b5fd847c9156cfd1a982b2b2ebb4bce1c77d",
+          "pixels": [
+            5184,
+            480
+          ],
+          "tilePixels": [
+            1296,
+            120
+          ],
+          "grid": [
+            4,
+            4
+          ],
+          "frameCount": 16,
+          "bytes": 95570
+        },
+        "airflow": {
+          "path": "effects/airflow/orange-16f.webp",
+          "sha256": "5469eb5bc81736c326378d6421ac88f3a78d34c554a67b9473d3735b9b39448b",
+          "pixels": [
+            5184,
+            480
+          ],
+          "tilePixels": [
+            1296,
+            120
+          ],
+          "grid": [
+            4,
+            4
+          ],
+          "frameCount": 16,
+          "bytes": 117848
+        },
+        "leaves": {
+          "path": "effects/leaves/orange-16f.webp",
+          "sha256": "da88c3b22888e460c5f5095c461a1b6d6e1e94579dc09db13cb40841fe62efde",
+          "pixels": [
+            5184,
+            480
+          ],
+          "tilePixels": [
+            1296,
+            120
+          ],
+          "grid": [
+            4,
+            4
+          ],
+          "frameCount": 16,
+          "bytes": 41416
+        },
+        "birds": {
+          "path": "effects/birds/orange-16f.webp",
+          "sha256": "8be0920a6761c3141b7a0d1ce0fed3aff3191b70eaf5e888e7bbbb8b2f2c4f40",
+          "pixels": [
+            5184,
+            480
+          ],
+          "tilePixels": [
+            1296,
+            120
+          ],
+          "grid": [
+            4,
+            4
+          ],
+          "frameCount": 16,
+          "bytes": 6582
+        },
+        "water_reflections": {
+          "path": "effects/water_reflections/orange-16f.webp",
+          "sha256": "ba0ea2d71b15417a5fc2cd37caf319a97c3ff6dad2c5727e1823d2b9bfe1dd10",
+          "pixels": [
+            5184,
+            480
+          ],
+          "tilePixels": [
+            1296,
+            120
+          ],
+          "grid": [
+            4,
+            4
+          ],
+          "frameCount": 16,
+          "bytes": 53830
+        },
+        "light_rain": {
+          "path": "effects/light_rain/orange-weather-16f.webp",
+          "sha256": "37efe0477bb82e3e6a2290593f566afe17e53257e48aff56c7105149967edf66",
+          "pixels": [
+            5184,
+            480
+          ],
+          "tilePixels": [
+            1296,
+            120
+          ],
+          "grid": [
+            4,
+            4
+          ],
+          "frameCount": 16,
+          "bytes": 151760
+        }
+      },
+      "loop": {
+        "path": "loops/orange-16f.webp",
+        "sha256": "8d8e096eb551fa1cd0c870bdb1c64982758c115ae32321471743a6ada1e01ed9",
+        "frameCount": 16,
+        "durationMs": 100,
+        "pixels": [
+          1296,
+          120
+        ],
+        "bytes": 201804
+      },
+      "riskArtParameters": {
+        "sun": 0.34,
+        "dust": 0.78,
+        "fog": 0.73,
+        "smoke": 0.69,
+        "wind": 0.3,
+        "cloud": 0.95,
+        "birds": 0.12
+      },
+      "compositeAtlas": {
+        "path": "atlases/orange-composite-16f.webp",
+        "sha256": "a1ed2f3b1193e28164a270f4cad3bfb6e66b319401df8cd2e297acad911866cb",
+        "dimensions": [
+          5184,
+          480
+        ],
+        "frameSize": [
+          1296,
+          120
+        ],
+        "frameCount": 16,
+        "grid": [
+          4,
+          4
+        ]
+      }
+    },
+    "red": {
+      "sourceFile": "EB284AA1-DC81-4739-956B-912142A5CFBC.jpeg",
+      "originalSHA256": "7a4ec740f213aa427f5df04b182f04a83505d154d500b3afebfa32555617ba2f",
+      "sourceFrameCount": 10,
+      "sourceOriginalCells": [
+        {
+          "path": "source_frames/red/original-cell-01.webp",
+          "originalGridRow": 0,
+          "originalGridColumn": 0,
+          "pixels": [
+            754,
+            83
+          ],
+          "sha256": "2d94d455dc63bc90fe11a8ea956179b60e3cdb5b213e0bfdebe1b872a1f1aa1e"
+        },
+        {
+          "path": "source_frames/red/original-cell-02.webp",
+          "originalGridRow": 0,
+          "originalGridColumn": 1,
+          "pixels": [
+            755,
+            83
+          ],
+          "sha256": "4cc3af3f8c1a4f8c85c8a9b3fe826caa492460bcee9dec187b69ea1b85e8755d"
+        },
+        {
+          "path": "source_frames/red/original-cell-03.webp",
+          "originalGridRow": 1,
+          "originalGridColumn": 0,
+          "pixels": [
+            754,
+            78
+          ],
+          "sha256": "b1af4787da02fbf0c230d88bc355cb811f1e96129099ea313d2d05255b997e38"
+        },
+        {
+          "path": "source_frames/red/original-cell-04.webp",
+          "originalGridRow": 1,
+          "originalGridColumn": 1,
+          "pixels": [
+            755,
+            78
+          ],
+          "sha256": "3133b1dbf0538ea2459ec4e72bcda6031aa54bd6b6e146a58d35192d1ccab404"
+        },
+        {
+          "path": "source_frames/red/original-cell-05.webp",
+          "originalGridRow": 2,
+          "originalGridColumn": 0,
+          "pixels": [
+            754,
+            80
+          ],
+          "sha256": "a6e3dd8d57faffbd1fedf2eebfa5e0a470b7a70e1c5a43ede2da94003c003793"
+        },
+        {
+          "path": "source_frames/red/original-cell-06.webp",
+          "originalGridRow": 2,
+          "originalGridColumn": 1,
+          "pixels": [
+            755,
+            80
+          ],
+          "sha256": "e46fb5cf2eedb3ee1825ba645aa5bbb7972a496ad44586837fef067862910f74"
+        },
+        {
+          "path": "source_frames/red/original-cell-07.webp",
+          "originalGridRow": 3,
+          "originalGridColumn": 0,
+          "pixels": [
+            754,
+            81
+          ],
+          "sha256": "8f70dbc655b303c26ec77dc5dd0f9c613f74c2335d3443b9855fda51dc412856"
+        },
+        {
+          "path": "source_frames/red/original-cell-08.webp",
+          "originalGridRow": 3,
+          "originalGridColumn": 1,
+          "pixels": [
+            755,
+            81
+          ],
+          "sha256": "82305c518ee9fa0dc4a5934fe733ef78dd26ae3801e7e11234fc9f0e02f9a0ca"
+        },
+        {
+          "path": "source_frames/red/original-cell-09.webp",
+          "originalGridRow": 4,
+          "originalGridColumn": 0,
+          "pixels": [
+            754,
+            123
+          ],
+          "sha256": "d7992e6188a6bdcbcd5c91bb54312c6a2e1f7b758ddc10af16d909fa4fd7bdc7"
+        },
+        {
+          "path": "source_frames/red/original-cell-10.webp",
+          "originalGridRow": 4,
+          "originalGridColumn": 1,
+          "pixels": [
+            755,
+            123
+          ],
+          "sha256": "68d601d8a8bc3d67233fc24db563d82812ebf70c3c7445b38d59ff5edd93c6db"
+        }
+      ],
+      "master": {
+        "path": "master/red.webp",
+        "sha256": "dd4af4a20a1a952404cf448a4711672a10e773050fca5861f0412323a2bebb68",
+        "pixels": [
+          1296,
+          120
+        ]
+      },
+      "effects": {
+        "sunshafts": {
+          "path": "effects/sunshafts/red-16f.webp",
+          "sha256": "38294b308731e83fc0de7be762e8466c17ae3aa68af64d78cc8f69c07357decd",
+          "pixels": [
+            5184,
+            480
+          ],
+          "tilePixels": [
+            1296,
+            120
+          ],
+          "grid": [
+            4,
+            4
+          ],
+          "frameCount": 16,
+          "bytes": 81326
+        },
+        "clouds": {
+          "path": "effects/clouds/red-16f.webp",
+          "sha256": "fa2bfa807b1a4f6a0f04c4460d73c85ae4316ff65fa39f8ac9dd65c943498a7c",
+          "pixels": [
+            5184,
+            480
+          ],
+          "tilePixels": [
+            1296,
+            120
+          ],
+          "grid": [
+            4,
+            4
+          ],
+          "frameCount": 16,
+          "bytes": 155232
+        },
+        "fog": {
+          "path": "effects/fog/red-16f.webp",
+          "sha256": "800ed5300c37558e5b9940ade6d99a60eff7742d04ad9f0d213f95091e32a586",
+          "pixels": [
+            5184,
+            480
+          ],
+          "tilePixels": [
+            1296,
+            120
+          ],
+          "grid": [
+            4,
+            4
+          ],
+          "frameCount": 16,
+          "bytes": 94800
+        },
+        "smoke": {
+          "path": "effects/smoke/red-16f.webp",
+          "sha256": "6559f372cd1a9fced3ddcacf6cd62778978fdd0ed62f4da0f98ad0742258ceb8",
+          "pixels": [
+            5184,
+            480
+          ],
+          "tilePixels": [
+            1296,
+            120
+          ],
+          "grid": [
+            4,
+            4
+          ],
+          "frameCount": 16,
+          "bytes": 136566
+        },
+        "dust": {
+          "path": "effects/dust/red-16f.webp",
+          "sha256": "155ae30a2a9428e2ee31bc7ca9e09619bb368089657b27f3bb10fdf59147ca1a",
+          "pixels": [
+            5184,
+            480
+          ],
+          "tilePixels": [
+            1296,
+            120
+          ],
+          "grid": [
+            4,
+            4
+          ],
+          "frameCount": 16,
+          "bytes": 99102
+        },
+        "airflow": {
+          "path": "effects/airflow/red-16f.webp",
+          "sha256": "a4990b17a66f7aece80c0d3de877b6ed2ff79899c0c39c7d40a549442490dcc0",
+          "pixels": [
+            5184,
+            480
+          ],
+          "tilePixels": [
+            1296,
+            120
+          ],
+          "grid": [
+            4,
+            4
+          ],
+          "frameCount": 16,
+          "bytes": 81128
+        },
+        "leaves": {
+          "path": "effects/leaves/red-16f.webp",
+          "sha256": "da88c3b22888e460c5f5095c461a1b6d6e1e94579dc09db13cb40841fe62efde",
+          "pixels": [
+            5184,
+            480
+          ],
+          "tilePixels": [
+            1296,
+            120
+          ],
+          "grid": [
+            4,
+            4
+          ],
+          "frameCount": 16,
+          "bytes": 41416
+        },
+        "birds": {
+          "path": "effects/birds/red-16f.webp",
+          "sha256": "e21332a31717efebb6a5eac7ca7661a8c2605fc6f2adc721e6bee247fa0c08a2",
+          "pixels": [
+            5184,
+            480
+          ],
+          "tilePixels": [
+            1296,
+            120
+          ],
+          "grid": [
+            4,
+            4
+          ],
+          "frameCount": 16,
+          "bytes": 5178
+        },
+        "water_reflections": {
+          "path": "effects/water_reflections/red-16f.webp",
+          "sha256": "ba0ea2d71b15417a5fc2cd37caf319a97c3ff6dad2c5727e1823d2b9bfe1dd10",
+          "pixels": [
+            5184,
+            480
+          ],
+          "tilePixels": [
+            1296,
+            120
+          ],
+          "grid": [
+            4,
+            4
+          ],
+          "frameCount": 16,
+          "bytes": 53830
+        },
+        "light_rain": {
+          "path": "effects/light_rain/red-weather-16f.webp",
+          "sha256": "37efe0477bb82e3e6a2290593f566afe17e53257e48aff56c7105149967edf66",
+          "pixels": [
+            5184,
+            480
+          ],
+          "tilePixels": [
+            1296,
+            120
+          ],
+          "grid": [
+            4,
+            4
+          ],
+          "frameCount": 16,
+          "bytes": 151760
+        }
+      },
+      "loop": {
+        "path": "loops/red-16f.webp",
+        "sha256": "1a3e901a855063f54fb1710eb302631b2abcbeadc5770b9a10054a3db9bb4a63",
+        "frameCount": 16,
+        "durationMs": 100,
+        "pixels": [
+          1296,
+          120
+        ],
+        "bytes": 173112
+      },
+      "riskArtParameters": {
+        "sun": 0.13,
+        "dust": 1.0,
+        "fog": 1.0,
+        "smoke": 1.0,
+        "wind": 0.08,
+        "cloud": 1.0,
+        "birds": 0.0
+      },
+      "compositeAtlas": {
+        "path": "atlases/red-composite-16f.webp",
+        "sha256": "fb8f2b2a8e723790a60973a751d5c788389fad6aa487bb34de67042002c48c40",
+        "dimensions": [
+          5184,
+          480
+        ],
+        "frameSize": [
+          1296,
+          120
+        ],
+        "frameCount": 16,
+        "grid": [
+          4,
+          4
+        ]
+      }
+    }
+  },
+  "contactSheet": {
+    "path": "review-contact.webp",
+    "sha256": "aeade4fdbbca85567941f8f695b48edbdc1c9cae0154d79f7c9b35c8334b3890"
+  }
+}

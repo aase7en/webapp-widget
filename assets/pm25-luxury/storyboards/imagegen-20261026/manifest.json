@@ -1,0 +1,548 @@
+{
+  "schema": 1,
+  "state": "DESIGN_REVIEW_ONLY_NOT_PRODUCTION",
+  "source": "ImageGen original composite contact sheets user supplied 2026-10-26",
+  "notes": [
+    "Frame cells are extracted from ImageGen STORYBOARDS. A storyboard is not proof of physically continuous motion.",
+    "Counts follow visible grid geometry, not filenames such as 16-frame.",
+    "Do not crop/stretch raw frames to 432x40 without designing a correct LED composition.",
+    "No PM values or health assessments are inferred from the images."
+  ],
+  "tiers": {
+    "blue": {
+      "originalPath": "originals/blue.png",
+      "originalSha256": "35955be9364a149e55e5b9a576f54a5dc69bf1ec6a1795c6b8ff9b39f1268fa0",
+      "grid": {
+        "columns": 3,
+        "rows": 5
+      },
+      "frameCount": 15,
+      "frames": [
+        {
+          "path": "frames/blue/frame-01.webp",
+          "sha256": "7177044fcfa5036dc571eb1fc4805ff6936c7094cfba0f06988a11ecf1fe1065",
+          "width": 718,
+          "height": 139
+        },
+        {
+          "path": "frames/blue/frame-02.webp",
+          "sha256": "20326d8e64f415c563ea51a2a47b01d00ead832b43ce2b9ebb94f8ba389be21d",
+          "width": 718,
+          "height": 139
+        },
+        {
+          "path": "frames/blue/frame-03.webp",
+          "sha256": "04fa22ad117438fa2cdab141d05c39e320dc76bf3c16963dcc972bf9715e1710",
+          "width": 718,
+          "height": 139
+        },
+        {
+          "path": "frames/blue/frame-04.webp",
+          "sha256": "056dfddf49123902a7230330ab6a5793254b7feb8e4272ae23df13b31f48926d",
+          "width": 718,
+          "height": 139
+        },
+        {
+          "path": "frames/blue/frame-05.webp",
+          "sha256": "935f850b16ddf1c0496f75e4cfbfdfdffaf4f668344d38c1b70b806df7ccf47a",
+          "width": 718,
+          "height": 139
+        },
+        {
+          "path": "frames/blue/frame-06.webp",
+          "sha256": "84a1f10c286d459b9ea03adf775b6ea33dba807c795c1cd44f0493b1285686ee",
+          "width": 718,
+          "height": 139
+        },
+        {
+          "path": "frames/blue/frame-07.webp",
+          "sha256": "6349c45bc30c9bbb04044cb56607c69eb818646937ba8b86d1d9c1a5100bade2",
+          "width": 718,
+          "height": 138
+        },
+        {
+          "path": "frames/blue/frame-08.webp",
+          "sha256": "0c94b6947462017bcf4823fc8f1578fa6581e8db61a6f70ff458207549c447a7",
+          "width": 718,
+          "height": 138
+        },
+        {
+          "path": "frames/blue/frame-09.webp",
+          "sha256": "f9f38f2f7f3a1a94f5d9b72ab8ec3c4fd50f310f0f39888b77e0cae5ee13bc68",
+          "width": 718,
+          "height": 138
+        },
+        {
+          "path": "frames/blue/frame-10.webp",
+          "sha256": "10578a375e28f82ea89f39ad7338435da9fdcfc036ffe7bc5fb2795e2eb9ac8d",
+          "width": 718,
+          "height": 139
+        },
+        {
+          "path": "frames/blue/frame-11.webp",
+          "sha256": "086b3a022830af5423fa360837322e8d46d4a3e4f4ac76f1edc52e53c23d397f",
+          "width": 718,
+          "height": 139
+        },
+        {
+          "path": "frames/blue/frame-12.webp",
+          "sha256": "0689a5830f205b0ba2f4e60816bf631c5af8e5891c64fc2018ed5d5561ff33fa",
+          "width": 718,
+          "height": 139
+        },
+        {
+          "path": "frames/blue/frame-13.webp",
+          "sha256": "ae7da144031c456f5271ae9f40f207ed3ad6b7c79e738d5fa9fc8d0fb01f0271",
+          "width": 718,
+          "height": 139
+        },
+        {
+          "path": "frames/blue/frame-14.webp",
+          "sha256": "df45bbab6b57f4991f421e2cb7e912355d585e8f3418c75c20576a5dc7a8f4f7",
+          "width": 718,
+          "height": 139
+        },
+        {
+          "path": "frames/blue/frame-15.webp",
+          "sha256": "7ffde56b26e0b426676cd09db16504cdd1ffbf05789e6c1daa2b813a641cbb42",
+          "width": 718,
+          "height": 139
+        }
+      ],
+      "meanAdjacentRGBDifference": [
+        20.778,
+        16.927,
+        47.011,
+        20.445,
+        18.31,
+        47.185,
+        22.285,
+        20.007,
+        48.391,
+        20.724,
+        18.67,
+        57.559,
+        24.178,
+        23.08
+      ],
+      "animatedPreview": "previews/blue-storyboard-animation.webp",
+      "animatedPreviewSha256": "88e3ba2f8e583154ba8d411ba5a1ee1837c735654738e9b7f1363a6b6ca92092",
+      "sourceFrameAspect": 5.165,
+      "ledReady": false
+    },
+    "green": {
+      "originalPath": "originals/green.png",
+      "originalSha256": "4048600c06559a4d28d16ad167f320a3ebb54d65e000a8173f8dccde912605b7",
+      "grid": {
+        "columns": 3,
+        "rows": 4
+      },
+      "frameCount": 12,
+      "frames": [
+        {
+          "path": "frames/green/frame-01.webp",
+          "sha256": "104ffc476e31ddcc51f80704dbea96a026227a8b22b7b9de997134cfc46550d4",
+          "width": 718,
+          "height": 175
+        },
+        {
+          "path": "frames/green/frame-02.webp",
+          "sha256": "3fc58e9ecb7010b06dd95bc732467a1696f1d739f8a1a31e371226d4820c791e",
+          "width": 718,
+          "height": 175
+        },
+        {
+          "path": "frames/green/frame-03.webp",
+          "sha256": "3611944d2ec3483ae8f6f0d3e78b72ec895a4da1f266c50a59bd83d70e881ee7",
+          "width": 718,
+          "height": 175
+        },
+        {
+          "path": "frames/green/frame-04.webp",
+          "sha256": "0cd3f6ea4ae9564d463af4b74cec40dc8a98d1699dd0a34f79dd705730844f28",
+          "width": 718,
+          "height": 175
+        },
+        {
+          "path": "frames/green/frame-05.webp",
+          "sha256": "72d9f5ab09eece8e6f418e0b8e2ba29cebb40804dc16747ca73ee44158c41966",
+          "width": 718,
+          "height": 175
+        },
+        {
+          "path": "frames/green/frame-06.webp",
+          "sha256": "370b77eaad4d5a04e28d02c5004005c4b81646dbee545888cd314b6c37b1fde6",
+          "width": 718,
+          "height": 175
+        },
+        {
+          "path": "frames/green/frame-07.webp",
+          "sha256": "26d82356244d79ab8c051de3488cb835ebda047e4024a25f69beddafb29df7a6",
+          "width": 718,
+          "height": 175
+        },
+        {
+          "path": "frames/green/frame-08.webp",
+          "sha256": "4552212cec66fef09e1eaaa2ddad6eb90235bed368ce907d6858f53cf18ade98",
+          "width": 718,
+          "height": 175
+        },
+        {
+          "path": "frames/green/frame-09.webp",
+          "sha256": "0d751f65bd30afa1ebc0c1ba1c13b0c1eb727d96209e021d80b3258672ffcad3",
+          "width": 718,
+          "height": 175
+        },
+        {
+          "path": "frames/green/frame-10.webp",
+          "sha256": "eb83a973f657acefbc7fd8d6655ab9ea4a756dd387943899a4d854a9941335f0",
+          "width": 718,
+          "height": 175
+        },
+        {
+          "path": "frames/green/frame-11.webp",
+          "sha256": "fe2f289face72983ff181d7ad5862a8bebe011bf0d971d87efbfb216b7f7c031",
+          "width": 718,
+          "height": 175
+        },
+        {
+          "path": "frames/green/frame-12.webp",
+          "sha256": "0c575097b909e3c065f828a214be21de728268ab0341d919f75a453c684d1ec2",
+          "width": 718,
+          "height": 175
+        }
+      ],
+      "meanAdjacentRGBDifference": [
+        18.103,
+        15.834,
+        17.833,
+        16.896,
+        17.51,
+        17.259,
+        15.709,
+        15.127,
+        16.52,
+        16.445,
+        16.49
+      ],
+      "animatedPreview": "previews/green-storyboard-animation.webp",
+      "animatedPreviewSha256": "0b4a3cf4a81402c1d7a3bf83e33de043fe9e87af612731af90797cca0d5c8bbc",
+      "sourceFrameAspect": 4.103,
+      "ledReady": false
+    },
+    "yellow": {
+      "originalPath": "originals/yellow.png",
+      "originalSha256": "79dd305f90d7aea39dac9413508b9886704064bdb50d278638ac24087153affa",
+      "grid": {
+        "columns": 2,
+        "rows": 5
+      },
+      "frameCount": 10,
+      "frames": [
+        {
+          "path": "frames/yellow/frame-01.webp",
+          "sha256": "b9bef26c78552b41d1638b6193ab98af1667cdad743f6260fa809da9caac29e9",
+          "width": 1080,
+          "height": 139
+        },
+        {
+          "path": "frames/yellow/frame-02.webp",
+          "sha256": "ee2d5665336d00307ff3c3d35cce708d3af1a28ac81ba83a25d8d0e169aee78c",
+          "width": 1080,
+          "height": 139
+        },
+        {
+          "path": "frames/yellow/frame-03.webp",
+          "sha256": "d0601d718b9fbd56286a960a867cf17c82b22918208d2227b97a563c6e22e980",
+          "width": 1080,
+          "height": 139
+        },
+        {
+          "path": "frames/yellow/frame-04.webp",
+          "sha256": "f03ede3e383c1b5eb1b11d1c6d34066d151a70b20d8ff1a7700eb0452a9ccc6e",
+          "width": 1080,
+          "height": 139
+        },
+        {
+          "path": "frames/yellow/frame-05.webp",
+          "sha256": "79ee51cdd60d7f1b1e1ba18fca4e4d02e366632b8a314efd936f3cee58d113cc",
+          "width": 1080,
+          "height": 138
+        },
+        {
+          "path": "frames/yellow/frame-06.webp",
+          "sha256": "d8c4438e7e90458c52d6c59cb019890297020bc1d4bced6eff13836e02e4868a",
+          "width": 1080,
+          "height": 138
+        },
+        {
+          "path": "frames/yellow/frame-07.webp",
+          "sha256": "8611bcb68caf3b536fdee63616fef56d2945e065e1fd3a7ee141a30485a975af",
+          "width": 1080,
+          "height": 139
+        },
+        {
+          "path": "frames/yellow/frame-08.webp",
+          "sha256": "c4b050851516dded6208f104d1bd4334527e2bddb0b8691b53918b66eb9048bb",
+          "width": 1080,
+          "height": 139
+        },
+        {
+          "path": "frames/yellow/frame-09.webp",
+          "sha256": "c1b628a68aaa2f69dabf623db561e72374851f96cd2e4dd4aeb08cf756882f2e",
+          "width": 1080,
+          "height": 139
+        },
+        {
+          "path": "frames/yellow/frame-10.webp",
+          "sha256": "120a92502b2638c90370c718b1dac50da2d12eba89a8c20e28c87eaf7a3370d6",
+          "width": 1080,
+          "height": 139
+        }
+      ],
+      "meanAdjacentRGBDifference": [
+        14.033,
+        30.045,
+        12.326,
+        29.217,
+        14.231,
+        26.696,
+        13.497,
+        26.394,
+        13.155
+      ],
+      "animatedPreview": "previews/yellow-storyboard-animation.webp",
+      "animatedPreviewSha256": "5e14fcb75d0386400869d050b859b0a3f47694d21fccca5d00aa97aa7c504539",
+      "sourceFrameAspect": 7.77,
+      "ledReady": false
+    },
+    "orange": {
+      "originalPath": "originals/orange.png",
+      "originalSha256": "699254eec7f9937b92ce4ac65083066044b4bdbad788767afcf2f31fd65e3655",
+      "grid": {
+        "columns": 3,
+        "rows": 4
+      },
+      "frameCount": 12,
+      "frames": [
+        {
+          "path": "frames/orange/frame-01.webp",
+          "sha256": "89ec83794ebc8b65739801945db430f02dcfac36e6bf5078a61d2ad6ab051e3f",
+          "width": 718,
+          "height": 175
+        },
+        {
+          "path": "frames/orange/frame-02.webp",
+          "sha256": "7b7c9e3de058fb0f93312fb48f0d92d47945d7dc41330d7a22109d3dbcd48781",
+          "width": 718,
+          "height": 175
+        },
+        {
+          "path": "frames/orange/frame-03.webp",
+          "sha256": "a17049ced14596009309ff8b461be208ebbf78caa5ea76f4c0997f82c7a331cf",
+          "width": 718,
+          "height": 175
+        },
+        {
+          "path": "frames/orange/frame-04.webp",
+          "sha256": "55bc0b4bdeef9dd1e586123a20828ce578a29503020e9a9f9952b1c0278943aa",
+          "width": 718,
+          "height": 175
+        },
+        {
+          "path": "frames/orange/frame-05.webp",
+          "sha256": "1401c388f2fd2ea6c40a27dc1397513608273f5bb1029ba6e0bcbd53333c98b9",
+          "width": 718,
+          "height": 175
+        },
+        {
+          "path": "frames/orange/frame-06.webp",
+          "sha256": "dac167f190ecf687bf3a191d6153c4c5a5375a0f4e6018910962c68358bd2214",
+          "width": 718,
+          "height": 175
+        },
+        {
+          "path": "frames/orange/frame-07.webp",
+          "sha256": "ebb4a5b4893d7ed395cf9f28ae757a2f7b19afe721874ac6f04a1981e3d6a467",
+          "width": 718,
+          "height": 175
+        },
+        {
+          "path": "frames/orange/frame-08.webp",
+          "sha256": "e63157d381e58359a67aeec17b82936ee19680ee4b9fc37e407724c22c138034",
+          "width": 718,
+          "height": 175
+        },
+        {
+          "path": "frames/orange/frame-09.webp",
+          "sha256": "a15db894a098dd1def69b377348170ee580933eaa73e1710fca573c7393a761c",
+          "width": 718,
+          "height": 175
+        },
+        {
+          "path": "frames/orange/frame-10.webp",
+          "sha256": "f2fb09e6a7a0e2d02c629820ffef20814697d52fb82d634740315d9dd834543a",
+          "width": 718,
+          "height": 175
+        },
+        {
+          "path": "frames/orange/frame-11.webp",
+          "sha256": "792ecfc0d3ec043a2a45f098feb74b9e3440e3a1c9a1508c6cac9c3b261a1526",
+          "width": 718,
+          "height": 175
+        },
+        {
+          "path": "frames/orange/frame-12.webp",
+          "sha256": "8f2012fa77f6d6712492ef19795ce892798bf3324769506a2ebbb994b13ce366",
+          "width": 718,
+          "height": 175
+        }
+      ],
+      "meanAdjacentRGBDifference": [
+        11.843,
+        10.058,
+        30.17,
+        11.1,
+        9.415,
+        24.86,
+        11.825,
+        8.365,
+        24.721,
+        10.799,
+        11.201
+      ],
+      "animatedPreview": "previews/orange-storyboard-animation.webp",
+      "animatedPreviewSha256": "00ee7de5564f1aac0fdc92ff4caa371b2357dbe10cff019d9675a00e722af6b9",
+      "sourceFrameAspect": 4.103,
+      "ledReady": false
+    },
+    "red": {
+      "originalPath": "originals/red.png",
+      "originalSha256": "bf4b8501a25604255a9ca0c7a36ae5908b393963f184784cc2aadd8207542d0c",
+      "grid": {
+        "columns": 4,
+        "rows": 4
+      },
+      "frameCount": 16,
+      "frames": [
+        {
+          "path": "frames/red/frame-01.webp",
+          "sha256": "5bfb51dfafcf95092e11acc7a0652e1803fbb2708f010c20f623f5e46650c5af",
+          "width": 537,
+          "height": 175
+        },
+        {
+          "path": "frames/red/frame-02.webp",
+          "sha256": "ee6c845949b62e0df6d2075cbccffb4387afd527a94d97effcfa8622bee895c4",
+          "width": 537,
+          "height": 175
+        },
+        {
+          "path": "frames/red/frame-03.webp",
+          "sha256": "239e9588becbb4e455111da73abff9c3724ab7f43698f1d245aaeaf02cc384a5",
+          "width": 537,
+          "height": 175
+        },
+        {
+          "path": "frames/red/frame-04.webp",
+          "sha256": "5a08223ae38ae066128a02cafd433f2bd13936d784d2703a751b5dd2ea0b9bec",
+          "width": 537,
+          "height": 175
+        },
+        {
+          "path": "frames/red/frame-05.webp",
+          "sha256": "0d782749d3501c961171de9da529fad4b9f179fb2cfedea9121e2d5ced612654",
+          "width": 537,
+          "height": 175
+        },
+        {
+          "path": "frames/red/frame-06.webp",
+          "sha256": "b4ab13dddafa63ef09cd995f8bc10197398bc1eed4e5fb0e68245f527909a5b5",
+          "width": 537,
+          "height": 175
+        },
+        {
+          "path": "frames/red/frame-07.webp",
+          "sha256": "b2b44fa7cce7bedf31f94b553de25e81020d7fe0992b6df82b5d1e05f595d284",
+          "width": 537,
+          "height": 175
+        },
+        {
+          "path": "frames/red/frame-08.webp",
+          "sha256": "d866dbb571c63a571409588d69455bfc6679f3aa70f15c0755c5ea17e30bb5ac",
+          "width": 537,
+          "height": 175
+        },
+        {
+          "path": "frames/red/frame-09.webp",
+          "sha256": "83d11e28ef2215ff281111897e85328be8c650b124caacc4c4289f615a58782f",
+          "width": 537,
+          "height": 175
+        },
+        {
+          "path": "frames/red/frame-10.webp",
+          "sha256": "adea9b2b2781227b56ca2a5f95c583d7464fd755801d11032b7830480790c703",
+          "width": 537,
+          "height": 175
+        },
+        {
+          "path": "frames/red/frame-11.webp",
+          "sha256": "e662ac5bbb555b5d58393109deef586d2dffd02c096e834db8d1e01c93cfeb1d",
+          "width": 537,
+          "height": 175
+        },
+        {
+          "path": "frames/red/frame-12.webp",
+          "sha256": "9008ff863aa993bef6d9e59b69441ef70e998f6cacf569cb2245cfdb776f773e",
+          "width": 537,
+          "height": 175
+        },
+        {
+          "path": "frames/red/frame-13.webp",
+          "sha256": "9a55291800a911f65ee361c50a6d3d11b57dac6ac97fa1bbaf97677f808e5ef9",
+          "width": 537,
+          "height": 175
+        },
+        {
+          "path": "frames/red/frame-14.webp",
+          "sha256": "95a44e4fc5eefc5c5e6843ae5c49bc312bfbb11c2a56c6158e6b18b7383bf274",
+          "width": 537,
+          "height": 175
+        },
+        {
+          "path": "frames/red/frame-15.webp",
+          "sha256": "cb0d33902efcf827d9c86286329a4e8d5196c728d0d700bf6ffd5fad1fddb804",
+          "width": 537,
+          "height": 175
+        },
+        {
+          "path": "frames/red/frame-16.webp",
+          "sha256": "990c08c96afcf830913bfca6a30fc959f800a73b71c6a4b8bb3d88e23f6a0959",
+          "width": 537,
+          "height": 175
+        }
+      ],
+      "meanAdjacentRGBDifference": [
+        15.115,
+        13.799,
+        15.576,
+        25.049,
+        13.825,
+        14.486,
+        13.734,
+        16.094,
+        11.958,
+        11.767,
+        11.867,
+        16.785,
+        12.964,
+        12.993,
+        11.476
+      ],
+      "animatedPreview": "previews/red-storyboard-animation.webp",
+      "animatedPreviewSha256": "20b8fda7b07a4395c25bee8f4735af653c8697af78fc16973092bd9b582de6d9",
+      "sourceFrameAspect": 3.069,
+      "ledReady": false
+    }
+  }
+}
