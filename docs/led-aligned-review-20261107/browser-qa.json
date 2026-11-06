@@ -1,0 +1,448 @@
+{
+  "source": "SIMULATED QA fixture, NEVER operational observations",
+  "device": "Chrome headless 432x40 @3x",
+  "scenarios": [
+    {
+      "key": "hot",
+      "nodes": {
+        ".clock": {
+          "x": 3.67,
+          "y": 3,
+          "w": 60,
+          "h": 34.33
+        },
+        ".icon": {
+          "x": 82.33,
+          "y": -10,
+          "w": 61.67,
+          "h": 61.67
+        },
+        ".temp": {
+          "x": 158,
+          "y": 3.67,
+          "w": 39.29,
+          "h": 30
+        },
+        ".temp small": {
+          "x": 190.48,
+          "y": 21,
+          "w": 6.8,
+          "h": 6.67
+        },
+        ".feel-value": {
+          "x": 159.33,
+          "y": 1.33,
+          "w": 27.08,
+          "h": 6.33
+        },
+        "#advice": {
+          "x": 159.33,
+          "y": 32,
+          "w": 34.34,
+          "h": 6.33
+        },
+        ".hybrid-panel": {
+          "x": 202,
+          "y": 1,
+          "w": 229,
+          "h": 38
+        }
+      },
+      "warningVisible": true,
+      "fullLabel": "ระวังร้อนจัด",
+      "displayedWarning": "⚠ ระวังร้อนจัด",
+      "feelVisible": true,
+      "warningOutside": false,
+      "unitOverlapsPanel": false,
+      "badgeOverlap": false
+    },
+    {
+      "key": "warm",
+      "nodes": {
+        ".clock": {
+          "x": 3.67,
+          "y": 3,
+          "w": 60,
+          "h": 34.33
+        },
+        ".icon": {
+          "x": 82.33,
+          "y": -10,
+          "w": 61.67,
+          "h": 61.67
+        },
+        ".temp": {
+          "x": 158,
+          "y": 3.67,
+          "w": 35.58,
+          "h": 30
+        },
+        ".temp small": {
+          "x": 186.78,
+          "y": 21,
+          "w": 6.8,
+          "h": 6.67
+        },
+        ".feel-value": {
+          "x": 159.33,
+          "y": 1.33,
+          "w": 27.08,
+          "h": 6.33
+        },
+        "#advice": {
+          "x": 159.33,
+          "y": 32,
+          "w": 28.55,
+          "h": 6.33
+        },
+        ".hybrid-panel": {
+          "x": 202,
+          "y": 1,
+          "w": 229,
+          "h": 38
+        }
+      },
+      "warningVisible": true,
+      "fullLabel": "ระวังร้อน",
+      "displayedWarning": "⚠ ระวังร้อน",
+      "feelVisible": true,
+      "warningOutside": false,
+      "unitOverlapsPanel": false,
+      "badgeOverlap": false
+    },
+    {
+      "key": "long-warning",
+      "nodes": {
+        ".clock": {
+          "x": 3.67,
+          "y": 3,
+          "w": 60,
+          "h": 34.33
+        },
+        ".icon": {
+          "x": 82.33,
+          "y": -10,
+          "w": 61.67,
+          "h": 61.67
+        },
+        ".temp": {
+          "x": 158,
+          "y": 3.67,
+          "w": 39.29,
+          "h": 30
+        },
+        ".temp small": {
+          "x": 190.48,
+          "y": 21,
+          "w": 6.8,
+          "h": 6.67
+        },
+        ".feel-value": {
+          "x": 159.33,
+          "y": 1.33,
+          "w": 27.08,
+          "h": 6.33
+        },
+        "#advice": {
+          "x": 159.33,
+          "y": 32,
+          "w": 39.98,
+          "h": 6.33
+        },
+        ".hybrid-panel": {
+          "x": 202,
+          "y": 1,
+          "w": 229,
+          "h": 38
+        }
+      },
+      "warningVisible": true,
+      "fullLabel": "ระวังอาการเจ็บป่วยจากความร้อน/ลมแดด",
+      "displayedWarning": "⚠ ระวังความร้อน",
+      "feelVisible": true,
+      "warningOutside": false,
+      "unitOverlapsPanel": false,
+      "badgeOverlap": false
+    },
+    {
+      "key": "triple-digit",
+      "nodes": {
+        ".clock": {
+          "x": 3.67,
+          "y": 3,
+          "w": 60,
+          "h": 34.33
+        },
+        ".icon": {
+          "x": 82.33,
+          "y": -10,
+          "w": 61.67,
+          "h": 61.67
+        },
+        ".temp": {
+          "x": 158,
+          "y": 3.67,
+          "w": 42.85,
+          "h": 23.33
+        },
+        ".temp small": {
+          "x": 194.05,
+          "y": 15,
+          "w": 6.8,
+          "h": 6.67
+        },
+        ".feel-value": {
+          "x": 159.33,
+          "y": 1.33,
+          "w": 30.41,
+          "h": 6.33
+        },
+        "#advice": {
+          "x": 159.33,
+          "y": 32,
+          "w": 34.34,
+          "h": 6.33
+        },
+        ".hybrid-panel": {
+          "x": 202,
+          "y": 1,
+          "w": 229,
+          "h": 38
+        }
+      },
+      "warningVisible": true,
+      "fullLabel": "ระวังร้อนจัด",
+      "displayedWarning": "⚠ ระวังร้อนจัด",
+      "feelVisible": true,
+      "warningOutside": false,
+      "unitOverlapsPanel": false,
+      "badgeOverlap": false
+    },
+    {
+      "key": "negative",
+      "nodes": {
+        ".clock": {
+          "x": 3.67,
+          "y": 3,
+          "w": 60,
+          "h": 34.33
+        },
+        ".icon": {
+          "x": 82.33,
+          "y": -10,
+          "w": 61.67,
+          "h": 61.67
+        },
+        ".temp": {
+          "x": 158,
+          "y": 3.67,
+          "w": 34.54,
+          "h": 30
+        },
+        ".temp small": {
+          "x": 185.74,
+          "y": 21,
+          "w": 6.8,
+          "h": 6.67
+        },
+        ".feel-value": {
+          "x": 159.33,
+          "y": 1.33,
+          "w": 28.97,
+          "h": 6.33
+        },
+        "#advice": {
+          "x": 0,
+          "y": 0,
+          "w": 0,
+          "h": 0
+        },
+        ".hybrid-panel": {
+          "x": 202,
+          "y": 1,
+          "w": 229,
+          "h": 38
+        }
+      },
+      "warningVisible": false,
+      "fullLabel": "",
+      "displayedWarning": "",
+      "feelVisible": true,
+      "warningOutside": false,
+      "unitOverlapsPanel": false,
+      "badgeOverlap": false
+    },
+    {
+      "key": "historical",
+      "nodes": {
+        ".clock": {
+          "x": 3.67,
+          "y": 3,
+          "w": 60,
+          "h": 34.33
+        },
+        ".icon": {
+          "x": 82.33,
+          "y": -10,
+          "w": 61.67,
+          "h": 61.67
+        },
+        ".temp": {
+          "x": 158,
+          "y": 3.67,
+          "w": 39.29,
+          "h": 30
+        },
+        ".temp small": {
+          "x": 190.48,
+          "y": 21,
+          "w": 6.8,
+          "h": 6.67
+        },
+        ".feel-value": {
+          "x": 0,
+          "y": 0,
+          "w": 0,
+          "h": 0
+        },
+        "#advice": {
+          "x": 0,
+          "y": 0,
+          "w": 0,
+          "h": 0
+        },
+        ".hybrid-panel": {
+          "x": 202,
+          "y": 1,
+          "w": 229,
+          "h": 38
+        }
+      },
+      "warningVisible": false,
+      "fullLabel": "",
+      "displayedWarning": "",
+      "feelVisible": false,
+      "warningOutside": false,
+      "unitOverlapsPanel": false,
+      "badgeOverlap": false
+    },
+    {
+      "key": "unavailable",
+      "nodes": {
+        ".clock": {
+          "x": 3.67,
+          "y": 3,
+          "w": 60,
+          "h": 34.33
+        },
+        ".icon": {
+          "x": 82.33,
+          "y": -10,
+          "w": 61.67,
+          "h": 61.67
+        },
+        ".temp": {
+          "x": 158,
+          "y": 3.67,
+          "w": 29.23,
+          "h": 30
+        },
+        ".temp small": {
+          "x": 180.43,
+          "y": 21,
+          "w": 6.8,
+          "h": 6.67
+        },
+        ".feel-value": {
+          "x": 159.33,
+          "y": 1.33,
+          "w": 23.86,
+          "h": 6.33
+        },
+        "#advice": {
+          "x": 0,
+          "y": 0,
+          "w": 0,
+          "h": 0
+        },
+        ".hybrid-panel": {
+          "x": 202,
+          "y": 1,
+          "w": 229,
+          "h": 38
+        }
+      },
+      "warningVisible": false,
+      "fullLabel": "",
+      "displayedWarning": "",
+      "feelVisible": true,
+      "warningOutside": false,
+      "unitOverlapsPanel": false,
+      "badgeOverlap": false
+    }
+  ],
+  "reducedMotion": {
+    "animated": "none",
+    "poster": "block",
+    "clock": "03:58",
+    "warning": "⚠ ระวังร้อนจัด"
+  },
+  "pm": {
+    "clock": {
+      "x": 4.333333492279053,
+      "y": 3.6666667461395264,
+      "w": 60.000003814697266,
+      "h": 34.33333206176758
+    },
+    "number": {
+      "x": 164,
+      "y": 4.5,
+      "w": 40.76042175292969,
+      "h": 32.333335876464844
+    },
+    "font": "100px",
+    "weight": "900"
+  },
+  "water": {
+    "clock": {
+      "x": 3.6666667461395264,
+      "y": 3,
+      "w": 60,
+      "h": 34.333335876464844
+    },
+    "levels": [
+      {
+        "rect": {
+          "x": 133.6666717529297,
+          "y": 10.125,
+          "w": 65.5625,
+          "h": 21.75520896911621
+        },
+        "font": "68px"
+      },
+      {
+        "rect": {
+          "x": 316,
+          "y": 10.125,
+          "w": 70.75,
+          "h": 21.75520896911621
+        },
+        "font": "68px"
+      }
+    ],
+    "rows": [
+      {
+        "x": 133.6666717529297,
+        "y": 10.125,
+        "w": 60.66667175292969,
+        "h": 21.75520896911621
+      },
+      {
+        "x": 316,
+        "y": 10.125,
+        "w": 60.66668701171875,
+        "h": 21.75520896911621
+      }
+    ]
+  }
+}
