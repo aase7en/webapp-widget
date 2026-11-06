@@ -12,7 +12,7 @@ const index=file('v2/index.html'),entry=file('index.html');
 test('Production Weather uses existing validated snapshot + unchanged live model pipeline',()=>{
  assert.match(html,/src="weather-snapshot\.js"/);
  assert.match(html,/weather-hybrid-live\.js\?v=20261105-hybrid-live-1/);
- assert.match(html,/weather-hybrid-live\.css\?v=20261105-hybrid-live-1/);
+ assert.match(html,/weather-hybrid-live\.css\?v=20261106-temp-border-1/);
  assert.match(html,/weather-luxury\.js\?v=20261105-hybrid-live-1/);
  assert.match(bridge,/UthWeatherSnapshot\.parse/);
  assert.match(bridge,/UthWeatherHybrid\?\.render/);
@@ -23,10 +23,10 @@ test('Production Weather uses existing validated snapshot + unchanged live model
 });
 
 test('Only Weather embed changes; main rotation and PM/Water iframe remain routed',()=>{
- assert.match(index,/weather-luxury\.html\?v=20261105-hybrid-live-1/);
+ assert.match(index,/weather-luxury\.html\?v=20261106-temp-border-1/);
  assert.match(index,/pm25-live\.html\?v=20261101-live-fix-3/);
  assert.match(index,/water-luxury-live\.html\?v=20261101-water-fix-1/);
- assert.match(entry,/v2\/index\.html\?display=led&amp;v=20261105-hybrid-live-1/);
+ assert.match(entry,/v2\/index\.html\?display=led&amp;v=20261106-temp-border-1/);
  assert.match(index,/setInterval\(\(\)=>\{sections\[current\]/);
 });
 
@@ -68,4 +68,11 @@ test('Crisp icon metrics preserve color without glowing text or bitmap upscaling
  assert.match(css,/#weather-hybrid-panel|\.hybrid-panel/);
  assert.match(css,/html\.weather-hybrid-ready \.hybrid-panel\{display:grid\}/);
  assert.match(bridge,/console\.error\("weather-hybrid fallback",error\)/);
+});
+
+test('°C stays compact and the complete Luxury border overlays the nested hybrid panel',()=>{
+ assert.match(html,/<section class="hybrid-panel"[^>]*><\/section><\/section>/,'hybrid panel is inside original Luxury board, not a sibling covering its border');
+ assert.match(css,/\.board\.layout-hybrid \.temp small\{[^}]*font-size:17px;[^}]*margin-left:-6px;/,'°C moves nearer to numeric temperature');
+ assert.match(css,/\.board \.hybrid-panel\{[^}]*left:606px;[^}]*top:3px;[^}]*transform:scale\(3\);/,'native panel geometry unchanged after nesting');
+ assert.match(html,/\.board:after\{[^}]*z-index:9\}/,'original border remains top paint layer');
 });

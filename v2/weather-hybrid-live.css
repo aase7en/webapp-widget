@@ -53,3 +53,22 @@ html.weather-hybrid-ready .hybrid-panel{display:grid}
 .board.layout-hybrid #scene:not([src]),
 .board.layout-hybrid #icon:not([src]),
 .board.layout-hybrid #poster:not([src]){display:none!important}
+
+
+/* Weather LED geometry fix 2026-11-06:
+   Keep °C physically close to the numeric temperature without reducing the
+   original clock. Parent board still paints its complete Luxury ::after border
+   over the nested hybrid panel (z-index:9 vs panel:7).
+   Panel is 229×38 *native* pixels, inverse-scaled inside the 1296×120 board. */
+.board.layout-hybrid .temp small{
+  font-size:17px;
+  margin-left:-6px;
+  vertical-align:11px;
+  letter-spacing:0;
+}
+.board .hybrid-panel{
+  left:606px;
+  top:3px;
+  transform:scale(3);
+  transform-origin:top left;
+}
