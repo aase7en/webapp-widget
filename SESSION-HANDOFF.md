@@ -1,5 +1,48 @@
 # SESSION-HANDOFF — webapp-widget
 <!-- A handoff is a portable checkpoint, NOT a substitute for actual repo/runtime verification. -->
+## LATEST CHECKPOINT — 2026-11-04 — Weather LED readability Web Demo (IN PROGRESS)
+
+**Scope:** Repository aase7en/webapp-widget (NOT env-wastewater-webapp). This newer checkpoint supersedes historical 2026-10-22 status statements for this Weather Demo lane only. Old material below remains historical and requires re-verification.
+
+### User goal / unfinished request
+- Outdoor hospital LED Weather panel is 432×40 pixels. User cannot read rain chance, humidity, high/low, and 7-day forecast at actual viewing distance.
+- User asked for a WEB DEMO comparing A: all 7 days displayed together; B: four days then three days alternating every ~8–10 seconds, with enlarged bold numeric text.
+- On 2026-11-04 user interrupted work to request a durable checkpoint and prompt to start a new ChatGPT session. A working new A/B Web Demo and public demo URL DO NOT EXIST yet. Do not claim that they do.
+- Do not change approved Water Level, PM2.5, canonical Google Sheet, Apps Script or Production Weather display while building an isolated design demo.
+
+### Verified source / runtime / repository state
+- Checked GitHub main and remote origin/main SHA: 81d584fbe457dee7f356802ed3d7bbebe758af78 (merged PR #90; it addressed the last-known Weather data issue). Recheck this on resume.
+- Live site: https://aase7en.github.io/webapp-widget/ ; Weather implementation: v2/weather-luxury.html, v2/weather-luxury.js and v2/weather-snapshot.js.
+- Mac root checkout: /Volumes/MAC_WORK/DevWorkspace/Github/webapp-widget on branch fix/weather-unit-persistence-20261101, untracked folders .kilo/, .tmp/, kilo/. DO NOT RESET/STASH/OVERWRITE. Separate agent-owned worktrees exist.
+- Shared repo AGENTS.md, .agents/skills/handoff/SKILL.md, root SESSION-HANDOFF.md read. This repo uses one canonical tracked root SESSION-HANDOFF.md; edit it only through an isolated, safe, owned worktree and reviewable PR.
+- At 2026-11-04 11:10 UTC, Chrome/Puppeteer read the actual deployed Weather DOM at 432×40; no Browser errors. Rendering draws at 1296×120 and scales by one-third. Effective native font sizes: clock 21.33 px; main temp 30.67 px; four core weather numbers 7.67 px; forecast daily high 4.33 px; daily rain chance 3.33 px; forecast day names 3.67 px; forecast icon ~8.67 px high. This objectively explains unreadable text.
+- Read-only Browser CSS injection experiment enlarged four core weather numbers to ~11.67 px native; forecast highs ~9.67 px, daily rain percentages ~7.33 px, day names ~6.67 px, reducing image area and hiding tiny graph. It displayed ONLY the first 4 forecast days. This was not saved to repo, was not published, and was not validated on physical LED. No timed 4+3 rotating demo has been implemented.
+- Source sample from existing public weather-data GitHub transport at time of prior check: Open-Meteo MODEL current.time 2026-11-04T16:45 Asia/Bangkok, fetchedAt 2026-11-04T09:55:53.652Z, temperature 28.2°C, humidity 85%, daily data available. This is a time-bound sample, NOT current data when the next agent resumes. The canonical Sheet and bound Script are authoritative for operational values; provider model is not a hospital sensor.
+
+### Durable Mac artifacts OUTSIDE repo
+Folder: /Users/aase7en/Desktop/PM25-WebappWidget-Handoff-2026-10-29/LED-READABILITY-DEMO-20261104/
+- UTH-Weather-LIVE-432x40-20261104.png = actual production Browser screenshot, not a physical LED photograph.
+- UTH-Weather-Concept-4day-432x40-20261104.png = temporary CSS-injected 4-day layout experiment, not approved/deployed.
+- UTH-Weather-LIVE-geometry-20261104.json = source DOM box measurements.
+- CHECKPOINT-WEATHER-LED-READABILITY-20261104.md = this checkpoint.
+- CODEX-OR-CHATGPT-NEW-SESSION-START-20261104.txt = paste-ready new-session prompt.
+All files should be inspected/verified again by new agent.
+
+### Completion / blockers
+DONE: Production DOM readability audit; baseline screenshot; a static 4-day CSS-injected concept screenshot; recommendation to compare A vs B.
+NOT DONE: interactive A/B Web Demo, 4+3 timer, 7-day enlarged option A, mobile zoom/inspector, independent functional visual QA, standalone/shareable demo URL, owner visual approval, repo design PR, merge, deploy.
+No demo-related changes to repo or production have occurred.
+
+### One Next Safe Action
+Verify actual AGENTS.md/main/worktrees/ownership and the Mac artifacts above. Build a SELF-CONTAINED REVIEWABLE WEATHER WEB DEMO in an isolated owner-controlled directory/worktree: selectable A (seven days still) vs B (four then three days auto-swap every 8–10 seconds), native 432×40 LED view plus enlarged inspector for iPhone and desktop. Use validated current Weather values or clearly label fixtures SIMULATED; preserve observedAt and missing != zero; test clipping, variable digits, reduced motion, no overlap, and no changes to Water Level/PM. Provide an accessible preview link only after a successful isolated demo publish; user approval is required before production mutation.
+
+### References
+- https://github.com/aase7en/webapp-widget/pull/90 is already MERGED; do not rerun PR #90 work.
+- Repo AGENTS.md and .agents/skills/handoff/SKILL.md, canonical root SESSION-HANDOFF.md, current actual Git/PR/CI.
+- Prompt placement policy: aase7en/A-Wiki docs/protocols/prompt-placement-protocol.md.
+
+---
+
 **Checkpoint:** 2026-10-22, Asia/Bangkok. **Focus:** one existing Google Sheet + its container-bound Apps Script; continuity when swapping sessions.
 **Repository (not ENV wastewater app):** https://github.com/aase7en/webapp-widget
 **Worktree for this checkpoint:** /Volumes/MAC_WORK/DevWorkspace/Github/webapp-widget-handoff-20261022
