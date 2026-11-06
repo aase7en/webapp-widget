@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>UTH[AI] | Luxury LED Motion Study — Isolated Preview</title>
+<meta name="description" content="ทดลอง Visual Motion ของ LED โรงพยาบาลอุทัย ขนาด 432×40 px — แยกจาก Production แสดงข้อมูลจริงเฉพาะใน Live View และ Art Study ไม่ใช่ข้อมูลตรวจวัด">
+<style>
+:root{color-scheme:dark;font-family:Inter,system-ui,"Noto Sans Thai",Tahoma,sans-serif;background:#030b13;color:#eaf7ff}
+*{box-sizing:border-box}body{margin:0;min-height:100vh;background:radial-gradient(ellipse 80% 42% at 50% -3%,#123a59 0,transparent 82%),linear-gradient(#071421,#02080e)}
+body::before{position:fixed;content:"";inset:0;pointer-events:none;opacity:.25;background-image:linear-gradient(#5c9fd00b 1px,transparent 1px),linear-gradient(90deg,#5c9fd00b 1px,transparent 1px);background-size:42px 42px}
+main{position:relative;max-width:1100px;margin:0 auto;padding:28px 22px 64px}
+.brand{display:flex;align-items:center;gap:11px;color:#8edcff;font-size:12px;letter-spacing:2px;font-weight:800}
+.logo{width:34px;height:34px;display:grid;place-items:center;background:linear-gradient(140deg,#3bd4ff28,#043149);border:1px solid #70d6ff;border-radius:11px;box-shadow:0 0 20px #2ae3ff25}
+header{display:flex;align-items:flex-start;justify-content:space-between;gap:20px;padding-bottom:23px;border-bottom:1px solid #20445b}
+h1{font-weight:770;font-size:clamp(25px,4.1vw,43px);letter-spacing:-1.5px;margin:14px 0 6px;line-height:1.16}
+h1 em{font-style:normal;background:linear-gradient(90deg,#f4fbff,#75dcff);background-clip:text;-webkit-text-fill-color:transparent}
+.sub{color:#97b8ca;font-size:13px;line-height:1.8;margin:0}
+.tag{display:inline-flex;align-items:center;gap:7px;padding:6px 11px;border:1px solid #2c6b82;border-radius:40px;font-size:11px;font-weight:800;color:#80dfff;letter-spacing:.7px;background:#0531475c;white-space:nowrap}
+.tag .dot{width:7px;height:7px;border-radius:50%;background:#44e6de;box-shadow:0 0 8px #44e6de}
+.panel{margin-top:22px;border:1px solid #315a75;border-radius:22px;padding:20px;background:linear-gradient(155deg,#11283ad6,#071421ee 53%,#020912);box-shadow:0 20px 50px #0009,inset 0 1px 0 #c0e6ff16}
+.panel-head{display:flex;flex-wrap:wrap;gap:9px 20px;align-items:center;justify-content:space-between;margin-bottom:12px}
+h2{font-size:15px;letter-spacing:.1px;margin:0;font-weight:760}.eyebrow{color:#7da8bf;font-size:10px;letter-spacing:2px;font-weight:850;text-transform:uppercase;margin-bottom:5px}
+.controls{display:flex;flex-wrap:wrap;gap:7px;align-items:center}
+button{border:1px solid #375e76;background:linear-gradient(#193c52,#0b2537);color:#d5f2ff;font:700 12px/1.2 inherit;font-family:inherit;border-radius:9px;padding:9px 13px;cursor:pointer;min-height:36px}
+button:hover{border-color:#61c5f6;background:#16405a}
+button:focus-visible{outline:2px solid white;outline-offset:3px}
+button.active,button[aria-pressed="true"]{border-color:#6ce3ff;color:#031f2d;background:linear-gradient(#a0f5ff,#51c5e5);box-shadow:0 0 14px #25aaff35}
+.hint{font-size:11px;color:#91b2c9;line-height:1.65}
+#live-board{display:block;border:0;width:100%;height:388px;background:#020912;border-radius:13px}
+.board-container{border:1px solid #1c4863;border-radius:15px;overflow:hidden;background:#020a12}
+.status{margin-top:9px;color:#80b4c7;font-size:11px;line-height:1.6}
+.status strong{color:#bce8f5}
+.motion-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin-top:12px}
+.scene{background:radial-gradient(ellipse at 45% 0,#1f567360,transparent 70%),linear-gradient(#061b2c,#030b13);border:1px solid #2b4d65;border-radius:16px;overflow:hidden;padding:15px 12px 13px}
+.scene-title{display:flex;justify-content:space-between;align-items:center;margin-bottom:11px;font-size:12px;font-weight:700;color:#d6efff}
+.scene-title span{font:700 9px system-ui;color:#83acc4;letter-spacing:1px}
+.specimen{position:relative;height:100px;border:1px solid #51c2ef8a;border-radius:12px;overflow:hidden;background:radial-gradient(ellipse at 35% 38%,#1a5074 0,transparent 50%),linear-gradient(#0b2942,#020914 62%,#0b2840);box-shadow:inset 0 1px 0 #dcf6ff60,inset 0 -1px 0 #205a82,0 0 15px #0a91cf20}
+.specimen::after{content:"";position:absolute;inset:2px;border:1px solid #b4f2ff1d;border-radius:9px;pointer-events:none}
+.sprite{position:absolute;inset:0;background-repeat:no-repeat;background-position:center;background-size:contain}
+.sprite-mask{z-index:6}.sprite-eyes{z-index:4}.sprite-mouth{z-index:5}
+.planet{position:absolute;left:25px;top:9px;width:79px;height:79px;filter:drop-shadow(0 0 8px #ffa82488);animation:float 5s ease-in-out infinite}
+.planet .sprite{width:79px;height:79px}
+.planet .shine{position:absolute;z-index:7;inset:13px 9px 25px;border-radius:50%;background:linear-gradient(120deg,transparent 35%,#fff9c646 44%,transparent 55%);mix-blend-mode:screen;animation:sweep 4s ease-in-out infinite}
+.planet .aura{position:absolute;z-index:-1;inset:-10px;background:radial-gradient(circle,#ffc95a45,transparent 70%);animation:halo 4s ease-in-out infinite}
+.specimen-label{position:absolute;right:18px;top:24px;max-width:53%;font-size:12px;color:#badbf5;line-height:1.55;z-index:9;text-align:right}
+.specimen-label b{font-size:18px;color:#fff;letter-spacing:-.4px}
+.moon{position:absolute;top:13px;left:22px;width:62px;height:62px;border-radius:50%;filter:drop-shadow(0 0 9px #ffd47687);background:radial-gradient(circle at 30% 20%,#fffbd6,#ffe27e 30%,#f4a423 63%,#98500c 97%);box-shadow:inset -8px -7px 8px #72360060,inset 2px 2px 3px #fffcd4}
+.moon:after{content:"";position:absolute;inset:-3px;transform:translate(20px,-14px);border-radius:50%;background:radial-gradient(ellipse at 50% 50%,#092037 25%,#041122 78%);box-shadow:-3px 2px 2px #fff5a50a;animation:moonGlow 5s infinite alternate}
+.cloud{position:absolute;width:74px;height:65px;top:24px;left:67px;animation:cloudFloat 5.6s ease-in-out infinite;filter:drop-shadow(0 3px 4px #061325)}
+.cloud img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain}
+.cloud img.front{transform:translate(5px,0)}
+.cloud:before{content:"";position:absolute;inset:6px;border-radius:50%;background:radial-gradient(circle,#e5f9ff28,transparent 70%);filter:blur(5px)}
+.raincloud{left:25px;top:9px;width:115px;height:80px}
+.rain{position:absolute;top:51px;left:55px;width:77px;height:38px;z-index:4;opacity:.9;background:repeating-linear-gradient(115deg,transparent 0 12px,#92eaffef 13px 14px,transparent 15px 27px);mask-image:repeating-linear-gradient(180deg,#000 0 10px,transparent 11px 18px);animation:rain 1.5s linear infinite}
+.bolt{position:absolute;top:43px;left:96px;width:33px;height:53px;z-index:5;background:linear-gradient(#fffabb,#ffc329);clip-path:polygon(38% 0,98% 0,53% 44%,80% 44%,10% 100%,30% 54%,0 54%);filter:drop-shadow(0 0 12px #ffd230);animation:flash 6.2s linear infinite}
+.mist{position:absolute;inset:50px 0 0;background:repeating-radial-gradient(ellipse at 35% 100%,#b8ecff29 0 2px,transparent 5px 24px);filter:blur(2px);animation:mist 8s ease-in-out infinite}
+.water-stage{position:absolute;left:17px;top:3px;width:96px;height:93px;animation:float 5s ease-in-out infinite}
+.water-stage .sprite{width:96px;height:93px}
+.water-stage .sparkle{position:absolute;z-index:8;top:39px;left:43px;width:42px;height:47px;background:repeating-linear-gradient(92deg,transparent 0 6px,#beffff9f 8px,transparent 10px 13px);mask-image:linear-gradient(transparent,#000 25%,transparent 97%);animation:waterfall 1.6s linear infinite;mix-blend-mode:screen;opacity:.6}
+.water-stage .foam{position:absolute;z-index:9;bottom:9px;left:23px;width:67px;height:15px;background:radial-gradient(ellipse,#cefcffcb,transparent 70%);filter:blur(4px);animation:halo 2.4s infinite}
+a{color:#91dfff;text-decoration-color:#488fb5}a:hover{color:white}
+footer{margin-top:20px;color:#728f9e;font-size:11px;line-height:1.8}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-2px)}}@keyframes cloudFloat{0%,100%{transform:translate(0,0)}50%{transform:translate(3px,-3px)}}@keyframes moonGlow{50%{filter:brightness(1.12)}}@keyframes sweep{0%,25%{transform:translateX(-60px);opacity:0}55%{opacity:.8}75%,100%{transform:translateX(55px);opacity:0}}@keyframes halo{50%{transform:scale(1.08);opacity:.55}}@keyframes rain{to{background-position:0 30px;mask-position:0 18px}}@keyframes flash{0%,38%,39%,40%,41%,100%{opacity:0}38.3%,38.7%,40.3%{opacity:1}}@keyframes waterfall{to{background-position:0 29px;transform:translateY(2px)}}@keyframes mist{50%{transform:translateX(6px);opacity:.5}}
+.motion-off *, .motion-off *::before,.motion-off *::after{animation:none!important;transition:none!important}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
+@media(max-width:720px){main{padding:18px 11px 40px}header{flex-direction:column;gap:10px}.panel{padding:12px;border-radius:14px}#live-board{height:240px}.motion-grid{grid-template-columns:1fr}.tag{font-size:10px}.specimen{height:95px}h1{font-size:27px}}
+</style>
+</head><body>
+<main>
+<header><div><div class="brand"><span class="logo">U</span> UTH[AI] / VISUAL LAB</div><h1><em>Luxury LED</em> — Motion Preview</h1><p class="sub">ยึดภาพ Live เดิมเป็นฐาน ไม่ตัดภาพตัวอย่างมาขยับ • ทดสอบที่ขนาดจอจริง 432 × 40 px</p></div><div class="tag"><span class="dot"></span>ISOLATED VISUAL PREVIEW</div></header>
+<section class="panel" aria-labelledby="actual-title"><div class="panel-head"><div><div class="eyebrow">01 / REAL SYSTEM BASELINE</div><h2 id="actual-title">3 แถบจริงจาก Repository — Motion Enhancement</h2></div><div class="controls"><button id="enhance" class="active" aria-pressed="true">Enhanced</button><button id="baseline" aria-pressed="false">Original Live Style</button><button id="motion-toggle" aria-pressed="false">Pause Motion</button></div></div>
+<div class="board-container"><iframe id="live-board" title="PM2.5 / Weather / Water — พื้นฐานจริงจาก webapp-widget" src="../v2/index.html" loading="eager"></iframe></div>
+<div class="status" id="status">กำลังเปิด Live source — ตัวเลขใช้การดึงข้อมูลจริงตามโค้ดเดิม ไม่เติมค่าจำลอง</div></section>
+<section class="panel" aria-labelledby="art-title"><div class="panel-head"><div><div class="eyebrow">02 / ART RIG EXPLORATION</div><h2 id="art-title">Motion Study — จาก Assets จริงที่มีอยู่</h2></div><div class="tag">ART ONLY · NO SENSOR DATA</div></div><p class="hint">ตัวอย่างด้านล่างเป็น Art Direction เท่านั้น ไม่ใช่ค่าฝุ่น พยากรณ์ หรือระดับน้ำจริง ใช้ไฟล์ Assets ที่มีอยู่ใน Repo และ CSS Motion โดยไม่แตะระบบ Live</p>
+<div class="motion-grid" id="motion-grid">
+ <div class="scene"><div class="scene-title">Mascot · Specular & Blink <span>PM2.5</span></div><div class="specimen"><div class="planet"><div class="aura"></div><div class="sprite" style="background-image:url('../assets/icons3d/rig/pm-base-protective.png')"></div><div class="sprite sprite-eyes" style="background-image:url('../assets/icons3d/rig/pm-eyes.png')"></div><div class="sprite sprite-mouth" style="background-image:url('../assets/icons3d/rig/pm-mouth.png')"></div><div class="sprite sprite-mask" style="background-image:url('../assets/icons3d/rig/pm-mask.png')"></div><div class="shine"></div></div><div class="specimen-label"><b>Reflective Mascot</b><div>Material shine · Gentle floating</div></div></div></div>
+ <div class="scene"><div class="scene-title">Golden Moon · Layered Cloud <span>WEATHER</span></div><div class="specimen"><div class="moon"></div><div class="cloud"><img src="../assets/icons3d/rig/wx-cloud-back.png" alt=""><img class="front" src="../assets/icons3d/rig/wx-cloud-front.png" alt=""></div><div class="specimen-label"><b>Cinematic Night</b><div>Gold rim · Soft cloud depth</div></div></div></div>
+ <div class="scene"><div class="scene-title">Rain / Thunder / Mist <span>WEATHER FX</span></div><div class="specimen"><div class="cloud raincloud"><img src="../assets/icons3d/rig/wx-cloud-back.png" alt=""><img class="front" src="../assets/icons3d/rig/wx-cloud-front.png" alt=""></div><div class="rain"></div><div class="bolt"></div><div class="mist"></div><div class="specimen-label"><b>Atmospheric FX</b><div>Continuous rain · Soft lightning</div></div></div></div>
+ <div class="scene"><div class="scene-title">Spillway · Animated Water <span>WATER FX</span></div><div class="specimen"><div class="water-stage"><div class="sprite" style="background-image:url('../assets/icons3d/rig/water/liquid-normal.png')"></div><div class="sprite" style="background-image:url('../assets/icons3d/rig/water/wall.png')"></div><div class="sparkle"></div><div class="foam"></div></div><div class="specimen-label"><b>Moving Water</b><div>Specular stream · White foam</div></div></div></div>
+</div></section>
+<footer><b>การแยกข้อมูล:</b> ด้านบนดึงระบบเดิมแบบ Read-only และแสดง missing/stale ตามความจริง • ด้านล่าง ART ONLY • สิ่งที่อยู่ในแถบ Demo ไม่ใช่คำเตือนทางการ • <a href="https://aase7en.github.io/webapp-widget/" target="_blank" rel="noopener">Production Live</a> · <a href="https://aase7en.github.io/webapp-widget/demo/spillway-3d/" target="_blank" rel="noopener">Interactive Spillway 3D</a></footer>
+</main>
+<script>
+(function(){
+'use strict';
+var frame=document.getElementById('live-board');
+var btnEnhance=document.getElementById('enhance'),btnBase=document.getElementById('baseline');
+var btnMotion=document.getElementById('motion-toggle'),grid=document.getElementById('motion-grid');
+var enhanced=true,paused=window.matchMedia('(prefers-reduced-motion: reduce)').matches,initialized=false;
+var premium=String.raw`
+html,body{background:#020914!important}
+main{max-width:1000px!important;margin:0 auto!important;padding:8px 9px!important}
+main>h1,main>p,main>.controls,main>.notice,main>article>h2,main>article>small,article>.controls,article>.notice{display:none!important}
+main>article{max-width:950px!important;margin:0 auto 13px!important;border:1px solid #2d6782!important;border-radius:14px!important;padding:9px 0!important;background:radial-gradient(ellipse at 50% 0,#10466860,transparent 75%),linear-gradient(#041a2c,#020c18)!important;box-shadow:inset 0 1px 0 #c3f0ff25,0 4px 16px #0007!important}
+main>article .stage-wrap{margin:0 auto!important;border:none!important;min-height:80px!important;height:80px!important;background:transparent!important;overflow:visible!important}
+main>article .scale{width:864px!important;height:80px!important}
+main>article .scale>div,main>article .scale>iframe{transform:scale(2)!important;transform-origin:0 0!important}
+.stage{box-shadow:inset 0 1px 0 #d5faff8e,inset 0 -1px 1px #39a5ee,0 0 8px #1ab2f77a!important}
+#pm .mascot{filter:drop-shadow(0 0 2px #ffac697d) drop-shadow(0 1px 1px #020a14)!important}
+#pm .mascot .uth-mascot-specular{animation:uthDemoShine 5s ease-in-out infinite}
+#water .gate{filter:drop-shadow(0 0 2.5px #6adfff99)!important}
+#water .gate .water-tail{filter:drop-shadow(0 0 2px #e6ffffa0)}
+@keyframes uthDemoShine{0%,100%{filter:brightness(1)}50%{filter:brightness(1.38)}}
+html.uth-preview-paused *,html.uth-preview-paused *::before,html.uth-preview-paused *::after{animation:none!important;transition:none!important}
+@media(max-width:930px){
+ main{padding:7px 2px!important}
+ main>article{margin:0 auto 10px!important;padding:7px 0!important;border-radius:10px!important}
+ main>article .stage-wrap{min-height:40px!important;height:40px!important}
+ main>article .scale{width:432px!important;height:40px!important}
+ main>article .scale>div,main>article .scale>iframe{transform:scale(1)!important}
+}
+@media(max-width:470px){main>article{width:100%!important;margin-bottom:10px!important}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
+`;
+var weatherCSS=String.raw`
+html.uth-preview-premium .led{box-shadow:inset 0 1px 0 #e2fbff9c,inset 0 -1px 0 #43b8ef,0 0 7px #31b4fa65!important}
+html.uth-preview-premium .wx-icon,html.uth-preview-premium .weather-current-icon{filter:drop-shadow(0 0 2px #b4eaff85)!important}
+html.uth-preview-paused *,html.uth-preview-paused *::before,html.uth-preview-paused *::after{animation:none!important;transition:none!important}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
+`;
+function inject(doc,id,style){if(!doc||!doc.head)return;var s=doc.getElementById(id);if(!s){s=doc.createElement('style');s.id=id;doc.head.appendChild(s)}s.textContent=style}
+function fitStrips(d){var id='uth-responsive-fit',s=d.getElementById(id);if(!s){s=d.createElement('style');s.id=id;d.head.appendChild(s)}
+ var ratio=Math.min(1,Math.max(.52,(frame.clientWidth-27)/432));if(ratio>=.995){s.textContent='';return}
+ var w=(432*ratio).toFixed(2),h=(40*ratio).toFixed(2),z=ratio.toFixed(4),artH=(40*ratio+15).toFixed(2);
+ s.textContent='html.uth-preview-fit main>article{min-height:'+artH+'px!important;height:'+artH+'px!important;padding:7px 0!important}html.uth-preview-fit main>article .stage-wrap{width:'+w+'px!important;height:'+h+'px!important;min-height:'+h+'px!important;margin:0 auto!important;overflow:hidden!important}html.uth-preview-fit main>article .scale{width:432px!important;height:40px!important;transform:scale('+z+')!important;transform-origin:0 0!important}';
+ d.documentElement.classList.toggle('uth-preview-fit',ratio<.995)}
+function state(){btnEnhance.classList.toggle('active',enhanced);btnBase.classList.toggle('active',!enhanced);btnEnhance.setAttribute('aria-pressed',String(enhanced));btnBase.setAttribute('aria-pressed',String(!enhanced));btnMotion.setAttribute('aria-pressed',String(paused));btnMotion.textContent=paused?'Resume Motion':'Pause Motion';grid.classList.toggle('motion-off',paused);try{var d=frame.contentDocument; if(!d)return;inject(d,'uth-luxury-preview-stage',premium);fitStrips(d);d.documentElement.classList.toggle('uth-preview-paused',paused);d.documentElement.classList.toggle('uth-preview-baseline',!enhanced);d.getElementById('uth-luxury-preview-stage').disabled=!enhanced; var w=d.querySelector('.ledframe');if(w&&w.contentDocument){inject(w.contentDocument,'uth-luxury-weather-extra',weatherCSS);w.contentDocument.documentElement.classList.toggle('uth-preview-premium',enhanced);w.contentDocument.documentElement.classList.toggle('uth-preview-paused',paused)}}catch(e){document.getElementById('status').textContent='เกิดข้อจำกัด Same-origin ของ Browser: '+e.message}}
+function mount(){try{var d=frame.contentDocument;if(!d||!d.querySelector('.stage'))return; initialized=true; state();var w=d.querySelector('.ledframe');if(w)w.addEventListener('load',state);document.getElementById('status').innerHTML='เปิดแถบจริงจาก Repository สำเร็จ • ตัวเลข/สถานะตาม API เดิม • <strong>Enhanced เปลี่ยนเฉพาะ Visual ไม่แก้ข้อมูล</strong>'; }catch(e){document.getElementById('status').textContent='ไม่สามารถเข้าถึงเฟรมเพื่อเพิ่มเอฟเฟกต์ได้: '+e.message}}
+frame.addEventListener('load',mount);
+btnEnhance.addEventListener('click',function(){enhanced=true;state()});
+btnBase.addEventListener('click',function(){enhanced=false;state()});
+btnMotion.addEventListener('click',function(){paused=!paused;state()});
+if(paused){grid.classList.add('motion-off');btnMotion.textContent='Resume Motion';btnMotion.setAttribute('aria-pressed','true')}
+window.addEventListener('resize',function(){frame.style.height=innerWidth<=720?'240px':'388px';try{if(frame.contentDocument)fitStrips(frame.contentDocument)}catch(e){}});
+})();
+</script>
+</body></html>
