@@ -41,7 +41,7 @@ test("Rain and storm animations retain 128px/96-frame APNG compatibility",()=>{
 });
 test("Reduced-motion posters exist and match sprite canvas",()=>{
  for(const name of conditions){
-  const poster=inspectPng(asset(name+"-poster.png"));
+  const poster=inspectPng(asset(name+"-led-poster.png"));
   assert.deepEqual(poster.dimensions,[128,128],name+" poster");
   assert.equal(poster.animated,null,name+" static PNG (not APNG)");
   assert.ok(poster.bytes<100000,name+" poster size");

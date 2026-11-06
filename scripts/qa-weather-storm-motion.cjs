@@ -69,7 +69,7 @@ const makeFixture=(icon,extras={})=>{
     assert.ok(result.observedAt);assert.equal(result.freshness,"MODEL_LATEST");
     assert.equal(result.clock.x,baseline.clockX);
     assert.ok(result.icon.src.endsWith(".apng?v=20261106-storm-clarity-1"));
-    assert.ok(result.poster.src.endsWith(".png?v=20261106-storm-clarity-1"));
+    assert.ok(result.poster.src.endsWith("-led-poster.png?v=20261106-storm-clarity-1"));
     // Cloud art is inside the visual gap between fixed clock and hero temp.
     assert.ok(result.icon.x>=65&&result.icon.x<120,JSON.stringify(result.icon));
     assert.ok(result.temp.x>150,"temperature must remain on right of icon");

@@ -180,7 +180,7 @@ def main():
         frames[0].save(apng, save_all=True, append_images=frames[1:],
                        duration=[FRAME_MS] * FRAMES, loop=0, disposal=0, blend=0,
                        optimize=True)
-        poster = OUT / (kind + "-poster.png")
+        poster = OUT / (kind + "-led-poster.png")
         frames[12 if "thunderstorm" in kind else 0].save(poster)
         with Image.open(apng) as verify:
             assert verify.n_frames == FRAMES, (kind, verify.n_frames)

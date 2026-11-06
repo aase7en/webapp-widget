@@ -17,7 +17,9 @@ Keep the already accepted Luxury clock, 4+3 forecast, crisp metrics, °C and bor
 ## Exact implementation
 - Four 128×128 transparent 96-frame APNG sprites at 50 ms/frame (4.8 seconds/loop):
   `rain`, `thunderstorm`, `night-rain`, `night-thunderstorm`.
-- Matching static posters, including visible lightning in both storm posters
+- Distinct hero static posters (`*-led-poster.png`); the legacy forecast mini-icon
+  `*-poster.png` alpha-fit images are deliberately preserved unchanged.
+  Lightning is visible in both storm hero posters
   for `prefers-reduced-motion`.
 - Source generator: `scripts/build-weather-storm-motion.py` (deterministic Pillow).
 - Cloud silhouette now physically taller and wider, blue-cyan highlights, modest
