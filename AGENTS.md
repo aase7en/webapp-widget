@@ -15,3 +15,8 @@ This pointer does not create task authority or override repository-specific safe
 - Do not install the superseded standalone water prototype from closed PR #18; its separate Sheet was deleted. Existing GitHub `water-data` is a temporary data-transport fallback pending verified migration, not a separate canonical Google backend.
 - Keep `observed_at` separate from `fetched_at` and storage timestamps; distinguish measured/current, old/historical, simulated and unavailable. Never convert missing to zero or use historical station values as live flood safety claims.
 - For changing sessions, read tracked `SESSION-HANDOFF.md` and, when requested, use `.agents/skills/handoff/SKILL.md` to update that **single handoff file** after source-of-truth verification. Local dirty state belongs to its owner and must not be overwritten.
+
+## Weather redesign and shared hourly data — 2026-10-30
+
+- For continuation, read `SESSION-HANDOFF.md` and `docs/weather-design/WEATHER-DESIGN-HANDOFF.md`, including the saved concept and owner reference. Recheck Git, PR #67, Sheet, Apps Script and deployment status; a handoff is not live-state evidence.
+- The owner approved the Weather visual direction, not finished animation or a production deployment. Produce a true 432 × 40 demo, verify readable data and motion, and preserve other worktrees and the existing single-Sheet contract. Keep simulated values distinguishable from real data.
