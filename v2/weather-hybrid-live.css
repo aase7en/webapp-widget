@@ -72,3 +72,18 @@ html.weather-hybrid-ready .hybrid-panel{display:grid}
   transform:scale(3);
   transform-origin:top left;
 }
+
+
+/* Plump rain/storm assets 2026-11-06: keep clock, hero reading, LED frame,
+   reduced-motion poster and the four live metrics unchanged. Values refer
+   to original 1296x120 board coordinates (native LED divides by 3). */
+.board.layout-hybrid .icon[data-condition="rain"],
+.board.layout-hybrid .icon[data-condition="thunderstorm"]{
+  top:-30px;
+  transform:translateX(-96px);
+}
+.board.layout-hybrid .icon[data-condition="night-rain"],
+.board.layout-hybrid .icon[data-condition="night-thunderstorm"]{
+  top:-14px;
+  transform:translateX(-90px);
+}
