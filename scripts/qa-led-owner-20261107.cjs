@@ -39,7 +39,8 @@ const rect=e=>{const r=e.getBoundingClientRect();return {x:r.x,y:r.y,w:r.width,h
    assert.equal(state.status,item.status);
    assert(Math.abs(state.label.left-(374+2)/3)<.25,'PM label shifts precisely -2 LED px');
    assert(Math.abs(state.readout.left-(484+2)/3)<.25,'PM number+unit group shifts precisely -2 LED px');
-   assert(Math.abs(state.chart.left-(704+2)/3)<.25,'chart moves toward reading');
+   assert(Math.abs(state.chart.left-(674+2)/3)<.25,'default chart moves left 10 native LED px');
+   assert(state.chart.width>=110,'chart should grow from baseline 101 to at least 110 LED px');
    assert(state.unit.right<=state.chart.left+1,'number/unit must not intersect chart');
    assert(state.chart.right<=state.badge.left+.75,'chart must not intersect status badge');
    assert(state.badge.right<=432,'badge inside LED');
@@ -51,6 +52,23 @@ const rect=e=>{const r=e.getBoundingClientRect();return {x:r.x,y:r.y,w:r.width,h
    else assert(!state.icon.includes('pm-status-sun-outline.svg'),'only short labels get white line icon');
    await page.screenshot({path:path.join(OUT,'pm-owner-'+item.tier+'-432x40.png')});
    evidence.pm.push(state);
+  }
+  // Extreme valid hourly values: geometry reflows, while 24h average stays valid.
+  for(const value of [100,999.9,1000]){
+   const state=await page.evaluate(value=>{
+    window.dispatchEvent(new MessageEvent('message',{source:window,origin:location.origin,data:{
+     type:'uth-pm25-live',pm25:{status:'latest',value,avg24h:20,observedAt:new Date().toISOString(),unit:'µg/m³'},history:[]}}));
+    const r=e=>{const g=e.getBoundingClientRect();return {left:g.left,right:g.right,width:g.width}};
+    return {value,unit:r(document.querySelector('.unit')),chart:r(document.querySelector('.right')),
+      badge:r(document.querySelector('.inline-guidance .badge')),shown:document.querySelector('.number').textContent,
+      dynamicLeft:document.querySelector('#board').style.getPropertyValue('--pm-chart-left')};
+   },value);
+   assert(state.chart.left>=state.unit.right+3.9,'expanded graph must clear wide reading/unit');
+   assert(state.chart.right<=state.badge.left+.75,'wide reading reflow must not hit badge');
+   assert(state.chart.width>=94,'graph must remain readable for wide readings');
+   assert.equal(state.shown,String(value),'hourly value stays intact in fallback');
+   if(value===1000)await page.screenshot({path:path.join(OUT,'pm-graph-wide-1000-432x40.png')});
+   (evidence.wideNumbers||(evidence.wideNumbers=[])).push(state);
   }
   // The existing unavailable semantics are checked with the same live renderer.
   const unavailable=await page.evaluate(()=>{

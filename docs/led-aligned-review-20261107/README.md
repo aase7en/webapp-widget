@@ -49,3 +49,11 @@ Evidence: owner-feedback-browser-qa.json and water-ink-verification.json.
 The original green/blue emoji sun was replaced with a minimal white SVG outline.
 The last Water clock glyph was formerly clipped because it extended beyond the
 clock's overflow:hidden boundary; it now renders atop decorative layers.
+
+## Final PM chart widening (owner feedback 2026-11-07)
+SIMULATED QA ONLY: Updated pm-owner-*-432x40.png screenshots show production
+PM renderer with wider color scale/24h chart and unchanged badge right edge.
+The owner-feedback-browser-qa.json file includes coordinates and edge values
+100/999.9/1000. The pm-graph-wide-1000-432x40.png test image shows adaptive
+fallback clearing the four-digit hourly number and unit.
+All 3 screens owner-approved. This is a PM-only visual correction.

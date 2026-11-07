@@ -33,10 +33,21 @@ function drawHistory(points){
 }
 function setNumber(value){
  const txt=Number.isInteger(value)?String(value):value.toFixed(1);$('.number').textContent=txt;$('.number').style.setProperty('--value-size',txt.length>4?'82px':txt.length>3&&!txt.includes('.')?'90px':txt.length>3&&value>=100?'95px':'100px');const shell=$('.number-shell'),num=$('.number');shell.style.width='max-content';const natural=num.offsetWidth,room=218-$('.unit').offsetWidth;if(natural>0&&room>0){num.style.setProperty('--number-scale',Math.min(1,room/natural));shell.style.width=Math.min(natural,room)+'px'}
+ // The main PM reading can be 3-4 digits. Protect the unit from the chart:
+ // default 674 board px expands the chart 30px, while large readings move
+ // its left edge only as far right as needed (12 board px/4 LED px clearance).
+ // The chart's right edge and the approved warning badge never move.
+ let chartLeft=674,unit=$('.unit');
+ if(typeof board.getBoundingClientRect==='function'&&typeof unit.getBoundingClientRect==='function'){
+  const boardRect=board.getBoundingClientRect(),scale=board.offsetWidth>0?boardRect.width/board.offsetWidth:1;
+  const unitRight=(unit.getBoundingClientRect().right-boardRect.left)/scale;
+  if(Number.isFinite(unitRight))chartLeft=Math.max(674,Math.ceil(unitRight+12));
+ }
+ board.style.setProperty('--pm-chart-left',chartLeft+'px');
 }
 function render(pm,history){
  const valid=pm&&pm.status==='latest'&&typeof pm.value==='number'&&Number.isFinite(pm.value)&&pm.value>=0&&pm.value<=1000;
- if(!valid){board.classList.add('unavailable');board.dataset.tier='';for(const key of ['light','dark','glow'])board.style.setProperty('--number-'+key,GREY[key]);$('.number').textContent='—';$('.badge').textContent='รอข้อมูล';$('.advice').textContent='ไม่พบข้อมูลล่าสุด';$('.avg-note').hidden=true;$('.scale-arrow').hidden=true;video.pause();drawHistory(history);return}
+ if(!valid){board.style.setProperty('--pm-chart-left','674px');board.classList.add('unavailable');board.dataset.tier='';for(const key of ['light','dark','glow'])board.style.setProperty('--number-'+key,GREY[key]);$('.number').textContent='—';$('.badge').textContent='รอข้อมูล';$('.advice').textContent='ไม่พบข้อมูลล่าสุด';$('.avg-note').hidden=true;$('.scale-arrow').hidden=true;video.pause();drawHistory(history);return}
 
  const value=Math.round(pm.value*10)/10;setNumber(value); /* big number: hourly, unchanged */
  /* Tier from the 24h average. observedAt is the source-observation time; the

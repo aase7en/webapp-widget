@@ -73,6 +73,21 @@ Google Sheets/bound Apps Script, backend/fallback changes or fixture data in Pro
 - No Production release until independent exact-SHA review, required CI and PR
   dependency/ownership gates are satisfied.
 
+## Owner final PM chart adjustment — 2026-11-07 15:36 UTC
+- The owner approved all 3 screens and requested only a minor final PM
+  color-scale + 24h graph horizontal expansion.
+- On native 432x40 LED, existing chart left x=235.33px and width=101px.
+  Normal values move left edge 10 LED px left (704 to 674 board px),
+  enlarge graph to about 111px, preserving right edge and the status badge.
+- Wide-number 1000 micrograms/m3 had unit end x=235.47px touching old
+  chart at x=235.33px. Display-only CSS variable repositions chart at least
+  4 LED px after rendered unit when the reading is wider. Values, health
+  thresholds, time, provenance, freshness and historical trends unchanged.
+- The real production PM renderer receives only SIMULATED fixtures in QA:
+  5 tiers, unavailable, plus 100/999.9/1000 wide values.
+- No Weather or Water geometry changes authorized here. Merge under PR #95
+  dependency and independent review/CI, not directly into Production.
+
 ## Merge/release gate & rollback
 1. Freeze exact branch HEAD, inspect PR diff/asset footprint.
 2. Independent review at PR #95 HEAD plus integrated candidate exact SHA.

@@ -40,9 +40,9 @@ test('Warnings preserve original heat index thresholds, freshness gate, and full
 });
 test('New scoped cache keys refresh only changed page/css/js and preserve weather animation asset version',()=>{
  const index=read('v2/index.html'),entry=read('index.html'),water=read('v2/water-luxury-live.html');
- for(const [file,version] of [['pm25-live','20261107-owner-2'],['weather-luxury','20261107-aligned-1'],['water-luxury-live','20261107-owner-2']])assert.match(index,new RegExp(file+'\\.html\\?v='+version));
- assert.match(entry,/v2\/index\.html\?display=led&amp;v=20261107-owner-2/);
- assert.match(pm,/pm25-live\.js\?v=20261107-owner-2/);
+ for(const [file,version] of [['pm25-live','20261107-graph-3'],['weather-luxury','20261107-aligned-1'],['water-luxury-live','20261107-owner-2']])assert.match(index,new RegExp(file+'\\.html\\?v='+version));
+ assert.match(entry,/v2\/index\.html\?display=led&amp;v=20261107-graph-3/);
+ assert.match(pm,/pm25-live\.js\?v=20261107-graph-3/);
  assert.match(wx,/weather-hybrid-live\.css\?v=20261107-aligned-1/);
  assert.match(wx,/weather-luxury\.js\?v=20261107-aligned-1/);
  assert.match(water,/water-luxury-live\.css\?v=20261107-owner-2/);
@@ -57,7 +57,9 @@ test('Owner Water clock stays visibly on top and cannot clip final time digits',
 test('Owner PM badge layout, icon and simple guidance: original tier semantics unchanged',()=>{
  assert.match(pm,/\.pm-label\{left:374px\}/);
  assert.match(pm,/\.readout\{left:484px\}/);
- assert.match(pm,/\.right\{left:704px;right:285px\}/);
+ assert.match(pm,/\.right\{left:var\(--pm-chart-left,674px\);right:285px\}/);
+ assert.match(pmJS,/Math\.max\(674,Math\.ceil\(unitRight\+12\)\)/);
+ assert.match(pmJS,/board\.style\.setProperty\('--pm-chart-left','674px'\)/);
  assert.match(pm,/\.inline-guidance\{left:529px\}/);
  assert.match(pm,/pm-status-sun-outline\.svg/);
  assert.match(read('v2/pm-status-sun-outline.svg'),/stroke="#ffffff"/);
