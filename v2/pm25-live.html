@@ -56,7 +56,7 @@
 .pm-label{position:absolute;z-index:4;left:410px;top:7px;width:154px;padding:3px 8px;font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Thonburi",sans-serif;font-size:29px;line-height:34px;font-weight:900;letter-spacing:.2px;color:#f4fcff;text-shadow:0 1px 4px #001323,0 0 10px #001323,0 0 6px #65d9ff88;background:linear-gradient(90deg,rgba(0,12,25,.06),rgba(0,12,25,.54) 35%,rgba(0,12,25,.45) 75%,transparent);border-radius:0}
 .readout{top:0;height:120px;left:570px;width:430px;padding:0 0 0 4px;display:block;background:linear-gradient(90deg,rgba(3,14,27,.2),rgba(3,14,27,.72) 24%,rgba(3,14,27,.45) 82%,transparent)}
 .number-line{position:absolute;left:4px;top:0;height:120px;display:flex;align-items:flex-end;gap:3px;white-space:nowrap}
-.number{font-size:var(--value-size,112px);line-height:.94;letter-spacing:-3px;padding-bottom:5px}.unit{align-self:flex-end;margin:0 0 16px 0;font-size:19px;line-height:1.1}
+.number{font-size:var(--value-size,100px);font-weight:900;line-height:.94;letter-spacing:-3px;padding-bottom:5px}.unit{align-self:flex-end;margin:0 0 16px 0;font-size:19px;line-height:1.1}
 .inline-guidance{position:absolute;left:231px;right:0;top:0;bottom:0;width:auto;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:5px;padding:3px 5px}
 .inline-guidance .badge{font-size:19px;line-height:22px;font-weight:900;max-width:100%;min-width:140px;padding:5px 10px;text-align:center;white-space:normal}
 .inline-guidance .advice{font-size:15px;line-height:18px;font-weight:800;text-align:center;white-space:normal;overflow:visible;max-width:100%}
@@ -98,7 +98,7 @@ html,body{width:100%;height:100%;margin:0;overflow:hidden;background:#020914}.bo
 .chart-frame{height:59px;border:1px solid #4980a4;border-radius:6px;padding:2px 3px 0;background:linear-gradient(180deg,#08243eaa,#06182baa);box-shadow:inset 0 0 8px #196e9b33}
 .trend-plot{height:43px;margin:0;background:transparent}.trend-line{stroke:var(--light);stroke-width:2.5;filter:drop-shadow(0 0 1.5px var(--light))}.point{fill:var(--light);stroke:#fff;stroke-width:.6}
 .graph-times{font-size:8px;line-height:9px}
-.board[data-tier="blue"] .badge::before,.board[data-tier="green"] .badge::before{content:"☀";display:inline-block;color:white;font-size:21px;line-height:1;margin-right:10px}
+/* Minimal outline icon is styled in the final owner-feedback block below. */
 
 /* Feather contrast behind the clock and title into the animation. */
 .clock{background:transparent}
@@ -124,4 +124,25 @@ html,body{width:100%;height:100%;margin:0;overflow:hidden;background:#020914}.bo
 .readout{z-index:auto;isolation:auto}
 .readout::before{z-index:2}
 .number-line{z-index:6}
-</style></head><body><div class="board unavailable" id="board" style="--light:#cbd8e2;--dark:#778a9b;--shade:#495a69;--glow:#89adbb66"><div class="clock"><span class="date"></span><span class="time"></span></div><div class="scene"><img alt=""><video muted loop playsinline preload="metadata" aria-hidden="true"></video></div><div class="pm-label">PM2.5</div><div class="readout"><div class="number-line"><span class="number-shell"><span class="number">—</span></span><span class="unit">µg/m³</span></div><div class="inline-guidance"><span class="badge">รอข้อมูล</span><div class="avg-note" hidden></div><div class="advice">ไม่พบข้อมูลล่าสุด</div></div></div><div class="right"><div class="scale-wrap"><div class="scale-ticks"><span style="left:0%">0</span><span style="left:20%">15</span><span style="left:40%">25</span><span style="left:60%">37.5</span><span style="left:80%">75</span></div><span class="scale-arrow" hidden></span><div class="bar"><span class="blue"></span><span class="green"></span><span class="yellow"></span><span class="orange"></span><span class="red"></span></div></div><div class="limits"><span>ดีมาก</span><span>ดี</span><span>ปานกลาง</span><span>เริ่มมีผล<br>ต่อสุขภาพ</span><span>มีผล<br>ต่อสุขภาพ</span></div><div class="chart-frame"><svg class="trend-plot" viewBox="0 0 300 35" role="img" aria-label="กราฟค่าฝุ่นย้อนหลัง 24 ชั่วโมง"><defs><linearGradient id="fill" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="var(--light)" stop-opacity=".95"/><stop offset="100%" stop-color="var(--dark)" stop-opacity=".02"/></linearGradient></defs><path d="M0 3H300 M0 17H300 M0 31H300 M75 0V35 M150 0V35 M225 0V35" class="grid"/><g id="series"></g></svg><div class="graph-times"><span>−24 ชม.</span><span>−18</span><span>−12</span><span>−6</span><span>ล่าสุด</span></div></div></div></div><script src="pm25-tier.js?v=20261101-live-fix-3"></script><script src="pm25-live.js?v=20261101-live-fix-3"></script></body></html>
+
+
+/* Owner review 2026-11-07: -2 logical LED pixels for the PM label/value/
+   unit group; pull chart/scale closer and give the health badge more room.
+   These positions are on the 1296x120 board (3 board px = 1 LED px). */
+.pm-label{left:374px}
+.readout{left:484px}
+/* More timeline width from the vacant space left of the chart; right edge stays fixed. */
+.right{left:var(--pm-chart-left,674px);right:285px}
+.inline-guidance{left:529px}
+.inline-guidance .badge{min-width:238px;min-height:38px;max-width:100%;font-size:23px;line-height:26px;padding:4px 10px}
+.board[data-tier="blue"] .inline-guidance .badge,
+.board[data-tier="green"] .inline-guidance .badge{font-size:28px;line-height:31px}
+.board[data-tier="orange"] .inline-guidance .badge,
+.board[data-tier="red"] .inline-guidance .badge{font-size:19px;line-height:22px}
+/* Decorative (CSS-only) white line icon; no dependency on emoji rendering. */
+.board[data-tier="blue"] .inline-guidance .badge::before,
+.board[data-tier="green"] .inline-guidance .badge::before{
+ content:"";width:28px;height:28px;display:inline-block;vertical-align:middle;
+ flex:none;margin-right:8px;background:url("./pm-status-sun-outline.svg") center/contain no-repeat;
+}
+</style></head><body><div class="board unavailable" id="board" style="--light:#cbd8e2;--dark:#778a9b;--shade:#495a69;--glow:#89adbb66"><div class="clock"><span class="date"></span><span class="time"></span></div><div class="scene"><img alt=""><video muted loop playsinline preload="metadata" aria-hidden="true"></video></div><div class="pm-label">PM2.5</div><div class="readout"><div class="number-line"><span class="number-shell"><span class="number">—</span></span><span class="unit">µg/m³</span></div><div class="inline-guidance"><span class="badge">รอข้อมูล</span><div class="avg-note" hidden></div><div class="advice">ไม่พบข้อมูลล่าสุด</div></div></div><div class="right"><div class="scale-wrap"><div class="scale-ticks"><span style="left:0%">0</span><span style="left:20%">15</span><span style="left:40%">25</span><span style="left:60%">37.5</span><span style="left:80%">75</span></div><span class="scale-arrow" hidden></span><div class="bar"><span class="blue"></span><span class="green"></span><span class="yellow"></span><span class="orange"></span><span class="red"></span></div></div><div class="limits"><span>ดีมาก</span><span>ดี</span><span>ปานกลาง</span><span>เริ่มมีผล<br>ต่อสุขภาพ</span><span>มีผล<br>ต่อสุขภาพ</span></div><div class="chart-frame"><svg class="trend-plot" viewBox="0 0 300 35" role="img" aria-label="กราฟค่าฝุ่นย้อนหลัง 24 ชั่วโมง"><defs><linearGradient id="fill" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="var(--light)" stop-opacity=".95"/><stop offset="100%" stop-color="var(--dark)" stop-opacity=".02"/></linearGradient></defs><path d="M0 3H300 M0 17H300 M0 31H300 M75 0V35 M150 0V35 M225 0V35" class="grid"/><g id="series"></g></svg><div class="graph-times"><span>−24 ชม.</span><span>−18</span><span>−12</span><span>−6</span><span>ล่าสุด</span></div></div></div></div><script src="pm25-tier.js?v=20261101-live-fix-3"></script><script src="pm25-live.js?v=20261107-graph-3"></script></body></html>

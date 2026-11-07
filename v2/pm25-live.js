@@ -6,11 +6,11 @@
 (()=>{
 'use strict';
 const tiers=[
- {id:'blue',status:'ดีมาก',advice:'ทำกิจกรรมได้ตามปกติ',light:'#b4f8ff',dark:'#168ff2',shade:'#035387',glow:'#30d2ffbb'},
- {id:'green',status:'ดี',advice:'กลุ่มเสี่ยงเฝ้าระวังอาการ',light:'#caffbb',dark:'#14b85d',shade:'#05713d',glow:'#22f68abb'},
- {id:'yellow',status:'ปานกลาง',advice:'กลุ่มเสี่ยงลดกิจกรรมกลางแจ้ง',light:'#fff8b2',dark:'#dba912',shade:'#a96d00',glow:'#ffcc37bb'},
- {id:'orange',status:'เริ่มมีผลต่อสุขภาพ',advice:'ลดกิจกรรมกลางแจ้ง สวม N95',light:'#ffdfad',dark:'#f17a25',shade:'#a84008',glow:'#ff9f38bb'},
- {id:'red',status:'มีผลต่อสุขภาพ',advice:'เลี่ยงกลางแจ้ง อยู่ในห้องปลอดฝุ่น',light:'#ffd0ce',dark:'#ec3f47',shade:'#98152a',glow:'#ff4b57bb'}];
+ {id:'blue',status:'ดีมาก',advice:'ทำกิจกรรมกลางแจ้งได้ตามปกติ',light:'#b4f8ff',dark:'#168ff2',shade:'#035387',glow:'#30d2ffbb'},
+ {id:'green',status:'ดี',advice:'ทำกิจกรรมได้ตามปกติ ผู้ไวต่อฝุ่นสังเกตอาการ',light:'#caffbb',dark:'#14b85d',shade:'#05713d',glow:'#22f68abb'},
+ {id:'yellow',status:'ปานกลาง',advice:'ผู้ไวต่อฝุ่นควรลดเวลาอยู่นอกอาคาร',light:'#fff8b2',dark:'#dba912',shade:'#a96d00',glow:'#ffcc37bb'},
+ {id:'orange',status:'เริ่มมีผลต่อสุขภาพ',advice:'ลดกิจกรรมกลางแจ้ง สวม N95 เมื่อจำเป็น',light:'#ffdfad',dark:'#f17a25',shade:'#a84008',glow:'#ff9f38bb'},
+ {id:'red',status:'มีผลต่อสุขภาพ',advice:'หลีกเลี่ยงกิจกรรมกลางแจ้ง อยู่ในอาคารอากาศสะอาด',light:'#ffd0ce',dark:'#ec3f47',shade:'#98152a',glow:'#ff4b57bb'}];
 const $=s=>document.querySelector(s),board=$('#board'),video=$('video'),poster=$('.scene img');let selected='';
 /* Band vocabulary: backend band keys -> 2026 tier keys. A band that maps to
  * something other than the locally derived tier fails closed inside classify
@@ -32,11 +32,22 @@ function drawHistory(points){
  for(const p of xy){const circle=document.createElementNS(ns,'circle');circle.setAttribute('cx',p.x.toFixed(1));circle.setAttribute('cy',p.y.toFixed(1));circle.setAttribute('r','1.8');circle.setAttribute('class','point');circle.style.setProperty('fill',p.c);g.append(circle)}
 }
 function setNumber(value){
- const txt=Number.isInteger(value)?String(value):value.toFixed(1);$('.number').textContent=txt;$('.number').style.setProperty('--value-size',txt.length>4?'82px':txt.length>3&&!txt.includes('.')?'90px':txt.length>3&&value>=100?'95px':'112px');const shell=$('.number-shell'),num=$('.number');shell.style.width='max-content';const natural=num.offsetWidth,room=218-$('.unit').offsetWidth;if(natural>0&&room>0){num.style.setProperty('--number-scale',Math.min(1,room/natural));shell.style.width=Math.min(natural,room)+'px'}
+ const txt=Number.isInteger(value)?String(value):value.toFixed(1);$('.number').textContent=txt;$('.number').style.setProperty('--value-size',txt.length>4?'82px':txt.length>3&&!txt.includes('.')?'90px':txt.length>3&&value>=100?'95px':'100px');const shell=$('.number-shell'),num=$('.number');shell.style.width='max-content';const natural=num.offsetWidth,room=218-$('.unit').offsetWidth;if(natural>0&&room>0){num.style.setProperty('--number-scale',Math.min(1,room/natural));shell.style.width=Math.min(natural,room)+'px'}
+ // The main PM reading can be 3-4 digits. Protect the unit from the chart:
+ // default 674 board px expands the chart 30px, while large readings move
+ // its left edge only as far right as needed (12 board px/4 LED px clearance).
+ // The chart's right edge and the approved warning badge never move.
+ let chartLeft=674,unit=$('.unit');
+ if(typeof board.getBoundingClientRect==='function'&&typeof unit.getBoundingClientRect==='function'){
+  const boardRect=board.getBoundingClientRect(),scale=board.offsetWidth>0?boardRect.width/board.offsetWidth:1;
+  const unitRight=(unit.getBoundingClientRect().right-boardRect.left)/scale;
+  if(Number.isFinite(unitRight))chartLeft=Math.max(674,Math.ceil(unitRight+12));
+ }
+ board.style.setProperty('--pm-chart-left',chartLeft+'px');
 }
 function render(pm,history){
  const valid=pm&&pm.status==='latest'&&typeof pm.value==='number'&&Number.isFinite(pm.value)&&pm.value>=0&&pm.value<=1000;
- if(!valid){board.classList.add('unavailable');board.dataset.tier='';for(const key of ['light','dark','glow'])board.style.setProperty('--number-'+key,GREY[key]);$('.number').textContent='—';$('.badge').textContent='รอข้อมูล';$('.advice').textContent='ไม่พบข้อมูลล่าสุด';$('.avg-note').hidden=true;$('.scale-arrow').hidden=true;video.pause();drawHistory(history);return}
+ if(!valid){board.style.setProperty('--pm-chart-left','674px');board.classList.add('unavailable');board.dataset.tier='';for(const key of ['light','dark','glow'])board.style.setProperty('--number-'+key,GREY[key]);$('.number').textContent='—';$('.badge').textContent='รอข้อมูล';$('.advice').textContent='ไม่พบข้อมูลล่าสุด';$('.avg-note').hidden=true;$('.scale-arrow').hidden=true;video.pause();drawHistory(history);return}
 
  const value=Math.round(pm.value*10)/10;setNumber(value); /* big number: hourly, unchanged */
  /* Tier from the 24h average. observedAt is the source-observation time; the

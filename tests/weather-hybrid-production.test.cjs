@@ -12,8 +12,8 @@ const index=file('v2/index.html'),entry=file('index.html');
 test('Production Weather uses existing validated snapshot + unchanged live model pipeline',()=>{
  assert.match(html,/src="weather-snapshot\.js"/);
  assert.match(html,/weather-hybrid-live\.js\?v=20261105-hybrid-live-1/);
- assert.match(html,/weather-hybrid-live\.css\?v=20261106-storm-clarity-1/);
- assert.match(html,/weather-luxury\.js\?v=20261106-storm-clarity-1/);
+ assert.match(html,/weather-hybrid-live\.css\?v=20261107-aligned-1/);
+ assert.match(html,/weather-luxury\.js\?v=20261107-aligned-1/);
  assert.match(bridge,/UthWeatherSnapshot\.parse/);
  assert.match(bridge,/UthWeatherHybrid\?\.render/);
  assert.match(bridge,/fallbackTransport\(\)/);
@@ -23,10 +23,10 @@ test('Production Weather uses existing validated snapshot + unchanged live model
 });
 
 test('Only Weather embed changes; main rotation and PM/Water iframe remain routed',()=>{
- assert.match(index,/weather-luxury\.html\?v=20261106-storm-clarity-1/);
- assert.match(index,/pm25-live\.html\?v=20261101-live-fix-3/);
- assert.match(index,/water-luxury-live\.html\?v=20261101-water-fix-1/);
- assert.match(entry,/v2\/index\.html\?display=led&amp;v=20261106-storm-clarity-1/);
+ assert.match(index,/weather-luxury\.html\?v=20261107-aligned-1/);
+ assert.match(index,/pm25-live\.html\?v=20261107-graph-3/);
+ assert.match(index,/water-luxury-live\.html\?v=20261107-owner-2/);
+ assert.match(entry,/v2\/index\.html\?display=led&amp;v=20261107-graph-3/);
  assert.match(index,/setInterval\(\(\)=>\{sections\[current\]/);
 });
 
