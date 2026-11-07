@@ -27,3 +27,25 @@ Also verified: `weather-negative-432x40.png`, `weather-triple-digit-432x40.png`,
   `ระวังร้อน` / `ระวังร้อนจัด`; the synthetic longer message is ONLY to
   exercise the compact-display fallback, not a new warning policy.
 - Real hardware distance readability and iPhone Safari remain UNVERIFIED.
+
+## Owner feedback round (2026-11-07)
+
+SIMULATED QA FIXTURES — NOT LIVE READINGS. These images use the
+production PM2.5 JS render() and the production Water renderer with
+intercepted test data; no real network API read is performed.
+
+| Health tier | Updated screenshot |
+|---|---|
+| Blue / ดีมาก | ![PM blue](./pm-owner-blue-432x40.png) |
+| Green / ดี | ![PM green](./pm-owner-green-432x40.png) |
+| Yellow / ปานกลาง | ![PM yellow](./pm-owner-yellow-432x40.png) |
+| Orange / เริ่มมีผลต่อสุขภาพ | ![PM orange](./pm-owner-orange-432x40.png) |
+| Red / มีผลต่อสุขภาพ | ![PM red](./pm-owner-red-432x40.png) |
+| Unavailable average | ![PM unavailable](./pm-owner-unavailable-432x40.png) |
+| Water clock never clipped | ![Water clock](./water-owner-clock-432x40.png) |
+
+Reproduce: NODE_PATH=<installed-puppeteer> node scripts/qa-led-owner-20261107.cjs.
+Evidence: owner-feedback-browser-qa.json and water-ink-verification.json.
+The original green/blue emoji sun was replaced with a minimal white SVG outline.
+The last Water clock glyph was formerly clipped because it extended beyond the
+clock's overflow:hidden boundary; it now renders atop decorative layers.

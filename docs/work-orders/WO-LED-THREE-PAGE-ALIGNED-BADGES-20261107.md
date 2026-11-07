@@ -30,8 +30,8 @@ Google Sheets/bound Apps Script, backend/fallback changes or fixture data in Pro
 - Weather Feels gets a compact thermometer SVG in top safe area; heat warning
   occupies a separate bottom safe area. Existing warning logic still chooses
   the two original Thai messages and suppresses current warnings on historical data.
-- If a longer future warning cannot physically fit at 432×40, the LED still
-  shows explicit '⚠ ระวังความร้อน' while the complete original warning remains
+- If a longer future warning exceeds the 126 board-pixel safe width, the
+  LED still shows explicit '⚠ ระวังความร้อน' while the complete original warning remains
   in both aria-label and title. This is display compaction, not new risk logic.
 - Weather storm APNG assets, reduced-motion posters and all original forecast
   graphics/4+3 rotation remain unchanged relative to PR #95.
@@ -49,6 +49,29 @@ Google Sheets/bound Apps Script, backend/fallback changes or fixture data in Pro
 - Targeted tests: `tests/led-threepage-aligned-20261107.test.cjs`.
 - Full tests (local Chrome / Node 22) 520/520 PASS on dirty pre-candidate,
   must rerun after candidate freeze. Actual iPhone Safari/physical LED distance UNVERIFIED.
+
+
+## Owner visual corrections — 2026-11-07 06:25 UTC (LATEST)
+- Weather visuals accepted. Retain previous warning/badge and storm behavior.
+- Water Level last clock digit was clipped: original clock range glyph reached
+  x=64.55 LED px while the 180-board-px clock ended x=63.67; the glass-card
+  set overflow:hidden. Root fix: clock overflow:visible, z-index:12 and
+  date/time z-index:13, above widget border decorations (z-index:7).
+  Keep both station displays, time and water simulation semantics unchanged.
+- PM: move label and value/µg/m³ group exactly 6 board px (2 LED px) left;
+  chart/scale move 16 board px left and its right edge 30 board px left;
+  health status has more space and a larger font, with a white SVG line sun icon
+  only for short blue/green labels (no emoji-dependent rendering).
+- Guidance copy simplified for 5 existing bands. This is display text only;
+  PM25Tier.classify bounds, source, hourly-vs-24h semantics, transport,
+  failure/freshness handling and missing-average fallback remain untouched.
+- Visual QA uses the actual production PM render() via MessageEvent and
+  production Water JS with stubbed historical API. All QA fixtures explicitly
+  SIMULATED, never measurements. Reproducer: scripts/qa-led-owner-20261107.cjs.
+  Evidence: pm-owner-{blue,green,yellow,orange,red,unavailable}-432x40.png,
+  water-owner-clock-432x40.png, owner-feedback-browser-qa.json.
+- No Production release until independent exact-SHA review, required CI and PR
+  dependency/ownership gates are satisfied.
 
 ## Merge/release gate & rollback
 1. Freeze exact branch HEAD, inspect PR diff/asset footprint.

@@ -104,7 +104,7 @@ html.weather-hybrid-ready .hybrid-panel{display:grid}
 .board .feel-value{top:0;gap:3px;background:#061b30;border:1px solid #57b6d5;color:#e2fbff}
 .board .feel-value b{font-weight:950;color:#ffcb9e}
 .board .feel-thermometer{width:13px;height:15px;flex:none;color:#ffbc86}
-.board .heat-tag{top:92px;background:#542a0a;border:1px solid #f2b34e;color:#ffe5b1}
+.board .heat-tag{top:92px;background:#542a0a;border:1px solid #f2b34e;color:#ffe5b1;pointer-events:auto}
 .board .feel-value[hidden],.board .heat-tag[hidden],.board .source-at[hidden]{display:none!important}
 /* Legacy fail-safe: historical source-time replaces Feels, not the safety warning. */
 .board:not(.layout-hybrid) .feel .source-at:not([hidden]){

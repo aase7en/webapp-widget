@@ -386,3 +386,11 @@ body{position:relative}
 
 /* Owner-approved optical alignment. Keep station names, clock and trend stationary. */
 .widget.v3 .reading-row{transform:translateY(4px)}
+
+
+/* 2026-11-07 owner correction: the final time glyph extended beyond the
+   180px clock clipping box by ~2.64 board px at 23:59.
+   overflow:visible prevents clipping; z-index puts time/date above dam,
+   foam, and the decorative border overlays without moving the clock. */
+.widget.v3 .clock{overflow:visible;z-index:12}
+.widget.v3 .clock .date,.widget.v3 .clock .time{position:relative;z-index:13}

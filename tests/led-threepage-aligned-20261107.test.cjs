@@ -31,19 +31,40 @@ test('Warnings preserve original heat index thresholds, freshness gate, and full
  assert.match(wxJS,/d\.advice=d\.historical\?null:h>=40\?'ระวังร้อนจัด':h>=33\?'ระวังร้อน':null/);
  assert.match(wxJS,/warn\.setAttribute\('aria-label',fullWarning\)/);
  assert.match(wxJS,/warn\.title=fullWarning/);
- assert.match(wxJS,/fullWarning\.length>17\?'⚠ ระวังความร้อน'/);
+ assert.match(wxJS,/fullWarning&&warn\.offsetWidth>126/);
+ assert.match(wxJS,/warn\.textContent='⚠ ระวังความร้อน'/);
+ assert.match(wx,/role="status" aria-live="polite" aria-atomic="true"/);
  assert.match(wxJS,/warn\.hidden=!fullWarning/);
  assert.match(wxJS,/board\.dataset\.freshness=old\?'HISTORICAL':/);
  assert.match(wxJS,/UthWeatherSnapshot\.parse/);
 });
 test('New scoped cache keys refresh only changed page/css/js and preserve weather animation asset version',()=>{
  const index=read('v2/index.html'),entry=read('index.html'),water=read('v2/water-luxury-live.html');
- for(const file of ['pm25-live','weather-luxury','water-luxury-live'])assert.match(index,new RegExp(file+'\\.html\\?v=20261107-aligned-1'));
- assert.match(entry,/v2\/index\.html\?display=led&amp;v=20261107-aligned-1/);
- assert.match(pm,/pm25-live\.js\?v=20261107-aligned-1/);
+ for(const [file,version] of [['pm25-live','20261107-owner-2'],['weather-luxury','20261107-aligned-1'],['water-luxury-live','20261107-owner-2']])assert.match(index,new RegExp(file+'\\.html\\?v='+version));
+ assert.match(entry,/v2\/index\.html\?display=led&amp;v=20261107-owner-2/);
+ assert.match(pm,/pm25-live\.js\?v=20261107-owner-2/);
  assert.match(wx,/weather-hybrid-live\.css\?v=20261107-aligned-1/);
  assert.match(wx,/weather-luxury\.js\?v=20261107-aligned-1/);
- assert.match(water,/water-luxury-live\.css\?v=20261107-aligned-1/);
+ assert.match(water,/water-luxury-live\.css\?v=20261107-owner-2/);
  assert.match(wxJS,/rain','thunderstorm','night-rain','night-thunderstorm'/);
  assert.match(wxJS,/\?v=20261106-storm-clarity-1/);
+});
+
+test('Owner Water clock stays visibly on top and cannot clip final time digits',()=>{
+ assert.match(waCSS,/\.widget\.v3 \.clock\{overflow:visible;z-index:12\}/);
+ assert.match(waCSS,/\.widget\.v3 \.clock \.date,\.widget\.v3 \.clock \.time\{position:relative;z-index:13\}/);
+});
+test('Owner PM badge layout, icon and simple guidance: original tier semantics unchanged',()=>{
+ assert.match(pm,/\.pm-label\{left:374px\}/);
+ assert.match(pm,/\.readout\{left:484px\}/);
+ assert.match(pm,/\.right\{left:704px;right:285px\}/);
+ assert.match(pm,/\.inline-guidance\{left:529px\}/);
+ assert.match(pm,/pm-status-sun-outline\.svg/);
+ assert.match(read('v2/pm-status-sun-outline.svg'),/stroke="#ffffff"/);
+ assert.match(pmJS,/advice:'ทำกิจกรรมกลางแจ้งได้ตามปกติ'/);
+ assert.match(pmJS,/advice:'ผู้ไวต่อฝุ่นควรลดเวลาอยู่นอกอาคาร'/);
+ assert.match(pmJS,/advice:'ลดกิจกรรมกลางแจ้ง สวม N95 เมื่อจำเป็น'/);
+ assert.match(pmJS,/advice:'หลีกเลี่ยงกิจกรรมกลางแจ้ง อยู่ในอาคารอากาศสะอาด'/);
+ assert.match(pmJS,/const cls=avg===null\?null:PM25Tier\.classify/);
+ assert.match(pmJS,/const ht=hourly\.isHealthTier\?tiers\.find/);
 });

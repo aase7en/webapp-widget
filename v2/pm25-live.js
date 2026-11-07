@@ -6,11 +6,11 @@
 (()=>{
 'use strict';
 const tiers=[
- {id:'blue',status:'ดีมาก',advice:'ทำกิจกรรมได้ตามปกติ',light:'#b4f8ff',dark:'#168ff2',shade:'#035387',glow:'#30d2ffbb'},
- {id:'green',status:'ดี',advice:'กลุ่มเสี่ยงเฝ้าระวังอาการ',light:'#caffbb',dark:'#14b85d',shade:'#05713d',glow:'#22f68abb'},
- {id:'yellow',status:'ปานกลาง',advice:'กลุ่มเสี่ยงลดกิจกรรมกลางแจ้ง',light:'#fff8b2',dark:'#dba912',shade:'#a96d00',glow:'#ffcc37bb'},
- {id:'orange',status:'เริ่มมีผลต่อสุขภาพ',advice:'ลดกิจกรรมกลางแจ้ง สวม N95',light:'#ffdfad',dark:'#f17a25',shade:'#a84008',glow:'#ff9f38bb'},
- {id:'red',status:'มีผลต่อสุขภาพ',advice:'เลี่ยงกลางแจ้ง อยู่ในห้องปลอดฝุ่น',light:'#ffd0ce',dark:'#ec3f47',shade:'#98152a',glow:'#ff4b57bb'}];
+ {id:'blue',status:'ดีมาก',advice:'ทำกิจกรรมกลางแจ้งได้ตามปกติ',light:'#b4f8ff',dark:'#168ff2',shade:'#035387',glow:'#30d2ffbb'},
+ {id:'green',status:'ดี',advice:'ทำกิจกรรมได้ตามปกติ ผู้ไวต่อฝุ่นสังเกตอาการ',light:'#caffbb',dark:'#14b85d',shade:'#05713d',glow:'#22f68abb'},
+ {id:'yellow',status:'ปานกลาง',advice:'ผู้ไวต่อฝุ่นควรลดเวลาอยู่นอกอาคาร',light:'#fff8b2',dark:'#dba912',shade:'#a96d00',glow:'#ffcc37bb'},
+ {id:'orange',status:'เริ่มมีผลต่อสุขภาพ',advice:'ลดกิจกรรมกลางแจ้ง สวม N95 เมื่อจำเป็น',light:'#ffdfad',dark:'#f17a25',shade:'#a84008',glow:'#ff9f38bb'},
+ {id:'red',status:'มีผลต่อสุขภาพ',advice:'หลีกเลี่ยงกิจกรรมกลางแจ้ง อยู่ในอาคารอากาศสะอาด',light:'#ffd0ce',dark:'#ec3f47',shade:'#98152a',glow:'#ff4b57bb'}];
 const $=s=>document.querySelector(s),board=$('#board'),video=$('video'),poster=$('.scene img');let selected='';
 /* Band vocabulary: backend band keys -> 2026 tier keys. A band that maps to
  * something other than the locally derived tier fails closed inside classify
