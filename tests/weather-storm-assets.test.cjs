@@ -56,12 +56,12 @@ test("Selected animated conditions receive a scoped cache-buster; other weather 
  assert.match(js,/rain','thunderstorm','night-rain','night-thunderstorm/);
  assert.match(js,/\.apng'.*\?v=20261106-storm-clarity-1/);
  assert.match(js,/-poster\.png'.*\?v=20261106-storm-clarity-1/);
- assert.match(html,/weather-luxury\.js\?v=20261106-storm-clarity-1/);
- assert.match(html,/weather-hybrid-live\.css\?v=20261106-storm-clarity-1/);
- assert.match(display,/weather-luxury\.html\?v=20261106-storm-clarity-1/);
- assert.match(outer,/v2\/index\.html\?display=led&amp;v=20261106-storm-clarity-1/);
- assert.match(display,/pm25-live\.html\?v=20261101-live-fix-3/);
- assert.match(display,/water-luxury-live\.html\?v=20261101-water-fix-1/);
+ assert.match(html,/weather-luxury\.js\?v=20261107-aligned-1/);
+ assert.match(html,/weather-hybrid-live\.css\?v=20261107-aligned-1/);
+ assert.match(display,/weather-luxury\.html\?v=20261107-aligned-1/);
+ assert.match(outer,/v2\/index\.html\?display=led&amp;v=20261107-owner-2/);
+ assert.match(display,/pm25-live\.html\?v=20261107-owner-2/);
+ assert.match(display,/water-luxury-live\.html\?v=20261107-owner-2/);
  assert.match(css,/\.board\.layout-hybrid \.icon\[data-condition="rain"\]/);
  assert.match(css,/\.board\.layout-hybrid \.icon\[data-condition="night-thunderstorm"\]/);
  assert.doesNotMatch(css,/\.board\.layout-hybrid \.clock/);

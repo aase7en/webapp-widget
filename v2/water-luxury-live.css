@@ -321,7 +321,7 @@
 }
 .widget.v3 .station-name{grid-column:1/3;grid-row:1;z-index:1;font-size:18px;align-self:start}
 .widget.v3 .reading-row{grid-column:1;grid-row:2;align-self:center;position:relative;z-index:1}
-.widget.v3 .big-level{font-size:66px;letter-spacing:-1.8px}
+.widget.v3 .big-level{font-size:68px;letter-spacing:-1.8px}
 .widget.v3 .reading-detail{grid-column:1;grid-row:3;display:flex;flex-direction:column;gap:1px;
  justify-content:center;min-width:0;position:relative;z-index:1}
 .widget.v3 .reading-detail .delta{font-size:10px!important;line-height:11px;text-align:left;position:static;
@@ -383,3 +383,14 @@ body{position:relative}
 /* Station comparisons are descriptive, not official flood alerts. */
 .widget.v3 .status-trend .badge.warn{background:linear-gradient(180deg,#ffdb69,#e67a10);box-shadow:0 0 16px #ffa73599}
 .widget.v3 .status-trend .badge.danger{background:linear-gradient(180deg,#ff9672,#d92a30);box-shadow:0 0 18px #ff4a3988}
+
+/* Owner-approved optical alignment. Keep station names, clock and trend stationary. */
+.widget.v3 .reading-row{transform:translateY(4px)}
+
+
+/* 2026-11-07 owner correction: the final time glyph extended beyond the
+   180px clock clipping box by ~2.64 board px at 23:59.
+   overflow:visible prevents clipping; z-index puts time/date above dam,
+   foam, and the decorative border overlays without moving the clock. */
+.widget.v3 .clock{overflow:visible;z-index:12}
+.widget.v3 .clock .date,.widget.v3 .clock .time{position:relative;z-index:13}
