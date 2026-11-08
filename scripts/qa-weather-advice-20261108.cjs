@@ -10,7 +10,7 @@ const cases=[
  ['sun',30,75,'หลีกเลี่ยงแดดจัด'],['heat',36,70,'ระวัง Heatstroke'],
  ['extreme',42,75,'ระวัง Heatstroke'],['triple',100,70,'ตรวจสอบข้อมูล'],
  ['quad',1000,70,'ตรวจสอบข้อมูล'],['negative',-10,50,'สวมเสื้อให้อุ่น'],
- ['without-rh',30,null,'ดื่มน้ำและพัก'],['missing',null,null,null],
+ ['without-rh',30,null,'ดื่มน้ำและพัก'],['invalid-rh',36,300,'ร้อนจัด เลี่ยงแดด'],['missing',null,null,null],
  ['historical',36,70,null,true]
 ];
 (async()=>{
@@ -39,7 +39,7 @@ const cases=[
   assert(x.guide.right<201&&x.scroll<=x.client+1,'advice no overlap or clip '+id);
   assert(x.title.length>12,'complete advice accessible '+id);
  }else{assert(x.hidden&&!x.warningVisible,'stale/missing no guidance '+id)}
- if(t>=100)assert(!x.warningVisible,'invalid extreme not treated as real heat alert');
+ if(t>=100||rh===300)assert(!x.warningVisible,'invalid temperature/humidity must not create a heat alert');
  if(x.warningVisible)assert(x.heatWarn.right<x.feels.l&&x.heatWarn.bottom<x.guide.top-20,'warning retained without overlap');
  evidence.cases.push(x);
  if(['cold','mild','sun','heat','triple','quad','missing','historical'].includes(id))await pg.screenshot({path:path.join(out,'weather-'+id+'-432x40.png')});
@@ -52,6 +52,18 @@ const cases=[
   return {font:getComputedStyle(document.querySelector('.temp')).fontSize,unitRight:e.right,hybrid:document.querySelector('#board').classList.contains('layout-hybrid'),guide:document.querySelector('#temp-guidance').textContent};
  });
  assert.equal(evidence.fallback.hybrid,false);assert.equal(evidence.fallback.font,'90px');assert(evidence.fallback.unitRight<202);await pg.screenshot({path:path.join(out,'weather-fallback-1000-432x40.png')});
+ // Legacy fallback with plausible hot weather: both badges must remain distinct.
+ evidence.fallbackHeat=await pg.evaluate(()=>{
+  paint({temperatureC:36,humidityPct:70,feelsC:36,days:[],observedAt:new Date().toISOString(),historical:false,icon:null});
+  const w=document.querySelector('#advice'),t=document.querySelector('#temp-guidance'),f=document.querySelector('.feel-value');
+  const r=e=>{const b=e.getBoundingClientRect();return {left:b.left,right:b.right,top:b.top,bottom:b.bottom}};
+  return {warning:w.textContent,warningVisible:!w.hidden,warningBox:r(w),guidance:t.textContent,guidanceBox:r(t),feelsBox:r(f),hybrid:document.querySelector('#board').classList.contains('layout-hybrid')};
+ });
+ assert.equal(evidence.fallbackHeat.hybrid,false);
+ assert(evidence.fallbackHeat.warningVisible&&evidence.fallbackHeat.warning.includes('ร้อนจัด'));
+ assert(evidence.fallbackHeat.warningBox.right<evidence.fallbackHeat.feelsBox.left);
+ assert(evidence.fallbackHeat.warningBox.bottom<evidence.fallbackHeat.guidanceBox.top-20);
+ await pg.screenshot({path:path.join(out,'weather-fallback-heat-432x40.png')});
  await pg.close();
  const rm=await b.newPage();await rm.setViewport({width:432,height:40,deviceScaleFactor:3});
  await rm.emulateMediaFeatures([{name:'prefers-reduced-motion',value:'reduce'}]);

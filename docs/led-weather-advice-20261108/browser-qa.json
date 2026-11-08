@@ -608,6 +608,61 @@
       "unitVisible": true
     },
     {
+      "id": "invalid-rh",
+      "value": "36",
+      "font": "90px",
+      "num": {
+        "l": 152,
+        "right": 187.78,
+        "top": 1,
+        "bottom": 36.33
+      },
+      "unit": {
+        "l": 190.11,
+        "right": 198.95,
+        "top": 25.33,
+        "bottom": 32.67
+      },
+      "guide": {
+        "l": 135,
+        "right": 200,
+        "top": 32.33,
+        "bottom": 39
+      },
+      "heatWarn": {
+        "l": 0,
+        "right": 0,
+        "top": 0,
+        "bottom": 0
+      },
+      "feels": {
+        "l": 159.33,
+        "right": 186.41,
+        "top": 1.33,
+        "bottom": 7.67
+      },
+      "clock": {
+        "l": 6.67,
+        "right": 61.67,
+        "top": 12.59,
+        "bottom": 33.07
+      },
+      "panel": {
+        "l": 202,
+        "right": 431,
+        "top": 1,
+        "bottom": 39
+      },
+      "text": "ร้อนจัด เลี่ยงแดด",
+      "hidden": false,
+      "warningVisible": false,
+      "warningText": "",
+      "title": "อุณหภูมิอากาศสูง แต่ไม่มีข้อมูลความชื้นสำหรับประเมินดัชนีความร้อน ให้ลดการอยู่กลางแดด",
+      "scroll": 193,
+      "client": 193,
+      "unitVisible": true
+    },
+    {
       "id": "missing",
       "value": "—",
       "font": "90px",
@@ -723,6 +778,30 @@
     "unitRight": 197.6041717529297,
     "hybrid": false,
     "guide": "ตรวจสอบข้อมูล"
+  },
+  "fallbackHeat": {
+    "warning": "⚠ ระวังร้อนจัด",
+    "warningVisible": true,
+    "warningBox": {
+      "left": 135,
+      "right": 169.34375,
+      "top": 1.3333333730697632,
+      "bottom": 7.666666865348816
+    },
+    "guidance": "ระวัง Heatstroke",
+    "guidanceBox": {
+      "left": 135,
+      "right": 200,
+      "top": 32.333335876464844,
+      "bottom": 39
+    },
+    "feelsBox": {
+      "left": 180,
+      "right": 207.078125,
+      "top": 1.3333333730697632,
+      "bottom": 7.666666865348816
+    },
+    "hybrid": false
   },
   "reduced": {
     "font": "90px",

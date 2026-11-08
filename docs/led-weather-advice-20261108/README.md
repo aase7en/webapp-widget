@@ -37,9 +37,17 @@ Official references:
 - weather-triple-432x40.png — 100°C stress, full 90px number
 - weather-quad-432x40.png — 1000°C stress, full 90px number
 - weather-missing / weather-historical — no guidance on absent/stale data
-- weather-fallback-1000 / weather-reduced-motion — safe fallback modes
+- weather-fallback-1000 / weather-fallback-heat / weather-reduced-motion — safe fallback modes
 - browser-qa.json — actual geometry/status/visible text evidence
 - Reproducer: scripts/qa-weather-advice-20261108.cjs
 
 **No backend, Google Sheet, Apps Script, PM2.5, or Water changes.**
 The PR remains OPEN for a new owner visual review before Production.
+
+## Invalid humidity and fallback review
+- Humidity used for calculated heat guidance must be finite and between
+  0% and 100%. Otherwise the widget uses conservative temperature-only
+  advice and does not create an NWS Heat Index or existing Heatstroke warning.
+- QA includes synthetic 300% humidity, which is not a real sensor value.
+- Browser QA checks two fallback modes: physically implausible four-digit
+  number and plausible hot-weather upper/lower badges remaining separate.

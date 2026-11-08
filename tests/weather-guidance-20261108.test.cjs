@@ -25,7 +25,7 @@ test('missing/historical and physically impossible values fail closed',()=>{
  assert.equal(suggest(100,50,false).label,'ตรวจสอบข้อมูล');
  assert.equal(suggest(1000,50,false).label,'ตรวจสอบข้อมูล');
  assert.equal(suggest(30,null,false).label,'ดื่มน้ำและพัก');
- assert.match(js,/d\.temperatureC>= -50&&d\.temperatureC<=60\?heat/);
+ assert.match(js,/d\.temperatureC>= -50&&d\.temperatureC<=60&&Number\.isFinite\(d\.humidityPct\)&&d\.humidityPct>=0&&d\.humidityPct<=100\?heat/);
 });
 test('90px numeric font remains constant; long 3-4 digits move left only',()=>{
  assert.match(js,/box\.style\.fontSize='90px'/);

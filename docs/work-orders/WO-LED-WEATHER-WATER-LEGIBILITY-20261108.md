@@ -80,3 +80,18 @@
   classification + NWS boundaries, without any network or production data.
 - This is a **new Weather-only candidate addition to open PR #98**; still no
   Production merge without owner review and exact-SHA CI/independent review.
+
+
+## Independent review follow-up — latest Weather candidate
+- GLM-5.3 independent exact-SHA review on 5d76aec reported **PASS**,
+  529/529 tests independently reproduced; two P2 observations:
+  (a) out-of-range RH could enter NWS Heat Index calculations;
+  (b) nonhybrid fallback with a real heat warning was not screenshot-tested.
+- Both are repaired before final freeze: heat risk uses RH only when
+  Number.isFinite(humidityPct) and 0 <= RH <= 100; other values fall back to
+  cautious air-temperature-only guidance, without a fabricated Heatstroke
+  alert. Browser QA adds invalid RH 300% synthetic case and nonhybrid
+  36°C/70% heat warning + bottom badge coexisting without overlap.
+- New candidate tests/evidence must be independently reviewed again on
+  exact HEAD; original owner approval only locks Water and °C, not this
+  newly added guidance. Production remains unchanged until sign-off.
