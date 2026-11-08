@@ -95,3 +95,28 @@
 - New candidate tests/evidence must be independently reviewed again on
   exact HEAD; original owner approval only locks Water and °C, not this
   newly added guidance. Production remains unchanged until sign-off.
+
+
+## Final owner approval: single badge + authorized Production release (2026-11-08 04:36 UTC)
+- User explicitly approved previously reviewed Water Level, Weather degree °C,
+  all numerical geometry, and the new practical guidance badge.
+- **One final change ordered:** remove the duplicate top orange
+  `⚠ ระวังร้อนจัด` / `ระวังร้อน` heat-warning badge completely, keep ONLY the
+  bottom risk/comfort recommendation under the main temperature.
+- User explicitly authorizes **merge and production deployment after removal**;
+  no further visual re-approval needed for this scoped change.
+- Implementation deletes the duplicate DOM node, its JS renderer, CSS rules
+  and obsolete tests rather than simply setting display:none. The existing
+  `heat()` calculation and finite temperature/RH plausibility gate feed the
+  lower guidance badge, whose NWS thresholds and accessibility detail remain.
+- All 3 screens, clock, Feels Like, °C, full 90px three/four-digit characters,
+  storm animation and 4+3 forecast remain unchanged.
+- New reproducible QA `scripts/qa-weather-advice-20261108.cjs` asserts
+  exactly one `role=status` and zero `#advice/.heat-tag` in 14 simulated
+  states including invalid humidity, missing/historical, reduced-motion and
+  nonhybrid heat fallback; writes separate evidence to
+  `docs/led-weather-single-badge-20261108/` to preserve older review history.
+- Mandatory gate: local Node tests + browser test, independent read-only exact
+  candidate SHA review, 2 GitHub CI checks, explicit expected-head merge to
+  main, real Pages build/deployment at merge SHA, production browser check
+  432x40 of 3 screens and no duplicate badge. Do not change backend/Sheets.

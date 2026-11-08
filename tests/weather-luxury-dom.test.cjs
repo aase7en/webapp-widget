@@ -40,7 +40,7 @@ function makeEl(tag) {
 
 function harness(initialFixture, seedStorage, fetchImpl) {
   const registry = {};
-  for (const sel of ['#temp', '#feels', '#advice', '#rain', '#humidity', '#high', '#low',
+  for (const sel of ['#temp', '#feels', '#temp-guidance', '#rain', '#humidity', '#high', '#low',
     '#days', '#graphfill', '#line', '#area', '#points', '#time', '#date', '.temp',
     '#icon', '#scene', '#poster']) registry[sel] = makeEl(sel);
   const doc = {

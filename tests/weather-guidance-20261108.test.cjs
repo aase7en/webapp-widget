@@ -34,11 +34,14 @@ test('90px numeric font remains constant; long 3-4 digits move left only',()=>{
  assert.match(css,/data-temp-digits="4"\]\{transform:translateX\(-185px\)/);
  assert.match(css,/layout-hybrid\) \.temp\[data-temp-digits="4"/);
 });
-test('additional under-number badge preserves old heat warning and its provenance gate',()=>{
+test('one lower health badge replaces duplicate top warning, preserving accessible message',()=>{
  assert.match(html,/id="temp-guidance" role="status" aria-live="polite" aria-atomic="true" hidden/);
  assert.match(css,/\.temp-guidance\{[\s\S]*?top:97px;/);
- assert.match(css,/\.board \.feel \.heat-tag\{top:0;left:-135px/);
- assert.match(js,/d\.advice=d\.historical\?null:h>=40\?'ระวังร้อนจัด':h>=33\?'ระวังร้อน':null/);
+ assert.doesNotMatch(html,/id="advice"|class="heat-tag"/);
+ assert.doesNotMatch(css,/\.heat-tag/);
+ assert.doesNotMatch(js,/#advice|d\.advice/);
  assert.match(js,/badge\.hidden=!advice/);
  assert.match(js,/badge\.setAttribute\('aria-label',advice\.detail\)/);
+ assert.match(js,/if\(h>=39\.4\)return/);
+ assert.match(js,/if\(h>=51\.7\)return/);
 });
