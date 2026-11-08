@@ -13,7 +13,7 @@ test('Owner-approved Aligned optical geometry has explicit font values and uncha
  assert.match(pm,/\.number\{font-size:var\(--value-size,100px\);font-weight:900;/);
  assert.match(pmJS,/:'100px'\)/);
  assert.match(wx,/\.temp\{top:11px;left:489px;font-size:90px;/);
- assert.match(wxJS,/digits>=4\?60:digits>=3\?70:90/);
+ assert.match(wxJS,/box.style.fontSize='90px'/);
  assert.match(waCSS,/\.widget\.v3 \.big-level\{font-size:68px;/);
  assert.match(waCSS,/\.widget\.v3 \.reading-row\{transform:translateY\(4px\)\}/);
  assert.match(wx,/\.time\{font-size:64px;line-height:\.96;font-weight:900/);
@@ -40,11 +40,11 @@ test('Warnings preserve original heat index thresholds, freshness gate, and full
 });
 test('New scoped cache keys refresh only changed page/css/js and preserve weather animation asset version',()=>{
  const index=read('v2/index.html'),entry=read('index.html'),water=read('v2/water-luxury-live.html');
- for(const [file,version] of [['pm25-live','20261107-graph-3'],['weather-luxury','20261108-label-1'],['water-luxury-live','20261108-label-1']])assert.match(index,new RegExp(file+'\\.html\\?v='+version));
- assert.match(entry,/v2\/index\.html\?display=led&amp;v=20261108-label-1/);
+ for(const [file,version] of [['pm25-live','20261107-graph-3'],['weather-luxury','20261108-health-2'],['water-luxury-live','20261108-label-1']])assert.match(index,new RegExp(file+'\\.html\\?v='+version));
+ assert.match(entry,/v2\/index\.html\?display=led&amp;v=20261108-health-2/);
  assert.match(pm,/pm25-live\.js\?v=20261107-graph-3/);
- assert.match(wx,/weather-hybrid-live\.css\?v=20261108-label-1/);
- assert.match(wx,/weather-luxury\.js\?v=20261108-label-1/);
+ assert.match(wx,/weather-hybrid-live\.css\?v=20261108-health-2/);
+ assert.match(wx,/weather-luxury\.js\?v=20261108-health-2/);
  assert.match(water,/water-luxury-live\.css\?v=20261108-label-1/);
  assert.match(wxJS,/rain','thunderstorm','night-rain','night-thunderstorm'/);
  assert.match(wxJS,/\?v=20261106-storm-clarity-1/);

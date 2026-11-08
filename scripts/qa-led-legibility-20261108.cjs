@@ -16,7 +16,7 @@ const fixture=()=>{const now=Date.now(),mk=(level,span)=>({status:'ok',levelMsl:
   for(const value of ['24','-10','100','1000','—']){
    const x=await w.evaluate(value=>{
     const temp=document.querySelector('.temp'),digits=document.querySelector('#temp'),unit=temp.querySelector('small');
-    digits.textContent=value;const n=value.length;temp.style.fontSize=(n>=4?60:n>=3?70:90)+'px';temp.dataset.longTemp=n>=4?'yes':'no';
+    digits.textContent=value;const n=value.length;temp.style.fontSize='90px';temp.dataset.tempDigits=String(Math.min(n,5));temp.dataset.longTemp=n>=4?'yes':'no';
     const b=e=>{const r=e.getBoundingClientRect();return {l:+r.left.toFixed(2),r:+r.right.toFixed(2),t:+r.top.toFixed(2),b:+r.bottom.toFixed(2)}};
     const u=unit.getBoundingClientRect(),panel=document.querySelector('.hybrid-panel');
     return {value,digits:b(digits),unit:b(unit),panel:b(panel),text:unit.textContent,opaque:getComputedStyle(unit).webkitTextFillColor,front:document.elementFromPoint(u.x+u.width/2,u.y+u.height/2)===unit};

@@ -1,0 +1,731 @@
+{
+  "kind": "SIMULATED_QA_NOT_LIVE",
+  "viewport": "432x40 DPR3",
+  "cases": [
+    {
+      "id": "cold",
+      "value": "10",
+      "font": "90px",
+      "num": {
+        "l": 152,
+        "right": 183.79,
+        "top": 1,
+        "bottom": 36.33
+      },
+      "unit": {
+        "l": 186.12,
+        "right": 194.96,
+        "top": 25.33,
+        "bottom": 32.67
+      },
+      "guide": {
+        "l": 135,
+        "right": 200,
+        "top": 32.33,
+        "bottom": 39
+      },
+      "heatWarn": {
+        "l": 0,
+        "right": 0,
+        "top": 0,
+        "bottom": 0
+      },
+      "feels": {
+        "l": 159.33,
+        "right": 186.41,
+        "top": 1.33,
+        "bottom": 7.67
+      },
+      "clock": {
+        "l": 6.67,
+        "right": 61.67,
+        "top": 12.59,
+        "bottom": 33.07
+      },
+      "panel": {
+        "l": 202,
+        "right": 431,
+        "top": 1,
+        "bottom": 39
+      },
+      "text": "สวมเสื้อให้อุ่น",
+      "hidden": false,
+      "warningVisible": false,
+      "warningText": "",
+      "title": "อุณหภูมิต่ำ ควรสวมเสื้อผ้าที่ช่วยรักษาความอบอุ่น",
+      "scroll": 193,
+      "client": 193,
+      "unitVisible": true
+    },
+    {
+      "id": "jacket",
+      "value": "18",
+      "font": "90px",
+      "num": {
+        "l": 152,
+        "right": 183.58,
+        "top": 1,
+        "bottom": 36.33
+      },
+      "unit": {
+        "l": 185.92,
+        "right": 194.76,
+        "top": 25.33,
+        "bottom": 32.67
+      },
+      "guide": {
+        "l": 135,
+        "right": 200,
+        "top": 32.33,
+        "bottom": 39
+      },
+      "heatWarn": {
+        "l": 0,
+        "right": 0,
+        "top": 0,
+        "bottom": 0
+      },
+      "feels": {
+        "l": 159.33,
+        "right": 186.41,
+        "top": 1.33,
+        "bottom": 7.67
+      },
+      "clock": {
+        "l": 6.67,
+        "right": 61.67,
+        "top": 12.59,
+        "bottom": 33.07
+      },
+      "panel": {
+        "l": 202,
+        "right": 431,
+        "top": 1,
+        "bottom": 39
+      },
+      "text": "พกเสื้อกันหนาว",
+      "hidden": false,
+      "warningVisible": false,
+      "warningText": "",
+      "title": "อากาศค่อนข้างเย็น พิจารณาเสื้อกันหนาวตามความเหมาะสม",
+      "scroll": 193,
+      "client": 193,
+      "unitVisible": true
+    },
+    {
+      "id": "mild",
+      "value": "24",
+      "font": "90px",
+      "num": {
+        "l": 152,
+        "right": 187.01,
+        "top": 1,
+        "bottom": 36.33
+      },
+      "unit": {
+        "l": 189.34,
+        "right": 198.18,
+        "top": 25.33,
+        "bottom": 32.67
+      },
+      "guide": {
+        "l": 135,
+        "right": 200,
+        "top": 32.33,
+        "bottom": 39
+      },
+      "heatWarn": {
+        "l": 0,
+        "right": 0,
+        "top": 0,
+        "bottom": 0
+      },
+      "feels": {
+        "l": 159.33,
+        "right": 186.41,
+        "top": 1.33,
+        "bottom": 7.67
+      },
+      "clock": {
+        "l": 6.67,
+        "right": 61.67,
+        "top": 12.59,
+        "bottom": 33.07
+      },
+      "panel": {
+        "l": 202,
+        "right": 431,
+        "top": 1,
+        "bottom": 39
+      },
+      "text": "อากาศไม่ร้อนจัด",
+      "hidden": false,
+      "warningVisible": false,
+      "warningText": "",
+      "title": "อุณหภูมิไม่ร้อนจัด ทั้งนี้ความปลอดภัยขึ้นอยู่กับแสงแดด การออกแรง สุขภาพและสภาพแวดล้อมด้วย",
+      "scroll": 193,
+      "client": 193,
+      "unitVisible": true
+    },
+    {
+      "id": "warm",
+      "value": "28",
+      "font": "90px",
+      "num": {
+        "l": 152,
+        "right": 187.29,
+        "top": 1,
+        "bottom": 36.33
+      },
+      "unit": {
+        "l": 189.63,
+        "right": 198.46,
+        "top": 25.33,
+        "bottom": 32.67
+      },
+      "guide": {
+        "l": 135,
+        "right": 200,
+        "top": 32.33,
+        "bottom": 39
+      },
+      "heatWarn": {
+        "l": 0,
+        "right": 0,
+        "top": 0,
+        "bottom": 0
+      },
+      "feels": {
+        "l": 159.33,
+        "right": 186.41,
+        "top": 1.33,
+        "bottom": 7.67
+      },
+      "clock": {
+        "l": 6.67,
+        "right": 61.67,
+        "top": 12.59,
+        "bottom": 33.07
+      },
+      "panel": {
+        "l": 202,
+        "right": 431,
+        "top": 1,
+        "bottom": 39
+      },
+      "text": "พักและดื่มน้ำ",
+      "hidden": false,
+      "warningVisible": false,
+      "warningText": "",
+      "title": "เริ่มมีความเสี่ยงจากความร้อนเมื่อสัมผัสนาน ควรพักและดื่มน้ำ",
+      "scroll": 193,
+      "client": 193,
+      "unitVisible": true
+    },
+    {
+      "id": "sun",
+      "value": "30",
+      "font": "90px",
+      "num": {
+        "l": 152,
+        "right": 188.18,
+        "top": 1,
+        "bottom": 36.33
+      },
+      "unit": {
+        "l": 190.51,
+        "right": 199.35,
+        "top": 25.33,
+        "bottom": 32.67
+      },
+      "guide": {
+        "l": 135,
+        "right": 200,
+        "top": 32.33,
+        "bottom": 39
+      },
+      "heatWarn": {
+        "l": 114.33,
+        "right": 142.88,
+        "top": 1.33,
+        "bottom": 7.67
+      },
+      "feels": {
+        "l": 159.33,
+        "right": 186.41,
+        "top": 1.33,
+        "bottom": 7.67
+      },
+      "clock": {
+        "l": 6.67,
+        "right": 61.67,
+        "top": 12.59,
+        "bottom": 33.07
+      },
+      "panel": {
+        "l": 202,
+        "right": 431,
+        "top": 1,
+        "bottom": 39
+      },
+      "text": "หลีกเลี่ยงแดดจัด",
+      "hidden": false,
+      "warningVisible": true,
+      "warningText": "⚠ ระวังร้อน",
+      "title": "ดัชนีความร้อนสูง ควรลดกิจกรรมกลางแจ้ง พักและดื่มน้ำ",
+      "scroll": 193,
+      "client": 193,
+      "unitVisible": true
+    },
+    {
+      "id": "heat",
+      "value": "36",
+      "font": "90px",
+      "num": {
+        "l": 152,
+        "right": 187.78,
+        "top": 1,
+        "bottom": 36.33
+      },
+      "unit": {
+        "l": 190.11,
+        "right": 198.95,
+        "top": 25.33,
+        "bottom": 32.67
+      },
+      "guide": {
+        "l": 135,
+        "right": 200,
+        "top": 32.33,
+        "bottom": 39
+      },
+      "heatWarn": {
+        "l": 114.33,
+        "right": 148.68,
+        "top": 1.33,
+        "bottom": 7.67
+      },
+      "feels": {
+        "l": 159.33,
+        "right": 186.41,
+        "top": 1.33,
+        "bottom": 7.67
+      },
+      "clock": {
+        "l": 6.67,
+        "right": 61.67,
+        "top": 12.59,
+        "bottom": 33.07
+      },
+      "panel": {
+        "l": 202,
+        "right": 431,
+        "top": 1,
+        "bottom": 39
+      },
+      "text": "ระวัง Heatstroke",
+      "hidden": false,
+      "warningVisible": true,
+      "warningText": "⚠ ระวังร้อนจัด",
+      "title": "ดัชนีความร้อนสูงมาก หลีกเลี่ยงการอยู่กลางแจ้งและกิจกรรมหนัก เสี่ยงโรคลมร้อน (Heatstroke)",
+      "scroll": 193,
+      "client": 193,
+      "unitVisible": true
+    },
+    {
+      "id": "extreme",
+      "value": "42",
+      "font": "90px",
+      "num": {
+        "l": 152,
+        "right": 187.13,
+        "top": 1,
+        "bottom": 36.33
+      },
+      "unit": {
+        "l": 189.46,
+        "right": 198.3,
+        "top": 25.33,
+        "bottom": 32.67
+      },
+      "guide": {
+        "l": 135,
+        "right": 200,
+        "top": 32.33,
+        "bottom": 39
+      },
+      "heatWarn": {
+        "l": 114.33,
+        "right": 148.68,
+        "top": 1.33,
+        "bottom": 7.67
+      },
+      "feels": {
+        "l": 159.33,
+        "right": 186.41,
+        "top": 1.33,
+        "bottom": 7.67
+      },
+      "clock": {
+        "l": 6.67,
+        "right": 61.67,
+        "top": 12.59,
+        "bottom": 33.07
+      },
+      "panel": {
+        "l": 202,
+        "right": 431,
+        "top": 1,
+        "bottom": 39
+      },
+      "text": "ระวัง Heatstroke",
+      "hidden": false,
+      "warningVisible": true,
+      "warningText": "⚠ ระวังร้อนจัด",
+      "title": "ดัชนีความร้อนสูงมาก หลีกเลี่ยงการอยู่กลางแจ้งและกิจกรรมหนัก เสี่ยงโรคลมร้อน (Heatstroke)",
+      "scroll": 193,
+      "client": 193,
+      "unitVisible": true
+    },
+    {
+      "id": "triple",
+      "value": "100",
+      "font": "90px",
+      "num": {
+        "l": 134.67,
+        "right": 185.11,
+        "top": 1,
+        "bottom": 36.33
+      },
+      "unit": {
+        "l": 187.44,
+        "right": 196.28,
+        "top": 25.33,
+        "bottom": 32.67
+      },
+      "guide": {
+        "l": 133,
+        "right": 198,
+        "top": 32.33,
+        "bottom": 39
+      },
+      "heatWarn": {
+        "l": 0,
+        "right": 0,
+        "top": 0,
+        "bottom": 0
+      },
+      "feels": {
+        "l": 159.33,
+        "right": 189.74,
+        "top": 1.33,
+        "bottom": 7.67
+      },
+      "clock": {
+        "l": 6.67,
+        "right": 61.67,
+        "top": 12.59,
+        "bottom": 33.07
+      },
+      "panel": {
+        "l": 202,
+        "right": 431,
+        "top": 1,
+        "bottom": 39
+      },
+      "text": "ตรวจสอบข้อมูล",
+      "hidden": false,
+      "warningVisible": false,
+      "warningText": "",
+      "title": "อุณหภูมิอยู่นอกช่วงใช้งานทั่วไป ห้ามตีความเป็นคำเตือนสุขภาพที่ตรวจยืนยันแล้ว",
+      "scroll": 193,
+      "client": 193,
+      "unitVisible": true
+    },
+    {
+      "id": "quad",
+      "value": "1000",
+      "font": "90px",
+      "num": {
+        "l": 117.33,
+        "right": 186.43,
+        "top": 1,
+        "bottom": 36.33
+      },
+      "unit": {
+        "l": 188.77,
+        "right": 197.6,
+        "top": 25.33,
+        "bottom": 32.67
+      },
+      "guide": {
+        "l": 125,
+        "right": 190,
+        "top": 32.33,
+        "bottom": 39
+      },
+      "heatWarn": {
+        "l": 0,
+        "right": 0,
+        "top": 0,
+        "bottom": 0
+      },
+      "feels": {
+        "l": 159.33,
+        "right": 193.07,
+        "top": 1.33,
+        "bottom": 7.67
+      },
+      "clock": {
+        "l": 6.67,
+        "right": 61.67,
+        "top": 12.59,
+        "bottom": 33.07
+      },
+      "panel": {
+        "l": 202,
+        "right": 431,
+        "top": 1,
+        "bottom": 39
+      },
+      "text": "ตรวจสอบข้อมูล",
+      "hidden": false,
+      "warningVisible": false,
+      "warningText": "",
+      "title": "อุณหภูมิอยู่นอกช่วงใช้งานทั่วไป ห้ามตีความเป็นคำเตือนสุขภาพที่ตรวจยืนยันแล้ว",
+      "scroll": 193,
+      "client": 193,
+      "unitVisible": true
+    },
+    {
+      "id": "negative",
+      "value": "-10",
+      "font": "90px",
+      "num": {
+        "l": 134.67,
+        "right": 177.42,
+        "top": 1,
+        "bottom": 36.33
+      },
+      "unit": {
+        "l": 179.75,
+        "right": 188.59,
+        "top": 25.33,
+        "bottom": 32.67
+      },
+      "guide": {
+        "l": 129.33,
+        "right": 194.33,
+        "top": 32.33,
+        "bottom": 39
+      },
+      "heatWarn": {
+        "l": 0,
+        "right": 0,
+        "top": 0,
+        "bottom": 0
+      },
+      "feels": {
+        "l": 159.33,
+        "right": 188.31,
+        "top": 1.33,
+        "bottom": 7.67
+      },
+      "clock": {
+        "l": 6.67,
+        "right": 61.67,
+        "top": 12.59,
+        "bottom": 33.07
+      },
+      "panel": {
+        "l": 202,
+        "right": 431,
+        "top": 1,
+        "bottom": 39
+      },
+      "text": "สวมเสื้อให้อุ่น",
+      "hidden": false,
+      "warningVisible": false,
+      "warningText": "",
+      "title": "อุณหภูมิต่ำ ควรสวมเสื้อผ้าที่ช่วยรักษาความอบอุ่น",
+      "scroll": 193,
+      "client": 193,
+      "unitVisible": true
+    },
+    {
+      "id": "without-rh",
+      "value": "30",
+      "font": "90px",
+      "num": {
+        "l": 152,
+        "right": 188.18,
+        "top": 1,
+        "bottom": 36.33
+      },
+      "unit": {
+        "l": 190.51,
+        "right": 199.35,
+        "top": 25.33,
+        "bottom": 32.67
+      },
+      "guide": {
+        "l": 135,
+        "right": 200,
+        "top": 32.33,
+        "bottom": 39
+      },
+      "heatWarn": {
+        "l": 0,
+        "right": 0,
+        "top": 0,
+        "bottom": 0
+      },
+      "feels": {
+        "l": 159.33,
+        "right": 186.41,
+        "top": 1.33,
+        "bottom": 7.67
+      },
+      "clock": {
+        "l": 6.67,
+        "right": 61.67,
+        "top": 12.59,
+        "bottom": 33.07
+      },
+      "panel": {
+        "l": 202,
+        "right": 431,
+        "top": 1,
+        "bottom": 39
+      },
+      "text": "ดื่มน้ำและพัก",
+      "hidden": false,
+      "warningVisible": false,
+      "warningText": "",
+      "title": "อากาศร้อน ควรดื่มน้ำและพักเมื่อมีกิจกรรมกลางแจ้ง",
+      "scroll": 193,
+      "client": 193,
+      "unitVisible": true
+    },
+    {
+      "id": "missing",
+      "value": "—",
+      "font": "90px",
+      "num": {
+        "l": 152,
+        "right": 176.43,
+        "top": 1,
+        "bottom": 36.33
+      },
+      "unit": {
+        "l": 178.76,
+        "right": 187.6,
+        "top": 25.33,
+        "bottom": 32.67
+      },
+      "guide": {
+        "l": 0,
+        "right": 0,
+        "top": 0,
+        "bottom": 0
+      },
+      "heatWarn": {
+        "l": 0,
+        "right": 0,
+        "top": 0,
+        "bottom": 0
+      },
+      "feels": {
+        "l": 159.33,
+        "right": 183.2,
+        "top": 1.33,
+        "bottom": 7.67
+      },
+      "clock": {
+        "l": 6.67,
+        "right": 61.67,
+        "top": 12.59,
+        "bottom": 33.07
+      },
+      "panel": {
+        "l": 202,
+        "right": 431,
+        "top": 1,
+        "bottom": 39
+      },
+      "text": "",
+      "hidden": true,
+      "warningVisible": false,
+      "warningText": "",
+      "title": "",
+      "scroll": 0,
+      "client": 0,
+      "unitVisible": true
+    },
+    {
+      "id": "historical",
+      "value": "36",
+      "font": "90px",
+      "num": {
+        "l": 152,
+        "right": 187.78,
+        "top": 1,
+        "bottom": 36.33
+      },
+      "unit": {
+        "l": 190.11,
+        "right": 198.95,
+        "top": 25.33,
+        "bottom": 32.67
+      },
+      "guide": {
+        "l": 0,
+        "right": 0,
+        "top": 0,
+        "bottom": 0
+      },
+      "heatWarn": {
+        "l": 0,
+        "right": 0,
+        "top": 0,
+        "bottom": 0
+      },
+      "feels": {
+        "l": 0,
+        "right": 0,
+        "top": 0,
+        "bottom": 0
+      },
+      "clock": {
+        "l": 6.67,
+        "right": 61.67,
+        "top": 12.59,
+        "bottom": 33.07
+      },
+      "panel": {
+        "l": 202,
+        "right": 431,
+        "top": 1,
+        "bottom": 39
+      },
+      "text": "",
+      "hidden": true,
+      "warningVisible": false,
+      "warningText": "",
+      "title": "",
+      "scroll": 0,
+      "client": 0,
+      "unitVisible": true
+    }
+  ],
+  "fallback": {
+    "font": "90px",
+    "unitRight": 197.6041717529297,
+    "hybrid": false,
+    "guide": "ตรวจสอบข้อมูล"
+  },
+  "reduced": {
+    "font": "90px",
+    "text": "ระวัง Heatstroke"
+  }
+}

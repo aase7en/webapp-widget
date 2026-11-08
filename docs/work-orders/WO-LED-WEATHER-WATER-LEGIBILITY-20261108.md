@@ -39,3 +39,44 @@
 - Local Node test suite: 524/524 PASS at pre-candidate.
 - Next safe action: freeze SHA, independent review and hosted CI, preview
   user-facing design; no Production merge until approval of this revision.
+
+
+## Latest owner change — 2026-11-08 03:59 UTC (supersedes Weather-only scope)
+- **Approved and locked:** Water Level 7D chart, m MSL and captions; Weather
+  trailing degree unit °C and two-digit big temperature. Do not redesign.
+- New explicit authorization: display **one separate practical guidance badge
+  beneath the temperature**, preserving the existing upper Heat warning and
+  top Feels Like chip; move the 3-4 digit main number left instead of shrinking.
+  Keep the **same 90 board-px font** in all cases. The older WO's prohibition
+  on modifying Weather heat logic remains for existing warning thresholds;
+  a new display-only guidance mapper using the existing heat() calculation
+  is specifically authorized by this later owner instruction.
+- **Evidence sources checked 2026-11-08:** US NWS official Heat Index ranges
+  80/90/103/125 °F translate to ~26.7/32.2/39.4/51.7 °C. Original NWS
+  bands are applicable as guidance context, NOT official Thai local alerts:
+  https://www.weather.gov/ama/heatindex
+  WHO (31 July 2026) emphasizes acclimatization and local conditions, no
+  universal 'safe' air temperature: https://www.who.int/en/news-room/fact-sheets/detail/climate-change-heat-and-health
+  CDC heat safety: https://www.cdc.gov/heat-health/about/index.html
+- New Weather guidance: below 16 °C 'สวมเสื้อให้อุ่น'; 16-19 °C
+  'พกเสื้อกันหนาว' (editorial clothing comfort, not international thresholds);
+  20-26.7 °C 'อากาศไม่ร้อนจัด', not 'ไม่อันตราย'; NWS Heat Index
+  26.7/32.2/39.4/51.7 °C yields increasing advice to rest/drink, avoid strong
+  sun, and beware Heatstroke. With missing relative humidity, use cautious
+  air-temperature-only suggestions, never falsely claim a Heat Index.
+- Historical/unavailable => no health guidance. Grossly implausible test
+  values 100-1000 °C => 'ตรวจสอบข้อมูล' instead of fabricated risk.
+  Original live warning calculation stays at h >=33/40 when in the plausible
+  physical input range; high out-of-domain values are NOT treated as real.
+- Geometry: hybrid 3 digits translate -133px vs 2 digits -81px; 4 digits
+  -185px. All use font-size=90px. New badge at y97..117 board px.
+  The existing heat warning moves to unused upper band for coexistence;
+  Feels Like and forecast panels remain untouched. Legacy fallback uses same
+  no-shrink translations.
+- Tests: scripts/qa-weather-advice-20261108.cjs directly calls actual Weather
+  renderer with 13 SIMULATED fixtures, measures degree visibility, clock/
+  Forecast gaps, advice no clipping, stale/missing, non-hybrid fallback and
+  reduced-motion. tests/weather-guidance-20261108.test.cjs pins source
+  classification + NWS boundaries, without any network or production data.
+- This is a **new Weather-only candidate addition to open PR #98**; still no
+  Production merge without owner review and exact-SHA CI/independent review.
