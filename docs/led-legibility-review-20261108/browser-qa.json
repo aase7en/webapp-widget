@@ -1,0 +1,190 @@
+{
+  "kind": "SIMULATED_QA_NOT_LIVE",
+  "viewport": "432x40 DPR3",
+  "weather": [
+    {
+      "value": "24",
+      "digits": {
+        "l": 152,
+        "r": 187.01,
+        "t": 1,
+        "b": 36.33
+      },
+      "unit": {
+        "l": 189.34,
+        "r": 198.18,
+        "t": 25.33,
+        "b": 32.67
+      },
+      "panel": {
+        "l": 202,
+        "r": 431,
+        "t": 1,
+        "b": 39
+      },
+      "text": "°C",
+      "opaque": "rgb(230, 250, 255)",
+      "front": true
+    },
+    {
+      "value": "-10",
+      "digits": {
+        "l": 152,
+        "r": 184.07,
+        "t": 1.33,
+        "b": 29
+      },
+      "unit": {
+        "l": 186.4,
+        "r": 195.24,
+        "t": 19.33,
+        "b": 26.67
+      },
+      "panel": {
+        "l": 202,
+        "r": 431,
+        "t": 1,
+        "b": 39
+      },
+      "text": "°C",
+      "opaque": "rgb(230, 250, 255)",
+      "front": true
+    },
+    {
+      "value": "100",
+      "digits": {
+        "l": 152,
+        "r": 190.05,
+        "t": 1.33,
+        "b": 29
+      },
+      "unit": {
+        "l": 192.39,
+        "r": 201.22,
+        "t": 19.33,
+        "b": 26.67
+      },
+      "panel": {
+        "l": 202,
+        "r": 431,
+        "t": 1,
+        "b": 39
+      },
+      "text": "°C",
+      "opaque": "rgb(230, 250, 255)",
+      "front": true
+    },
+    {
+      "value": "1000",
+      "digits": {
+        "l": 145.33,
+        "r": 189.08,
+        "t": 1.67,
+        "b": 25.33
+      },
+      "unit": {
+        "l": 191.42,
+        "r": 200.26,
+        "t": 16.33,
+        "b": 23.67
+      },
+      "panel": {
+        "l": 202,
+        "r": 431,
+        "t": 1,
+        "b": 39
+      },
+      "text": "°C",
+      "opaque": "rgb(230, 250, 255)",
+      "front": true
+    },
+    {
+      "value": "—",
+      "digits": {
+        "l": 152,
+        "r": 176.43,
+        "t": 1,
+        "b": 36.33
+      },
+      "unit": {
+        "l": 178.76,
+        "r": 187.6,
+        "t": 25.33,
+        "b": 32.67
+      },
+      "panel": {
+        "l": 202,
+        "r": 431,
+        "t": 1,
+        "b": 39
+      },
+      "text": "°C",
+      "opaque": "rgb(230, 250, 255)",
+      "front": true
+    }
+  ],
+  "water": [
+    {
+      "id": "stationA",
+      "value": "2.34m MSL",
+      "unit": {
+        "l": 176.83,
+        "r": 197.04,
+        "t": 24.46,
+        "b": 30.21
+      },
+      "spark": {
+        "l": 199,
+        "r": 241,
+        "t": 25.67,
+        "b": 34.67
+      },
+      "title": "31H / 7D",
+      "aria": "30 observed readings cover 31.0 hours within a seven-day lookback. Horizontal axis represents the actual observed time span; it does not imply seven complete days of measurements",
+      "first": "5.0",
+      "last": "332.0",
+      "count": 30,
+      "detail": "OBS 08 Nov 09:39",
+      "bank": "GROUND–BANK 58.8%",
+      "status": "ต่ำกว่าตลิ่ง"
+    },
+    {
+      "id": "stationB",
+      "value": "1.91m MSL",
+      "unit": {
+        "l": 352.76,
+        "r": 372.97,
+        "t": 24.46,
+        "b": 30.21
+      },
+      "spark": {
+        "l": 381.33,
+        "r": 423.33,
+        "t": 25.67,
+        "b": 34.67
+      },
+      "title": "41H / 7D",
+      "aria": "30 observed readings cover 41.0 hours within a seven-day lookback. Horizontal axis represents the actual observed time span; it does not imply seven complete days of measurements",
+      "first": "5.0",
+      "last": "332.0",
+      "count": 30,
+      "detail": "OBS 08 Nov 09:39",
+      "bank": "GROUND–BANK 58.8%",
+      "status": "ต่ำกว่าตลิ่ง"
+    }
+  ],
+  "missing": [
+    {
+      "id": "stationA",
+      "title": "7D HISTORY",
+      "text": "NO DATA",
+      "spark": 0
+    },
+    {
+      "id": "stationB",
+      "title": "7D HISTORY",
+      "text": "NO DATA",
+      "spark": 0
+    }
+  ]
+}

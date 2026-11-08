@@ -78,12 +78,35 @@ test('spark area uses station-specific gradient and rejects malformed paths',()=
  const spark=Function(js.slice(begin,end)+';return sparkSvg;')();
  const first=spark('M5.0 20.0 L332.0 110.0','s1'),second=spark('M5.0 20.0 L332.0 110.0','s2');
  assert.match(first,/id="water-fill-s1"/);assert.match(second,/id="water-fill-s2"/);assert.match(first,/L332\.0 125 L5\.0 125 Z/);assert.match(first,/stop-opacity="\.65"/);assert.match(first,/stop-opacity="\.03"/);
- assert.match(spark('M5 20 L332 110 Z" onload="evil','s1'),/รอประวัติ/);assert.match(spark('M5 20 L332 110','unexpected'),/รอประวัติ/);
+ assert.match(spark('M5 20 L332 110 Z" onload="evil','s1'),/NO DATA/);assert.match(spark('M5 20 L332 110','unexpected'),/NO DATA/);
 });
 
-test('history chart uses a fixed seven-day time window and excludes old or future points',()=>{
+test('history chart filters to a seven-day lookback but spreads only actual observation coverage',()=>{
  const begin=js.indexOf('function historyPath('),end=js.indexOf('\nfunction apply(',begin);const history=Function(js.slice(begin,end)+';return historyPath;')();
  const now=Date.parse('2026-10-30T12:00:00Z'),times=[-9,-6,-1,0.1].map(d=>new Date(now+d*86400000).toISOString());
- const p=history({trendPoints:[9,1,2,8],trendObservedAt:times},now);assert.match(p,/^M51\.7 /);assert.match(p,/ L285\.3 /);assert.equal((p.match(/[ML]/g)||[]).length,2);
- const sparse=history({trendPoints:[1,2],trendObservedAt:[new Date(now-7200000).toISOString(),new Date(now-3600000).toISOString()]},now);assert.match(sparse,/^M328\.1 /);assert.match(sparse,/ L330\.1 /);
+ const p=history({trendPoints:[9,1,2,8],trendObservedAt:times},now);assert.match(p,/^M5\.0 /);assert.match(p,/ L332\.0 /);assert.equal((p.match(/[ML]/g)||[]).length,2);
+ const sparse=history({trendPoints:[1,2],trendObservedAt:[new Date(now-7200000).toISOString(),new Date(now-3600000).toISOString()]},now);assert.match(sparse,/^M5\.0 /);assert.match(sparse,/ L332\.0 /);
+});
+
+
+test('history caption never claims complete seven days when only hours are observed',()=>{
+ const begin=js.indexOf('function trendCaption('),end=js.indexOf('\nfunction renderStation(',begin);assert.ok(begin>0&&end>begin);
+ const caption=Function(js.slice(begin,end)+';return trendCaption;')();
+ const now=Date.parse('2026-11-08T02:30:00Z');
+ const reading=(hours)=>({trendPoints:Array.from({length:30},(_,i)=>2.5+i*.002),trendObservedAt:Array.from({length:30},(_,i)=>new Date(now-(hours-i*hours/29)*3600000).toISOString())});
+ assert.equal(caption(reading(31),now).label,'31H / 7D');
+ assert.equal(caption(reading(41),now).label,'41H / 7D');
+ assert.match(caption(reading(31),now).description,/30 observed readings cover 31\.0 hours within a seven-day lookback/);
+ assert.equal(caption({trendPoints:[2.5],trendObservedAt:[new Date(now).toISOString()]},now).label,'7D HISTORY');
+ assert.equal(caption({trendPoints:[2.5,2.6],trendObservedAt:[new Date(now-8*86400000).toISOString(),new Date(now).toISOString()]},now).label,'7D HISTORY');
+});
+test('English datum m MSL has no conversion; statuses and measured timestamps stay intact',()=>{
+ assert.match(js,/metres relative to mean sea level/);
+ assert.match(js,/<span class="unit"[^>]*>m MSL<\/span>/);
+ assert.match(js,/HII REFERENCE/);
+ assert.match(js,/OBS /);
+ assert.match(js,/GROUND–BANK /);
+ assert.match(js,/st\.datum=valid\?'MSL':null/);
+ assert.match(js,/const value=typeof st\.value==='number'&&Number\.isFinite\(st\.value\)\?st\.value\.toFixed\(2\)/);
+ assert.match(js,/const windowStart=now-7\*86400000/);
 });

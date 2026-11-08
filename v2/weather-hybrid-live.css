@@ -111,3 +111,19 @@ html.weather-hybrid-ready .hybrid-panel{display:grid}
   position:absolute;top:0;left:0;font:900 12px/15px Inter,"Thonburi",Arial,sans-serif;
   padding:1px 4px;box-shadow:none;text-shadow:none;white-space:nowrap;
 }
+
+
+/* 2026-11-08: the degree sign must remain visible after the digits.
+   Old negative margin (-6) and vertical-align (+11) put the tiny ° behind
+   the glyph / hybrid overlay. Reserve a positive optical gap, lower the
+   22px trailing unit, and render it as solid text above decorative layers. */
+.board.layout-hybrid .temp{transform:translateX(-81px);white-space:nowrap}
+.board .temp small,.board.layout-hybrid .temp small{
+ display:inline-block;font-size:22px;line-height:1;vertical-align:-5px;
+ margin-left:7px;letter-spacing:0;position:relative;z-index:8;
+ color:#e6faff;-webkit-text-fill-color:#e6faff;
+ background:none;text-shadow:0 0 3px #004e70;
+}
+/* For extreme four-character temperatures preserve °C before the
+   x=202 native-pixel metrics panel without moving normal temperatures. */
+.board.layout-hybrid .temp[data-long-temp="yes"]{transform:translateX(-101px)}
