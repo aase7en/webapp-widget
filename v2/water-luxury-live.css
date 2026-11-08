@@ -394,3 +394,23 @@ body{position:relative}
    foam, and the decorative border overlays without moving the clock. */
 .widget.v3 .clock{overflow:visible;z-index:12}
 .widget.v3 .clock .date,.widget.v3 .clock .time{position:relative;z-index:13}
+
+
+/* The first station's datum formerly overlapped its 7D sparkline by ~5
+   native LED pixels. Pull only the value+unit group 21 board px left,
+   preserving both station headings, badges, history title, and clock. */
+.widget.v3 .reading-row{transform:translate(-21px,4px)}
+
+/* 2026-11-08: English datum and honest history coverage, compact LED order.
+   m MSL is metres relative to Mean Sea Level (ThaiWater's ม.รทก.).
+   The data labels are in the station info, never on top of the sparkline. */
+.widget.v3 .big-level .unit{
+ font-size:18px;margin-left:4px;letter-spacing:0;white-space:nowrap;
+ color:#b9f5ff;-webkit-text-fill-color:#b9f5ff;text-shadow:0 0 3px #072f4e;
+}
+.widget.v3 .status-trend .trend-title{
+ font-size:11px;line-height:11px;letter-spacing:0;white-space:nowrap;
+ color:#d4f5ff;font-weight:900;
+}
+.widget.v3 .reading-detail .delta{font-size:10px!important;letter-spacing:0}
+.widget.v3 .bank-percent{font-size:9px;letter-spacing:0}

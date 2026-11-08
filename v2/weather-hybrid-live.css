@@ -96,7 +96,7 @@ html.weather-hybrid-ready .hybrid-panel{display:grid}
   transform:none;display:block;z-index:6;pointer-events:none;
 }
 .board.layout-hybrid .feel{left:478px;width:126px;transform:none}
-.board .feel-value,.board .heat-tag{
+.board .feel-value{
   position:absolute;left:0;display:inline-flex;align-items:center;
   box-sizing:border-box;white-space:nowrap;font:900 15px/15px Inter,"Thonburi",Arial,sans-serif;
   padding:1px 5px;border-radius:4px;box-shadow:none;text-shadow:none;
@@ -104,10 +104,57 @@ html.weather-hybrid-ready .hybrid-panel{display:grid}
 .board .feel-value{top:0;gap:3px;background:#061b30;border:1px solid #57b6d5;color:#e2fbff}
 .board .feel-value b{font-weight:950;color:#ffcb9e}
 .board .feel-thermometer{width:13px;height:15px;flex:none;color:#ffbc86}
-.board .heat-tag{top:92px;background:#542a0a;border:1px solid #f2b34e;color:#ffe5b1;pointer-events:auto}
-.board .feel-value[hidden],.board .heat-tag[hidden],.board .source-at[hidden]{display:none!important}
+.board .feel-value[hidden],.board .source-at[hidden]{display:none!important}
 /* Legacy fail-safe: historical source-time replaces Feels, not the safety warning. */
 .board:not(.layout-hybrid) .feel .source-at:not([hidden]){
   position:absolute;top:0;left:0;font:900 12px/15px Inter,"Thonburi",Arial,sans-serif;
   padding:1px 4px;box-shadow:none;text-shadow:none;white-space:nowrap;
 }
+
+
+/* 2026-11-08: the degree sign must remain visible after the digits.
+   Old negative margin (-6) and vertical-align (+11) put the tiny ° behind
+   the glyph / hybrid overlay. Reserve a positive optical gap, lower the
+   22px trailing unit, and render it as solid text above decorative layers. */
+/* Keep 90px numerals at every length. Move long readings toward the unused
+   illustration space instead of shrinking the owner's approved 2-digit font. */
+.board.layout-hybrid .temp{transform:translateX(-81px);white-space:nowrap}
+.board.layout-hybrid .temp[data-temp-digits="3"]{transform:translateX(-133px)}
+.board.layout-hybrid .temp[data-temp-digits="4"]{transform:translateX(-185px)}
+.board.layout-hybrid .temp[data-temp-digits="5"]{transform:translateX(-225px)}
+/* Same no-shrink geometry when the optional hybrid renderer is unavailable. */
+.board:not(.layout-hybrid) .temp{transform:translateX(-81px);white-space:nowrap}
+.board:not(.layout-hybrid) .temp[data-temp-digits="3"]{transform:translateX(-133px)}
+.board:not(.layout-hybrid) .temp[data-temp-digits="4"]{transform:translateX(-185px)}
+.board:not(.layout-hybrid) .temp[data-temp-digits="5"]{transform:translateX(-225px)}
+.board .temp small,.board.layout-hybrid .temp small{
+ display:inline-block;font-size:22px;line-height:1;vertical-align:-5px;
+ margin-left:7px;letter-spacing:0;position:relative;z-index:8;
+ color:#e6faff;-webkit-text-fill-color:#e6faff;
+ background:none;text-shadow:0 0 3px #004e70;
+}
+/* For extreme four-character temperatures preserve °C before the
+   x=202 native-pixel metrics panel without moving normal temperatures. */
+/* The existing long-temp attribute is retained for regression compatibility;
+   digit-count selectors above own the geometry, with no font-size reduction. */
+
+
+/* Exactly one practical risk/comfort badge BELOW the large digits.
+   The owner removed the redundant upper warning; the Feels chip stays.
+   All distances are 1296x120 board px, rendered to 432x40 native LED. */
+.board .temp-guidance{
+ position:absolute;top:97px;left:var(--temp-guidance-left,405px);
+ width:195px;height:20px;box-sizing:border-box;z-index:8;
+ display:flex;align-items:center;justify-content:center;
+ padding:1px 3px;border-radius:5px;white-space:nowrap;
+ background:#092b38;border:1px solid #75d9ff;
+ color:#eafaff;-webkit-text-fill-color:#eafaff;
+ font:900 16px/17px Inter,"Thonburi",Arial,sans-serif;
+ letter-spacing:0;text-shadow:none;box-shadow:none;
+}
+.board .temp-guidance[hidden]{display:none!important}
+.board .temp-guidance[data-level="cold"]{border-color:#91dfff;color:#dbf4ff;background:#092943}
+.board .temp-guidance[data-level="mild"]{border-color:#71d5bb;color:#eafff6;background:#0b3030}
+.board .temp-guidance[data-level="caution"]{border-color:#e0c65d;color:#fff0bb;background:#3a2c0a}
+.board .temp-guidance[data-level="danger"]{border-color:#ff9c64;color:#ffe6c6;background:#52230f}
+.board .temp-guidance[data-level="extreme"]{border-color:#ff6e6e;color:#fff1e9;background:#5b1616}
