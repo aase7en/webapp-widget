@@ -18,36 +18,29 @@
 .hybrid-metric[data-kind="high"]{color:#ff9381}.hybrid-metric[data-kind="low"]{color:#8cd5ff}
 .hybrid-metric[data-kind="high"][data-heat="warm"] .hybrid-value{color:#ffc36a}
 .hybrid-metric[data-kind="high"][data-heat="hot"] .hybrid-value{color:#ff6a58}
-.hybrid-days{display:grid;grid-template-columns:repeat(var(--hybrid-day-count),minmax(0,1fr));height:38px;min-width:0;overflow:hidden;background:linear-gradient(180deg,#071f3c,#06152b)}
-.hybrid-day{display:flex;flex-direction:column;align-items:center;justify-content:flex-start;height:38px;min-width:0;overflow:hidden;border-right:1px solid #5d96b966}
+.hybrid-days{display:grid;grid-template-columns:repeat(var(--hybrid-day-count),minmax(0,1fr));height:100%;min-width:0;overflow:hidden;background:linear-gradient(180deg,#071f3c,#06152b)}
+.hybrid-day{display:flex;flex-direction:column;align-items:center;justify-content:flex-start;height:100%;min-width:0;overflow:hidden;border-right:1px solid #5d96b966}
 .hybrid-day:last-child{border-right:0}
-.hybrid-day-name{font:900 7px/8px Arial,Tahoma,sans-serif;color:#d6eafd;white-space:nowrap;height:8px;padding-top:1px}
-.hybrid-day-icon{width:26px;height:14px;flex:none;filter:drop-shadow(0 0 2px #0d93d2)}
+.hybrid-day-name{font:900 7px/7px Arial,Tahoma,sans-serif;color:#d6eafd;white-space:nowrap;height:7px;padding-top:0}
+.hybrid-day-icon{width:26px;height:13px;flex:none;filter:drop-shadow(0 0 2px #0d93d2)}
 .hybrid-day-temp{display:flex;justify-content:center;align-items:center;gap:1px;font:950 9px/10px Arial,Tahoma,sans-serif;white-space:nowrap;height:10px;letter-spacing:-.4px}
 .hybrid-high{color:#ffbf8f}.hybrid-low{color:#97d9ff;font-size:8.4px}.hybrid-slash{color:#76aec9;font-size:6px}
 .hybrid-high[data-heat="warm"]{color:#ffd36d}.hybrid-high[data-heat="hot"]{color:#ff7059}
 .hybrid-rain{height:6px;display:flex;align-items:center;justify-content:center;gap:1px;font:900 7px/6px Arial,Tahoma,sans-serif;color:#acdfff;white-space:nowrap}
 .hybrid-rain svg{width:5px;height:6px;fill:#40d8ff}
-.hybrid-panel[data-page="1"] .hybrid-day-icon{width:30px;height:14px}
+.hybrid-panel[data-page="1"] .hybrid-day-icon{width:30px;height:13px}
 .hybrid-panel[data-page="1"] .hybrid-day-temp{font-size:10.8px}
 .hybrid-panel[data-page="1"] .hybrid-low{font-size:9.5px}
 .hybrid-panel[data-page="1"] .hybrid-rain{font-size:8px}
 
-.hybrid-days .rf-weather-svg{position:static;left:auto;top:auto;transform:none;overflow:visible;width:26px;height:14px;flex:none}
-.hybrid-panel[data-page="1"] .hybrid-days .rf-weather-svg{width:30px;height:14px}
+.hybrid-days .rf-weather-svg{position:static;left:auto;top:auto;transform:none;overflow:visible;width:26px;height:13px;flex:none}
+.hybrid-panel[data-page="1"] .hybrid-days .rf-weather-svg{width:30px;height:13px}
 
 /* Production integration: fail safe to legacy renderer if JS does not initialize. */
 .hybrid-panel{display:none}
 html.weather-hybrid-ready .hybrid-panel{display:grid}
 .board.layout-hybrid .feel{transform:translateX(-90px);width:160px}
-.board.layout-hybrid .feel .source-at{display:none!important}
 .hybrid-panel[data-freshness="HISTORICAL"]{border:1px solid #d5a45b}
-.hybrid-status{display:none;position:absolute;z-index:10;left:86px;top:0;width:143px;min-height:8px;padding:1px 2px;background:#493017f2;border-bottom:1px solid #efc273;color:#ffe1ad;text-align:center;font:800 6px/7px Arial,Tahoma,sans-serif;white-space:nowrap}
-.hybrid-panel[data-freshness="HISTORICAL"] .hybrid-status,
-.hybrid-panel[data-freshness="UNAVAILABLE"] .hybrid-status,
-.hybrid-panel[data-forecast="UNAVAILABLE"] .hybrid-status{display:block}
-.hybrid-panel[data-freshness="UNAVAILABLE"] .hybrid-status,
-.hybrid-panel[data-forecast="UNAVAILABLE"] .hybrid-status{background:#452925f2;color:#ffd1bc}
 .hybrid-panel .hybrid-day .hybrid-missing-icon{height:14px;display:grid;place-items:center;color:#6d97af;font:900 13px/14px Arial,Tahoma,sans-serif}
 /* No broken image glyph when a validated weather model is unavailable. */
 .board.layout-hybrid #scene:not([src]),
@@ -105,13 +98,6 @@ html.weather-hybrid-ready .hybrid-panel{display:grid}
 .board .feel-value b{font-weight:950;color:#ffcb9e}
 .board .feel-thermometer{width:13px;height:15px;flex:none;color:#ffbc86}
 .board .feel-value[hidden],.board .source-at[hidden]{display:none!important}
-/* Legacy fail-safe: historical source-time replaces Feels, not the safety warning. */
-.board:not(.layout-hybrid) .feel .source-at:not([hidden]){
-  position:absolute;top:0;left:0;font:900 12px/15px Inter,"Thonburi",Arial,sans-serif;
-  padding:1px 4px;box-shadow:none;text-shadow:none;white-space:nowrap;
-}
-
-
 /* 2026-11-08: the degree sign must remain visible after the digits.
    Old negative margin (-6) and vertical-align (+11) put the tiny ° behind
    the glyph / hybrid overlay. Reserve a positive optical gap, lower the
@@ -158,3 +144,19 @@ html.weather-hybrid-ready .hybrid-panel{display:grid}
 .board .temp-guidance[data-level="caution"]{border-color:#e0c65d;color:#fff0bb;background:#3a2c0a}
 .board .temp-guidance[data-level="danger"]{border-color:#ff9c64;color:#ffe6c6;background:#52230f}
 .board .temp-guidance[data-level="extreme"]{border-color:#ff6e6e;color:#fff1e9;background:#5b1616}
+
+
+/* 2026-11-09: Source age occupies a small line below clock, never forecast. */
+.board .clock .source-at:not([hidden]){
+ position:absolute;bottom:-3px;left:8px;max-width:170px;min-height:13px;
+ font:900 13px/13px Inter,"Thonburi",Arial,sans-serif;
+ color:#ffe1a3;-webkit-text-fill-color:#ffe1a3;
+ text-shadow:0 1px 2px #00101f;white-space:nowrap;
+ overflow:hidden;text-overflow:clip;z-index:8;pointer-events:auto;
+}
+.board .feel-value[data-historical="yes"]{
+ border-color:#e4b56b;color:#ffecc8;background:#3b2d1a;
+}
+.board .temp-guidance[data-historical="yes"]{
+ border-color:#e4b56b;color:#ffe6ad;background:#3b2b16;
+}

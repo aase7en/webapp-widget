@@ -21,7 +21,9 @@ test('cold comfort tips are editorial, not an invented world health standard',()
 });
 test('missing/historical and physically impossible values fail closed',()=>{
  assert.equal(suggest(null,null,false),null);
- assert.equal(suggest(36,48,true),null);
+ assert.match(suggest(36,48,true).label,/^เดิม:/);
+ assert.equal(suggest(36,48,true).historical,true);
+ assert.match(suggest(36,48,true).detail,/ไม่ใช่คำเตือนความร้อนปัจจุบัน/);
  assert.equal(suggest(100,50,false).label,'ตรวจสอบข้อมูล');
  assert.equal(suggest(1000,50,false).label,'ตรวจสอบข้อมูล');
  assert.equal(suggest(30,null,false).label,'ดื่มน้ำและพัก');
@@ -41,7 +43,7 @@ test('one lower health badge replaces duplicate top warning, preserving accessib
  assert.doesNotMatch(css,/\.heat-tag/);
  assert.doesNotMatch(js,/#advice|d\.advice/);
  assert.match(js,/badge\.hidden=!advice/);
- assert.match(js,/badge\.setAttribute\('aria-label',advice\.detail\)/);
+ assert.match(js,/badge\.setAttribute\('aria-label',details\)/);
  assert.match(js,/if\(h>=39\.4\)return/);
  assert.match(js,/if\(h>=51\.7\)return/);
 });

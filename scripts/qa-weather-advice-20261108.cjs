@@ -2,7 +2,7 @@
 // REAL frontend renderer, SIMULATED QA fixtures only; not measured weather.
 const p=require('puppeteer'),path=require('node:path'),fs=require('node:fs'),assert=require('node:assert/strict');
 const {pathToFileURL}=require('node:url');
-const root=path.join(__dirname,'..'),out=path.join(root,'docs/led-weather-single-badge-20261108');
+const root=path.join(__dirname,'..'),out=process.env.WEATHER_QA_OUTPUT_DIR||path.join(root,'docs/weather-health-regression-20261109');
 const src=pathToFileURL(path.join(root,'v2/weather-luxury.html')).href;
 const cases=[
  ['cold',10,50,'สวมเสื้อให้อุ่น'],['jacket',18,55,'พกเสื้อกันหนาว'],
@@ -11,7 +11,7 @@ const cases=[
  ['extreme',42,75,'ระวัง Heatstroke'],['triple',100,70,'ตรวจสอบข้อมูล'],
  ['quad',1000,70,'ตรวจสอบข้อมูล'],['negative',-10,50,'สวมเสื้อให้อุ่น'],
  ['without-rh',30,null,'ดื่มน้ำและพัก'],['invalid-rh',36,300,'ร้อนจัด เลี่ยงแดด'],['missing',null,null,null],
- ['historical',36,70,null,true]
+ ['historical',36,70,'เดิม: เสี่ยงลมร้อน',true]
 ];
 (async()=>{
  fs.mkdirSync(out,{recursive:true});
@@ -24,7 +24,7 @@ const cases=[
  for(const [id,t,rh,want,old] of cases){
  const x=await pg.evaluate(({id,t,rh,old})=>{
   document.querySelector('#board').classList.add('layout-hybrid');
-  paint({temperatureC:t,humidityPct:rh,feelsC:t,high:28,low:21,rainPct:25,days:[],observedAt:new Date().toISOString(),historical:!!old,icon:null});
+  paint({temperatureC:t,humidityPct:rh,feelsC:t,high:28,low:21,rainPct:25,days:[],observedAt:new Date(Date.now()-(old?4:0)*3600000).toISOString(),historical:!!old,icon:null});
   const $=s=>document.querySelector(s),r=e=>{const b=e.getBoundingClientRect();return {l:+b.left.toFixed(2),right:+b.right.toFixed(2),top:+b.top.toFixed(2),bottom:+b.bottom.toFixed(2)}};
   const u=$('.temp small'),guidance=$('#temp-guidance'),unitBox=u.getBoundingClientRect();
   return {id,value:$('#temp').textContent,font:getComputedStyle($('.temp')).fontSize,num:r($('#temp')),unit:r(u),guide:r(guidance),upperWarningCount:document.querySelectorAll('#advice,.heat-tag').length,statusBadgeCount:document.querySelectorAll('[role="status"]').length,feels:r($('.feel-value')),clock:r($('.clock .time')),panel:r($('.hybrid-panel')),text:guidance.textContent,hidden:guidance.hidden,title:guidance.title,scroll:guidance.scrollWidth,client:guidance.clientWidth,unitVisible:document.elementFromPoint(unitBox.x+unitBox.width/2,unitBox.y+unitBox.height/2)===u};
@@ -40,7 +40,8 @@ const cases=[
   assert(!x.hidden&&x.guide.top>=31.5&&x.guide.bottom<=39.5,'badge below digits '+id);
   assert(x.guide.right<201&&x.scroll<=x.client+1,'advice no overlap or clip '+id);
   assert(x.title.length>12,'complete advice accessible '+id);
- }else{assert(x.hidden,'stale/missing no guidance '+id)}
+ }else{assert(x.hidden,'missing temperature has no advice '+id)}
+ if(old){assert(!x.hidden&&x.text.startsWith('เดิม:'),'historical advice explicitly marked old');assert(x.feels.right>0,'historical feels stays visible')}
  evidence.cases.push(x);
  if(['cold','mild','sun','heat','triple','quad','missing','historical'].includes(id))await pg.screenshot({path:path.join(out,'weather-'+id+'-432x40.png')});
  }
