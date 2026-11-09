@@ -160,3 +160,20 @@ html.weather-hybrid-ready .hybrid-panel{display:grid}
 .board .temp-guidance[data-historical="yes"]{
  border-color:#e4b56b;color:#ffe6ad;background:#3b2b16;
 }
+
+
+/* 2026-11-09: left-shift Weather art that touched the single lower advice
+   pill. Values are board px (divide by 3 on the native 432x40 LED).
+   Sprites retain their exact dimensions/APNG frames, and poster shares
+   the same class/condition for reduced-motion parity. Clouds/fog were
+   already substantially to the left and need only a small adjustment. */
+.board.layout-hybrid .icon[data-condition="partly-cloudy"],
+.board.layout-hybrid .icon[data-condition="night"],
+.board.layout-hybrid .icon[data-condition="wind"],
+.board.layout-hybrid .icon[data-condition="night-wind"]{transform:translateX(-111px)}
+.board.layout-hybrid .icon[data-condition="cloudy"],
+.board.layout-hybrid .icon[data-condition="fog"]{transform:translateX(-82px)}
+.board.layout-hybrid .icon[data-condition="rain"],
+.board.layout-hybrid .icon[data-condition="thunderstorm"]{transform:translateX(-129px)}
+.board.layout-hybrid .icon[data-condition="night-rain"],
+.board.layout-hybrid .icon[data-condition="night-thunderstorm"]{transform:translateX(-124px)}

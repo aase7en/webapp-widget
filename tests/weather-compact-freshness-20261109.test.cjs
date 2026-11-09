@@ -44,10 +44,11 @@ test('4+3 rain rows fit inside native 38 px panel after historical border',()=>{
 });
 test('Scoped cache chain updates Weather only; PM and Water unchanged',()=>{
  const page=read('v2/index.html'),entry=read('index.html');
- for(const a of ['weather-hybrid-live.js','weather-hybrid-live.css','weather-luxury.js'])assert(html.includes(a+'?v=20261109-compact-1'));
- assert(page.includes('weather-luxury.html?v=20261109-compact-1'));
- assert(entry.includes('v2/index.html?display=led&amp;v=20261109-compact-1'));
- assert(page.includes('pm25-live.html?v=20261107-graph-3'));
+ for(const a of ['weather-hybrid-live.js','weather-luxury.js'])assert(html.includes(a+'?v=20261109-compact-1'));
+ assert(html.includes('weather-hybrid-live.css?v=20261109-icons-2'));
+ assert(page.includes('weather-luxury.html?v=20261109-icons-2'));
+ assert(entry.includes('v2/index.html?display=led&amp;v=20261109-pm24-2'));
+ assert(page.includes('pm25-live.html?v=20261109-pm24-2'));
  assert(page.includes('water-luxury-live.html?v=20261108-label-1'));
  assert.doesNotMatch(core,/#advice|\.heat-tag/);
 });

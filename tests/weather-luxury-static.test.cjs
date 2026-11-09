@@ -66,12 +66,12 @@ test('paint() sets dataset.condition on the reduced-motion poster too',()=>{
 test('production embeds use new hybrid version while review demo remains pinned',()=>{
   assert.match(html,/weather-luxury\.js\?v=20261109-compact-1/,'weather-luxury.js embed in its own page');
   assert.match(html,/src="weather-snapshot\.js"/,'snapshot adapter stays unversioned (pinned by tests)');
-  assert.match(html,/weather-hybrid-live\.css\?v=20261109-compact-1/,'hybrid CSS cache-bust');
+  assert.match(html,/weather-hybrid-live\.css\?v=20261109-icons-2/,'hybrid CSS cache-bust');
   assert.match(html,/weather-hybrid-live\.js\?v=20261109-compact-1/,'hybrid JS cache-bust');
   const screen=fs.readFileSync(path.join(ROOT,'v2/index.html'),'utf8');
-  assert.match(screen,/weather-luxury\.html\?v=20261109-compact-1/,'v2/index.html weather embed');
+  assert.match(screen,/weather-luxury\.html\?v=20261109-icons-2/,'v2/index.html weather embed');
   const root=fs.readFileSync(path.join(ROOT,'index.html'),'utf8');
-  assert.match(root,/v2\/index\.html\?display=led&amp;v=20261109-compact-1/,'root index.html switcher embed');
+  assert.match(root,/v2\/index\.html\?display=led&amp;v=20261109-pm24-2/,'root index.html switcher embed');
   const demoHtml=fs.readFileSync(path.join(ROOT,'demo/final-ui-review.html'),'utf8');
   assert.match(demoHtml,/final-ui-review\.js\?v=20261104-lastknown-1/,'demo page script embed');
   const demo=fs.readFileSync(path.join(ROOT,'demo/final-ui-review.js'),'utf8');

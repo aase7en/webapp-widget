@@ -128,16 +128,41 @@ function paintWeatherSmall(d){
  humidity.textContent=NUM(w.humidityPct)?Math.round(w.humidityPct)+'%':'—';
  wind.textContent='ลม '+(NUM(w.windKmh)?Math.round(w.windKmh)+' กม./ชม.':'—');
 }
-let lastPm={status:'unavailable'},lastHistory=[];
-function publishPm(){const f=$('#pm-live-frame');if(f&&f.contentWindow)f.contentWindow.postMessage({type:'uth-pm25-live',pm25:lastPm,history:lastHistory},location.origin)}
-let historySeq=0;
+let lastPm={status:'unavailable'},lastHistory=[],historyState='loading';
+function publishPm(){const f=$('#pm-live-frame');if(f&&f.contentWindow)f.contentWindow.postMessage({type:'uth-pm25-live',pm25:lastPm,history:lastHistory,historyStatus:historyState},location.origin)}
+let historySeq=0,historyActive=false,historyFailures=0,historyRetryTimer=null;
 function readPmHistory(){return new Promise((resolve,reject)=>{
  const cb='__uthPmHistory'+Date.now().toString(36)+(historySeq++).toString(36),script=document.createElement('script');let done=false;
  const finish=(err,data)=>{if(done)return;done=true;clearTimeout(timer);delete window[cb];script.remove();err?reject(err):resolve(data)};
  window[cb]=data=>finish(null,data);const timer=setTimeout(()=>finish(Error('history timeout')),9000);
  script.onerror=()=>finish(Error('history unavailable'));script.src=window.UthaiLEDRotation.BACKEND_URL+'?action=pm25_history&callback='+cb;document.head.appendChild(script);
 })}
-async function refreshPmHistory(){try{const h=await readPmHistory();if(h&&h.schema===1&&h.status==='ok'&&h.location==='uthai'&&Array.isArray(h.points))lastHistory=h.points;else lastHistory=[]}catch(e){lastHistory=[]}publishPm()}
+/* A transient JSONP failure must not erase previously verified observations.
+   Retained points are ALWAYS window-filtered by the LED to the last 24h.
+   Bound retries (8/20/60s) prevent a 9s request timeout from blanking the
+   graph until the next 15min scheduled refresh; no invented data. */
+async function refreshPmHistory(){
+ if(historyActive)return;
+ historyActive=true;let failed=false;
+ try{
+  const h=await readPmHistory();
+  if(h&&h.schema===1&&h.status==='ok'&&h.location==='uthai'&&Array.isArray(h.points)){
+   lastHistory=h.points;historyState=h.points.length?'ok':'empty';historyFailures=0;
+   if(historyRetryTimer){clearTimeout(historyRetryTimer);historyRetryTimer=null}
+  }else failed=true;
+ }catch(e){failed=true}
+ finally{
+  historyActive=false;
+  if(failed){
+   historyState=lastHistory.length?'retained':'unavailable';
+   if(historyFailures<3&&!historyRetryTimer){
+    const wait=[8000,20000,60000][historyFailures++];
+    historyRetryTimer=setTimeout(()=>{historyRetryTimer=null;refreshPmHistory()},wait);
+   }
+  }
+  publishPm();
+ }
+}
 const pmFrame=$('#pm-live-frame');if(pmFrame)pmFrame.addEventListener('load',publishPm);
 async function refresh(){
  try{

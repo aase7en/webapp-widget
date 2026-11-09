@@ -1,0 +1,277 @@
+{
+  "kind": "SIMULATED_QA_NOT_LIVE",
+  "baseline": "Production main 95b2c924",
+  "historyMock": 14,
+  "pm": {
+    "count": 14,
+    "halos": 14,
+    "radii": [
+      "1.2",
+      "1.2",
+      "1.2",
+      "1.2",
+      "1.2",
+      "1.2",
+      "1.2",
+      "1.2",
+      "1.2",
+      "1.2",
+      "1.2",
+      "1.2",
+      "1.2",
+      "1.2"
+    ],
+    "haloRadii": [
+      "3.1",
+      "3.1",
+      "3.1",
+      "3.1",
+      "3.1",
+      "3.1",
+      "3.1",
+      "3.1",
+      "3.1",
+      "3.1",
+      "3.1",
+      "3.1",
+      "3.1",
+      "3.1"
+    ],
+    "colors": [
+      "rgb(22, 143, 242)",
+      "rgb(20, 184, 93)",
+      "rgb(219, 169, 18)",
+      "rgb(241, 122, 37)",
+      "rgb(236, 63, 71)"
+    ],
+    "haloColors": [
+      "rgb(22, 143, 242)",
+      "rgb(20, 184, 93)",
+      "rgb(219, 169, 18)",
+      "rgb(241, 122, 37)",
+      "rgb(236, 63, 71)"
+    ],
+    "noteHidden": true,
+    "noteText": "",
+    "lines": 13,
+    "svg": {
+      "x": 243.33334350585938,
+      "y": 19.666667938232422,
+      "width": 90,
+      "height": 14.333332061767578,
+      "top": 19.666667938232422,
+      "right": 333.3333435058594,
+      "bottom": 34,
+      "left": 243.33334350585938
+    },
+    "styles": {
+      "blur": "blur(0.95px)",
+      "coreFilter": "drop-shadow(rgb(22, 143, 242) 0px 0px 1.1px)"
+    }
+  },
+  "retry": {
+    "requests": 2,
+    "points": 14,
+    "noteHidden": true
+  },
+  "weather": [
+    {
+      "condition": "partly-cloudy",
+      "transform": "matrix(1, 0, 0, 1, -111, 0)",
+      "icon": {
+        "left": 72.33,
+        "right": 144,
+        "top": -1.33,
+        "bottom": 70.33
+      },
+      "pill": {
+        "left": 135,
+        "right": 200,
+        "top": 32.33,
+        "bottom": 39
+      },
+      "clock": {
+        "left": 3.67,
+        "right": 63.67,
+        "top": 3,
+        "bottom": 37.33
+      },
+      "iconUrl": "partly-cloudy.apng",
+      "label": "ระวัง Heatstroke"
+    },
+    {
+      "condition": "rain",
+      "transform": "matrix(1, 0, 0, 1, -129, 0)",
+      "icon": {
+        "left": 71.33,
+        "right": 133,
+        "top": -10,
+        "bottom": 51.67
+      },
+      "pill": {
+        "left": 135,
+        "right": 200,
+        "top": 32.33,
+        "bottom": 39
+      },
+      "clock": {
+        "left": 3.67,
+        "right": 63.67,
+        "top": 3,
+        "bottom": 37.33
+      },
+      "iconUrl": "partly-cloudy.apng",
+      "label": "ระวัง Heatstroke"
+    },
+    {
+      "condition": "night-rain",
+      "transform": "matrix(1, 0, 0, 1, -124, 0)",
+      "icon": {
+        "left": 78,
+        "right": 130,
+        "top": -4.67,
+        "bottom": 47.33
+      },
+      "pill": {
+        "left": 135,
+        "right": 200,
+        "top": 32.33,
+        "bottom": 39
+      },
+      "clock": {
+        "left": 3.67,
+        "right": 63.67,
+        "top": 3,
+        "bottom": 37.33
+      },
+      "iconUrl": "rain.apng?v=20261106-storm-clarity-1",
+      "label": "ระวัง Heatstroke"
+    },
+    {
+      "condition": "night",
+      "transform": "matrix(1, 0, 0, 1, -111, 0)",
+      "icon": {
+        "left": 64.67,
+        "right": 152,
+        "top": -13,
+        "bottom": 74.33
+      },
+      "pill": {
+        "left": 135,
+        "right": 200,
+        "top": 32.33,
+        "bottom": 39
+      },
+      "clock": {
+        "left": 3.67,
+        "right": 63.67,
+        "top": 3,
+        "bottom": 37.33
+      },
+      "iconUrl": "night-rain.apng?v=20261106-storm-clarity-1",
+      "label": "ระวัง Heatstroke"
+    },
+    {
+      "condition": "cloudy",
+      "transform": "matrix(1, 0, 0, 1, -82, 0)",
+      "icon": {
+        "left": 43.67,
+        "right": 174.67,
+        "top": -51.67,
+        "bottom": 79.33
+      },
+      "pill": {
+        "left": 135,
+        "right": 200,
+        "top": 32.33,
+        "bottom": 39
+      },
+      "clock": {
+        "left": 3.67,
+        "right": 63.67,
+        "top": 3,
+        "bottom": 37.33
+      },
+      "iconUrl": "",
+      "label": "ระวัง Heatstroke"
+    },
+    {
+      "condition": "fog",
+      "transform": "matrix(1, 0, 0, 1, -82, 0)",
+      "icon": {
+        "left": 47.33,
+        "right": 174,
+        "top": -49.67,
+        "bottom": 77
+      },
+      "pill": {
+        "left": 135,
+        "right": 200,
+        "top": 32.33,
+        "bottom": 39
+      },
+      "clock": {
+        "left": 3.67,
+        "right": 63.67,
+        "top": 3,
+        "bottom": 37.33
+      },
+      "iconUrl": "cloudy.apng",
+      "label": "ระวัง Heatstroke"
+    },
+    {
+      "condition": "wind",
+      "transform": "matrix(1, 0, 0, 1, -111, 0)",
+      "icon": {
+        "left": 60.33,
+        "right": 161,
+        "top": -39,
+        "bottom": 61.67
+      },
+      "pill": {
+        "left": 135,
+        "right": 200,
+        "top": 32.33,
+        "bottom": 39
+      },
+      "clock": {
+        "left": 3.67,
+        "right": 63.67,
+        "top": 3,
+        "bottom": 37.33
+      },
+      "iconUrl": "",
+      "label": "ระวัง Heatstroke"
+    },
+    {
+      "condition": "thunderstorm",
+      "transform": "matrix(1, 0, 0, 1, -129, 0)",
+      "icon": {
+        "left": 71.33,
+        "right": 133,
+        "top": -10,
+        "bottom": 51.67
+      },
+      "pill": {
+        "left": 135,
+        "right": 200,
+        "top": 32.33,
+        "bottom": 39
+      },
+      "clock": {
+        "left": 3.67,
+        "right": 63.67,
+        "top": 3,
+        "bottom": 37.33
+      },
+      "iconUrl": "",
+      "label": "ระวัง Heatstroke"
+    }
+  ],
+  "reduced": {
+    "animated": "none",
+    "poster": "block",
+    "posterTransform": "matrix(1, 0, 0, 1, -111, 0)",
+    "posterCondition": "partly-cloudy"
+  }
+}

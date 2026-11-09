@@ -57,7 +57,7 @@ test('point and gradient colors follow the pm25-tier thresholds',()=>{for(const 
 test('a segment crossing a band boundary interpolates between the two tier colors',()=>{const x=start(),h=Math.floor(Date.now()/3600000)*3600000;x.send({pm25:{status:'latest',value:15.1,avg24h:15.1,observedAt:freshISO(),unit:'µg/m³'},history:[{value:15,observedAt:new Date(h-3600000).toISOString()},{value:15.1,observedAt:new Date(h-1800000).toISOString()}]});const gr=x.get('#pm25-segs').children[0];assert.deepEqual(gr.children.map(s=>s.attrs['stop-color']),[PALETTE.blue,PALETTE.green]);assert.equal(gr.attrs.gradientUnits,'userSpaceOnUse')});
 test('geometry keeps the real observedAt timestamps',()=>{const x=start(),h=Math.floor(Date.now()/3600000)*3600000;x.send({pm25:{status:'latest',value:20,avg24h:20,observedAt:freshISO(),unit:'µg/m³'},history:[{value:14,observedAt:new Date(h-2*3600000).toISOString()},{value:20,observedAt:new Date(h-3600000).toISOString()}]});const gr=x.get('#pm25-segs').children[0],s=Date.now()-24*3600000,x1=((h-2*3600000)-s)/86400000*300,x2=((h-3600000)-s)/86400000*300;assert.ok(Math.abs(parseFloat(gr.attrs.x1)-x1)<0.5,'x1 '+gr.attrs.x1+' vs '+x1);assert.ok(Math.abs(parseFloat(gr.attrs.x2)-x2)<0.5,'x2 '+gr.attrs.x2+' vs '+x2)});
 
-test('graph styling follows the PM tier and points stay compact',()=>{const x=start(),now=Date.now();x.send({pm25:{status:'latest',value:50,avg24h:50,observedAt:freshISO(),unit:'µg/m³',band:'unhealthy_sensitive'},history:[{value:50,observedAt:new Date(now).toISOString()}]});assert.equal(x.get('#board').dataset.tier,'orange');assert.equal(x.get('#series').children[0].attrs.r,'1.8');x.send({pm25:{status:'unavailable'},history:[]});assert.equal(x.get('#board').dataset.tier,'')});
+test('graph styling follows the PM tier and points stay compact',()=>{const x=start(),now=Date.now();x.send({pm25:{status:'latest',value:50,avg24h:50,observedAt:freshISO(),unit:'µg/m³',band:'unhealthy_sensitive'},history:[{value:50,observedAt:new Date(now).toISOString()}]});assert.equal(x.get('#board').dataset.tier,'orange');assert.equal(grab(x,'point-halo')[0].attrs.r,'3.1');assert.equal(grab(x,'point')[0].attrs.r,'1.2');x.send({pm25:{status:'unavailable'},history:[]});assert.equal(x.get('#board').dataset.tier,'')});
 
 test('hourly reading colors the number and moves the marker independently of 24h status',()=>{const x=start();x.send({pm25:{status:'latest',value:32.2,avg24h:21.3,observedAt:freshISO(),unit:'µg/m³',band:'good'}});assert.equal(x.get('.badge').textContent,'ดี');assert.equal(x.get('#board').dataset.tier,'green');assert.equal(x.get('#board').style['--number-dark'],'#dba912');assert.ok(Math.abs(parseFloat(x.get('.scale-arrow').style.left)-51.52)<0.01);});
 
@@ -69,4 +69,24 @@ test('value number paints above the PM2.5 watermark (label z4 < readout feathers
  assert.match(css,/\.readout\{z-index:auto;isolation:auto\}/,'readout must not stay a stacking context or it pins the number under the label');
  assert.match(css,/\.readout::before\{z-index:2\}/,'readout feather keeps its old effective layer (above scene, below watermark)');
  assert.match(css,/\.number-line\{z-index:6\}/,'number-line tops the watermark at every value and shrink-to-fit state');
+});
+
+
+test('one colored luminous halo and smaller crisp point per genuine PM observation',()=>{
+ const x=start(),h=Math.floor(Date.now()/3600000)*3600000;
+ x.send({pm25:{status:'latest',value:20,avg24h:20,observedAt:freshISO(),unit:'µg/m³'},
+ history:[{value:10,observedAt:new Date(h-3600000).toISOString()},{value:50,observedAt:new Date(h-1800000).toISOString()}],historyStatus:'ok'});
+ assert.equal(grab(x,'point').length,2);assert.equal(grab(x,'point-halo').length,2);
+ assert.deepEqual(grab(x,'point-halo').map(p=>p.style.fill),[bandHex(10),bandHex(50)]);
+ assert.deepEqual(grab(x,'point').map(p=>p.style['--point-light']),[bandHex(10),bandHex(50)]);
+ assert.equal(x.get('#history-note').hidden,true);
+});
+test('transport problem never masquerades as missing measurements',()=>{
+ const x=start();
+ x.send({pm25:{status:'unavailable'},history:[],historyStatus:'loading'});
+ assert.match(x.get('#history-note').textContent,/กำลังโหลด/);
+ x.send({pm25:{status:'unavailable'},history:[],historyStatus:'unavailable'});
+ assert.match(x.get('#history-note').textContent,/ยังโหลด/);
+ x.send({pm25:{status:'unavailable'},history:[],historyStatus:'empty'});
+ assert.match(x.get('#history-note').textContent,/ไม่มีข้อมูล/);
 });
