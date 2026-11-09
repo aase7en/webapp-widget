@@ -1,0 +1,275 @@
+{
+  "kind": "SIMULATED_QA_NOT_LIVE",
+  "viewport": "432x40 DPR3",
+  "scenarios": [
+    {
+      "id": "historical",
+      "freshness": "HISTORICAL",
+      "stamp": "ข้อมูลเดิม 09:30",
+      "stampHidden": false,
+      "stampTitle": "ข้อมูลย้อนหลัง ณ 09/11/69 09:30",
+      "stampBox": {
+        "x": 6.67,
+        "y": 34,
+        "right": 36.3,
+        "bottom": 38.33
+      },
+      "timeBox": {
+        "x": 6.67,
+        "y": 12.59,
+        "right": 61.67,
+        "bottom": 33.07
+      },
+      "feels": "รู้สึก 32°",
+      "feelsHidden": false,
+      "feelsFreshness": "HISTORICAL",
+      "feelsTitle": "ค่า Feels Like จากข้อมูลย้อนหลัง ณ 09/11/69 09:30",
+      "guidance": "ตรวจข้อมูลล่าสุด",
+      "guidanceHidden": false,
+      "guidanceTitle": "ข้อมูลสภาพอากาศเป็นข้อมูลย้อนหลัง จึงไม่แสดงคำแนะนำจาก Heat Index เสมือนเป็นข้อมูลปัจจุบัน โปรดตรวจข้อมูลอากาศล่าสุด",
+      "topStatus": 0,
+      "roleStatus": 1,
+      "firstRainBox": {
+        "x": 296.36,
+        "y": 32,
+        "right": 316.38,
+        "bottom": 38
+      },
+      "panelBox": {
+        "x": 202,
+        "y": 1,
+        "right": 431,
+        "bottom": 39
+      },
+      "tempFont": "90px",
+      "unit": "°C",
+      "sourceAria": "พยากรณ์จากแบบจำลอง Open-Meteo · ข้อมูลเดิม ณ ข้อมูล ณ 09/11/69 09:30 · วัน 1 ถึง 4"
+    },
+    {
+      "id": "fresh-hot",
+      "freshness": "MODEL_LATEST",
+      "stamp": "",
+      "stampHidden": true,
+      "stampTitle": "",
+      "stampBox": {
+        "x": 0,
+        "y": 0,
+        "right": 0,
+        "bottom": 0
+      },
+      "timeBox": {
+        "x": 6.67,
+        "y": 12.59,
+        "right": 61.67,
+        "bottom": 33.07
+      },
+      "feels": "รู้สึก 39°",
+      "feelsHidden": false,
+      "feelsFreshness": "MODEL_LATEST",
+      "feelsTitle": "Feels Like จากแบบจำลองอากาศ",
+      "guidance": "ระวัง Heatstroke",
+      "guidanceHidden": false,
+      "guidanceTitle": "ดัชนีความร้อนสูงมาก หลีกเลี่ยงการอยู่กลางแจ้งและกิจกรรมหนัก เสี่ยงโรคลมร้อน (Heatstroke)",
+      "topStatus": 0,
+      "roleStatus": 1,
+      "firstRainBox": {
+        "x": 295.36,
+        "y": 31,
+        "right": 315.38,
+        "bottom": 37
+      },
+      "panelBox": {
+        "x": 202,
+        "y": 1,
+        "right": 431,
+        "bottom": 39
+      },
+      "tempFont": "90px",
+      "unit": "°C",
+      "sourceAria": "พยากรณ์จากแบบจำลอง Open-Meteo · ข้อมูลล่าสุดจากแบบจำลอง · วัน 1 ถึง 4"
+    },
+    {
+      "id": "fresh-mild",
+      "freshness": "MODEL_LATEST",
+      "stamp": "",
+      "stampHidden": true,
+      "stampTitle": "",
+      "stampBox": {
+        "x": 0,
+        "y": 0,
+        "right": 0,
+        "bottom": 0
+      },
+      "timeBox": {
+        "x": 6.67,
+        "y": 12.59,
+        "right": 61.67,
+        "bottom": 33.07
+      },
+      "feels": "รู้สึก 26°",
+      "feelsHidden": false,
+      "feelsFreshness": "MODEL_LATEST",
+      "feelsTitle": "Feels Like จากแบบจำลองอากาศ",
+      "guidance": "อากาศไม่ร้อนจัด",
+      "guidanceHidden": false,
+      "guidanceTitle": "อุณหภูมิไม่ร้อนจัด ทั้งนี้ความปลอดภัยขึ้นอยู่กับแสงแดด การออกแรง สุขภาพและสภาพแวดล้อมด้วย",
+      "topStatus": 0,
+      "roleStatus": 1,
+      "firstRainBox": {
+        "x": 295.36,
+        "y": 31,
+        "right": 315.38,
+        "bottom": 37
+      },
+      "panelBox": {
+        "x": 202,
+        "y": 1,
+        "right": 431,
+        "bottom": 39
+      },
+      "tempFont": "90px",
+      "unit": "°C",
+      "sourceAria": "พยากรณ์จากแบบจำลอง Open-Meteo · ข้อมูลล่าสุดจากแบบจำลอง · วัน 1 ถึง 4"
+    },
+    {
+      "id": "no-weather",
+      "freshness": "UNAVAILABLE",
+      "stamp": "ไม่มีข้อมูลอากาศ",
+      "stampHidden": false,
+      "stampTitle": "ไม่มีข้อมูลสภาพอากาศที่ตรวจสอบได้",
+      "stampBox": {
+        "x": 6.67,
+        "y": 34,
+        "right": 34.79,
+        "bottom": 38.33
+      },
+      "timeBox": {
+        "x": 6.67,
+        "y": 12.59,
+        "right": 61.67,
+        "bottom": 33.07
+      },
+      "feels": "รู้สึก —",
+      "feelsHidden": true,
+      "feelsFreshness": "UNAVAILABLE",
+      "feelsTitle": "",
+      "guidance": "ข้อมูลไม่พร้อม",
+      "guidanceHidden": false,
+      "guidanceTitle": "ยังไม่มีข้อมูลอากาศที่ตรวจสอบได้ จึงไม่สามารถประเมินคำแนะนำจากอุณหภูมิและความชื้น",
+      "topStatus": 0,
+      "roleStatus": 1,
+      "firstRainBox": {
+        "x": 298.88,
+        "y": 31,
+        "right": 311.88,
+        "bottom": 37
+      },
+      "panelBox": {
+        "x": 202,
+        "y": 1,
+        "right": 431,
+        "bottom": 39
+      },
+      "tempFont": "90px",
+      "unit": "°C",
+      "sourceAria": "พยากรณ์จากแบบจำลอง Open-Meteo · ไม่พร้อม · วัน 1 ถึง 4"
+    },
+    {
+      "id": "no-forecast",
+      "freshness": "MODEL_LATEST",
+      "stamp": "พยากรณ์ไม่พร้อม",
+      "stampHidden": false,
+      "stampTitle": "ข้อมูลพยากรณ์รายวันยังไม่พร้อม",
+      "stampBox": {
+        "x": 6.67,
+        "y": 34,
+        "right": 35.72,
+        "bottom": 38.33
+      },
+      "timeBox": {
+        "x": 6.67,
+        "y": 12.59,
+        "right": 61.67,
+        "bottom": 33.07
+      },
+      "feels": "รู้สึก 26°",
+      "feelsHidden": false,
+      "feelsFreshness": "MODEL_LATEST",
+      "feelsTitle": "Feels Like จากแบบจำลองอากาศ",
+      "guidance": "อากาศไม่ร้อนจัด",
+      "guidanceHidden": false,
+      "guidanceTitle": "อุณหภูมิไม่ร้อนจัด ทั้งนี้ความปลอดภัยขึ้นอยู่กับแสงแดด การออกแรง สุขภาพและสภาพแวดล้อมด้วย",
+      "topStatus": 0,
+      "roleStatus": 1,
+      "firstRainBox": {
+        "x": 298.88,
+        "y": 31,
+        "right": 311.88,
+        "bottom": 37
+      },
+      "panelBox": {
+        "x": 202,
+        "y": 1,
+        "right": 431,
+        "bottom": 39
+      },
+      "tempFont": "90px",
+      "unit": "°C",
+      "sourceAria": "พยากรณ์จากแบบจำลอง Open-Meteo · ข้อมูลล่าสุดจากแบบจำลอง · วัน 1 ถึง 4"
+    },
+    {
+      "id": "four-digit",
+      "freshness": "MODEL_LATEST",
+      "stamp": "",
+      "stampHidden": true,
+      "stampTitle": "",
+      "stampBox": {
+        "x": 0,
+        "y": 0,
+        "right": 0,
+        "bottom": 0
+      },
+      "timeBox": {
+        "x": 6.67,
+        "y": 12.59,
+        "right": 61.67,
+        "bottom": 33.07
+      },
+      "feels": "รู้สึก 1000°",
+      "feelsHidden": false,
+      "feelsFreshness": "MODEL_LATEST",
+      "feelsTitle": "Feels Like จากแบบจำลองอากาศ",
+      "guidance": "ตรวจสอบข้อมูล",
+      "guidanceHidden": false,
+      "guidanceTitle": "อุณหภูมิอยู่นอกช่วงใช้งานทั่วไป ห้ามตีความเป็นคำเตือนสุขภาพที่ตรวจยืนยันแล้ว",
+      "topStatus": 0,
+      "roleStatus": 1,
+      "firstRainBox": {
+        "x": 295.36,
+        "y": 31,
+        "right": 315.38,
+        "bottom": 37
+      },
+      "panelBox": {
+        "x": 202,
+        "y": 1,
+        "right": 431,
+        "bottom": 39
+      },
+      "tempFont": "90px",
+      "unit": "°C",
+      "sourceAria": "พยากรณ์จากแบบจำลอง Open-Meteo · ข้อมูลล่าสุดจากแบบจำลอง · วัน 1 ถึง 4"
+    }
+  ],
+  "fallback": {
+    "hybrid": false,
+    "clock": "ข้อมูลเดิม 09:30",
+    "feelsHidden": false,
+    "advice": "ตรวจข้อมูลล่าสุด"
+  },
+  "reduced": {
+    "clock": "ข้อมูลเดิม 09:30",
+    "advice": "ตรวจข้อมูลล่าสุด",
+    "feelsHidden": false
+  }
+}

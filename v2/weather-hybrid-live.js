@@ -7,7 +7,7 @@ const ns='http://www.w3.org/2000/svg', fmt=(v,s='')=>Number.isFinite(v)?Math.rou
 const heat=v=>!Number.isFinite(v)?'unknown':v>=38?'hot':v>=35?'warm':'cool';
 const e=(tag,cls,txt)=>{const n=document.createElement(tag);if(cls)n.className=cls;if(txt!==undefined)n.textContent=txt;return n};
 const svg=(tag,attrs={})=>{const n=document.createElementNS(ns,tag);Object.entries(attrs).forEach(([key,val])=>n.setAttribute(key,String(val)));return n};
-const metrics=e('div','hybrid-metrics'),daysEl=e('div','hybrid-days'),status=e('span','hybrid-status');
+const metrics=e('div','hybrid-metrics'),daysEl=e('div','hybrid-days');
 const names={rain:'RAIN',humidity:'HUM',high:'HIGH',low:'LOW'};
 const values={rain:'%',humidity:'%',high:'°',low:'°'};
 const ariaNames={rain:'โอกาสฝนตก',humidity:'ความชื้น',high:'อุณหภูมิสูงสุด',low:'อุณหภูมิต่ำสุด'};
@@ -55,7 +55,7 @@ for(const kind of Object.keys(names)){
  const cell=e('div','hybrid-metric'),label=e('span','hybrid-label',names[kind]),value=e('strong','hybrid-value','—');
  cell.dataset.kind=kind;cell.append(metricIcon(kind),label,value);metrics.append(cell);
 }
-panel.append(metrics,daysEl,status);
+panel.append(metrics,daysEl);
 let current=null,page=0;
 function stampLabel(observedAt){
  const ms=typeof observedAt==='string'?Date.parse(observedAt):NaN;
@@ -91,7 +91,6 @@ function draw(){
   cell.setAttribute('aria-label',ariaNames[kind]+' '+fmt(number,values[kind]));
  }
  daysEl.replaceChildren(...range.map(i=>card(available[i],i)));
- status.textContent=freshness==='UNAVAILABLE'?'ไม่มีข้อมูลอากาศ':freshness==='HISTORICAL'?stampLabel(d.observedAt):available.length?'':'พยากรณ์ไม่พร้อม';
  panel.setAttribute('aria-label',[
    'พยากรณ์จากแบบจำลอง Open-Meteo',
    freshness==='UNAVAILABLE'?'ไม่พร้อม':freshness==='HISTORICAL'?'ข้อมูลเดิม ณ '+stampLabel(d.observedAt):'ข้อมูลล่าสุดจากแบบจำลอง',
