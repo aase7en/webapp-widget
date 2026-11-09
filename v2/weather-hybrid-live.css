@@ -26,7 +26,7 @@
 .hybrid-day-temp{display:flex;justify-content:center;align-items:center;gap:1px;font:950 9px/10px Arial,Tahoma,sans-serif;white-space:nowrap;height:10px;letter-spacing:-.4px}
 .hybrid-high{color:#ffbf8f}.hybrid-low{color:#97d9ff;font-size:8.4px}.hybrid-slash{color:#76aec9;font-size:6px}
 .hybrid-high[data-heat="warm"]{color:#ffd36d}.hybrid-high[data-heat="hot"]{color:#ff7059}
-.hybrid-rain{height:6px;display:flex;align-items:center;justify-content:center;gap:1px;font:900 7px/6px Arial,Tahoma,sans-serif;color:#acdfff;white-space:nowrap}
+.hybrid-rain{height:6px;position:relative;top:-2px;display:flex;align-items:center;justify-content:center;gap:1px;font:900 7px/6px Arial,Tahoma,sans-serif;color:#acdfff;white-space:nowrap}
 .hybrid-rain svg{width:5px;height:6px;fill:#40d8ff}
 .hybrid-panel[data-page="1"] .hybrid-day-icon{width:30px;height:14px}
 .hybrid-panel[data-page="1"] .hybrid-day-temp{font-size:10.8px}
@@ -40,14 +40,7 @@
 .hybrid-panel{display:none}
 html.weather-hybrid-ready .hybrid-panel{display:grid}
 .board.layout-hybrid .feel{transform:translateX(-90px);width:160px}
-.board.layout-hybrid .feel .source-at{display:none!important}
 .hybrid-panel[data-freshness="HISTORICAL"]{border:1px solid #d5a45b}
-.hybrid-status{display:none;position:absolute;z-index:10;left:86px;top:0;width:143px;min-height:8px;padding:1px 2px;background:#493017f2;border-bottom:1px solid #efc273;color:#ffe1ad;text-align:center;font:800 6px/7px Arial,Tahoma,sans-serif;white-space:nowrap}
-.hybrid-panel[data-freshness="HISTORICAL"] .hybrid-status,
-.hybrid-panel[data-freshness="UNAVAILABLE"] .hybrid-status,
-.hybrid-panel[data-forecast="UNAVAILABLE"] .hybrid-status{display:block}
-.hybrid-panel[data-freshness="UNAVAILABLE"] .hybrid-status,
-.hybrid-panel[data-forecast="UNAVAILABLE"] .hybrid-status{background:#452925f2;color:#ffd1bc}
 .hybrid-panel .hybrid-day .hybrid-missing-icon{height:14px;display:grid;place-items:center;color:#6d97af;font:900 13px/14px Arial,Tahoma,sans-serif}
 /* No broken image glyph when a validated weather model is unavailable. */
 .board.layout-hybrid #scene:not([src]),
@@ -105,10 +98,24 @@ html.weather-hybrid-ready .hybrid-panel{display:grid}
 .board .feel-value b{font-weight:950;color:#ffcb9e}
 .board .feel-thermometer{width:13px;height:15px;flex:none;color:#ffbc86}
 .board .feel-value[hidden],.board .source-at[hidden]{display:none!important}
-/* Legacy fail-safe: historical source-time replaces Feels, not the safety warning. */
-.board:not(.layout-hybrid) .feel .source-at:not([hidden]){
-  position:absolute;top:0;left:0;font:900 12px/15px Inter,"Thonburi",Arial,sans-serif;
-  padding:1px 4px;box-shadow:none;text-shadow:none;white-space:nowrap;
+/* Historical source time belongs directly under CLOCK, not the 4+3
+   forecast or the Feels Like chip. Board coordinates -> native /3. */
+.board .clock .source-at{
+  position:absolute;left:9px;bottom:-3px;top:auto;max-width:169px;
+  z-index:7;display:inline-block;width:max-content;
+  padding:0 2px 0 0;border:0;border-radius:0;box-shadow:none;
+  background:transparent;color:#ffda9a;
+  -webkit-text-fill-color:#ffda9a;
+  font:900 12px/13px Inter,"Thonburi",Arial,sans-serif;
+  letter-spacing:0;line-height:13px;white-space:nowrap;overflow:hidden;
+  text-shadow:0 1px 3px #03101f;
+}
+.board .clock .source-at[data-state="UNAVAILABLE"]{color:#ffc7af;-webkit-text-fill-color:#ffc7af}
+.board .feel-value[data-freshness="HISTORICAL"]{
+ border-color:#c99a55;color:#ffe0b6;background:#2d2419;
+}
+.board .feel-value[data-freshness="HISTORICAL"]::after{
+ content:"*";font:900 11px/11px Arial,sans-serif;color:#ffd58c;
 }
 
 
@@ -153,6 +160,9 @@ html.weather-hybrid-ready .hybrid-panel{display:grid}
  letter-spacing:0;text-shadow:none;box-shadow:none;
 }
 .board .temp-guidance[hidden]{display:none!important}
+.board .temp-guidance[data-level="uncertain"]{
+ border-color:#dab878;color:#ffe9ba;background:#392919;
+}
 .board .temp-guidance[data-level="cold"]{border-color:#91dfff;color:#dbf4ff;background:#092943}
 .board .temp-guidance[data-level="mild"]{border-color:#71d5bb;color:#eafff6;background:#0b3030}
 .board .temp-guidance[data-level="caution"]{border-color:#e0c65d;color:#fff0bb;background:#3a2c0a}

@@ -11,9 +11,9 @@ const index=file('v2/index.html'),entry=file('index.html');
 
 test('Production Weather uses existing validated snapshot + unchanged live model pipeline',()=>{
  assert.match(html,/src="weather-snapshot\.js"/);
- assert.match(html,/weather-hybrid-live\.js\?v=20261105-hybrid-live-1/);
- assert.match(html,/weather-hybrid-live\.css\?v=20261108-single-3/);
- assert.match(html,/weather-luxury\.js\?v=20261108-single-3/);
+ assert.match(html,/weather-hybrid-live\.js\?v=20261109-compact-1/);
+ assert.match(html,/weather-hybrid-live\.css\?v=20261109-compact-1/);
+ assert.match(html,/weather-luxury\.js\?v=20261109-compact-1/);
  assert.match(bridge,/UthWeatherSnapshot\.parse/);
  assert.match(bridge,/UthWeatherHybrid\?\.render/);
  assert.match(bridge,/fallbackTransport\(\)/);
@@ -23,10 +23,10 @@ test('Production Weather uses existing validated snapshot + unchanged live model
 });
 
 test('Only Weather embed changes; main rotation and PM/Water iframe remain routed',()=>{
- assert.match(index,/weather-luxury\.html\?v=20261108-single-3/);
+ assert.match(index,/weather-luxury\.html\?v=20261109-compact-1/);
  assert.match(index,/pm25-live\.html\?v=20261107-graph-3/);
  assert.match(index,/water-luxury-live\.html\?v=20261108-label-1/);
- assert.match(entry,/v2\/index\.html\?display=led&amp;v=20261108-single-3/);
+ assert.match(entry,/v2\/index\.html\?display=led&amp;v=20261109-compact-1/);
  assert.match(index,/setInterval\(\(\)=>\{sections\[current\]/);
 });
 
@@ -55,10 +55,13 @@ test('Production 4+3 page switching uses condition codes from parsed daily model
 test('Unavailable and historical model values must remain honest and visible',()=>{
  assert.match(render,/Number\.isFinite\(v\)\?Math\.round\(v\)\+s:'—'/);
  assert.match(render,/freshness==='HISTORICAL'/);
- assert.match(render,/status\.textContent=freshness==='UNAVAILABLE'/);
+ assert.doesNotMatch(render,/status\.textContent|hybrid-status/,'no giant forecast-covering freshness banner');
+ assert.match(html,/id="source-at" role="note" hidden/,'status moved beneath clock');
  assert.match(render,/data\.provenance|d\.provenance/);
  assert.match(render,/Asia\/Bangkok/);
- assert.match(css,/\.hybrid-panel\[data-freshness="UNAVAILABLE"\]/);
+ assert.match(css,/\.board \.clock \.source-at\{/);
+ assert.doesNotMatch(css,/\.hybrid-status/);
+ assert.match(css,/\.hybrid-rain\{[^}]*top:-2px/,'rain chances lifted inside LED border');
  assert.match(css,/#scene:not\(\[src\]\)/);
 });
 
