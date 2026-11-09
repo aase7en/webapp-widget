@@ -20,16 +20,29 @@ const GREY={light:'#cbd8e2',dark:'#778a9b',shade:'#495a69',glow:'#89adbb66'};
 const BANDS=[[0,15],[15,25],[25,37.5],[37.5,75],[75,150]];
 function tick(){const d=new Date();$('.date').textContent=new Intl.DateTimeFormat('th-TH',{timeZone:'Asia/Bangkok',weekday:'short',day:'numeric',month:'short',year:'2-digit'}).format(d);$('.time').textContent=new Intl.DateTimeFormat('en-GB',{timeZone:'Asia/Bangkok',hour:'2-digit',minute:'2-digit',hour12:false}).format(d)}
 function bandOf(v){const r=typeof PM25Tier!=='undefined'&&PM25Tier&&PM25Tier.tierFor&&PM25Tier.tierFor(v,{});return r&&r.isHealthTier?tiers.find(x=>x.id===r.key)||GREY:GREY}
-function drawHistory(points){
+function drawHistory(points,historyStatus){
  const ns='http://www.w3.org/2000/svg',g=$('#series');while(g.firstChild)g.removeChild(g.firstChild);if(!Array.isArray(points))points=[];
  const now=Date.now(),start=now-24*3600000;
- let valid=points.filter(p=>p&&typeof p.value==='number'&&Number.isFinite(p.value)&&p.value>=0&&p.value<=1000&&Number.isFinite(Date.parse(p.observedAt))&&Date.parse(p.observedAt)>=start&&Date.parse(p.observedAt)<=now+120000).sort((a,b)=>Date.parse(a.observedAt)-Date.parse(b.observedAt));
+ const valid=points.filter(p=>p&&typeof p.value==='number'&&Number.isFinite(p.value)&&p.value>=0&&p.value<=1000&&typeof p.observedAt==='string'&&Number.isFinite(Date.parse(p.observedAt))&&Date.parse(p.observedAt)>=start&&Date.parse(p.observedAt)<=now+120000).sort((a,b)=>Date.parse(a.observedAt)-Date.parse(b.observedAt));
+ const note=$('#history-note');
+ if(note){
+  const message=valid.length?(historyStatus==='retained'?'ข้อมูลย้อนหลังเดิม':''):
+   historyStatus==='loading'?'กำลังโหลดประวัติ':
+   historyStatus==='empty'||historyStatus==='ok'?'ไม่มีข้อมูลใน 24 ชม.':'ยังโหลดประวัติไม่ได้';
+  note.hidden=!message;note.textContent=message;
+ }
+
  $('.trend-plot').setAttribute('aria-label','กราฟค่าฝุ่นจริงย้อนหลัง 24 ชั่วโมง เชื่อมจุดค่าที่วัดได้ต่อเนื่อง สีเส้นและพื้นที่ใต้เส้นต่อเนื่องทั้งกราฟ ไล่ตามค่าฝุ่นจริงแต่ละจุด (น้ำเงินดีมาก เขียวดี เหลืองปานกลาง ส้มเริ่มมีผลต่อสุขภาพ แดงมีผลต่อสุขภาพ) ช่วงที่ไม่มีข้อมูลเชื่อมด้วยเส้นประและพื้นที่สีจางกว่าปกติ ไม่เดาค่าที่ขาดหาย');
  const max=Math.max(50,...valid.map(p=>p.value));
  const xy=valid.map(p=>{const t=Date.parse(p.observedAt);return {t,x:Math.max(0,Math.min(300,(t-start)/86400000*300)),y:31-Math.min(1,p.value/max)*27,c:bandOf(p.value).dark}});
  let host=document.querySelector('#pm25-segs');if(!host){host=document.createElementNS(ns,'g');host.setAttribute('id','pm25-segs');(document.querySelector('defs')||g).append(host)}while(host.firstChild)host.removeChild(host.firstChild);
  for(let i=1;i<xy.length;i++){const a=xy[i-1],b=xy[i],gap=b.t-a.t>90*60000||Math.floor(b.t/3600000)-Math.floor(a.t/3600000)>1,id='pm25-seg-'+(i-1),gr=document.createElementNS(ns,'linearGradient');gr.setAttribute('id',id);gr.setAttribute('gradientUnits','userSpaceOnUse');gr.setAttribute('x1',a.x.toFixed(1));gr.setAttribute('x2',b.x.toFixed(1));for(const [o,c] of [[0,a.c],[1,b.c]]){const st=document.createElementNS(ns,'stop');st.setAttribute('offset',o);st.setAttribute('stop-color',c);gr.append(st)}host.append(gr);const area=document.createElementNS(ns,'path');area.setAttribute('d','M'+a.x.toFixed(1)+' '+a.y.toFixed(1)+' L'+b.x.toFixed(1)+' '+b.y.toFixed(1)+' L'+b.x.toFixed(1)+' 35 L'+a.x.toFixed(1)+' 35 Z');area.setAttribute('class',gap?'trend-area trend-area-gap':'trend-area');area.setAttribute('fill','url(#'+id+')');area.setAttribute('fill-opacity',gap?'.2':'.35');g.append(area);const line=document.createElementNS(ns,'path');line.setAttribute('d','M'+a.x.toFixed(1)+' '+a.y.toFixed(1)+' L'+b.x.toFixed(1)+' '+b.y.toFixed(1));line.setAttribute('class',gap?'trend-line trend-gap':'trend-line');line.style.setProperty('stroke','url(#'+id+')');if(gap){line.setAttribute('stroke-dasharray','4 3');line.setAttribute('stroke-opacity','.6')}g.append(line)}
- for(const p of xy){const circle=document.createElementNS(ns,'circle');circle.setAttribute('cx',p.x.toFixed(1));circle.setAttribute('cy',p.y.toFixed(1));circle.setAttribute('r','1.8');circle.setAttribute('class','point');circle.style.setProperty('fill',p.c);g.append(circle)}
+ /* Tiny luminous reading points. Each real observation gets one faint
+    colored halo and a smaller crisp core; no extra synthetic samples. */
+ for(const p of xy){
+  const halo=document.createElementNS(ns,'circle');halo.setAttribute('cx',p.x.toFixed(1));halo.setAttribute('cy',p.y.toFixed(1));halo.setAttribute('r','3.1');halo.setAttribute('class','point-halo');halo.style.setProperty('fill',p.c);g.append(halo);
+  const circle=document.createElementNS(ns,'circle');circle.setAttribute('cx',p.x.toFixed(1));circle.setAttribute('cy',p.y.toFixed(1));circle.setAttribute('r','1.2');circle.setAttribute('class','point');circle.style.setProperty('fill',p.c);circle.style.setProperty('--point-light',p.c);g.append(circle);
+ }
 }
 function setNumber(value){
  const txt=Number.isInteger(value)?String(value):value.toFixed(1);$('.number').textContent=txt;$('.number').style.setProperty('--value-size',txt.length>4?'82px':txt.length>3&&!txt.includes('.')?'90px':txt.length>3&&value>=100?'95px':'100px');const shell=$('.number-shell'),num=$('.number');shell.style.width='max-content';const natural=num.offsetWidth,room=218-$('.unit').offsetWidth;if(natural>0&&room>0){num.style.setProperty('--number-scale',Math.min(1,room/natural));shell.style.width=Math.min(natural,room)+'px'}
@@ -45,9 +58,9 @@ function setNumber(value){
  }
  board.style.setProperty('--pm-chart-left',chartLeft+'px');
 }
-function render(pm,history){
+function render(pm,history,historyStatus){
  const valid=pm&&pm.status==='latest'&&typeof pm.value==='number'&&Number.isFinite(pm.value)&&pm.value>=0&&pm.value<=1000;
- if(!valid){board.style.setProperty('--pm-chart-left','674px');board.classList.add('unavailable');board.dataset.tier='';for(const key of ['light','dark','glow'])board.style.setProperty('--number-'+key,GREY[key]);$('.number').textContent='—';$('.badge').textContent='รอข้อมูล';$('.advice').textContent='ไม่พบข้อมูลล่าสุด';$('.avg-note').hidden=true;$('.scale-arrow').hidden=true;video.pause();drawHistory(history);return}
+ if(!valid){board.style.setProperty('--pm-chart-left','674px');board.classList.add('unavailable');board.dataset.tier='';for(const key of ['light','dark','glow'])board.style.setProperty('--number-'+key,GREY[key]);$('.number').textContent='—';$('.badge').textContent='รอข้อมูล';$('.advice').textContent='ไม่พบข้อมูลล่าสุด';$('.avg-note').hidden=true;$('.scale-arrow').hidden=true;video.pause();drawHistory(history,historyStatus);return}
 
  const value=Math.round(pm.value*10)/10;setNumber(value); /* big number: hourly, unchanged */
  /* Tier from the 24h average. observedAt is the source-observation time; the
@@ -59,7 +72,7 @@ function render(pm,history){
  if(!t){ /* avg absent/unavailable/historical/conflicted: grey tier, hourly number stays, never zero-filled */
   board.classList.add('unavailable');board.dataset.tier='';
   for(const key of ['light','dark','shade','glow'])board.style.setProperty('--'+key,GREY[key]);for(const key of ['light','dark','glow'])board.style.setProperty('--number-'+key,GREY[key]);
-  $('.badge').textContent='รอข้อมูล';$('.advice').textContent='รอค่าเฉลี่ย 24 ชม.';$('.avg-note').hidden=true;$('.scale-arrow').hidden=true;video.pause();drawHistory(history);return;
+  $('.badge').textContent='รอข้อมูล';$('.advice').textContent='รอค่าเฉลี่ย 24 ชม.';$('.avg-note').hidden=true;$('.scale-arrow').hidden=true;video.pause();drawHistory(history,historyStatus);return;
  }
  const hourly=PM25Tier.classify({value,observedAt:pm.observedAt,status:pm.status,unit:pm.unit||'µg/m³'},{now:Date.now()});
  const ht=hourly.isHealthTier?tiers.find(x=>x.id===hourly.key):null;
@@ -68,10 +81,10 @@ function render(pm,history){
  $('.avg-note').hidden=false;$('.avg-note').textContent='เฉลี่ย 24 ชม. '+cls.displayValue.toFixed(1);
  if(ht){const idx=tiers.indexOf(ht),band=BANDS[idx];for(const key of ['light','dark','glow'])board.style.setProperty('--number-'+key,ht[key]);const frac=Math.max(.025,Math.min(.975,(hourly.displayValue-band[0])/(band[1]-band[0])));$('.scale-arrow').style.left=20*(idx+frac)+'%';$('.scale-arrow').hidden=false;}else{$('.scale-arrow').hidden=true;for(const key of ['light','dark','glow'])board.style.setProperty('--number-'+key,GREY[key]);}
  if(selected!==t.id){selected=t.id;poster.src='pm25-media/'+selected+'.jpg';video.classList.remove('ready');video.dataset.fallback='0';if(!matchMedia('(prefers-reduced-motion: reduce)').matches){video.src='pm25-media/'+selected+'-optimized.mp4';video.load()}}
- if(!matchMedia('(prefers-reduced-motion: reduce)').matches)video.play().catch(()=>{});drawHistory(history);
+ if(!matchMedia('(prefers-reduced-motion: reduce)').matches)video.play().catch(()=>{});drawHistory(history,historyStatus);
 }
 video.addEventListener('loadeddata',()=>video.classList.add('ready'));
 video.addEventListener('error',()=>{if(selected&&video.dataset.fallback!=='1'&&video.canPlayType('video/webm')){video.dataset.fallback='1';video.src='pm25-media/'+selected+'.webm';video.load();video.play().catch(()=>{})}});
-window.addEventListener('message',e=>{if(e.origin!==location.origin||e.source!==parent||!e.data||e.data.type!=='uth-pm25-live')return;render(e.data.pm25,e.data.history)});
+window.addEventListener('message',e=>{if(e.origin!==location.origin||e.source!==parent||!e.data||e.data.type!=='uth-pm25-live')return;render(e.data.pm25,e.data.history,e.data.historyStatus)});
 tick();setInterval(tick,15000);
 })();
