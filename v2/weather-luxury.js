@@ -21,9 +21,14 @@ function heat(t,rh){if(!Number.isFinite(t)||!Number.isFinite(rh))return null;let
    51.7 degrees Celsius, converted from 80/90/103/125 degrees Fahrenheit)
    account for humidity; these are NOT official Thai local alerts.
    Cold clothing tips are editorial comfort suggestions, not WHO thresholds.
-   Do not call any air temperature universally safe. Suppress stale/missing. */
+   Do not call any air temperature universally safe. Historical suggestions must say OLD, missing values stay unavailable. */
 function weatherGuidance(t,h,old){
- if(old||!Number.isFinite(t))return null;
+ if(!Number.isFinite(t))return null;
+ if(old){
+  // Historical guidance is explicitly labelled OLD; never imply a live alert.
+  const prior=weatherGuidance(t,h,false);
+  return prior?{...prior,label:'เดิม: '+prior.compact,compact:'คำแนะนำเดิม',detail:'คำแนะนำอ้างอิงข้อมูลเก่า ไม่ใช่คำเตือนความร้อนปัจจุบัน: '+prior.detail,historical:true}:null;
+ }
  if(t>60||t< -50)return {level:'uncertain',label:'ตรวจสอบข้อมูล',compact:'ตรวจสอบข้อมูล',detail:'อุณหภูมิอยู่นอกช่วงใช้งานทั่วไป ห้ามตีความเป็นคำเตือนสุขภาพที่ตรวจยืนยันแล้ว'};
  if(t<16)return {level:'cold',label:'สวมเสื้อให้อุ่น',compact:'สวมเสื้อให้อุ่น',detail:'อุณหภูมิต่ำ ควรสวมเสื้อผ้าที่ช่วยรักษาความอบอุ่น'};
  if(t<20)return {level:'cold',label:'พกเสื้อกันหนาว',compact:'พกเสื้อกันหนาว',detail:'อากาศค่อนข้างเย็น พิจารณาเสื้อกันหนาวตามความเหมาะสม'};
@@ -49,18 +54,39 @@ function paintGuidance(d,h,digits){
  const advice=weatherGuidance(d.temperatureC,h,!!d.historical);
  badge.hidden=!advice;
  badge.textContent=advice?advice.label:'';
- if(!advice){badge.title='';badge.removeAttribute('title');badge.removeAttribute('aria-label');delete badge.dataset.level;return}
+ if(!advice){badge.title='';badge.removeAttribute('title');badge.removeAttribute('aria-label');delete badge.dataset.level;delete badge.dataset.historical;return}
  badge.dataset.level=advice.level;
- badge.title=advice.detail;badge.setAttribute('aria-label',advice.detail);
+ badge.dataset.historical=advice.historical?'yes':'no';
+ const observed=advice.historical&&Number.isFinite(Date.parse(d.observedAt))?
+  new Intl.DateTimeFormat('th-TH',{timeZone:'Asia/Bangkok',day:'2-digit',month:'2-digit',year:'2-digit',hour:'2-digit',minute:'2-digit',hour12:false}).format(new Date(d.observedAt)):'';
+ const details=advice.historical?(observed?'ข้อมูลเดิม ณ '+observed:'ข้อมูลเดิม ไม่ทราบเวลาอ้างอิง')+' — '+advice.detail:advice.detail;
+ badge.title=details;badge.setAttribute('aria-label',details);
  if(badge.scrollWidth>badge.clientWidth+1)badge.textContent=advice.compact;
 }
 function paint(d){
- const stamp=$('#source-at'),old=!!d.historical&&!!d.observedAt;
- const observedLabel=d.observedAt?new Intl.DateTimeFormat('th-TH',{timeZone:'Asia/Bangkok',day:'2-digit',month:'2-digit',year:'2-digit',hour:'2-digit',minute:'2-digit',hour12:false}).format(new Date(d.observedAt)):'';
- if(stamp){stamp.hidden=!old;stamp.textContent=old?'ข้อมูล ณ '+observedLabel:'';}
- const feeling=$('.feel-value');if(feeling)feeling.hidden=old;
+ const stamp=$('#source-at'),ms=typeof d.observedAt==='string'?Date.parse(d.observedAt):NaN;
+ const validAt=Number.isFinite(ms),old=!!d.historical;
+ const observedLabel=validAt?new Intl.DateTimeFormat('th-TH',{timeZone:'Asia/Bangkok',day:'2-digit',month:'2-digit',year:'2-digit',hour:'2-digit',minute:'2-digit',hour12:false}).format(new Date(ms)):'';
+ const timeShort=validAt?new Intl.DateTimeFormat('en-GB',{timeZone:'Asia/Bangkok',day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit',hour12:false}).format(new Date(ms)).replace(',',''):'';
+ const unavailable=!Number.isFinite(d.temperatureC),noForecast=!Array.isArray(d.days)||!d.days.length;
+ if(stamp){
+  const note=old?'เก่า '+(timeShort||'เวลาไม่พร้อม'):unavailable?'ไม่มีข้อมูล':noForecast?'พย. ไม่พร้อม':'';
+  const full=old?(validAt?'ข้อมูลอากาศจากแบบจำลองเก่า ณ '+observedLabel:'ข้อมูลอากาศเก่า ไม่ทราบเวลาอ้างอิง')+' ไม่ใช่ข้อมูลล่าสุด':unavailable?'ไม่มีข้อมูลอากาศที่ตรวจสอบได้':noForecast?'ข้อมูลพยากรณ์รายวันไม่พร้อม':'';
+  stamp.hidden=!note;stamp.textContent=note;
+  if(note){stamp.title=full;stamp.setAttribute('aria-label',full)}else{stamp.title='';stamp.removeAttribute('aria-label')}
+ }
+ const feeling=$('.feel-value');
+ if(feeling){
+  const feelAvailable=Number.isFinite(d.feelsC);
+  feeling.hidden=!feelAvailable;
+  feeling.dataset.historical=old?'yes':'no';
+  const label=!feelAvailable?'ไม่มีข้อมูลอุณหภูมิที่รู้สึก':old?
+   'รู้สึกเหมือน '+Math.round(d.feelsC)+' องศา จากข้อมูลแบบจำลองเก่า ณ '+(observedLabel||'เวลาไม่พร้อม')+' ไม่ใช่ข้อมูลปัจจุบัน':
+   'รู้สึกเหมือน '+Math.round(d.feelsC)+' องศา จากแบบจำลองอากาศ';
+  feeling.title=label;feeling.setAttribute('aria-label',label);
+ }
  const board=$('#board');if(board){board.dataset.freshness=old?'HISTORICAL':Number.isFinite(d.temperatureC)?'MODEL_LATEST':'UNAVAILABLE';
-  board.setAttribute('aria-label',Number.isFinite(d.temperatureC)?'สภาพอากาศแบบจำลอง Open-Meteo ข้อมูล ณ '+observedLabel:'สภาพอากาศยังไม่มีข้อมูล');}
+  board.setAttribute('aria-label',Number.isFinite(d.temperatureC)?'สภาพอากาศแบบจำลอง Open-Meteo '+(old?'ข้อมูลเดิม ณ ':'ข้อมูล ณ ')+(observedLabel||'ไม่ทราบเวลาอ้างอิง'):'สภาพอากาศยังไม่มีข้อมูล');}
  const digits=Number.isFinite(d.temperatureC)?String(Math.round(d.temperatureC)).length:1;const h=Number.isFinite(d.temperatureC)&&d.temperatureC>= -50&&d.temperatureC<=60&&Number.isFinite(d.humidityPct)&&d.humidityPct>=0&&d.humidityPct<=100?heat(d.temperatureC,d.humidityPct):null;draw(d);paintGuidance(d,h,digits);try{window.UthWeatherHybrid?.render?.(d)}catch(error){document.documentElement.classList.remove("weather-hybrid-ready");document.querySelector("#board")?.classList.remove("layout-hybrid");console.error("weather-hybrid fallback",error)}const id=d.icon;if(id&&scenes[id]){if($('#icon').dataset.condition!==id){$('#scene').src='weather-assets/'+scenes[id]+'.webp';$('#icon').src='weather-assets/'+id+'.apng'+(['rain','thunderstorm','night-rain','night-thunderstorm'].includes(id)?'?v=20261106-storm-clarity-1':'');$('#poster').src='weather-assets/'+id+(['rain','thunderstorm','night-rain','night-thunderstorm'].includes(id)?'-led-poster.png':'-poster.png')+(['rain','thunderstorm','night-rain','night-thunderstorm'].includes(id)?'?v=20261106-storm-clarity-1':'');$('#icon').dataset.condition=id;$('#poster').dataset.condition=id}}else{$('#scene').removeAttribute('src');$('#icon').removeAttribute('src');$('#poster').removeAttribute('src');delete $('#icon').dataset.condition;delete $('#poster').dataset.condition}}
 const LAST_GOOD_KEY='uth-weather-last-good';
 const FEED_URL='https://raw.githubusercontent.com/aase7en/webapp-widget/weather-data/weather.json';

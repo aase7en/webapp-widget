@@ -232,6 +232,9 @@ test('a stale persisted payload remains visible with its original observation ti
   assert.equal(h.registry['#temp'].textContent, '32', 'last observed model value stays visible');
   assert.equal(h.registry['#board'].dataset.freshness,'HISTORICAL','stale is never labeled live');
   assert.equal(h.registry['#source-at'].hidden,false,'observation-time cue appears instead of a stale warning');
+  assert.equal(h.registry['.feel-value'].hidden,false,'historical Feels Like is still visible with provenance');
+  assert.equal(h.registry['.feel-value'].dataset.historical,'yes');
+  assert.match(h.registry['#temp-guidance'].textContent,/^เดิม:/,'old advice is explicitly marked historical');
 });
 
 test('corrupt stored JSON is ignored', async () => {
@@ -278,6 +281,8 @@ test('cold-start with a degraded Sheet uses older validated public transport as 
   assert.equal(h.registry['#temp'].textContent,'32');
   assert.equal(h.registry['#board'].dataset.freshness,'MODEL_LATEST');
   assert.equal(h.registry['#source-at'].hidden,true);
+  assert.equal(h.registry['.feel-value'].dataset.historical,'no');
+  assert.equal(h.registry['#temp-guidance'].dataset.historical,'no');
   assert.equal(fetchCalls,1,'fresh canonical Sheet wins without extra transport request');
 });
 test('stale-but-valid Sheet snapshot is painted before a slow fallback completes',async()=>{
