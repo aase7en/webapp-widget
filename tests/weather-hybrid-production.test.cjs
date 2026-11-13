@@ -24,9 +24,9 @@ test('Production Weather uses existing validated snapshot + unchanged live model
 
 test('Only Weather embed changes; main rotation and PM/Water iframe remain routed',()=>{
  assert.match(index,/weather-luxury\.html\?v=20261113-led-contrast-1/);
- assert.match(index,/pm25-live\.html\?v=20261114-pm-curve-1/);
+ assert.match(index,/pm25-live\.html\?v=20261114-pm-flatbase-1/);
  assert.match(index,/water-luxury-live\.html\?v=20261108-label-1/);
- assert.match(entry,/v2\/index\.html\?display=led&amp;v=20261114-pm-curve-1/);
+ assert.match(entry,/v2\/index\.html\?display=led&amp;v=20261114-pm-flatbase-1/);
  assert.match(index,/setInterval\(\(\)=>\{sections\[current\]/);
 });
 

@@ -48,8 +48,8 @@ test('Scoped cache chain updates Weather only; PM and Water unchanged',()=>{
  assert(html.includes('weather-luxury.js?v=20261113-led-contrast-1'));
  assert(html.includes('weather-hybrid-live.css?v=20261109-icons-2'));
  assert(page.includes('weather-luxury.html?v=20261113-led-contrast-1'));
- assert(entry.includes('v2/index.html?display=led&amp;v=20261114-pm-curve-1'));
- assert(page.includes('pm25-live.html?v=20261114-pm-curve-1'));
+ assert(entry.includes('v2/index.html?display=led&amp;v=20261114-pm-flatbase-1'));
+ assert(page.includes('pm25-live.html?v=20261114-pm-flatbase-1'));
  assert(page.includes('water-luxury-live.html?v=20261108-label-1'));
  assert.doesNotMatch(core,/#advice|\.heat-tag/);
 });
