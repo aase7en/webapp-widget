@@ -75,6 +75,21 @@ function drawHistory(points,historyStatus){
   line.setAttribute('d','M'+a.x.toFixed(1)+' '+a.y.toFixed(1)+' L'+b.x.toFixed(1)+' '+b.y.toFixed(1));
   line.setAttribute('class',gap?'trend-line trend-gap':'trend-line');
   line.style.setProperty('stroke','url(#'+id+')');if(gap)line.setAttribute('data-gap','true');g.append(line);
+  if(gap){
+   // White double slash across the solid connecting bridge denotes missing
+   // intervening hours; it is a cue, not another PM observation/point.
+   const mx=(a.x+b.x)/2,my=(a.y+b.y)/2;
+   const mark='M'+(mx-3.1).toFixed(1)+' '+(my-3.7).toFixed(1)+' l2.4 7.4 M'+(mx+.3).toFixed(1)+' '+(my-3.7).toFixed(1)+' l2.4 7.4';
+   const cue=document.createElementNS(ns,'g');cue.setAttribute('class','trend-gap-cue');
+   cue.setAttribute('data-gap','true');cue.setAttribute('aria-label','ช่วงข้อมูลรายชั่วโมงขาดหาย');
+   for(const [width,color] of [[4.2,'#061321'],[2,'#f4faff']]){
+    const slash=document.createElementNS(ns,'path');slash.setAttribute('d',mark);
+    slash.setAttribute('stroke',color);slash.setAttribute('stroke-width',width);
+    slash.setAttribute('stroke-linecap','round');slash.setAttribute('fill','none');
+    cue.append(slash);
+   }
+   g.append(cue);
+  }
  }
  /* Tiny luminous reading points. Each real observation gets one faint
     colored halo and a smaller crisp core; no extra synthetic samples. */

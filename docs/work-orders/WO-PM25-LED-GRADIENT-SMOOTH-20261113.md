@@ -13,7 +13,7 @@ Original chart combined opacity masks whose gradient was anchored to frame Y (th
 ## Correction / compatibility
 - Use narrowly layered translucent SVG ribbons under every real line segment. Alpha varies with distance below the observed line, not a fixed viewport Y or independent mask orientation; neighboring segments share matching intensity at their endpoints.
 - Preserve color interpolation between the actual PM tier colors; keep 24h timestamp X and existing monotonic asinh Y transform (15–35 emphasis). No source values, health bands, timestamps, or historical gap semantics changed.
-- Show uniformly weighted solid lines and softly glowing colored real-reading points. Gaps remain tagged data-gap and explicitly described in the accessible SVG label. Connecting endpoints denotes visual tendency, not an intervening measurement; no fabricated data points. Do not infer missing values.
+- Show uniformly weighted solid lines and softly glowing colored real-reading points. Gaps remain tagged data-gap, have a visibly distinct white double-slash over the solid bridge, and are explicitly described in the accessible SVG label. Connecting endpoints denotes visual tendency, not an intervening measurement; no fabricated data points. Do not infer missing values.
 - Make SVG taller within the same frame (viewBox 300×40, CSS height 48), time labels smaller (7px board units), preserve right-edge, scale, badge, and reading overlap protection.
 - Scoped cache updates only PM iframe and PM JS, with root iframe version bump. Weather and Water assets/version pins unchanged.
 
@@ -23,7 +23,8 @@ Original chart combined opacity masks whose gradient was anchored to frame Y (th
 - Physical LED and iOS Safari screenshots supplied by user are observations but post-release physical panel verification remains outstanding.
 
 ## Candidate evidence
-- Full Node suite: 546/546 PASS, 2026-11-13.
+- Full Node suite after P1 missing-data double-slash repair: 547/547 PASS (original candidate 546/546 PASS).
 - Browser Chrome headless: continuous 24 points / 23 solid links, six missing samples removed leaving 18 points and 4 marked solid bridging intervals, one missing/outlier scenario leaves 23 points and 1 marked bridge. All zero dash segments, 432x40/DPR3, no page errors. Test fixtures are SIMULATED, never actual PM.
 - Full-screen screenshot visual review: uneven vertical bands resolved, glow close to curve, smaller timeline labels, within frame. Physical LED device not post-release checked.
 - git diff --check PASS.
+- Follow-up independent review: initial PR #103 SHA cf27b480a9fe69c7b5f8c0033a1ace1f5c62b322 was BLOCKED because invisible data-gap on a solid line could mislead LED viewers. Repair adds a visible white double-slash marker at every gap midpoint (not an observation), plus regression and Chrome QA assertions. Re-review of updated SHA required.
