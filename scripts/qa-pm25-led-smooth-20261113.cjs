@@ -26,13 +26,15 @@ const server=http.createServer((req,res)=>{
     f.contentWindow.postMessage({type:'uth-pm25-live',pm25:{status:'latest',value:30,avg24h:25,observedAt:new Date().toISOString(),unit:'µg/m³'},history,historyStatus:'ok'},location.origin)
    },history);
    await page.waitForFunction(count=>document.querySelector('#f').contentDocument.querySelectorAll('#series circle.point').length===count,{timeout:7000},history.filter(x=>typeof x.value==='number'&&Number.isFinite(x.value)&&x.value>=0&&x.value<=1000).length);
-   const evidence=await page.evaluate(()=>{const d=document.querySelector('#f').contentDocument;const rect=sel=>{const e=d.querySelector(sel),r=e.getBoundingClientRect();return {x:r.x,y:r.y,width:r.width,height:r.height}};return {points:d.querySelectorAll('#series circle.point').length,continuous:d.querySelectorAll('.trend-line:not(.trend-gap)').length,gaps:d.querySelectorAll('.trend-gap').length,dashes:d.querySelectorAll('.trend-line[stroke-dasharray]').length,cues:d.querySelectorAll('#series .trend-gap-cue').length,lines:d.querySelectorAll('#series .trend-line').length,curves:[...d.querySelectorAll('#series .trend-line')].filter(e=>e.getAttribute('d').includes(' C')).length,shades:d.querySelectorAll('#series .trend-area > path').length,svg:rect('.trend-plot'),frame:rect('.chart-frame'),times:getComputedStyle(d.querySelector('.graph-times')).fontSize,errors:[],areaMask:d.querySelector('.trend-area')?.getAttribute('mask')}})
+   const evidence=await page.evaluate(()=>{const d=document.querySelector('#f').contentDocument;const rect=sel=>{const e=d.querySelector(sel),r=e.getBoundingClientRect();return {x:r.x,y:r.y,width:r.width,height:r.height}};return {points:d.querySelectorAll('#series circle.point').length,continuous:d.querySelectorAll('.trend-line:not(.trend-gap)').length,gaps:d.querySelectorAll('.trend-gap').length,dashes:d.querySelectorAll('.trend-line[stroke-dasharray]').length,cues:d.querySelectorAll('#series .trend-gap-cue').length,lines:d.querySelectorAll('#series .trend-line').length,curves:[...d.querySelectorAll('#series .trend-line')].filter(e=>e.getAttribute('d').includes(' C')).length,filledSegments:d.querySelectorAll('#series path.trend-area').length,flatBaseline:[...d.querySelectorAll('#series path.trend-area')].every(p=>/ L[0-9.]+ 40 L[0-9.]+ 40 Z$/.test(p.getAttribute('d'))),svg:rect('.trend-plot'),frame:rect('.chart-frame'),times:getComputedStyle(d.querySelector('.graph-times')).fontSize,errors:[],areaMask:d.querySelector('.trend-area')?.getAttribute('mask')}})
    assert.equal(evidence.dashes,0);
    assert.equal(evidence.cues,0,'no white slashes or any gap markers');
    assert.equal(evidence.curves,evidence.lines,'every trend segment is a smooth cubic');
    assert.equal(evidence.gaps,variant==='continuous'?0:variant==='missing'?4:1);
    assert.ok(evidence.svg.height>14);
-   assert.ok(evidence.shades>0);
+   assert.equal(evidence.filledSegments,evidence.lines,'one closed fill to baseline per curve segment');
+   assert.ok(evidence.flatBaseline,'all area fills close on the same baseline y=40');
+   assert.equal(evidence.areaMask,'url(#pm-area-flat-baseline-mask)');
    assert.equal(errors.length,0);
    await page.screenshot({path:OUT+'/'+variant+'-432x40.png'});
    console.log(JSON.stringify({variant,evidence}));

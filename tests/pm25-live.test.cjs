@@ -102,7 +102,7 @@ test('non-linear height emphasizes 15–35 while retaining genuine readings and 
  assert.ok(cy.every((v,i)=>i===0||v<cy[i-1]),'increasing values remain strictly higher');
  const center=cy[1]-cy[3],lowTail=cy[0]-cy[1],highTail=cy[3]-cy[4];
  assert.ok(center>lowTail+highTail,'height differences 15–35 exceed both tails combined');
- assert.ok(grab(x,'trend-area').every(p=>p.children.length>=2&&p.children.every(r=>r.attrs['fill-opacity'])));
+ assert.ok(grab(x,'trend-area').every(p=>/ L[0-9.]+ 40 L[0-9.]+ 40 Z$/.test(p.attrs.d)));
  assert.match(x.get('.trend-plot').attrs['aria-label'],/สเกลแนวตั้งไม่เชิงเส้น/);
  const html=fs.readFileSync('v2/pm25-live.html','utf8');
  assert.match(fs.readFileSync('v2/pm25-live.js','utf8'),/pmHistoryTangents/);
@@ -119,37 +119,46 @@ test('extreme 1000 does not flatten the visual differences at 15–35 or add sam
 });
 
 
-test('distance-below-curve ribbons fade uniformly across adjacent segments without masking seams',()=>{
+test('all area-fill shapes share one perfectly flat y=40 baseline regardless of measured curve height or gaps',()=>{
  const x=start(),h=Math.floor(Date.now()/3600000)*3600000,history=[
-  {value:10,observedAt:new Date(h-3*3600000).toISOString()},
-  {value:27,observedAt:new Date(h-2*3600000).toISOString()},
-  {value:19,observedAt:new Date(h-3600000).toISOString()}];
- x.send({pm25:{status:'latest',value:19,avg24h:19,observedAt:freshISO(),unit:'µg/m³'},history});
- const areas=grab(x,'trend-area'),lines=grab(x,'trend-line');
- assert.equal(areas.length,2);assert.equal(lines.length,2);
- for(let i=0;i<2;i++){
-  const area=areas[i],ribbons=area.children;
-  assert.ok(ribbons.length>=2&&ribbons.length<=20);
+  {value:8,observedAt:new Date(h-7*3600000).toISOString()},
+  {value:31,observedAt:new Date(h-6*3600000).toISOString()},
+  {value:16,observedAt:new Date(h-4*3600000).toISOString()},
+  {value:39,observedAt:new Date(h-3*3600000).toISOString()},
+  {value:22,observedAt:new Date(h-3600000).toISOString()}];
+ x.send({pm25:{status:'latest',value:22,avg24h:22,observedAt:freshISO(),unit:'µg/m³'},history});
+ const areas=grab(x,'trend-area').concat(grab(x,'trend-area trend-area-gap'));
+ const lines=grab(x,'trend-line').concat(grab(x,'trend-line trend-gap'));
+ assert.equal(areas.length,4);assert.equal(lines.length,4);
+ const points=grab(x,'point');
+ const y=points.map(p=>Number(p.attrs.cy));
+ assert.ok(Math.max(...y)-Math.min(...y)>12,'test varying top values');
+ for(const area of areas){
+  const d=area.attrs.d;
+  assert.match(d,/^M[-\d.]+ [-\d.]+ C/,'keep the exact PCHIP curve on top');
+  assert.match(d,/ L[-\d.]+ 40 L[-\d.]+ 40 Z$/,'both lower vertices on shared baseline');
+  assert.equal(area.attrs.mask,'url(#pm-area-flat-baseline-mask)');
   assert.equal(area.attrs['fill-opacity'],'.96');
-  assert.equal(area.attrs.fill,'url(#pm25-seg-'+i+')');
-  assert.equal(lines[i].attrs['stroke-dasharray'],undefined);
-  assert.ok(Number(ribbons[0].attrs['fill-opacity'])>.9,'bright and opaque directly below the real line');
-  let previous=Infinity;
-  for(const r of ribbons){const alpha=Number(r.attrs['fill-opacity']);assert.ok(alpha<previous);previous=alpha}
-  // First ribbon begins exactly on measured Y and reaches the next point.
-  const observed=grab(x,'point').map(p=>Number(p.attrs.cy));
-  const path=ribbons[0].attrs.d;
-  const match=path.match(/^M([\d.]+) ([\d.]+) C([\d.]+) ([\d.]+) ([\d.]+) ([\d.]+) ([\d.]+) ([\d.]+)/);
-  assert.ok(match,'ribbon follows a cubic curve through measured endpoints');
-  assert.ok(Math.abs(Number(match[1])-Number(grab(x,'point')[i].attrs.cx))<.1);
-  assert.ok(Math.abs(Number(match[2])-observed[i])<.11);
-  assert.ok(Math.abs(Number(match[7])-Number(grab(x,'point')[i+1].attrs.cx))<.1);
-  assert.ok(Math.abs(Number(match[8])-observed[i+1])<.11);
+  assert.equal(area.children.length,0,'no uneven depth-ribbons under the line');
  }
- assert.equal(areas[0].children[0].attrs['fill-opacity'],areas[1].children[0].attrs['fill-opacity'],
-  'both sides of shared node have equal brightness right under the line');
- assert.match(fs.readFileSync('v2/pm25-live.html','utf8'),/viewBox="0 0 300 40"/);
- assert.doesNotMatch(fs.readFileSync('v2/pm25-live.html','utf8'),/pm-area-mask/);
+ assert.ok(areas.some(a=>a.attrs['data-gap']==='true'),'missing intervals are still internally tagged');
+ assert.equal(grab(x,'trend-gap-cue').length,0);
+ const html=fs.readFileSync('v2/pm25-live.html','utf8');
+ assert.match(html,/id="pm-area-flat-baseline-mask"/);
+ assert.match(html,/id="pm-area-flat-fade" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="0" y2="40"/);
+ assert.match(html,/<stop offset="100%" stop-color="#fff" stop-opacity="\.34"/,'bottom remains visibly filled');
+ assert.match(html,/viewBox="0 0 300 40"/);
+});
+
+test('shared mask and horizontal baseline keep area fill stable across extreme and near-zero values',()=>{
+ const x=start(),now=Date.now(),values=[0,18,33,1000,1];
+ const history=values.map((value,i)=>({value,observedAt:new Date(now-(4-i)*3600000).toISOString()}));
+ x.send({pm25:{status:'latest',value:1,avg24h:1,observedAt:freshISO(),unit:'µg/m³'},history});
+ const areas=grab(x,'trend-area').concat(grab(x,'trend-area trend-area-gap'));
+ assert.equal(areas.length,4);
+ assert.ok(areas.every(a=>/ L[-\d.]+ 40 L[-\d.]+ 40 Z$/.test(a.attrs.d)));
+ assert.ok(areas.every(a=>a.attrs.mask==='url(#pm-area-flat-baseline-mask)'));
+ assert.equal(grab(x,'point').length,values.length);
 });
 test('missing PM hour still creates only measured points and a solid marked bridge, never a made-up value',()=>{
  const x=start(),h=Math.floor(Date.now()/3600000)*3600000;

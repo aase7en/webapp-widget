@@ -81,25 +81,23 @@ function drawHistory(points,historyStatus){
   gr.setAttribute('gradientUnits','userSpaceOnUse');gr.setAttribute('x1',a.x.toFixed(1));gr.setAttribute('x2',b.x.toFixed(1));
   for(const [o,c] of [[0,a.c],[1,b.c]]){const st=document.createElementNS(ns,'stop');st.setAttribute('offset',o);st.setAttribute('stop-color',c);gr.append(st)}host.append(gr);
 
-  // Both the stroke and its near-line translucent ribbons use exactly the
-  // same cubic. Shared tangents yield smooth C1-continuous joins with natural
-  // flat turning points. Gap spans are visual estimates, not observations.
+  // A single CLOSED SVG shape per observed interval shares one horizontal
+  // baseline with every other interval. No short ribbons: their different
+  // lower extents previously created a visibly wavy/uneven bottom edge.
+  // The shared opacity mask fades vertically using global SVG coordinates,
+  // so the very bottom has identical intensity for all measured intervals.
   const cx1=a.x+dx/3,cy1=a.y+tangents[i-1]*dx/3;
   const cx2=b.x-dx/3,cy2=b.y-tangents[i]*dx/3;
   const f=v=>v.toFixed(2);
   const curveAt=depth=>'M'+f(a.x)+' '+f(a.y+depth)+' C'+f(cx1)+' '+f(cy1+depth)+' '+f(cx2)+' '+f(cy2+depth)+' '+f(b.x)+' '+f(b.y+depth);
-  const area=document.createElementNS(ns,'g');
+  const baseline=40;
+  const area=document.createElementNS(ns,'path');
+  area.setAttribute('d',curveAt(0)+' L'+f(b.x)+' '+baseline+' L'+f(a.x)+' '+baseline+' Z');
   area.setAttribute('class',gap?'trend-area trend-area-gap':'trend-area');
-  area.setAttribute('fill','url(#'+id+')');area.setAttribute('fill-opacity','.96');
+  area.setAttribute('fill','url(#'+id+')');
+  area.setAttribute('fill-opacity','.96');
+  area.setAttribute('mask','url(#pm-area-flat-baseline-mask)');
   if(gap)area.setAttribute('data-gap','true');
-  for(let depth=0;depth<36;depth+=1.8){
-   if(Math.min(a.y,b.y)+depth>=39)break;
-   const lower=depth+1.8;
-   const ribbon=document.createElementNS(ns,'path');
-   ribbon.setAttribute('d',curveAt(depth)+' L'+f(b.x)+' '+f(b.y+lower)+' C'+f(cx2)+' '+f(cy2+lower)+' '+f(cx1)+' '+f(cy1+lower)+' '+f(a.x)+' '+f(a.y+lower)+' Z');
-   const alpha=.96*Math.exp(-Math.pow((depth+.9)/11.5,1.4));
-   ribbon.setAttribute('fill-opacity',alpha.toFixed(3));area.append(ribbon);
-  }
   g.append(area);
   const line=document.createElementNS(ns,'path');
   line.setAttribute('d',curveAt(0));line.setAttribute('class',gap?'trend-line trend-gap':'trend-line');
