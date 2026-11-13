@@ -20,6 +20,13 @@ const GREY={light:'#cbd8e2',dark:'#778a9b',shade:'#495a69',glow:'#89adbb66'};
 const BANDS=[[0,15],[15,25],[25,37.5],[37.5,75],[75,150]];
 function tick(){const d=new Date();$('.date').textContent=new Intl.DateTimeFormat('th-TH',{timeZone:'Asia/Bangkok',weekday:'short',day:'numeric',month:'short',year:'2-digit'}).format(d);$('.time').textContent=new Intl.DateTimeFormat('en-GB',{timeZone:'Asia/Bangkok',hour:'2-digit',minute:'2-digit',hour12:false}).format(d)}
 function bandOf(v){const r=typeof PM25Tier!=='undefined'&&PM25Tier&&PM25Tier.tierFor&&PM25Tier.tierFor(v,{});return r&&r.isHealthTier?tiers.find(x=>x.id===r.key)||GREY:GREY}
+// Non-linear visual-only Y axis: expand 15–35 µg/m³, compress both tails.
+// The plotted data values, observed timestamps and health tier thresholds never change.
+function pmHistoryY(value, max){
+ const warp=v=>Math.asinh((v-25)/5);
+ const bottom=warp(0),top=warp(max);
+ return 31-((warp(Math.max(0,Math.min(max,value)))-bottom)/(top-bottom))*27;
+}
 function drawHistory(points,historyStatus){
  const ns='http://www.w3.org/2000/svg',g=$('#series');while(g.firstChild)g.removeChild(g.firstChild);if(!Array.isArray(points))points=[];
  const now=Date.now(),start=now-24*3600000;
@@ -32,11 +39,11 @@ function drawHistory(points,historyStatus){
   note.hidden=!message;note.textContent=message;
  }
 
- $('.trend-plot').setAttribute('aria-label','กราฟค่าฝุ่นจริงย้อนหลัง 24 ชั่วโมง เชื่อมจุดค่าที่วัดได้ต่อเนื่อง สีเส้นและพื้นที่ใต้เส้นต่อเนื่องทั้งกราฟ ไล่ตามค่าฝุ่นจริงแต่ละจุด (น้ำเงินดีมาก เขียวดี เหลืองปานกลาง ส้มเริ่มมีผลต่อสุขภาพ แดงมีผลต่อสุขภาพ) ช่วงที่ไม่มีข้อมูลเชื่อมด้วยเส้นประและพื้นที่สีจางกว่าปกติ ไม่เดาค่าที่ขาดหาย');
+ $('.trend-plot').setAttribute('aria-label','กราฟค่าฝุ่นจริงย้อนหลัง 24 ชั่วโมง เชื่อมจุดค่าที่วัดได้ต่อเนื่อง สีเส้นและพื้นที่ใต้เส้นต่อเนื่องทั้งกราฟ ไล่ตามค่าฝุ่นจริงแต่ละจุด (น้ำเงินดีมาก เขียวดี เหลืองปานกลาง ส้มเริ่มมีผลต่อสุขภาพ แดงมีผลต่อสุขภาพ) ช่วงที่ไม่มีข้อมูลเชื่อมด้วยเส้นประและพื้นที่สีจางกว่าปกติ ไม่เดาค่าที่ขาดหาย สเกลแนวตั้งไม่เชิงเส้นเพื่อขยายความแตกต่างช่วง 15–35 ไมโครกรัมต่อลูกบาศก์เมตร');
  const max=Math.max(50,...valid.map(p=>p.value));
- const xy=valid.map(p=>{const t=Date.parse(p.observedAt);return {t,x:Math.max(0,Math.min(300,(t-start)/86400000*300)),y:31-Math.min(1,p.value/max)*27,c:bandOf(p.value).dark}});
+ const xy=valid.map(p=>{const t=Date.parse(p.observedAt);return {t,x:Math.max(0,Math.min(300,(t-start)/86400000*300)),y:pmHistoryY(p.value,max),c:bandOf(p.value).dark}});
  let host=document.querySelector('#pm25-segs');if(!host){host=document.createElementNS(ns,'g');host.setAttribute('id','pm25-segs');(document.querySelector('defs')||g).append(host)}while(host.firstChild)host.removeChild(host.firstChild);
- for(let i=1;i<xy.length;i++){const a=xy[i-1],b=xy[i],gap=b.t-a.t>90*60000||Math.floor(b.t/3600000)-Math.floor(a.t/3600000)>1,id='pm25-seg-'+(i-1),gr=document.createElementNS(ns,'linearGradient');gr.setAttribute('id',id);gr.setAttribute('gradientUnits','userSpaceOnUse');gr.setAttribute('x1',a.x.toFixed(1));gr.setAttribute('x2',b.x.toFixed(1));for(const [o,c] of [[0,a.c],[1,b.c]]){const st=document.createElementNS(ns,'stop');st.setAttribute('offset',o);st.setAttribute('stop-color',c);gr.append(st)}host.append(gr);const area=document.createElementNS(ns,'path');area.setAttribute('d','M'+a.x.toFixed(1)+' '+a.y.toFixed(1)+' L'+b.x.toFixed(1)+' '+b.y.toFixed(1)+' L'+b.x.toFixed(1)+' 35 L'+a.x.toFixed(1)+' 35 Z');area.setAttribute('class',gap?'trend-area trend-area-gap':'trend-area');area.setAttribute('fill','url(#'+id+')');area.setAttribute('fill-opacity',gap?'.2':'.35');g.append(area);const line=document.createElementNS(ns,'path');line.setAttribute('d','M'+a.x.toFixed(1)+' '+a.y.toFixed(1)+' L'+b.x.toFixed(1)+' '+b.y.toFixed(1));line.setAttribute('class',gap?'trend-line trend-gap':'trend-line');line.style.setProperty('stroke','url(#'+id+')');if(gap){line.setAttribute('stroke-dasharray','4 3');line.setAttribute('stroke-opacity','.6')}g.append(line)}
+ for(let i=1;i<xy.length;i++){const a=xy[i-1],b=xy[i],gap=b.t-a.t>90*60000||Math.floor(b.t/3600000)-Math.floor(a.t/3600000)>1,id='pm25-seg-'+(i-1),gr=document.createElementNS(ns,'linearGradient');gr.setAttribute('id',id);gr.setAttribute('gradientUnits','userSpaceOnUse');gr.setAttribute('x1',a.x.toFixed(1));gr.setAttribute('x2',b.x.toFixed(1));for(const [o,c] of [[0,a.c],[1,b.c]]){const st=document.createElementNS(ns,'stop');st.setAttribute('offset',o);st.setAttribute('stop-color',c);gr.append(st)}host.append(gr);const area=document.createElementNS(ns,'path');area.setAttribute('d','M'+a.x.toFixed(1)+' '+a.y.toFixed(1)+' L'+b.x.toFixed(1)+' '+b.y.toFixed(1)+' L'+b.x.toFixed(1)+' 35 L'+a.x.toFixed(1)+' 35 Z');area.setAttribute('class',gap?'trend-area trend-area-gap':'trend-area');area.setAttribute('fill','url(#'+id+')');area.setAttribute('fill-opacity',gap?'.44':'.72');area.setAttribute('mask','url(#pm-area-mask)');g.append(area);const line=document.createElementNS(ns,'path');line.setAttribute('d','M'+a.x.toFixed(1)+' '+a.y.toFixed(1)+' L'+b.x.toFixed(1)+' '+b.y.toFixed(1));line.setAttribute('class',gap?'trend-line trend-gap':'trend-line');line.style.setProperty('stroke','url(#'+id+')');if(gap){line.setAttribute('stroke-dasharray','4 3');line.setAttribute('stroke-opacity','.6')}g.append(line)}
  /* Tiny luminous reading points. Each real observation gets one faint
     colored halo and a smaller crisp core; no extra synthetic samples. */
  for(const p of xy){
