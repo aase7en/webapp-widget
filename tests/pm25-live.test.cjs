@@ -105,7 +105,7 @@ test('non-linear height emphasizes 15–35 while retaining genuine readings and 
  assert.ok(grab(x,'trend-area').every(p=>p.children.length>=2&&p.children.every(r=>r.attrs['fill-opacity'])));
  assert.match(x.get('.trend-plot').attrs['aria-label'],/สเกลแนวตั้งไม่เชิงเส้น/);
  const html=fs.readFileSync('v2/pm25-live.html','utf8');
- assert.match(fs.readFileSync('v2/pm25-live.js','utf8'),/for\(let depth=0;depth<36;/);
+ assert.match(fs.readFileSync('v2/pm25-live.js','utf8'),/pmHistoryTangents/);
  assert.match(html,/viewBox="0 0 300 40"/);
 });
 test('extreme 1000 does not flatten the visual differences at 15–35 or add samples',()=>{
@@ -129,7 +129,7 @@ test('distance-below-curve ribbons fade uniformly across adjacent segments witho
  assert.equal(areas.length,2);assert.equal(lines.length,2);
  for(let i=0;i<2;i++){
   const area=areas[i],ribbons=area.children;
-  assert.ok(ribbons.length>=12&&ribbons.length<=30);
+  assert.ok(ribbons.length>=2&&ribbons.length<=20);
   assert.equal(area.attrs['fill-opacity'],'.96');
   assert.equal(area.attrs.fill,'url(#pm25-seg-'+i+')');
   assert.equal(lines[i].attrs['stroke-dasharray'],undefined);
@@ -139,12 +139,12 @@ test('distance-below-curve ribbons fade uniformly across adjacent segments witho
   // First ribbon begins exactly on measured Y and reaches the next point.
   const observed=grab(x,'point').map(p=>Number(p.attrs.cy));
   const path=ribbons[0].attrs.d;
-  const match=path.match(/^M([\d.]+) ([\d.]+) L([\d.]+) ([\d.]+)/);
-  assert.ok(match,'ribbon starts on the two observed values');
+  const match=path.match(/^M([\d.]+) ([\d.]+) C([\d.]+) ([\d.]+) ([\d.]+) ([\d.]+) ([\d.]+) ([\d.]+)/);
+  assert.ok(match,'ribbon follows a cubic curve through measured endpoints');
   assert.ok(Math.abs(Number(match[1])-Number(grab(x,'point')[i].attrs.cx))<.1);
   assert.ok(Math.abs(Number(match[2])-observed[i])<.11);
-  assert.ok(Math.abs(Number(match[3])-Number(grab(x,'point')[i+1].attrs.cx))<.1);
-  assert.ok(Math.abs(Number(match[4])-observed[i+1])<.11);
+  assert.ok(Math.abs(Number(match[7])-Number(grab(x,'point')[i+1].attrs.cx))<.1);
+  assert.ok(Math.abs(Number(match[8])-observed[i+1])<.11);
  }
  assert.equal(areas[0].children[0].attrs['fill-opacity'],areas[1].children[0].attrs['fill-opacity'],
   'both sides of shared node have equal brightness right under the line');
@@ -161,10 +161,10 @@ test('missing PM hour still creates only measured points and a solid marked brid
  assert.equal(grab(x,'point').length,2);
  assert.equal(grab(x,'trend-line trend-gap').length,1);
  assert.equal(grab(x,'trend-line trend-gap')[0].attrs['data-gap'],'true');
- assert.equal(grab(x,'trend-gap-cue').length,1,'one visible double-slash for the missing interval');
- assert.equal(grab(x,'trend-gap-cue')[0].children.length,2);
+ assert.equal(grab(x,'trend-gap-cue').length,0,'no white break marks on graph');
+ assert.match(grab(x,'trend-line trend-gap')[0].attrs.d,/ C/,'missing-hour bridge is a cubic visual trend');
  assert.equal(grab(x,'trend-line trend-gap')[0].attrs['stroke-dasharray'],undefined);
- assert.match(x.get('.trend-plot').attrs['aria-label'],/ไม่ใช่ค่าฝุ่นที่วัดได้ระหว่างจุด/);
+ assert.match(x.get('.trend-plot').attrs['aria-label'],/ไม่ใช่ค่าที่วัดใหม่/);
 });
 test('bad PM values cannot enter trend as zero observations',()=>{
  const x=start(),now=Date.now();
@@ -174,7 +174,7 @@ test('bad PM values cannot enter trend as zero observations',()=>{
  assert.equal(grab(x,'trend-line').length,0);
 });
 
-test('visible double-slash cue appears for each marked missing-hour bridge and never invents readings',()=>{
+test('white break marks are absent; smooth gap intervals never create synthetic observations',()=>{
  const x=start(),h=Math.floor(Date.now()/3600000)*3600000;
  x.send({pm25:{status:'latest',value:22,avg24h:22,observedAt:freshISO(),unit:'µg/m³'},history:[
   {value:18,observedAt:new Date(h-5*3600000).toISOString()},
@@ -183,9 +183,47 @@ test('visible double-slash cue appears for each marked missing-hour bridge and n
  ]});
  assert.equal(grab(x,'point').length,3);
  assert.equal(grab(x,'trend-line trend-gap').length,2);
- const marks=grab(x,'trend-gap-cue');
- assert.equal(marks.length,2);
- assert.ok(marks.every(c=>c.attrs['aria-label'].includes('ขาดหาย')));
- assert.ok(marks.every(c=>c.children.length===2&&c.children[1].attrs.stroke==='#f4faff'));
- assert.equal(grab(x,'point').length,3,'cues must not masquerade as PM points');
+ assert.equal(grab(x,'trend-gap-cue').length,0);
+ assert.ok(grab(x,'trend-line trend-gap').every(line=>line.attrs.d.includes(' C')&&line.attrs['data-gap']==='true'));
+ assert.match(x.get('.trend-plot').attrs['aria-label'],/การประมาณแนวโน้ม/);
+});
+
+test('shape-preserving cubic stays within measured endpoints without zigzag overshoot',()=>{
+ const x=start(),now=Date.now(),v=[10,27,17,35,22,30];
+ x.send({pm25:{status:'latest',value:30,avg24h:30,observedAt:freshISO(),unit:'µg/m³'},history:v.map((value,i)=>({value,observedAt:new Date(now-(v.length-1-i)*3600000).toISOString()}))});
+ const points=grab(x,'point'),lines=grab(x,'trend-line');assert.equal(lines.length,v.length-1);
+ const coords=points.map(p=>({x:Number(p.attrs.cx),y:Number(p.attrs.cy)}));
+ const controls=[];
+ for(let i=0;i<lines.length;i++){
+  const parts=[...lines[i].attrs.d.matchAll(/-?\d+(?:\.\d+)?/g)].map(m=>Number(m[0]));
+  assert.equal(parts.length,8,'M x y C cx cy cx cy x y');
+  const [x0,y0,x1,y1,x2,y2,x3,y3]=parts;
+  assert.ok(Math.abs(y0-coords[i].y)<.11&&Math.abs(y3-coords[i+1].y)<.11);
+  assert.ok(x0<x1&&x1<x2&&x2<x3,'curve progresses in actual timestamp order');
+  for(let k=0;k<=20;k++){
+   const t=k/20,u=1-t;
+   const y=u*u*u*y0+3*u*u*t*y1+3*u*t*t*y2+t*t*t*y3;
+   assert.ok(y>=Math.min(y0,y3)-.06&&y<=Math.max(y0,y3)+.06,'do not exaggerate measured extrema');
+  }
+  controls.push([x0,y0,x1,y1,x2,y2,x3,y3]);
+ }
+ for(let i=0;i<controls.length-1;i++){
+  const a=controls[i],b=controls[i+1];
+  const slopeEnd=(a[7]-a[5])/(a[6]-a[4]);
+  const slopeStart=(b[3]-b[1])/(b[2]-b[0]);
+  assert.ok(Math.abs(slopeEnd-slopeStart)<.08,'adjacent cubic tangents meet smoothly');
+ }
+ assert.equal(grab(x,'trend-gap-cue').length,0);
+});
+
+test('latest real timestamp anchors the line end; do not extend curve to now or create measurements',()=>{
+ const x=start(),now=Date.now(),latest=now-2*3600000,older=now-4*3600000;
+ x.send({pm25:{status:'latest',value:19,avg24h:19,observedAt:freshISO(),unit:'µg/m³'},history:[
+  {value:24,observedAt:new Date(older).toISOString()},{value:19,observedAt:new Date(latest).toISOString()}
+ ]});
+ assert.equal(grab(x,'point').length,2);
+ const end=grab(x,'point').at(-1),d=grab(x,'trend-line trend-gap')[0].attrs.d;
+ const numbers=[...d.matchAll(/-?\d+(?:\.\d+)?/g)].map(m=>Number(m[0]));
+ assert.ok(Math.abs(numbers[6]-Number(end.attrs.cx))<.11);
+ assert.ok(Number(end.attrs.cx)<280,'should not extrapolate to graph right edge/latest clock');
 });

@@ -59,8 +59,8 @@ test("Selected animated conditions receive a scoped cache-buster; other weather 
  assert.match(html,/weather-luxury\.js\?v=20261113-led-contrast-1/);
  assert.match(html,/weather-hybrid-live\.css\?v=20261109-icons-2/);
  assert.match(display,/weather-luxury\.html\?v=20261113-led-contrast-1/);
- assert.match(outer,/v2\/index\.html\?display=led&amp;v=20261113-pm-smooth-2/);
- assert.match(display,/pm25-live\.html\?v=20261113-pm-smooth-2/);
+ assert.match(outer,/v2\/index\.html\?display=led&amp;v=20261114-pm-curve-1/);
+ assert.match(display,/pm25-live\.html\?v=20261114-pm-curve-1/);
  assert.match(display,/water-luxury-live\.html\?v=20261108-label-1/);
  assert.match(css,/\.board\.layout-hybrid \.icon\[data-condition="rain"\]/);
  assert.match(css,/\.board\.layout-hybrid \.icon\[data-condition="night-thunderstorm"\]/);
