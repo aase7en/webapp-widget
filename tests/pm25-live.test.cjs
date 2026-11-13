@@ -146,7 +146,7 @@ test('all area-fill shapes share one perfectly flat y=40 baseline regardless of 
  const html=fs.readFileSync('v2/pm25-live.html','utf8');
  assert.match(html,/id="pm-area-flat-baseline-mask"/);
  assert.match(html,/id="pm-area-flat-fade" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="0" y2="40"/);
- assert.match(html,/<stop offset="100%" stop-color="#fff" stop-opacity="\.34"/,'bottom remains visibly filled');
+ assert.match(html,/<stop offset="100%" stop-color="#fff" stop-opacity="\.18"/,'bottom remains visibly filled');
  assert.match(html,/viewBox="0 0 300 40"/);
 });
 
@@ -235,4 +235,25 @@ test('latest real timestamp anchors the line end; do not extend curve to now or 
  const numbers=[...d.matchAll(/-?\d+(?:\.\d+)?/g)].map(m=>Number(m[0]));
  assert.ok(Math.abs(numbers[6]-Number(end.attrs.cx))<.11);
  assert.ok(Number(end.attrs.cx)<280,'should not extrapolate to graph right edge/latest clock');
+});
+
+
+test('PM flat-baseline alpha mask has smooth strong-top / transparent-bottom monotone gradient',()=>{
+ const html=fs.readFileSync('v2/pm25-live.html','utf8');
+ const grad=html.match(/<linearGradient id="pm-area-flat-fade"[^>]*>(.*?)<\/linearGradient>/);
+ assert.ok(grad,'shared fixed-axis PM opacity gradient exists');
+ assert.match(grad[0],/gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="0" y2="40"/);
+ const stops=[...grad[1].matchAll(/<stop offset="([\d.]+)%" stop-color="#fff" stop-opacity="([\d.]+)"\/>/g)]
+  .map(m=>({at:Number(m[1]),alpha:Number(m[2])}));
+ assert.deepEqual(stops,[
+  {at:0,alpha:.96},{at:22,alpha:.84},{at:48,alpha:.62},
+  {at:74,alpha:.38},{at:100,alpha:.18}
+ ]);
+ assert.ok(stops.every((p,i)=>i===0||(p.at>stops[i-1].at&&p.alpha<stops[i-1].alpha)));
+ assert.ok(stops.at(-1).alpha>0,'flat base still has visible fill');
+ assert.match(html,/id="pm-area-flat-baseline-mask"/);
+ assert.match(html,/viewBox="0 0 300 40"/);
+ const js=fs.readFileSync('v2/pm25-live.js','utf8');
+ assert.match(js,/const baseline=40/);
+ assert.match(js,/area\.setAttribute\('mask','url\(#pm-area-flat-baseline-mask\)'\)/);
 });
