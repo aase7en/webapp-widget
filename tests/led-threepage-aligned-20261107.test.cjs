@@ -39,9 +39,9 @@ test('Exactly one lower risk badge; heat-index calculation and freshness remain 
 });
 test('New scoped cache keys refresh only changed page/css/js and preserve weather animation asset version',()=>{
  const index=read('v2/index.html'),entry=read('index.html'),water=read('v2/water-luxury-live.html');
- for(const [file,version] of [['pm25-live','20261113-led-contrast-1'],['weather-luxury','20261113-led-contrast-1'],['water-luxury-live','20261108-label-1']])assert.match(index,new RegExp(file+'\\.html\\?v='+version));
- assert.match(entry,/v2\/index\.html\?display=led&amp;v=20261113-led-contrast-1/);
- assert.match(pm,/pm25-live\.js\?v=20261113-led-contrast-1/);
+ for(const [file,version] of [['pm25-live','20261113-pm-smooth-2'],['weather-luxury','20261113-led-contrast-1'],['water-luxury-live','20261108-label-1']])assert.match(index,new RegExp(file+'\\.html\\?v='+version));
+ assert.match(entry,/v2\/index\.html\?display=led&amp;v=20261113-pm-smooth-2/);
+ assert.match(pm,/pm25-live\.js\?v=20261113-pm-smooth-2/);
  assert.match(wx,/weather-hybrid-live\.css\?v=20261109-icons-2/);
  assert.match(wx,/weather-luxury\.js\?v=20261113-led-contrast-1/);
  assert.match(water,/water-luxury-live\.css\?v=20261108-label-1/);
