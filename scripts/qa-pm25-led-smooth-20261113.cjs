@@ -35,6 +35,9 @@ const server=http.createServer((req,res)=>{
    assert.equal(evidence.filledSegments,evidence.lines,'one closed fill to baseline per curve segment');
    assert.ok(evidence.flatBaseline,'all area fills close on the same baseline y=40');
    assert.equal(evidence.areaMask,'url(#pm-area-flat-baseline-mask)');
+   const fade=await page.evaluate(()=>{const d=document.querySelector('#f').contentDocument;return [...d.querySelectorAll('#pm-area-flat-fade stop')].map(s=>[s.getAttribute('offset'),Number(s.getAttribute('stop-opacity'))])});
+   assert.deepEqual(fade,[['0%',.96],['22%',.84],['48%',.62],['74%',.38],['100%',.18]],
+    'all chart segments use one top-opaque, progressively transparent downward SVG mask');
    assert.equal(errors.length,0);
    await page.screenshot({path:OUT+'/'+variant+'-432x40.png'});
    console.log(JSON.stringify({variant,evidence}));
