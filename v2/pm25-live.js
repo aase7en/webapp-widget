@@ -27,6 +27,36 @@ function pmHistoryY(value, max){
  const bottom=warp(0),top=warp(max);
  return 35-((warp(Math.max(0,Math.min(max,value)))-bottom)/(top-bottom))*31.5;
 }
+// Shape-preserving monotone cubic tangents (PCHIP) in actual timestamp X.
+// Rounded local peaks/troughs without overshooting any measured Y endpoints.
+// No imputed observations are created, including when source hours are missing.
+function pmHistoryTangents(points){
+ const n=points.length;
+ if(n<2)return Array(n).fill(0);
+ const h=[],delta=[];
+ for(let i=0;i<n-1;i++){
+  const width=points[i+1].x-points[i].x;
+  h.push(Math.max(.001,width));
+  delta.push(width>.001?(points[i+1].y-points[i].y)/width:0);
+ }
+ if(n===2)return [delta[0],delta[0]];
+ const m=Array(n).fill(0);
+ const endpoint=(h0,h1,d0,d1)=>{
+  const t=((2*h0+h1)*d0-h0*d1)/(h0+h1);
+  if(t*d0<=0)return 0;
+  if(d0*d1<0&&Math.abs(t)>3*Math.abs(d0))return 3*d0;
+  return t;
+ };
+ m[0]=endpoint(h[0],h[1],delta[0],delta[1]);
+ m[n-1]=endpoint(h[n-2],h[n-3],delta[n-2],delta[n-3]);
+ for(let i=1;i<n-1;i++){
+  const d0=delta[i-1],d1=delta[i];
+  if(d0*d1<=0){m[i]=0;continue}
+  const w0=2*h[i]+h[i-1],w1=h[i]+2*h[i-1];
+  m[i]=(w0+w1)/(w0/d0+w1/d1);
+ }
+ return m;
+}
 function drawHistory(points,historyStatus){
  const ns='http://www.w3.org/2000/svg',g=$('#series');while(g.firstChild)g.removeChild(g.firstChild);if(!Array.isArray(points))points=[];
  const now=Date.now(),start=now-24*3600000;
@@ -39,57 +69,43 @@ function drawHistory(points,historyStatus){
   note.hidden=!message;note.textContent=message;
  }
 
- $('.trend-plot').setAttribute('aria-label','กราฟค่าฝุ่นจริงย้อนหลัง 24 ชั่วโมง เชื่อมจุดค่าที่วัดได้ต่อเนื่อง สีเส้นและพื้นที่ใต้เส้นต่อเนื่องทั้งกราฟ ไล่ตามค่าฝุ่นจริงแต่ละจุด (น้ำเงินดีมาก เขียวดี เหลืองปานกลาง ส้มเริ่มมีผลต่อสุขภาพ แดงมีผลต่อสุขภาพ) เมื่อข้อมูลขาดหายเส้นทึบเชื่อมเฉพาะค่าที่มีจริงเพื่อให้ดูแนวโน้ม ไม่ใช่ค่าฝุ่นที่วัดได้ระหว่างจุด ไม่มีการสร้างค่าฝุ่นใหม่ในช่วงดังกล่าว สเกลแนวตั้งไม่เชิงเส้นเพื่อขยายความแตกต่างช่วง 15–35 ไมโครกรัมต่อลูกบาศก์เมตร');
+ $('.trend-plot').setAttribute('aria-label','กราฟค่าฝุ่นจริงย้อนหลัง 24 ชั่วโมง เชื่อมจุดค่าที่วัดได้ต่อเนื่อง สีเส้นและพื้นที่ใต้เส้นต่อเนื่องทั้งกราฟ ไล่ตามค่าฝุ่นจริงแต่ละจุด (น้ำเงินดีมาก เขียวดี เหลืองปานกลาง ส้มเริ่มมีผลต่อสุขภาพ แดงมีผลต่อสุขภาพ) เส้นโค้งแนวโน้มเชื่อมเฉพาะจุดที่มีการวัดจริง รวมช่วงชั่วโมงที่ไม่มีข้อมูลโดยไม่แสดงเครื่องหมายรบกวน เส้นระหว่างจุดคือการประมาณแนวโน้ม ไม่ใช่ค่าที่วัดใหม่ ไม่สร้างข้อมูลหรือจุดวัดปลอม สเกลแนวตั้งไม่เชิงเส้นเพื่อขยายความแตกต่างช่วง 15–35 ไมโครกรัมต่อลูกบาศก์เมตร');
  const max=Math.max(50,...valid.map(p=>p.value));
  const xy=valid.map(p=>{const t=Date.parse(p.observedAt);return {t,x:Math.max(0,Math.min(300,(t-start)/86400000*300)),y:pmHistoryY(p.value,max),c:bandOf(p.value).dark}});
+ const tangents=pmHistoryTangents(xy);
  let host=document.querySelector('#pm25-segs');if(!host){host=document.createElementNS(ns,'g');host.setAttribute('id','pm25-segs');(document.querySelector('defs')||g).append(host)}while(host.firstChild)host.removeChild(host.firstChild);
  for(let i=1;i<xy.length;i++){
   const a=xy[i-1],b=xy[i],gap=b.t-a.t>90*60000||Math.floor(b.t/3600000)-Math.floor(a.t/3600000)>1;
-  const id='pm25-seg-'+(i-1);
+  const id='pm25-seg-'+(i-1),dx=b.x-a.x;
   const gr=document.createElementNS(ns,'linearGradient');gr.setAttribute('id',id);
   gr.setAttribute('gradientUnits','userSpaceOnUse');gr.setAttribute('x1',a.x.toFixed(1));gr.setAttribute('x2',b.x.toFixed(1));
   for(const [o,c] of [[0,a.c],[1,b.c]]){const st=document.createElementNS(ns,'stop');st.setAttribute('offset',o);st.setAttribute('stop-color',c);gr.append(st)}host.append(gr);
 
-  // Shade by the SAME distance below every observed line, including peaks.
-  // Narrow translucent ribbons share endpoints, avoiding adjacent SVG masks
-  // whose different angles caused visible alternating vertical color bars.
+  // Both the stroke and its near-line translucent ribbons use exactly the
+  // same cubic. Shared tangents yield smooth C1-continuous joins with natural
+  // flat turning points. Gap spans are visual estimates, not observations.
+  const cx1=a.x+dx/3,cy1=a.y+tangents[i-1]*dx/3;
+  const cx2=b.x-dx/3,cy2=b.y-tangents[i]*dx/3;
+  const f=v=>v.toFixed(2);
+  const curveAt=depth=>'M'+f(a.x)+' '+f(a.y+depth)+' C'+f(cx1)+' '+f(cy1+depth)+' '+f(cx2)+' '+f(cy2+depth)+' '+f(b.x)+' '+f(b.y+depth);
   const area=document.createElementNS(ns,'g');
   area.setAttribute('class',gap?'trend-area trend-area-gap':'trend-area');
   area.setAttribute('fill','url(#'+id+')');area.setAttribute('fill-opacity','.96');
   if(gap)area.setAttribute('data-gap','true');
-  for(let depth=0;depth<36;depth+=1.2){
-   const topA=Math.min(39,a.y+depth),topB=Math.min(39,b.y+depth);
-   const endA=Math.min(39,a.y+depth+1.2),endB=Math.min(39,b.y+depth+1.2);
-   if(topA>=39&&topB>=39)break;
+  for(let depth=0;depth<36;depth+=1.8){
+   if(Math.min(a.y,b.y)+depth>=39)break;
+   const lower=depth+1.8;
    const ribbon=document.createElementNS(ns,'path');
-   ribbon.setAttribute('d','M'+a.x.toFixed(1)+' '+topA.toFixed(2)+' L'+b.x.toFixed(1)+' '+topB.toFixed(2)+' L'+b.x.toFixed(1)+' '+endB.toFixed(2)+' L'+a.x.toFixed(1)+' '+endA.toFixed(2)+' Z');
-   const alpha=.96*Math.exp(-Math.pow((depth+.6)/11.5,1.4));
-   ribbon.setAttribute('fill-opacity',alpha.toFixed(3));
-   area.append(ribbon);
+   ribbon.setAttribute('d',curveAt(depth)+' L'+f(b.x)+' '+f(b.y+lower)+' C'+f(cx2)+' '+f(cy2+lower)+' '+f(cx1)+' '+f(cy1+lower)+' '+f(a.x)+' '+f(a.y+lower)+' Z');
+   const alpha=.96*Math.exp(-Math.pow((depth+.9)/11.5,1.4));
+   ribbon.setAttribute('fill-opacity',alpha.toFixed(3));area.append(ribbon);
   }
   g.append(area);
-  // Constant-width solid stroke (including bridges across missing hours).
-  // A data-gap marker keeps missingness testable; only the two real endpoints
-  // are measurements and the bridge never creates synthetic observations.
   const line=document.createElementNS(ns,'path');
-  line.setAttribute('d','M'+a.x.toFixed(1)+' '+a.y.toFixed(1)+' L'+b.x.toFixed(1)+' '+b.y.toFixed(1));
-  line.setAttribute('class',gap?'trend-line trend-gap':'trend-line');
-  line.style.setProperty('stroke','url(#'+id+')');if(gap)line.setAttribute('data-gap','true');g.append(line);
-  if(gap){
-   // White double slash across the solid connecting bridge denotes missing
-   // intervening hours; it is a cue, not another PM observation/point.
-   const mx=(a.x+b.x)/2,my=(a.y+b.y)/2;
-   const mark='M'+(mx-3.1).toFixed(1)+' '+(my-3.7).toFixed(1)+' l2.4 7.4 M'+(mx+.3).toFixed(1)+' '+(my-3.7).toFixed(1)+' l2.4 7.4';
-   const cue=document.createElementNS(ns,'g');cue.setAttribute('class','trend-gap-cue');
-   cue.setAttribute('data-gap','true');cue.setAttribute('aria-label','ช่วงข้อมูลรายชั่วโมงขาดหาย');
-   for(const [width,color] of [[4.2,'#061321'],[2,'#f4faff']]){
-    const slash=document.createElementNS(ns,'path');slash.setAttribute('d',mark);
-    slash.setAttribute('stroke',color);slash.setAttribute('stroke-width',width);
-    slash.setAttribute('stroke-linecap','round');slash.setAttribute('fill','none');
-    cue.append(slash);
-   }
-   g.append(cue);
-  }
+  line.setAttribute('d',curveAt(0));line.setAttribute('class',gap?'trend-line trend-gap':'trend-line');
+  line.style.setProperty('stroke','url(#'+id+')');
+  if(gap)line.setAttribute('data-gap','true');
+  g.append(line);
  }
  /* Tiny luminous reading points. Each real observation gets one faint
     colored halo and a smaller crisp core; no extra synthetic samples. */
