@@ -9,7 +9,7 @@ from __future__ import annotations
 
 from pathlib import Path
 import math
-from PIL import Image, ImageDraw, ImageFilter
+from PIL import Image, ImageDraw, ImageFilter, ImageChops
 
 ROOT = Path(__file__).resolve().parents[1]
 OUT = ROOT / "v2" / "weather-assets"
@@ -46,9 +46,10 @@ def silhouette():
 
 MASK = silhouette()
 
-def make_cloud():
-    # Saturated cobalt top, darker luxury-blue undersides; no washed-out bloom.
-    top, bottom = (81, 146, 237), (19, 50, 112)
+def make_cloud(night=False):
+    # Storm clouds are slate-grey (especially at night), not background-blue.
+    # Keep shaded crests and a luminous high-contrast rim at native LED size.
+    top, bottom = ((92, 103, 121), (22, 28, 42)) if night else ((103, 135, 175), (31, 49, 78))
     pixels = Image.new("RGBA", (HI, HI))
     colors = []
     for y in range(HI):
@@ -61,10 +62,10 @@ def make_cloud():
             colors.append(tuple(int(bottom[c] + (top[c] - bottom[c]) * f) for c in range(3)) + (255,))
     pixels.putdata(colors)
     pixels.putalpha(MASK)
-    # Slim luminous edge with clear contour, not a huge glow cloud.
-    edge = MASK.filter(ImageFilter.MaxFilter(5))
-    edge_layer = Image.new("RGBA", (HI, HI), (80, 184, 250, 90))
-    edge_layer.putalpha(edge.point(lambda a: min(120, int(a * .45))))
+    # White outside stroke survives the 128px sprite downscale and dark sky.
+    edge = ImageChops.subtract(MASK.filter(ImageFilter.MaxFilter(9)), MASK)
+    edge_layer = Image.new("RGBA", (HI, HI), (251, 254, 255, 0))
+    edge_layer.putalpha(edge.point(lambda a: min(235, int(a * .92))))
     result = rgba()
     result.alpha_composite(edge_layer)
     result.alpha_composite(pixels)
@@ -80,7 +81,8 @@ def make_cloud():
     stroke(d, [(36, 70), (56, 73), (90, 72)], (111, 175, 248, 110), 1)
     return result
 
-CLOUD = make_cloud()
+CLOUD_DAY = make_cloud()
+CLOUD_NIGHT = make_cloud(night=True)
 
 def moon_layer():
     m = rgba()
@@ -109,8 +111,8 @@ def rainfall_layer(frame, storm=False):
         y = 75 + ((i * 17 + row * 7 + frame * speed) % 49)
         # Small, medium, large mixed; larger drops flash a clear aqua-white head.
         typ = i % 7
-        wide = 2.9 if typ in (0, 5) else (1.8 if typ in (1, 3, 6) else 1.05)
-        length = 7 if typ in (0, 5) else (5 if typ in (1, 3, 6) else 3)
+        wide = 4.0 if typ in (0, 5) else (2.6 if typ in (1, 3, 6) else 1.45)
+        length = 10 if typ in (0, 5) else (7 if typ in (1, 3, 6) else 4)
         alpha = 255 if typ in (0, 1, 5) else (218 if typ in (3, 6) else 165)
         color = (111, 231, 255, alpha) if typ in (0, 1, 3, 5) else (32, 178, 247, alpha)
         if wide > 2:
@@ -120,30 +122,35 @@ def rainfall_layer(frame, storm=False):
             ellipse(d, (x - 1.4, y - 1.3, x + 1.4, y + 1.3), (226, 252, 255, 245))
     return layer
 
-def lightning_layer(frame, dark=False):
-    # Visible twin lightning bursts + sustained highlights, no strobe across whole board.
+def lightning_level(frame):
+    # Shared phase for bolt AND cloud illumination: no unsynchronised strobe.
     bursts = ((10, 15), (33, 39), (62, 68), (83, 87))
     level = 0.
     for a, b in bursts:
         if a <= frame <= b:
             t = (frame - a) / max(1, b - a)
             level = max(level, math.sin(math.pi * t) ** .45)
+    return level
+
+def lightning_layer(frame, dark=False):
+    # Stronger but localized branched bolt, synchronized to cloud glow.
+    level = lightning_level(frame)
     layer = rgba()
     if level <= 0:
         return layer
-    bolt = [(77, 73), (66, 92), (76, 92), (62, 114), (65, 96),
-            (58, 96), (69, 74)]
+    bolt = [(79, 68), (63, 94), (76, 94), (54, 124), (61, 100),
+            (51, 100), (69, 68)]
     soft = rgba()
     brush = ImageDraw.Draw(soft, "RGBA")
-    stroke(brush, bolt, (52, 166, 255, round(220 * level)), 10)
-    soft = soft.filter(ImageFilter.GaussianBlur(4.2 * SCALE))
+    stroke(brush, bolt, (70, 189, 255, round(240 * level)), 15)
+    soft = soft.filter(ImageFilter.GaussianBlur(5.2 * SCALE))
     layer.alpha_composite(soft)
     brush = ImageDraw.Draw(layer, "RGBA")
-    stroke(brush, bolt, (37, 165, 255, round(240 * level)), 6)
-    stroke(brush, bolt, (255, 208, 78, round(255 * level)), 4)
-    stroke(brush, bolt, (255, 253, 221, round(255 * level)), 2.4)
+    stroke(brush, bolt, (43, 175, 255, round(245 * level)), 9)
+    stroke(brush, bolt, (255, 214, 96, round(255 * level)), 6)
+    stroke(brush, bolt, (255, 254, 242, round(255 * level)), 3.2)
     # Angled branch to explicitly convey thunderstorm.
-    stroke(brush, [(68, 90), (83, 98), (80, 110)], (255, 227, 121, round(225 * level)), 2.5)
+    stroke(brush, [(65, 94), (88, 103), (83, 119)], (255, 235, 155, round(245 * level)), 3.5)
     return layer
 
 def wind_layer(frame):
@@ -163,7 +170,18 @@ def frame_image(frame, kind):
         img.alpha_composite(MOON)
     # Gentle 1px bob only, keeping the cloud broadly centered at LED scale.
     delta = round(math.sin(TAU * frame / FRAMES) * SCALE)
-    img.alpha_composite(CLOUD, (0, delta))
+    cloud = CLOUD_NIGHT if night else CLOUD_DAY
+    flash = lightning_level(frame) if storm else 0.
+    if flash:
+        # Illuminate cloud mass only during visible lightning frames.
+        aura = Image.new("RGBA", (HI, HI), (175, 226, 255, 0))
+        aura.putalpha(MASK.filter(ImageFilter.GaussianBlur(7 * SCALE)).point(
+            lambda a: round(a * .28 * flash)))
+        img.alpha_composite(aura, (0, delta))
+        lit = Image.new("RGBA", (HI, HI), (223, 242, 255, 0))
+        lit.putalpha(MASK.point(lambda a: round(a * .72 * flash)))
+        cloud = Image.alpha_composite(cloud, lit)
+    img.alpha_composite(cloud, (0, delta))
     if storm:
         img.alpha_composite(wind_layer(frame))
     img.alpha_composite(rainfall_layer(frame, storm))

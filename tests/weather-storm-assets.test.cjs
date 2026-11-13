@@ -54,13 +54,13 @@ test("Selected animated conditions receive a scoped cache-buster; other weather 
  const display=read("v2/index.html");
  const outer=read("index.html");
  assert.match(js,/rain','thunderstorm','night-rain','night-thunderstorm/);
- assert.match(js,/\.apng'.*\?v=20261106-storm-clarity-1/);
- assert.match(js,/-poster\.png'.*\?v=20261106-storm-clarity-1/);
- assert.match(html,/weather-luxury\.js\?v=20261109-compact-1/);
+ assert.match(js,/\.apng'.*\?v=20261113-led-contrast-1/);
+ assert.match(js,/-poster\.png'.*\?v=20261113-led-contrast-1/);
+ assert.match(html,/weather-luxury\.js\?v=20261113-led-contrast-1/);
  assert.match(html,/weather-hybrid-live\.css\?v=20261109-icons-2/);
- assert.match(display,/weather-luxury\.html\?v=20261109-icons-2/);
- assert.match(outer,/v2\/index\.html\?display=led&amp;v=20261109-pm24-2/);
- assert.match(display,/pm25-live\.html\?v=20261109-pm24-2/);
+ assert.match(display,/weather-luxury\.html\?v=20261113-led-contrast-1/);
+ assert.match(outer,/v2\/index\.html\?display=led&amp;v=20261113-led-contrast-1/);
+ assert.match(display,/pm25-live\.html\?v=20261113-led-contrast-1/);
  assert.match(display,/water-luxury-live\.html\?v=20261108-label-1/);
  assert.match(css,/\.board\.layout-hybrid \.icon\[data-condition="rain"\]/);
  assert.match(css,/\.board\.layout-hybrid \.icon\[data-condition="night-thunderstorm"\]/);
@@ -74,4 +74,15 @@ test("Deterministic source generates large rain and explicit lightning flashes",
  assert.match(source,/FRAMES = 96/);
  assert.match(source,/FRAME_MS = 50/);
  assert.doesNotMatch(source,/requests|urllib|http\.client|random\.random/);
+});
+
+test('LED cloud design uses slate-grey nights, white rim, larger rain and synchronized cloud flashes',()=>{
+ const source=read('scripts/build-weather-storm-motion.py');
+ assert.match(source,/CLOUD_NIGHT = make_cloud\(night=True\)/);
+ assert.match(source,/ImageChops\.subtract/);
+ assert.match(source,/\(251, 254, 255, 0\)/);
+ assert.match(source,/wide = 4\.0/);
+ assert.match(source,/def lightning_level\(frame\)/);
+ assert.match(source,/flash = lightning_level\(frame\) if storm else 0/);
+ assert.match(source,/aura\.putalpha/);
 });

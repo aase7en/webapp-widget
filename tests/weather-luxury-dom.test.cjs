@@ -176,7 +176,7 @@ test('a later good payload renders end-to-end on the 5-minute refresh path', asy
   assert.equal(r['#high'].textContent, '35°');
   assert.equal(r['#icon'].dataset.condition, 'rain', 'real weatherCode 63 maps to rain');
   assert.match(r['#scene'].src, /rain\.webp$/);
-  assert.match(r['#icon'].src, /rain\.apng\?v=20261106-storm-clarity-1$/);
+  assert.match(r['#icon'].src, /rain\.apng\?v=20261113-led-contrast-1$/);
   assert.equal(r['#graphfill'].children.length, 7, 'per-day trend gradient stops');
   assert.ok(r['#line'].attrs.d.startsWith('M'), 'trend path drawn');
   assert.equal(r['#days'].children.length, 7);

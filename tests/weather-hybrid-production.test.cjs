@@ -13,7 +13,7 @@ test('Production Weather uses existing validated snapshot + unchanged live model
  assert.match(html,/src="weather-snapshot\.js"/);
  assert.match(html,/weather-hybrid-live\.js\?v=20261109-compact-1/);
  assert.match(html,/weather-hybrid-live\.css\?v=20261109-icons-2/);
- assert.match(html,/weather-luxury\.js\?v=20261109-compact-1/);
+ assert.match(html,/weather-luxury\.js\?v=20261113-led-contrast-1/);
  assert.match(bridge,/UthWeatherSnapshot\.parse/);
  assert.match(bridge,/UthWeatherHybrid\?\.render/);
  assert.match(bridge,/fallbackTransport\(\)/);
@@ -23,10 +23,10 @@ test('Production Weather uses existing validated snapshot + unchanged live model
 });
 
 test('Only Weather embed changes; main rotation and PM/Water iframe remain routed',()=>{
- assert.match(index,/weather-luxury\.html\?v=20261109-icons-2/);
- assert.match(index,/pm25-live\.html\?v=20261109-pm24-2/);
+ assert.match(index,/weather-luxury\.html\?v=20261113-led-contrast-1/);
+ assert.match(index,/pm25-live\.html\?v=20261113-led-contrast-1/);
  assert.match(index,/water-luxury-live\.html\?v=20261108-label-1/);
- assert.match(entry,/v2\/index\.html\?display=led&amp;v=20261109-pm24-2/);
+ assert.match(entry,/v2\/index\.html\?display=led&amp;v=20261113-led-contrast-1/);
  assert.match(index,/setInterval\(\(\)=>\{sections\[current\]/);
 });
 
