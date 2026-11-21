@@ -2,6 +2,13 @@
 
 All notable changes are grounded in merged GitHub PRs and production verification. Product Semantic Versioning begins at v1.0.0; earlier UI PRs did not have formal version tags.
 
+## [Unreleased] — Google Sheet retention proposal (NOT deployed)
+
+- All ten canonical Sheet tabs audited; legacy retirement candidates identified but not deleted.
+- Source-only one-year PM/Water known history retention with default dry-run and owner-gated History_Batch pruning; heavy snapshot retention remains shorter.
+- Live bound Apps Script deployment, trigger inventory, export backup and final destructive approval required.
+- Work Order: docs/work-orders/WO-WIDGET-SHEET-RETENTION-20261121.md.
+
 ## [1.0.1] — 2026-11-21
 
 - Corrected PM2.5 and Water public display from 3h to owner-approved 6h since source observedAt. Display last verified Sheet measurement through 6h; beyond that show — and ข้อมูลเก่าเกิน 6 ชม.

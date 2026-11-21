@@ -95,7 +95,7 @@ var WaterHistory = (function () {
       var fetched=r&&Date.parse(String(r[9])),saved=r&&Date.parse(String(r[17]));
       // Only future rows marked by this hourly collector are owned. Existing
       // mixed/manual/backfill records have no reliable ownership marker.
-      var eligible=!!(r&&meta&&slot==='hourly_v1'&&/^\d{4}-\d\d-\d\d$/.test(date)&&r[0]===date+':'+slot&&Number(r[5])===meta.id&&r[6]===meta.name&&r[3]==='uthai'&&r[11]==='ThaiWater/HII'&&r[12]===URL&&r[15]==='MSL'&&r[16]==='reference_station_not_hospital_sensor'&&['LATEST','HISTORICAL'].indexOf(r[10])>=0&&level!==null&&bank!==null&&ground!==null&&ground<bank&&isFinite(fetched)&&isFinite(saved)&&t&&fetched>=t.utcMs&&saved>=fetched&&saved-fetched<=300000&&t.utcMs<now-90*86400000&&saved<now-90*86400000);
+      var eligible=!!(r&&meta&&slot==='hourly_v1'&&/^\d{4}-\d\d-\d\d$/.test(date)&&r[0]===date+':'+slot&&Number(r[5])===meta.id&&r[6]===meta.name&&r[3]==='uthai'&&r[11]==='ThaiWater/HII'&&r[12]===URL&&r[15]==='MSL'&&r[16]==='reference_station_not_hospital_sensor'&&['LATEST','HISTORICAL'].indexOf(r[10])>=0&&level!==null&&bank!==null&&ground!==null&&ground<bank&&isFinite(fetched)&&isFinite(saved)&&t&&fetched>=t.utcMs&&saved>=fetched&&saved-fetched<=300000&&t.utcMs<now-365*86400000&&saved<now-365*86400000);
       if(eligible){if(end<0)end=i;}
       else if(end>=0){sh.deleteRows(i+3,end-i);removed+=end-i;end=-1;}
     }

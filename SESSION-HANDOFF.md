@@ -1,3 +1,11 @@
+# Current: canonical Sheet ten-tab audit and retention candidate (2026-11-21)
+
+Owner requested delete unused/duplicate tabs and cap all historical data at one year. Actual Sheet shows 10 tabs; important candidates are ชีต1 last Oct17 (17 rows, one embedded chart and Code.gs reference), ชีต2 last Oct16 (990 rows, 346 older than 2025-11-21 and Code.gs reference). Other active data and config tabs must stay. Full audit + one-year policy: docs/work-orders/WO-WIDGET-SHEET-RETENTION-20261121.md.
+
+Clean isolated Mac SundayMCP worktree /Volumes/MAC_WORK/DevWorkspace/Github/webapp-widget-retention-audit-20261121, branch feat/widget-sheet-retention-audit-20261121, base main 7359c928198d84efbd6fb5361d48ecc87eb7c3ac. Source candidate extends PM/Water known-row retention 90 to 365 days, adds default DRY_RUN History_Batch cleanup under existing trigger, leaves snapshots <=90 days, and preserves all live Sheets and script deployment. Root weather worktree untracked files protected. Actual bound Apps Script version/triggers UNKNOWN; no live deletion, rollout or activation. ONE safe next action: full Node QA, independent review and PR; then verified trigger inventory, backup, owner-approved deployment and exact dry run before enabling/removing legacy tabs.
+
+---
+
 # Latest owner data-freshness correction — 2026-11-21
 
 Current six-hour display rule: PM2.5 and Water use last verified measurement in existing canonical Sheet for <=6h from observedAt, then dominant — and badge ข้อมูลเก่าเกิน 6 ชม. Weather remains 3h model freshness. At checked 2026-11-21 22:49 TH: PM 21:00, HDA004 21:40, S5 18:00 observed; S5 at ~4h49 should NOT have been blank. Existing Sheet still receives writes.

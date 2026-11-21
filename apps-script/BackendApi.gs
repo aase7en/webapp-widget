@@ -151,7 +151,7 @@ var BackendApi = (function () {
   var TAB_SOURCES = 'API_Sources';
   var TAB_HISTORY = 'History_Batch';
   var TAB_PM_HOURLY = 'PM25_Hourly';
-  var PM_RETENTION_MS = 90 * 86400000;
+  var PM_RETENTION_MS = 365 * 86400000; /* retain verified hourly PM for at most one year */
   var PM_HISTORY_HEADER = ['record_type','location_id','pm25_value','pm25_observed_at','pm25_status','pm25_provider','pm25_area_id','pm25_tambon_name','created_at'];
   function validPmHourlyRow(r) {
     var n = asNumber(r[2]);
@@ -1122,6 +1122,15 @@ var BackendApi = (function () {
         if (wx._err) errs.push(wx._err);
         appendHistoryRow(sheet, batchId, batchDate, slot, L, stripInternal(pm), stripInternal(wx), stripInternal(water), errs);
         existing[historyRowKey(batchId, locId)] = true;
+      }
+      /* Existing history trigger owns this Sheet lock. Add no new trigger.
+       * Deletion is disabled until an owner explicitly verifies a backup,
+       * previews eligible rows and opts in via ScriptProperties. */
+      try {
+        if (typeof WidgetRetention !== 'undefined')
+          WidgetRetention.pruneSheet(sheet, sheet.getDataRange().getValues(), now);
+      } catch(retentionError) {
+        Logger.log('History retention postponed (history writes preserved): ' + retentionError.message);
       }
       /* Charts rebuild AFTER appends in the same guarded scheduled context.
        * Lazily creates the 'Charts' tab on the first batch (zero extra owner

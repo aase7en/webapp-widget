@@ -135,7 +135,7 @@ test('only scheduled HII API is queried and loss of API cannot switch to shadow 
 test('hourly collector shares the one-hour provider gate with the legacy collector',()=>{const h=harness();h.answers[PRIMARY]={data:data()};assert.equal(h.env.WaterHistory.syncHourly().stored,2);assert.equal(h.env.WaterHistory.sync().stored,0);assert.equal(h.calls(),1)});
 
 test('cleanup deletes only validated new hourly-owned rows, preserving legacy and malformed records',()=>{
- const h=harness();const old=['2026-01-01:hourly_v1','2026-01-01','hourly_v1','uthai','HDA004',471583,'HDA004 ช่องสะเดา',2.7,'2026-01-01 17:00','2026-01-01T10:30:00Z','HISTORICAL','ThaiWater/HII',PRIMARY,3.03,.227,'MSL','reference_station_not_hospital_sensor','2026-01-01T10:30:00Z'];
+ const h=harness();const old=['2025-01-01:hourly_v1','2025-01-01','hourly_v1','uthai','HDA004',471583,'HDA004 ช่องสะเดา',2.7,'2025-01-01 17:00','2025-01-01T10:30:00Z','HISTORICAL','ThaiWater/HII',PRIMARY,3.03,.227,'MSL','reference_station_not_hospital_sensor','2025-01-01T10:30:00Z'];
  const legacy=old.slice();legacy[0]='legacy-user-data';legacy[2]='unowned';legacy[7]=null;
  const malformed=old.slice();malformed[7]=null;
  const back=old.slice();back[10]='VERIFIED_BACKFILL';
@@ -148,5 +148,5 @@ test('mixed legacy water row survives when upstream is offline',()=>{
 test('failed HII request is not retried within the same hourly window',()=>{const h=harness();assert.throws(()=>h.env.WaterHistory.syncHourly(),/NO_VERIFIED_STATION/);const retry=h.env.WaterHistory.syncHourly();assert.equal(retry.reason,'attempt_throttled');assert.equal(h.calls(),1)});
 
 test('retention recognises typed Sheet date and preserves impossible chronology',()=>{
- const h=harness();const owned=['2026-01-01:hourly_v1',new Date('2025-12-31T17:00:00Z'),'hourly_v1','uthai','HDA004',471583,'HDA004 ช่องสะเดา',2.7,'2026-01-01 17:00','2026-01-01T10:30:00Z','HISTORICAL','ThaiWater/HII',PRIMARY,3.03,.227,'MSL','reference_station_not_hospital_sensor','2026-01-01T10:30:00Z'];const invalid=owned.slice();invalid[17]='2026-01-01T09:00:00Z';h.values.push(owned,invalid);h.answers[PRIMARY]={data:data()};h.env.WaterHistory.syncHourly();assert.equal(h.values.includes(owned),false);assert.equal(h.values.includes(invalid),true);
+ const h=harness();const owned=['2025-01-01:hourly_v1',new Date('2024-12-31T17:00:00Z'),'hourly_v1','uthai','HDA004',471583,'HDA004 ช่องสะเดา',2.7,'2025-01-01 17:00','2025-01-01T10:30:00Z','HISTORICAL','ThaiWater/HII',PRIMARY,3.03,.227,'MSL','reference_station_not_hospital_sensor','2025-01-01T10:30:00Z'];const invalid=owned.slice();invalid[17]='2025-01-01T09:00:00Z';h.values.push(owned,invalid);h.answers[PRIMARY]={data:data()};h.env.WaterHistory.syncHourly();assert.equal(h.values.includes(owned),false);assert.equal(h.values.includes(invalid),true);
 });
