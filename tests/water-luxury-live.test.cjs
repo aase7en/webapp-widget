@@ -100,13 +100,19 @@ test('history caption never claims complete seven days when only hours are obser
  assert.equal(caption({trendPoints:[2.5],trendObservedAt:[new Date(now).toISOString()]},now).label,'7D HISTORY');
  assert.equal(caption({trendPoints:[2.5,2.6],trendObservedAt:[new Date(now-8*86400000).toISOString(),new Date(now).toISOString()]},now).label,'7D HISTORY');
 });
-test('English datum m MSL has no conversion; statuses and measured timestamps stay intact',()=>{
- assert.match(js,/metres relative to mean sea level/);
- assert.match(js,/<span class="unit"[^>]*>m MSL<\/span>/);
- assert.match(js,/HII REFERENCE/);
- assert.match(js,/OBS /);
- assert.match(js,/GROUND–BANK /);
+test('Public Water percent is ground-bank fraction, with original m MSL retained in staff-accessible metadata',()=>{
+ assert.match(js,/function observedDirection\(st,now=Date\.now\(\)\)/);
+ assert.match(js,/const pct=bankIntervalPercent\(st\.value,st\.groundMsl,st\.bankM,st\.datum\)/);
+ assert.match(js,/const usable=fresh&&pct!==null/);
+ assert.match(js,/class="big-level\$\{wide\}"/);
+ assert.match(js,/<span class="unit" title="\$\{details\}">%<\/span>/);
+ assert.match(js,/originalMsl=.*m MSL/);
+ assert.match(js,/observed-stamp/);
+ assert.match(js,/distance-to-bank/);
+ assert.match(js,/aria-label/);
  assert.match(js,/st\.datum=valid\?'MSL':null/);
- assert.match(js,/const value=typeof st\.value==='number'&&Number\.isFinite\(st\.value\)\?st\.value\.toFixed\(2\)/);
  assert.match(js,/const windowStart=now-7\*86400000/);
+ assert.match(css,/\.widget\.v3 \.foam-front/);
+ assert.match(ui,/water-percent-public\.css\?v=20261121-water-percent-1/);
+ assert.match(ui,/water-luxury-live\.js\?v=20261121-water-percent-1/);
 });

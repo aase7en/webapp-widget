@@ -45,19 +45,55 @@ function trendCaption(reading,now=Date.now()){
  const coverage=hours<1?'<1H':hours<48?Math.round(hours)+'H':Math.round(hours/24)+'D';
  return {label:coverage+' / 7D',description:stamps.length+' observed readings cover '+hours.toFixed(1)+' hours within a seven-day lookback. Horizontal axis represents the actual observed time span; it does not imply seven complete days of measurements'};
 }
+// Direction is derived ONLY from a verified, time-matched observation series.
+// The arrow is unknown if the graph does not actually contain the latest reading.
+function observedDirection(st,now=Date.now()){
+ const unknown={arrow:'—',cls:'unknown',description:'ไม่มีแนวโน้มที่ตรวจสอบได้'};
+ const latest=Date.parse(st?.observedAt);
+ if(st?.status!=='ok'||!Number.isFinite(latest)||latest>now+120000||
+     now-latest>3*3600000||!Number.isFinite(st.value))return unknown;
+ const vals=st.historyReading?.trendPoints,times=st.historyReading?.trendObservedAt;
+ if(!Array.isArray(vals)||!Array.isArray(times)||vals.length!==times.length||
+    vals.length<2||vals.length>30)return unknown;
+ const seen=new Set();
+ const points=vals.map((level,i)=>({level,ms:Date.parse(times[i])}))
+  .filter(p=>Number.isFinite(p.level)&&Number.isFinite(p.ms)&&
+   p.ms<=now+120000&&p.ms<=latest+120000&&p.ms>=latest-7*86400000&&!seen.has(p.ms)&&seen.add(p.ms))
+  .sort((a,b)=>a.ms-b.ms);
+ const last=points.at(-1);
+ if(!last||Math.abs(last.ms-latest)>15*60000||Math.abs(last.level-st.value)>.05)return unknown;
+ // Avoid describing a multi-day gap as a short-term rising/falling water level.
+ const previous=points.slice(0,-1).filter(p=>last.ms-p.ms>=30*60000&&last.ms-p.ms<=6*3600000).at(-1);
+ if(!previous)return unknown;
+ const delta=last.level-previous.level;
+ if(delta>.015)return {arrow:'↑',cls:'up',description:'ระดับน้ำสูงขึ้น '+Math.abs(delta).toFixed(2)+' เมตร ระหว่างค่าที่ตรวจวัด'};
+ if(delta<-.015)return {arrow:'↓',cls:'down',description:'ระดับน้ำลดลง '+Math.abs(delta).toFixed(2)+' เมตร ระหว่างค่าที่ตรวจวัด'};
+ return {arrow:'→',cls:'flat',description:'ระดับน้ำค่อนข้างคงที่ ระหว่างค่าที่ตรวจวัด'};
+}
 function renderStation(st){
  const target=document.querySelector(st.el);if(!target)return;
- const value=typeof st.value==='number'&&Number.isFinite(st.value)?st.value.toFixed(2):'—';
- const percent=bankIntervalPercent(st.value,st.groundMsl,st.bankM,st.datum);
- const label=percent===null?'GROUND–BANK —%':'GROUND–BANK '+percent.toFixed(1)+'%';
- const badge=bankBadge(st);
- const safePath=st.historyPath||'',coverage=trendCaption(st.historyReading);
- const observedShort=st.observedAt?'OBS '+new Intl.DateTimeFormat('en-GB',{timeZone:'Asia/Bangkok',day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit',hour12:false}).format(new Date(st.observedAt)).replace(',',''):'NO VERIFIED TIME';
+ const pct=bankIntervalPercent(st.value,st.groundMsl,st.bankM,st.datum);
+ const observed=Date.parse(st.observedAt),now=Date.now();
+ const fresh=st.status==='ok'&&Number.isFinite(observed)&&observed<=now+120000&&now-observed<=3*3600000;
+ const usable=fresh&&pct!==null;
+ const shown=usable?pct.toFixed(1):'—';
+ const direction=usable?observedDirection(st,now):{arrow:'—',cls:'unknown',description:'ไม่มีแนวโน้มที่ตรวจสอบได้'};
+ const badge=bankBadge(st,now);
+ const safePath=st.historyPath||'',coverage=trendCaption(st.historyReading,now);
+ const gap=usable&&Number.isFinite(st.bankM)&&Number.isFinite(st.value)?st.bankM-st.value:null;
+ const gapText=gap===null?(st.status==='historical'?'ข้อมูลเก่า · งดแสดง%':'รอข้อมูลอ้างอิง'):
+  gap<-.000001?'สูงกว่าตลิ่ง '+Math.abs(gap).toFixed(2)+' ม.':
+  Math.abs(gap)<.000001?'ถึงตลิ่งอ้างอิง':'ต่ำกว่าตลิ่ง '+gap.toFixed(2)+' ม.';
+ const observedShort=fresh?'วัด '+new Intl.DateTimeFormat('en-GB',{timeZone:'Asia/Bangkok',hour:'2-digit',minute:'2-digit',hour12:false}).format(new Date(observed)):
+  st.status==='historical'?'ข้อมูลเก่า':'รอข้อมูล';
+ const originalMsl=Number.isFinite(st.value)?st.value.toFixed(2)+' m MSL':'ไม่มีค่า m MSL';
+ const details=originalMsl+' · '+st.observed+' · สัดส่วนช่วงพื้นอ้างอิงถึงตลิ่งต่ำสุด ไม่ใช่ความเสี่ยงน้ำท่วม';
+ const wide=usable&&pct>=100?' wide-pct':'';
  target.innerHTML=`<div class="station-card"><div class="art-zone"><canvas class="water-canvas" width="420" height="210" aria-label="ภาพการไหลประกอบ ไม่ใช่สถานะประตูจริง"></canvas></div>
- <div class="info"><div class="station-name">${st.name}<small>HII REFERENCE</small></div>
- <div class="reading-row"><div class="big-level">${value}<span class="unit" title="m MSL: metres relative to mean sea level" aria-label="metres relative to mean sea level">m MSL</span></div></div>
+ <div class="info"><div class="station-name"><span>${st.name}</span><small>HII REFERENCE</small><span class="observed-stamp" title="${st.observed}">${observedShort}</span></div>
+ <div class="reading-row"><div class="big-level${wide}" title="${details}" aria-label="${usable?shown+' เปอร์เซ็นต์ช่วงพื้นอ้างอิงถึงตลิ่งต่ำสุด': 'ไม่พร้อมแสดงเปอร์เซ็นต์'}">${shown}<span class="unit" title="${details}">%</span></div><span class="preview-trend ${direction.cls}" title="${direction.description}" aria-label="${direction.description}">${direction.arrow}</span></div>
  <div class="status-trend"><span class="badge ${badge.style}">${badge.text}</span><div class="trend-box"><div class="trend-title" title="${coverage.description}">${coverage.label}</div>${sparkSvg(safePath,st.id,coverage.description)}</div></div>
- <div class="reading-detail"><div class="delta" title="${st.observed}">${observedShort}</div><div class="bank-percent" title="สัดส่วนระดับพื้นอ้างอิงถึงตลิ่งต่ำสุด ไม่ใช่ความจุน้ำหรือระดับการเปิดประตู">${label}</div></div>
+ <div class="reading-detail"><div class="distance-to-bank" title="${details}">${gapText}</div></div>
  </div></div>`;
 }
 function historyPath(st,now=Date.now()){
