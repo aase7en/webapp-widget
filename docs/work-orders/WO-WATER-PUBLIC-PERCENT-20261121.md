@@ -20,3 +20,9 @@
 - Chrome 432x40/mobile/reduced motion, dual/focus, six SIMULATED scenarios, no API calls/no JS errors PASS. Fixture HDA004 2.36/.227/3.03 -> 76.1%, 0.67m; S5 .88/-8.59/4.7 -> 71.3%, 3.82m.
 - Preview Pages built SHA 36e5798, HTML/CSS/JS 3/3 HTTP 200 EXACT. Physical LED and Safari post-design not verified.
 - ONE next safe action: owner reviews https://aase7en.github.io/uth-weather-led-ab-preview-20261104/water-bank-clarity-20261121/ ; only after approval prepare production feature PR with data quality, CI and exact-SHA independent review. No automatic Production merge.
+
+
+## Owner design clarification — 2026-11-21 (supersedes initial demo visual)
+- Initial percent-demo typography/placement considered acceptable, but its visual design rejected. Use the exact original Water Production color, gate-water animation, SVG history graph, clock and framing. Only change number to % plus sampled arrow and plain-language distance-to-bank.
+- Verified corrected preview in separate repository: https://aase7en.github.io/uth-weather-led-ab-preview-20261104/water-bank-original-style-20261121/ at merged preview SHA e6cfe81d0c2a79bf78c79447dd3d63254d6b6957. Original CSS/core renderer and sprite byte-identical; 432x40 public Chrome checks passed. Static simulated data only.
+- Owner approval to publish this DEMO does NOT mean approval to deploy the percent feature to widget Production. Next action is owner visual review of this corrected preview before new implementation.
