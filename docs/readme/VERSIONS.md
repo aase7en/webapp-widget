@@ -1,27 +1,33 @@
-# UTH Widget — Production cache versions and GitHub state
+# Product Version and Asset Cache Matrix
 
-**Checked:** 21 November 2026 (Asia/Bangkok). **Source of Truth:** GitHub aase7en/webapp-widget main SHA 6b4111ec5413983ece25788a074dc3e7e9c2b95b at audit time. GitHub Pages build status built at this exact SHA (latest build updated 2026-11-13T18:38:11Z).
+**Audited 21 November 2026 (Asia/Bangkok).** Latest Water feature production source: merged main commit 33926944e3535f7e7fae14ac4584f60de01e4b29 (PR #109). GitHub Pages built at the same SHA; root index, v2 index, Water HTML/JS/original CSS/new CSS and api-client.js verified HTTP 200 and byte-identical 7/7.
 
-HTTP/byte-level production verification performed 21 November for index.html, v2/index.html, v2/water-luxury-live.html, v2/water-luxury-live.js, v2/water-luxury-live.css and the previous docs/readme/VERSIONS.md: all HTTP 200 and EXACT compared to audit main, before this document-only PR. This validates served files, not browser cache or physical LED.
+## Version meanings
 
-## Current production asset cache keys (from actual HTML)
+- **Product Version:** v1.0.0, recorded in root VERSION and CHANGELOG.md. This is the first official Semantic Version for the single-site Uthai deployment.
+- **Asset Query Version:** a cache-busting identifier attached to a given HTML/CSS/JS dependency. It is not a product version; unchanged assets may retain older identifiers.
+- No older product SemVer tag or GitHub Release was discovered at initial audit; prior cache query strings are not formal releases.
 
-| Rendering entry or resource | Current query version on main |
+## Verified current production pins
+
+| Resource | Cache key |
 | --- | --- |
-| Root index.html → v2/index.html?display=led | 20261114-pm-softfade-1 |
-| v2/index.html → PM2.5 iframe | 20261114-pm-softfade-1 |
-| v2/pm25-live.html → pm25-live.js | 20261114-pm-softfade-1 |
-| v2/index.html → Weather iframe | 20261113-led-contrast-1 |
-| v2/weather-luxury.html → weather-luxury.js | 20261113-led-contrast-1 |
-| v2/weather-luxury.html → weather-hybrid-live.js | 20261109-compact-1 |
-| v2/index.html → Water iframe | 20261108-label-1 |
-| v2/water-luxury-live.html → water-luxury-live.css/js | 20261108-label-1 |
-| v2/water-luxury-live.html → api-client.js | 20261031-pm25-24h-1 |
+| root index → v2/index.html | 20261121-water-percent-1 |
+| v2/index → PM2.5 iframe | 20261114-pm-softfade-1 |
+| PM2.5 HTML → JS | 20261114-pm-softfade-1 |
+| v2/index → Weather iframe | 20261113-led-contrast-1 |
+| Weather HTML → core JS | 20261113-led-contrast-1 |
+| Weather HTML → hybrid JS | 20261109-compact-1 |
+| v2/index → Water iframe | 20261121-water-percent-1 |
+| Water HTML → original CSS | 20261121-water-percent-1 |
+| Water HTML → percentage CSS | 20261121-water-percent-1 |
+| Water HTML → Water JS | 20261121-water-percent-1 |
+| Water HTML → existing api-client.js | 20261031-pm25-24h-1 |
 
-These are browser cache-busting **asset identifiers**, not a coherent Semantic Version (SemVer) of the application. Some unaffected scripts intentionally use older query keys. No package/product version number is defined in the inspected root tree. Never change cache identifiers merely to suggest a new release.
+Do not alter cache strings merely to change the Product Version. PR #109 changed Water presentation, not PM/Weather data/API.
 
-## Boundary: future Water public clarity
+## Release verification
 
-A separate static SIMULATED preview is published at https://aase7en.github.io/uth-weather-led-ab-preview-20261104/water-bank-clarity-20261121/ (preview repo merge 36e5798cd30f3e8953b3ebc4d47848aad5785da2). That is NOT a new asset version of the production Water page. Current production still presents m MSL as the dominant reading; owner review is required before a separate production feature PR.
+Confirm repo source and owner Work Order; run Node tests and browser native 432×40 QA with real animation plus simulated boundary states; exact-SHA independent reviewer and CI; expected-HEAD merge; Pages build SHA and public HTTP byte comparison; public browser smoke without Mock; physical LED is a separate visual acceptance.
 
-Recheck GitHub ref, app source, GitHub Pages build SHA, HTTP served bytes and (separately) kiosk refresh before concluding that a later change is live. Canonical continuity is root SESSION-HANDOFF.md, not this snapshot.
+**Planned future adoption:** multi-site config and API adapters are only a documented roadmap in docs/architecture/MULTI-SITE-ADOPTION-PLAN.md, not current v1.0.0 functionality. Existing Uthai bound Sheet/Apps Script remains the operational source of truth.

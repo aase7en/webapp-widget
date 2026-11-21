@@ -1,176 +1,161 @@
 <div align="center">
 
-# UTH Environmental Widget
+# UTH[AI] Environmental LED Widget
 
-**ป้ายข้อมูลสิ่งแวดล้อมสำหรับโรงพยาบาลอุทัย**<br>
-PM2.5 · สภาพอากาศ · ระดับน้ำสถานีอ้างอิง
+**สถานการณ์สิ่งแวดล้อมที่อ่านง่ายภายในไม่กี่วินาที**
+*Environmental intelligence for public-facing hospital displays*
 
-[เปิด Widget หลัก](https://aase7en.github.io/webapp-widget/) · [เดโมตรวจ PM2.5 และ Weather](https://aase7en.github.io/webapp-widget/demo/final-ui-review.html) · [ดูหน้า Weather](https://aase7en.github.io/webapp-widget/v2/weather-luxury.html) · [ดูหน้าระดับน้ำ](https://aase7en.github.io/webapp-widget/v2/water-luxury-live.html) · [หน้ารวมตัวอย่าง](https://aase7en.github.io/webapp-widget/v2/)
+**v1.0.0 · Three Panels · 432 × 40 LED · GitHub Pages**
+
+[**เปิดเว็บไซต์จริง**](https://aase7en.github.io/webapp-widget/) · [PM2.5](https://aase7en.github.io/webapp-widget/v2/pm25-live.html) · [Weather](https://aase7en.github.io/webapp-widget/v2/weather-luxury.html) · [Water Level](https://aase7en.github.io/webapp-widget/v2/water-luxury-live.html)
+
+[เริ่มต้นสำหรับนักพัฒนา](#เริ่มต้นสำหรับนักพัฒนา) · [Data Architecture](#data-architecture-และความถูกต้องของข้อมูล) · [Multi-Site Roadmap](docs/architecture/MULTI-SITE-ADOPTION-PLAN.md) · [Changelog](CHANGELOG.md)
+
+<img src="docs/readme/screenshots/widget-three-panels-showcase-simulated.png" alt="ภาพประกอบ Widget สามหน้า PM2.5 Weather และ Water Level จากหน้าจอของระบบจริง โดยตัวเลขเป็นชุดจำลองเพื่อการทดสอบ" width="100%">
+
+<sub>UI Showcase จากหน้าจอจริง · ค่าตัวเลขในภาพเป็น **SIMULATED / TEST DATA** ไม่ใช่สถานการณ์ปัจจุบัน และภาพนิ่งไม่แสดง Animation</sub>
 
 </div>
 
-## Water Level Demo ล่าสุด — ใช้ภาพและ Animation เดิม (21 พฤศจิกายน 2569)
+---
 
-[เปิด Demo ที่ยึด Water Design เดิม](https://aase7en.github.io/uth-weather-led-ab-preview-20261104/water-bank-original-style-20261121/) — แสดง **เปอร์เซ็นต์ + ลูกศร + ระยะห่างจากตลิ่ง** โดยรักษาสี ภาพประตูน้ำเคลื่อนไหว กราฟ และกรอบตาม Production เดิมไว้ทั้งหมด ค่าทั้งหมดใน Demo เป็น **ข้อมูลจำลอง** และยังไม่ได้เปลี่ยน Widget Production ที่แสดง m MSL
+## ภาพรวม
 
-Owner ให้ความเห็นว่า **ขนาดตัวหนังสือและตำแหน่งจาก Demo แรกใช้ได้ แต่ไม่รับดีไซน์ภาพแบบใหม่**; ให้ยึด Visual เดิมเท่านั้น ดูการตัดสินใจล่าสุดที่ [SESSION-HANDOFF.md](SESSION-HANDOFF.md)
+เว็บแสดงสถานการณ์สิ่งแวดล้อมสำหรับ **โรงพยาบาลอุทัย จังหวัดพระนครศรีอยุธยา** ออกแบบให้มองเห็นได้จากระยะไกลบนแถบ LED ความละเอียด **432 × 40 พิกเซล** (ภายในจอ 432 × 288) โดยหมุนเวียน 3 หน้าอัตโนมัติ มีกราฟตามเวลาจริง ภาพ 2.5D ประกอบ และสถานะข้อมูลเก่า/ไม่พร้อมที่แยกชัดเจน
 
-## ตรวจสถานะล่าสุดและ Water Level Demo (21 พฤศจิกายน 2569)
+| แผง | แสดงอะไร | Source of Truth |
+| :--- | :--- | :--- |
+| **PM2.5** | ค่ารายชั่วโมง, ค่าเฉลี่ย 24 ชั่วโมง, สถานะตามค่าเฉลี่ย และกราฟย้อนหลัง 24 ชั่วโมง | GISTDA เช็คฝุ่น ผ่าน Google Sheet |
+| **Weather** | อุณหภูมิ, Feels Like, ความชื้น, โอกาสฝน, ต่ำสุด–สูงสุดและพยากรณ์ | Open-Meteo Model ผ่าน Google Sheet |
+| **Water Level** | เปอร์เซ็นต์ช่วงพื้น–ตลิ่ง, ลูกศรแนวโน้มที่ยืนยันได้, เมตรถึงตลิ่ง และกราฟย้อนหลัง | ThaiWater/HII ผ่าน Google Sheet สถานี HDA004 และ S.5 |
 
-**Actual State ที่ตรวจจาก GitHub/Production:** main ของ aase7en/webapp-widget ณ จุด Audit อยู่ที่ 6b4111ec5413983ece25788a074dc3e7e9c2b95b; GitHub Pages built จาก SHA เดียวกัน และตรวจไฟล์ Production HTTP 200/byte-exact สำหรับ root index, v2 index และหน้า Water HTML/JS/CSS แล้ว หน้า Water ที่ใช้งานจริงยังมีตัวเลขใหญ่เป็น m MSL
+**Release v1.0.0 ตั้งค่าสำหรับอุทัยเท่านั้น** แผนทำให้โรงพยาบาล/พื้นที่อื่นเลือก API และสถานีของตนเองได้อยู่ใน [Multi-Site Adoption Plan](docs/architecture/MULTI-SITE-ADOPTION-PLAN.md) ยังไม่ใช่ความสามารถที่เปิดใช้งานแล้ว
 
-**แสดงเปอร์เซ็นต์สำหรับประชาชน — ยังเป็น Demo เท่านั้น:** [เปิดตัวอย่าง Water Bank Clarity](https://aase7en.github.io/uth-weather-led-ab-preview-20261104/water-bank-clarity-20261121/) เป็นเว็บไซต์ทดลองแยก โดยใช้ข้อมูลจำลอง ไม่เรียก API/Sheet จริง และยังไม่เปลี่ยน Production ตัวเลขใหญ่คือสัดส่วนช่วงพื้นอ้างอิง–ตลิ่งต่ำสุด พร้อมระยะห่างจากตลิ่งเป็นเมตร; ไม่ใช่เปอร์เซ็นต์ความเสี่ยงน้ำท่วม/คำเตือนภัยทางการ
+## Gallery · ทั้ง 3 หน้าของ Widget
 
-เอกสารปัจจุบัน: [Cache Versions](docs/readme/VERSIONS.md) · [Design System](docs/DESIGN-SYSTEM.md) · [Work Order](docs/work-orders/WO-WATER-PUBLIC-PERCENT-20261121.md) · [UX Defect Memory](docs/defects/LED-UX-DEFECT-MEMORY.md) · [SESSION-HANDOFF](SESSION-HANDOFF.md) หมายเหตุ: เวอร์ชันของ assets เป็น Cache Key ไม่ใช่ Semantic Version และไฟล์ Memory แบบแยกไม่ใช่แหล่งข้อเท็จจริงของระบบ
+ภาพตัวอย่างขนาด 3× ของแถบ LED เดิม (ค่าทั้งหมดเป็น **ข้อมูลจำลอง** ในการตรวจ UI)
 
-## โปรเจกต์นี้ทำอะไร
+### 01 — PM2.5 | Air Quality
 
-แสดงข้อมูลสิ่งแวดล้อมที่อ่านได้รวดเร็วบริเวณโรงพยาบาลอุทัย จังหวัดพระนครศรีอยุธยา บนแถบ LED **432 × 40 พิกเซล** ซึ่งใช้พื้นที่ส่วนหนึ่งของจอจริงขนาด 432 × 288 พิกเซล หน้าหลักสลับระหว่างฝุ่น สภาพอากาศ และระดับน้ำโดยอัตโนมัติ พร้อมภาพเคลื่อนไหวและภาพนิ่งสำรองสำหรับอุปกรณ์หรือการตั้งค่าที่ลดการเคลื่อนไหว
+[![ตัวอย่างหน้าจอ PM2.5 พร้อมกราฟย้อนหลัง ข้อมูลจำลอง](docs/readme/screenshots/pm25-green.png)](docs/readme/screenshots/pm25-green.png)
 
-ข้อมูลที่แสดงเป็นข้อมูลประกอบการติดตามสถานการณ์ ไม่ใช่เครื่องมือวินิจฉัยหรือระบบแจ้งเตือนภัยฉุกเฉินโดยลำพัง ควรตรวจสอบเวลาและประกาศทางการประกอบเสมอ
+ตัวเลขใหญ่แสดงค่ารายชั่วโมง ส่วนสีสถานะและการสื่อสารด้านสุขภาพใช้ค่าเฉลี่ย 24 ชั่วโมงตามข้อมูลที่มีอยู่ การลงสีค่ารายชั่วโมงเป็นตัวช่วยอ่านค่า **ไม่ใช่เกณฑ์สุขภาพรายชั่วโมงอย่างเป็นทางการ**
 
-| หน้า | แสดงอะไร | ที่มาของข้อมูล |
-| --- | --- | --- |
-| PM2.5 | ค่ารายชั่วโมงล่าสุด (ตัวเลขใหญ่) โดยป้ายและภาพอิงค่าเฉลี่ย 24 ชั่วโมง ส่วนสีตัวเลขและลูกศรอิงค่ารายชั่วโมง พร้อมกราฟย้อนหลังสูงสุด 24 ชั่วโมง | เช็คฝุ่น GISTDA ผ่าน Google Sheet |
-| Weather | อุณหภูมิ ความรู้สึก ความชื้น โอกาสฝน ค่าสูงสุด/ต่ำสุด และพยากรณ์ 7 วัน | แบบจำลอง Open-Meteo ผ่าน Google Sheet |
-| Water | สถานีอ้างอิง HDA004 ช่องสะเดา และ S.5 สะพานปรีดี พร้อมกราฟประวัติ | ThaiWater/HII ผ่าน Google Sheet |
+<details><summary><strong>เปิดดูตัวอย่างสีเพิ่มเติม</strong></summary>
 
-> **ข้อจำกัดสำคัญ:** PM2.5 เป็นค่าประมาณระดับพื้นที่ ไม่ใช่เครื่องวัดหน้าโรงพยาบาล; อากาศเป็นผลแบบจำลอง; สถานีน้ำเป็นสถานีอ้างอิง ไม่ใช่เซนเซอร์ของโรงพยาบาล ภาพประตูน้ำเป็นภาพประกอบ ไม่ได้บอกสถานะประตูจริง
->
-> ป้ายและภาพ PM2.5 อิง **ค่าเฉลี่ย 24 ชั่วโมง** จาก GISTDA (เกณฑ์ปี 2569: ดีมาก ≤15 · ดี 15.1–25 · ปานกลาง 25.1–37.5 · เริ่มมีผลกระทบต่อสุขภาพ 37.6–75 · มีผลต่อสุขภาพ >75 µg/m³) ส่วนตัวเลขใหญ่และลูกศรแสดงค่ารายชั่วโมง โดยใช้ช่วงสีเดียวกันเพื่อช่วยอ่านตัวเลข ไม่ใช่เกณฑ์สุขภาพรายชั่วโมงอย่างเป็นทางการ หากไม่มีค่าเฉลี่ย ป้ายจะแสดง "รอข้อมูล" โดยไม่แทนค่าด้วยศูนย์
+| ดีมาก | ดี | ปานกลาง |
+| :--- | :--- | :--- |
+| ![ดีมาก จำลอง](docs/readme/screenshots/pm25-blue.png) | ![ดี จำลอง](docs/readme/screenshots/pm25-green.png) | ![ปานกลาง จำลอง](docs/readme/screenshots/pm25-yellow.png) |
 
-## ตัวอย่างหน้าจอ
-
-[**เปิดเดโมตรวจ UI บนมือถือและคอมพิวเตอร์**](https://aase7en.github.io/webapp-widget/demo/final-ui-review.html) เพื่อเลือกดู PM2.5 ทั้ง 5 ระดับ (รวมสถานะรอข้อมูล) และ Weather ทั้ง 10 สภาพกลางวัน/กลางคืน พร้อม Animation ของหน้าใช้งานจริง เลือกขนาดพอดีจอ, 432 × 40 หรือขยาย 2 เท่าได้ ค่าทุกค่าและกราฟในเดโมเป็น **ข้อมูลจำลอง** หน้าเดโมไม่ดึงข้อมูลจาก API และไม่เปลี่ยนข้อมูลหน้าจริง
-
-ภาพต่อไปนี้แสดงงานออกแบบในขนาด 3 เท่าของแถบ LED 432 × 40 เพื่อให้อ่านง่าย ภาพ PM2.5 และ Weather จับอัตโนมัติด้วย Playwright จาก canvas ออกแบบ 1296 × 120 หลังตรวจขนาดจริง 432 × 40 แยกแล้ว **ค่าฝุ่น กราฟ ค่าพยากรณ์ และภาพสถานะน้ำในชุดสาธิตเป็นข้อมูลจำลองเพื่อแสดงรูปแบบเท่านั้น ไม่ใช่ข้อมูลปัจจุบัน** ส่วนภาพน้ำที่ระบุว่าเป็นภาพจริงบันทึก ณ วันที่ 31 ตุลาคม 2569 เวลา 08:45 น. ค่าอาจเปลี่ยนไปหรือเก่าแล้ว ให้เปิดลิงก์หน้าเว็บเพื่อตรวจข้อมูลล่าสุด ภาพนิ่งไม่แสดงการเคลื่อนไหวของ animation
-
-### PM2.5 — ห้าระดับสี
-
-[<img src="docs/readme/brands/gistda.png" alt="โลโก้ GISTDA" width="105">](https://www.gistda.or.th/)
-
-**เครดิตข้อมูลหน้า PM2.5:** [GISTDA — เช็คฝุ่น](https://pm25.gistda.or.th/) ให้ข้อมูลค่าฝุ่นประมาณระดับพื้นที่; กราฟใช้ประวัติที่บันทึกใน Google Sheet ของโครงการ [ดูหน้า Widget](https://aase7en.github.io/webapp-widget/)
-
-ภาพชุดนี้แสดงตัวเลขใหญ่เป็นค่ารายชั่วโมง และบรรทัดรองเป็นค่าเฉลี่ย 24 ชั่วโมงที่ใช้จัดสี จึงตั้งข้อมูลจำลองสองค่าให้ต่างกันเพื่อแสดงพฤติกรรมนี้
-
-| ฟ้า · ดีมาก | เขียว · ดี |
-| --- | --- |
-| ![ตัวอย่าง PM2.5 สีฟ้า ค่าจำลอง](docs/readme/screenshots/pm25-blue.png) | ![ตัวอย่าง PM2.5 สีเขียว ค่าจำลอง](docs/readme/screenshots/pm25-green.png) |
-| **เหลือง · ปานกลาง** | **ส้ม · เริ่มมีผลต่อสุขภาพ** |
-| ![ตัวอย่าง PM2.5 สีเหลือง ค่าจำลอง](docs/readme/screenshots/pm25-yellow.png) | ![ตัวอย่าง PM2.5 สีส้ม ค่าจำลอง](docs/readme/screenshots/pm25-orange.png) |
-| **แดง · มีผลต่อสุขภาพ** | |
-| ![ตัวอย่าง PM2.5 สีแดง ค่าจำลอง](docs/readme/screenshots/pm25-red.png) | |
-
-### Weather — ไอคอนและฉากตามสภาพอากาศ
-
-[<img src="docs/readme/brands/open-meteo.png" alt="โลโก้ Open-Meteo" width="75">](https://open-meteo.com/)
-
-**เครดิตข้อมูลหน้า Weather:** [Open-Meteo Weather API](https://open-meteo.com/en/docs) ให้ข้อมูลและพยากรณ์จากแบบจำลอง โดยข้อมูลเผยแพร่ภายใต้ [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/) และอยู่ภายใต้ [เงื่อนไขบริการ](https://open-meteo.com/en/terms) [ดูหน้า Weather](https://aase7en.github.io/webapp-widget/v2/weather-luxury.html)
-
-ค่าทุกภาพในส่วนนี้เป็น **ข้อมูลจำลอง** เพื่อแสดงสภาพอากาศและหน้าตาแต่ละแบบ
-
-ตรวจทั้ง APNG และ poster ในโหมดลดการเคลื่อนไหวแล้ว ขอบเบลอตามรูปทรงไอคอนแทนกล่องพื้นหลังขนาดตายตัว และกลุ่มที่ไม่มีดวงอาทิตย์/ดวงจันทร์ยกขึ้น 2 พิกเซลบนจอ LED จริง โดยยังใช้ภาพโรงพยาบาลอุทัยเป็นฉากหลัง
-
-<details open><summary><strong>สภาพอากาศกลางวัน</strong></summary>
-
-| แดดสลับเมฆ | เมฆมาก |
-| --- | --- |
-| ![แดดสลับเมฆ ข้อมูลจำลอง](docs/readme/screenshots/weather-partly-cloudy.png) | ![เมฆมาก ข้อมูลจำลอง](docs/readme/screenshots/weather-cloudy.png) |
-| **ฝน** | **พายุฝนฟ้าคะนอง** |
-| ![ฝน ข้อมูลจำลอง](docs/readme/screenshots/weather-rain.png) | ![พายุ ข้อมูลจำลอง](docs/readme/screenshots/weather-thunderstorm.png) |
-| **หมอก** | **ลมแรง** |
-| ![หมอก ข้อมูลจำลอง](docs/readme/screenshots/weather-fog.png) | ![ลมแรง ข้อมูลจำลอง](docs/readme/screenshots/weather-wind.png) |
+| เริ่มมีผลกระทบ | มีผลกระทบ |
+| :--- | :--- |
+| ![ส้ม จำลอง](docs/readme/screenshots/pm25-orange.png) | ![แดง จำลอง](docs/readme/screenshots/pm25-red.png) |
 
 </details>
 
-<details open><summary><strong>สภาพอากาศกลางคืน — กดเพื่อดู</strong></summary>
+### 02 — Weather | Forecast & Conditions
 
-| กลางคืน | ฝนกลางคืน |
-| --- | --- |
-| ![กลางคืน ข้อมูลจำลอง](docs/readme/screenshots/weather-night.png) | ![ฝนกลางคืน ข้อมูลจำลอง](docs/readme/screenshots/weather-night-rain.png) |
-| **ลมแรงกลางคืน** | **พายุฝนฟ้าคะนองกลางคืน** |
-| ![ลมแรงกลางคืน ข้อมูลจำลอง](docs/readme/screenshots/weather-night-wind.png) | ![พายุกลางคืน ข้อมูลจำลอง](docs/readme/screenshots/weather-night-thunderstorm.png) |
+[![ตัวอย่างหน้าจอ Weather สภาพฝน พร้อมพยากรณ์ ข้อมูลจำลอง](docs/readme/screenshots/weather-rain.png)](docs/readme/screenshots/weather-rain.png)
 
-</details>
+ฉากโรงพยาบาลและไอคอนสภาพอากาศแบบเคลื่อนไหว มี Poster สำรองและรองรับ Reduced Motion (ลดภาพเคลื่อนไหวตามการตั้งค่าระบบ)
 
-กราฟพยากรณ์ใช้สีฟ้า → เขียว → เหลือง → ส้ม → แดง เพื่อช่วยอ่านความแตกต่างของอุณหภูมิ **สีกราฟเป็นการออกแบบภาพ ไม่ใช่เกณฑ์เตือนสุขภาพอย่างเป็นทางการ**
+<details><summary><strong>เปิดดูตัวอย่างกลางวันและกลางคืน</strong></summary>
 
-### ระดับน้ำ — สถานีอ้างอิง
+| แดดสลับเมฆ | เมฆมาก | พายุฝน |
+| :--- | :--- | :--- |
+| ![แดดและเมฆ จำลอง](docs/readme/screenshots/weather-partly-cloudy.png) | ![เมฆมาก จำลอง](docs/readme/screenshots/weather-cloudy.png) | ![ฟ้าคะนอง จำลอง](docs/readme/screenshots/weather-thunderstorm.png) |
+| หมอก | กลางคืน | ฝนกลางคืน |
+| ![หมอก จำลอง](docs/readme/screenshots/weather-fog.png) | ![กลางคืน จำลอง](docs/readme/screenshots/weather-night.png) | ![ฝนกลางคืน จำลอง](docs/readme/screenshots/weather-night-rain.png) |
 
-[<img src="docs/readme/brands/hii.png" alt="โลโก้สถาบันสารสนเทศทรัพยากรน้ำ" width="110">](https://www.hii.or.th/)
-
-**เครดิตข้อมูลหน้าระดับน้ำ:** [ThaiWater / สถาบันสารสนเทศทรัพยากรน้ำ (HII)](https://www.thaiwater.net/) ให้บริการข้อมูลสถานีอ้างอิง HDA004 และ S.5 ผ่าน API; ประวัติที่แสดงอ่านผ่าน Google Sheet ของโครงการ [ดูหน้าระดับน้ำ](https://aase7en.github.io/webapp-widget/v2/water-luxury-live.html)
-
-![ตัวอย่างหน้าระดับน้ำ บันทึกเมื่อ 31 ตุลาคม 2569](docs/readme/screenshots/water-live.png)
-
-<details open><summary><strong>ตัวอย่างสถานะน้ำ — ข้อมูลจำลอง กดเพื่อดู</strong></summary>
-
-| ต่ำกว่าตลิ่ง | ถึงตลิ่ง |
-| --- | --- |
-| ![ตัวอย่างต่ำกว่าตลิ่ง ข้อมูลจำลอง](docs/readme/screenshots/water-below.png) | ![ตัวอย่างถึงตลิ่ง ข้อมูลจำลอง](docs/readme/screenshots/water-at-bank.png) |
-| **สูงกว่าตลิ่ง** | **ข้อมูลเก่า** |
-| ![ตัวอย่างสูงกว่าตลิ่ง ข้อมูลจำลอง](docs/readme/screenshots/water-above.png) | ![ตัวอย่างข้อมูลเก่า ข้อมูลจำลอง](docs/readme/screenshots/water-historical.png) |
-| **รอข้อมูล** | |
-| ![ตัวอย่างรอข้อมูล ข้อมูลจำลอง](docs/readme/screenshots/water-unavailable.png) | |
+[ลมแรง](docs/readme/screenshots/weather-wind.png) · [ลมแรงกลางคืน](docs/readme/screenshots/weather-night-wind.png) · [พายุกลางคืน](docs/readme/screenshots/weather-night-thunderstorm.png)
 
 </details>
 
-ค่าที่ขาดหรือเก่าต้องพิจารณาตามเวลาวัดและสถานะบนหน้าจอ เทียบระดับกับตลิ่งเฉพาะเมื่อมีข้อมูลอ้างอิงที่ถูกต้อง ป้ายระดับน้ำไม่ใช่คำสั่งอพยพ
+### 03 — Water Level | Bank-Relative Water Level
 
-## แหล่งข้อมูลและเครดิต
+[![ตัวอย่างหน้า Water Level ที่คง Animation และกราฟเดิม แต่แสดงเปอร์เซ็นต์และลูกศร ข้อมูลจำลอง](docs/readme/screenshots/water-percent-production-simulated.png)](docs/readme/screenshots/water-percent-production-simulated.png)
 
-ขอบคุณผู้ให้บริการข้อมูลและหน่วยงานที่เกี่ยวข้อง เครื่องหมายด้านล่างใช้เพื่อระบุแหล่งที่มา ไม่ได้แสดงการรับรองโครงการจากเจ้าของเครื่องหมาย
+คงภาพประตูน้ำ 2.5D, ฟองน้ำ, สีฟ้าเรืองแสง, กราฟย้อนหลังและนาฬิกาจากการออกแบบเดิม พร้อมแสดง **% ช่วงพื้น–ตลิ่งต่ำสุด** และ **ระยะห่างจากตลิ่ง (เมตร)**
 
-| ผู้ให้บริการ | บทบาทในระบบ | ข้อมูลและเงื่อนไข |
-| --- | --- | --- |
-| [<img src="docs/readme/brands/gistda.png" alt="GISTDA" width="105">](https://www.gistda.or.th/) | ค่า PM2.5 ประมาณรายชั่วโมงระดับตำบล | [เช็คฝุ่น GISTDA](https://pm25.gistda.or.th/) · [แหล่งโลโก้](https://www.gistda.or.th/about/download-gistda-logo-2/) |
-| [<img src="docs/readme/brands/open-meteo.png" alt="Open-Meteo" width="85">](https://open-meteo.com/) | ข้อมูลและพยากรณ์อากาศแบบจำลอง รวมถึงข้อมูลแบบจำลองน้ำที่ backend ดึงไว้ | [Weather API](https://open-meteo.com/en/docs) · [Flood API](https://open-meteo.com/en/docs/flood-api) · ข้อมูล [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/) · [เงื่อนไขบริการ](https://open-meteo.com/en/terms) |
-| [<img src="docs/readme/brands/hii.png" alt="สถาบันสารสนเทศทรัพยากรน้ำ" width="110">](https://www.hii.or.th/) | ThaiWater/HII รวบรวมและให้บริการข้อมูลระดับน้ำจากสถานีอ้างอิง | [ThaiWater](https://www.thaiwater.net/) · [ข้อมูลหน่วยงานและเครื่องหมาย](https://www.hii.or.th/เครื่องหมาย-สสน/) |
+**สูตร:** 100 × (ระดับน้ำ m MSL − ระดับพื้นอ้างอิง m MSL) ÷ (ตลิ่งต่ำสุด m MSL − ระดับพื้นอ้างอิง m MSL)
 
-โค้ดเดิมในโปรเจกต์ยังอ้างถึง [Air4Thai / กรมควบคุมมลพิษ](https://www.air4thai.com/) และ [World Air Quality Index (WAQI)](https://aqicn.org/) สำหรับงานเดิมบางส่วน แต่ **ไม่ใช่แหล่งหลักที่ยืนยันว่าป้อนสามหน้าหลักในปัจจุบัน** เครดิตและโลโก้แสดงไว้เพื่อให้เห็นที่มาของโค้ดเดิม:
+- ลูกศรขึ้น/ลงจะปรากฏเฉพาะเมื่อข้อมูลย้อนหลังมีเวลาตรวจวัดสัมพันธ์กับค่าล่าสุดและไม่ขัดแย้ง
+- หากข้อมูลเก่า ไม่พร้อม หรือไม่สามารถคำนวณได้ จะแสดงค่าไม่พร้อมอย่างตรงไปตรงมา ไม่ใส่ศูนย์หรือคาดเดาแนวโน้ม
+- **เปอร์เซ็นต์นี้ไม่ใช่โอกาสน้ำท่วม ความจุแม่น้ำ หรือเกณฑ์แจ้งเตือนภัยทางราชการ** และสถานี HII ไม่ใช่เซนเซอร์หน้าโรงพยาบาล
+- ค่า m MSL เดิมและเวลาวัดยังอยู่ใน Accessible Metadata เพื่อช่วยเจ้าหน้าที่ตรวจสอบ
 
-[<img src="docs/readme/brands/pcd.png" alt="กรมควบคุมมลพิษ Air4Thai" width="120">](https://www.pcd.go.th/)　[<img src="docs/readme/brands/waqi.png" alt="World Air Quality Index" width="65">](https://aqicn.org/media/)
+[ภาพจำลองกรณีสูงกว่าตลิ่ง](docs/readme/screenshots/water-percent-above-simulated.png) · [เปิด Water Level ที่ใช้งานจริง](https://aase7en.github.io/webapp-widget/v2/water-luxury-live.html)
 
-ภาพเครื่องหมายเป็นทรัพย์สินของเจ้าของแต่ละราย ดูที่มาไฟล์ได้ใน [รายการแหล่งโลโก้](docs/readme/brands/SOURCES.md) การใช้งานข้อมูลและ API ต้องเป็นไปตามเงื่อนไขของผู้ให้บริการแต่ละราย
+## Data Architecture และความถูกต้องของข้อมูล
 
-## ระบบทำงานอย่างไร
+~~~text
+GISTDA PM2.5 ───────┐
+Open-Meteo Model ───┼──> Canonical Google Sheet "API Report_PM2.5"
+ThaiWater / HII ────┘                   │
+                                       ▼
+                               Bound Apps Script
+                                       │
+                                       ▼
+                         UthApiClient (read-only)
+                                       │
+                         PM2.5 / Weather / Water
+                                       │
+                              GitHub Pages / LED
+~~~
 
-```text
-Open-Meteo Weather ─→ GitHub Actions รายชั่วโมง ─→ weather-data (แคช)
-                                                        │
-GISTDA ─────────────────────────────────────────────────┤
-ThaiWater ──────────────────────────────────────────────┼─→ Apps Script ของชีตเดิม
-Open-Meteo Flood ───────────────────────────────────────┘           │
-                                                       Google Sheet / snapshot
-                                                                    │
-                                                         GitHub Pages ─→ จอ LED
-```
+**หลักการสำคัญ:** Observation Time (เวลาตรวจวัดจริง) ไม่ใช่ Fetch Time; Latest ไม่เท่ากับ Live; Historical (ข้อมูลเก่า), Simulated (ข้อมูลจำลอง) และ Unavailable (ไม่มีข้อมูล) ต้องไม่ถูกสื่อสารเป็นค่าปัจจุบัน
 
-- ตัวเก็บข้อมูลถูกตั้งให้ทำงานรายชั่วโมงและมีตัวจำกัดการเรียกข้อมูลซ้ำในชั่วโมงเดียวกัน หน้าเว็บอ่าน snapshot จาก Apps Script/Sheet แทนการให้ทุกหน้าเว็บเรียกผู้ให้บริการโดยตรง การทำงานจริงขึ้นกับ trigger และความพร้อมของต้นทาง
-- สำหรับ Weather, GitHub Actions ดึงพยากรณ์ Open-Meteo รายชั่วโมงและเก็บไฟล์ชั่วคราวใน branch `weather-data` จากนั้น Apps Script ตรวจพิกัดและความสดของข้อมูลก่อนบันทึกลงชีตเดิม วิธีนี้ช่วยลดปัญหา Apps Script ได้ HTTP 429 จาก Open-Meteo; ถ้าแคชใช้ไม่ได้ Apps Script จะลองเรียก Open-Meteo โดยตรงหนึ่งครั้งตามรอบเก็บข้อมูล แคชไม่ใช่ฐานข้อมูลหลัก และอาจล้มเหลวได้เมื่อบริการต้นทางหรือ GitHub ไม่พร้อม
-- เวลาข้อมูลจากต้นทางและเวลาบันทึกเป็นคนละค่า ข้อมูลเก่าหรือข้อมูลที่ไม่มีต้องไม่ถูกแสดงเป็นข้อมูลสดหรือแทนด้วยศูนย์ กราฟจะเว้นช่องที่ไม่มีข้อมูลจริง
-- ข้อมูล PM และ snapshot ที่ระบบใหม่เป็นเจ้าของมีนโยบายเก็บสูงสุด 90 วัน; snapshot พยากรณ์เก็บ 2 วัน แถวระดับน้ำที่ระบบใหม่เป็นเจ้าของและผ่านการตรวจรูปแบบมีนโยบาย 90 วัน ไม่ลบข้อมูลเก่าที่ระบุเจ้าของไม่ได้โดยอัตโนมัติ
-- ใช้ Google Sheet และ Apps Script เดิมที่ผูกกันอยู่ ไม่สร้างฐานข้อมูลแยกสำหรับป้ายนี้
-- ณ จุดตรวจวันที่ 31 ตุลาคม 2569 ระบบแสดงค่าฝุ่นรายชั่วโมงและค่าเฉลี่ย 24 ชั่วโมงจาก snapshot ได้แล้ว และพบข้อมูล Weather ผ่านแคชถูกบันทึกลงชีตเวลา 21:56 น. โดยยังต้องยืนยันการทำงานตามตารางของ GitHub Actions ต่อ เวลาแหล่งข้อมูลจริงอาจต่างจากเวลาบันทึก โปรดตรวจสถานะและ trigger ล่าสุดก่อนเปลี่ยนการตั้งค่า
+ข้อมูล PM2.5 เป็นตัวแทนเชิงพื้นที่ ไม่ใช่เครื่องวัดหน้าโรงพยาบาล; Weather ใช้แบบจำลอง; Water เป็นสถานีอ้างอิงภายนอก **ห้ามใช้ Widget เป็นเครื่องมือเตือนอุทกภัยหรือสั่งอพยพโดยลำพัง**
 
-ตรวจเลข cache version ของแต่ละหน้าและขอบเขตการตรวจล่าสุดได้ที่ [บันทึกเวอร์ชัน](docs/readme/VERSIONS.md)
+## เริ่มต้นสำหรับนักพัฒนา
 
-## สำหรับผู้พัฒนา
+โครงการเป็น Static Web App บน GitHub Pages สามารถเปิดเว็บจาก Local HTTP Server ได้โดยไม่ต้องสร้าง Backend เพิ่ม
 
-| เส้นทาง | หน้าที่ |
-| --- | --- |
-| `index.html`, `v2/index.html` | หน้าหลักและการสลับหน้าของป้าย |
-| `v2/pm25-live.*`, `v2/weather-luxury.*`, `v2/water-luxury-live.*` | หน้าฝุ่น อากาศ และน้ำตามลำดับ |
-| `v2/api-client.js`, `v2/live-widgets.js`, `v2/weather-snapshot.js` | อ่านและตรวจข้อมูลสำหรับหน้าเว็บ |
-| `apps-script/BackendApi.gs`, `HourlySnapshot.gs`, `WaterHistory.gs` | backend, การเก็บ snapshot และประวัติน้ำ |
-| `.github/workflows/weather-cache-publish.yml`, `scripts/build-weather-feed.mjs` | ดึงและตรวจพยากรณ์ Weather สำหรับแคชรายชั่วโมง |
-| `docs/readme/` | ภาพตัวอย่างและเครดิตเครื่องหมาย |
-
-ทดสอบแบบ local จากโฟลเดอร์ repo:
-
-```sh
+~~~bash
+git clone https://github.com/aase7en/webapp-widget.git
+cd webapp-widget
 python3 -m http.server 8000
-node --test tests/weather-snapshot.test.cjs
-```
+~~~
 
-เปิด `http://localhost:8000/` การรัน local ยังต้องเข้าถึง backend ที่ตั้งค่าไว้หากต้องการข้อมูลจริง ก่อนแก้ระบบจริงให้ตรวจ [AGENTS.md](AGENTS.md) และ [SESSION-HANDOFF.md](SESSION-HANDOFF.md) รวมถึงสถานะ deployment และ trigger ล่าสุด ห้ามนำ secrets ลง repo เอกสารเทคนิคเพิ่มเติม: [LED rotation](LED-ROTATION.md) · [Water LED](WATER-LED.md) · [README เดิม — เก็บไว้เป็นประวัติ ไม่ใช่สถานะปัจจุบัน](docs/archive/README-legacy-20261031.md)
+เปิด http://localhost:8000/ หรือ http://localhost:8000/v2/ สำหรับหน้าจอหลัก Backend ข้อมูลจริงยังผูกกับ Sheet/Apps Script ของโรงพยาบาลอุทัย จึง **ไม่ควรนำ API Key หรือข้อมูลส่วนบุคคลมาใส่ใน Frontend**
+
+ตรวจ Regression Tests:
+
+~~~bash
+node --test tests/*.test.cjs
+node --check v2/water-luxury-live.js
+~~~
+
+การทดสอบ Chrome ของหน้า Water ใช้ Puppeteer ที่ติดตั้งบนเครื่องทดสอบและ **ใช้ Mock Data โดยไม่เรียก Provider จริง**: scripts/qa-water-public-percent-20261121.cjs
+
+## Version · Release · Documentation
+
+- **Product Release:** [v1.0.0](CHANGELOG.md) (Semantic Versioning เริ่มต้นสำหรับโครงการอุทัย)
+- **Deployment:** Branch main → GitHub Pages; Asset Cache Keys แยกจาก Product Version
+- **Version/Cache Matrix:** [docs/readme/VERSIONS.md](docs/readme/VERSIONS.md)
+- **Technical Decision / Agent:** [AGENTS.md](AGENTS.md) · [SESSION-HANDOFF.md](SESSION-HANDOFF.md) · [Design System](docs/DESIGN-SYSTEM.md)
+- **Release / Defect History:** [CHANGELOG.md](CHANGELOG.md) · [LED UX Defect Memory](docs/defects/LED-UX-DEFECT-MEMORY.md)
+
+## Roadmap · สำหรับโรงพยาบาลและพื้นที่อื่น
+
+**Planned, not implemented in v1.0.0.** ออกแบบ Site Profile (การตั้งค่าพื้นที่) และ Provider Adapter (ตัวเชื่อม API) เพื่อเปลี่ยนพิกัด ชื่อสถานี ที่มาของข้อมูล เวลา หน่วยและธีมได้อย่างปลอดภัย โดยไม่ต้องคัดลอก UI ไปแก้หลายชุด
+
+[**Multi-Site Adoption Plan →**](docs/architecture/MULTI-SITE-ADOPTION-PLAN.md)
+
+> **เรื่องสิทธิ์:** ณ รุ่นที่ตรวจสอบ Repository ยังไม่มีไฟล์ LICENSE ที่ระบุสิทธิ์ซอฟต์แวร์อย่างชัดเจน และภาพ/โลโก้/ข้อมูลบางส่วนอาจอยู่ภายใต้เงื่อนไขของผู้ให้บริการ ต้องตัดสินใจเรื่อง License และสิทธิ์ของ Assets ก่อนแจกจ่ายให้พื้นที่อื่นใช้ซ้ำ
+
+## Data Credit / Attribution
+
+- [GISTDA — เช็คฝุ่น](https://pm25.gistda.or.th/)
+- [Open-Meteo](https://open-meteo.com/) · [Terms of Service](https://open-meteo.com/en/terms)
+- [ThaiWater](https://www.thaiwater.net/) / [HII](https://www.hii.or.th/)
+
+การอ้างอิงชื่อหรือโลโก้ไม่ใช่การรับรองโครงการจากเจ้าของข้อมูล
+
+<div align="center">
+
+**UTH[AI] Environmental LED Widget — Clear data. Honest status. Reusable architecture in progress.**
+
+[Production](https://aase7en.github.io/webapp-widget/) · [Issues](https://github.com/aase7en/webapp-widget/issues) · [Changelog](CHANGELOG.md)
+
+</div>

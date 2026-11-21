@@ -1,3 +1,9 @@
+## Current Water visual target and release boundary (Production after PR #109)
+
+As of the Uthai v1.0.0 Water release: original illuminated gate/water animation, glowing blue frame, station clock, descriptive badges, historical sparkline and reduced-motion behavior remain visually intact. The primary measured reading is the **derived percentage of the station ground-to-lowest-bank MSL interval** plus physical metres to bank; trend arrow requires two verified timestamp-aligned observations; historical/unavailable/contradictory data is not represented as current. A semantic output element preserves the original m MSL and observed time in the computed Chrome Accessibility Tree. This is not a hospital flood-risk score or an official warning.
+
+The old demo pages remain historical design evidence, not live data; source screenshot values are SIMULATED. Actual production UI source is v2/water-luxury-live.js, original v2/water-luxury-live.css plus v2/water-percent-public.css. Multi-site profiles and API adapters are PLANNED in docs/architecture/MULTI-SITE-ADOPTION-PLAN.md, not deployed.
+
 # UTH Widget LED Design System — observed production tokens and demo boundary
 
 Audit date 2026-11-21, widget GitHub main 6b4111ec5413983ece25788a074dc3e7e9c2b95b. This records evidence from CSS and known layout, not a replacement for source code or permission to release.
@@ -13,7 +19,7 @@ The owner ACCEPTS approximate typography/placement from the first percent demo b
 
 Corrected review-only preview: https://aase7en.github.io/uth-weather-led-ab-preview-20261104/water-bank-original-style-20261121/ (static SIMULATED fixtures, public Chrome QA passed, no production change). This is NOT a release authorization. The old percent mock remains a typography-position reference, not the target look.
 
-## Water percent public-readability proposal — PREVIEW ONLY
+## Archived Water percent design proposal — original preview only
 - Main number: percent of ground-to-lowest-bank reference MSL interval, never official flood probability, capacity or sluice-opening percentage.
 - Secondary number: plain-language below/at/above-bank distance in METRES. Station name, source and observed time remain visible or accessible. Retain m MSL for staff detail after implementation.
 - Default two stations, optional single station focus. Teal/blue glow does not establish a warning category; no invented threshold. Historical/UNAVAILABLE != LIVE or normal.

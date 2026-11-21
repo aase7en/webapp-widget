@@ -26,3 +26,8 @@
 - Initial percent-demo typography/placement considered acceptable, but its visual design rejected. Use the exact original Water Production color, gate-water animation, SVG history graph, clock and framing. Only change number to % plus sampled arrow and plain-language distance-to-bank.
 - Verified corrected preview in separate repository: https://aase7en.github.io/uth-weather-led-ab-preview-20261104/water-bank-original-style-20261121/ at merged preview SHA e6cfe81d0c2a79bf78c79447dd3d63254d6b6957. Original CSS/core renderer and sprite byte-identical; 432x40 public Chrome checks passed. Static simulated data only.
 - Owner approval to publish this DEMO does NOT mean approval to deploy the percent feature to widget Production. Next action is owner visual review of this corrected preview before new implementation.
+
+
+## Production closeout — supersedes initial DEMO-only state (21 Nov 2026)
+
+Owner explicitly accepted the revised original-water-style demo and authorized deployment to webapp-widget main. Production PR #109 merged as 33926944e3535f7e7fae14ac4584f60de01e4b29; GitHub CI 2/2 and Node 558/558, browser simulation six states, AX-tree accessible value/name, separate review at frozen exact SHA PASS, Pages built and 7/7 public assets exact. All previously described DEMO-only restrictions are retained above as archival decisions; the accepted Production Water percentage is now operational. No new Sheet, HII API client, supplier API or weather/PM change was required. This result is for Uthai site; Multi-Site adapters remain planned.
