@@ -1,3 +1,17 @@
+# CURRENT CONTINUATION — Uthai Widget v1.0.0, production percent approved (2026-11-21)
+
+**Source facts verified:** aase7en/webapp-widget main SHA 33926944e3535f7e7fae14ac4584f60de01e4b29 from merged PR #109, Github Pages built exact SHA 2026-11-21T15:19:30Z and public critical assets 7/7 HTTP 200 byte-exact. Latest user approved original Water design plus percent/metres/verified directional arrow and asked for professional README, formal version and a plan to port all three panels to new hospitals and provider APIs. Prior lines stating Water is demo-only are ARCHIVAL and superseded by this front section.
+
+**Active lane:** docs/widget-v1-release-portability-20261121, isolated clean worktree /Volumes/MAC_WORK/DevWorkspace/Github/webapp-widget-release-docs-20261121, base production SHA above. Docs-only changes: product VERSION 1.0.0, CHANGELOG, professional three-panel screenshot README, current asset-version matrix, Design System, AGENTS, this root single handoff, Multi-Site Adoption Plan. Image examples are SIMULATED and must not be called current readings.
+
+**Protected:** original Mac root checkout has untracked .kilo/.tmp/kilo (do NOT reset/stash). Existing Weather and other open PRs are separate owners. Canonical API Report_PM2.5 Sheet and bound Apps Script remain unmodified, and Uthai station/lat-lon source mapping stays single-site. No multi-site runtime/adapters shipped with v1.0.0. Protect source/data licensing, privacy and station/datum semantics.
+
+**Release gates:** exact docs PR SHA + source-link/image/Node checks, independent review, expected-head docs merge, Pages built SHA + HTTP byte checks, and annotated v1.0.0 Git Tag at the final reviewed merged main SHA. A tag/README is not proof that all three panel values are LIVE; physical LED visual observation remains a separate gate.
+
+**One next safe action:** verify and close out docs/version PR, publish first verified v1.0.0 tag/release and record exact commit, then begin a separate Phase-0 Multi-Site API/config hardcode inventory Work Order only after governance/licensing decisions. DO NOT automatically change Uthai APIs or production backend.
+
+---
+
 # LATEST OWNER DESIGN CORRECTION — original Water visuals + percent reading (2026-11-21)
 
 > Supersedes the earlier percent-demo ART DIRECTION, not the validated ground-to-bank metric meaning. User approved previous demo typography and rough positioning only; explicitly wants the ORIGINAL production Water visual (colors, 2.5D animated gate/spray, existing 7-day graph, clock, border and badges) while overlaying percentage, up/down arrow and metres remaining. Do NOT replace the original visuals with the first flat-blue redesign.

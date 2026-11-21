@@ -1,6 +1,6 @@
 # UPDATE 2026-11-21 — v2 is already part of Production
 
-The content below this note is a historical 2026-10-21 release-candidate record, NOT the current release gate. Verified widget main 6b4111ec5413983ece25788a074dc3e7e9c2b95b and its built GitHub Pages contain v2 pages; the root rotates PM2.5, Weather and Water, still using m MSL as the large Water number. See root README.md, docs/readme/VERSIONS.md and SESSION-HANDOFF.md for checked cache pins, current/source authority and latest task.
+The content below this note is a historical 2026-10-21 release-candidate record, NOT the current release gate. Verified widget main 6b4111ec5413983ece25788a074dc3e7e9c2b95b and its built GitHub Pages contain v2 pages; the root rotates PM2.5, Weather and Water, now using percent of validated ground-to-bank elevation interval as the large Water number and keeping the original m MSL in a semantic accessible output label; Water PR #109 was deployed on 2026-11-21. See root README.md, docs/readme/VERSIONS.md and SESSION-HANDOFF.md for checked cache pins, current/source authority and latest task.
 
 The public Water ground-to-bank percent display is **preview only**, isolated at https://aase7en.github.io/uth-weather-led-ab-preview-20261104/water-bank-clarity-20261121/ . Do not take 2026-10-21 local threshold/orange-band examples below as official HII/Thai warning thresholds or as newly approved production behavior. This update does not alter any code/data.
 

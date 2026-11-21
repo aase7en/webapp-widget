@@ -13,3 +13,12 @@ This is a compact engineering lessons log, NOT a second SSoT, task database, Cha
 Guardrails: SIMULATED DEMO is not current data; null/unknown != zero; HISTORICAL != LIVE; external HII reference station data cannot establish whether Uthai Hospital is safe from flooding. A browser screenshot is not physical LED verification.
 
 Use root SESSION-HANDOFF.md for current continuity and GitHub PR/CI/runtime for current facts. This file is evidence/defect memory only.
+
+
+## Verified Water Production release lessons (PR #109, 2026-11-21)
+
+- New public percent + measured-direction arrow preserved original Water 2.5D gate/foam and 7D graph.
+- Independent review found conflicting duplicate observation timestamps could falsely reverse a direction arrow: fail closed to unknown for mismatched duplicates before computing any trend.
+- Original level MSL in a generic div aria-label did not guarantee a computed accessible name: changed to a semantic output element, checked with Chrome Accessibility.getFullAXTree. Quote-bearing station observation strings were escaped in newly emitted HTML attributes.
+- Never infer formal flood warning or hospital impact from a ground-to-lowest-bank geometric fraction. Historical/UNAVAILABLE != LIVE. Public sample screenshots are explicitly SIMULATED.
+- Repeat this suite for new hospital sites, providers, time zones, vertical datums and unknown-state handling.
