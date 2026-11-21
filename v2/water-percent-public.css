@@ -1,0 +1,25 @@
+/* Bounded percentage-and-arrow overlay on UNCHANGED production Water CSS.
+   Keep dam imagery, colors, glass, 7D trend path and animated foam unchanged. */
+.widget.v3 .station-name{display:flex;align-items:flex-start;justify-content:space-between;gap:5px}
+.widget.v3 .station-name>span:first-child{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.widget.v3 .station-name .observed-stamp{font-size:11px;line-height:19px;color:#bcf7fc;letter-spacing:0;flex:none;font-weight:750;text-shadow:0 0 5px #30b9e86b}
+.widget.v3 .reading-row{gap:3px;width:calc(100% + 9px)}
+.widget.v3 .big-level{font-size:59px;flex:none}
+.widget.v3 .big-level.wide-pct{font-size:48px;letter-spacing:-2.1px}
+.widget.v3 .big-level .unit{font-size:24px;margin-left:2px;letter-spacing:0}
+.widget.v3 .preview-trend{display:inline-block;flex:none;font-size:33px;font-weight:950;line-height:1;align-self:center;
+ color:#91ebff;text-shadow:0 0 7px #5deaffc9;transform:translateY(-2px)}
+.widget.v3 .preview-trend.up{color:#ffb575;text-shadow:0 0 7px #ffad91aa}
+.widget.v3 .preview-trend.down{color:#89fbc6;text-shadow:0 0 8px #42ffacaa}
+.widget.v3 .preview-trend.flat{color:#b6e4f4}
+.widget.v3 .preview-trend.unknown{opacity:.55}
+.widget.v3 .reading-detail{justify-content:center}
+.widget.v3 .distance-to-bank{position:relative;top:-4px;max-width:230px;font-size:18px;line-height:23px;font-weight:900;white-space:nowrap;overflow:hidden;
+ text-overflow:ellipsis;color:#edffff;text-shadow:0 0 7px #092844,0 1px 3px #000}
+.widget.v3 .reading-row{position:relative;z-index:5}
+.widget.v3.layout-focus .big-level{font-size:76px}
+.widget.v3.layout-focus .big-level.wide-pct{font-size:69px}
+.widget.v3.layout-focus .preview-trend{font-size:43px}
+.widget.v3.layout-focus .distance-to-bank{font-size:20px}
+/* Water status colors remain descriptive, not official flood alerts: original status badges and historical graph remain in place. */
+@media(prefers-reduced-motion:reduce){.widget.v3 .foam-front{filter:none}}
