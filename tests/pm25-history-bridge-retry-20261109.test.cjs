@@ -6,16 +6,16 @@ const begin=source.indexOf("let lastPm={status:'unavailable'},lastHistory=[]");
 const end=source.indexOf("const pmFrame=$('#pm-live-frame');",begin);
 assert(begin>0&&end>begin);
 function harness(){
- const requests=[],posts=[],timers=new Map();let id=0;
+ const requests=[],posts=[],painted=[],timers=new Map();let id=0;
  const clock=(fn,ms)=>{const key=++id;timers.set(key,{fn,ms});return key};
  const clear=key=>timers.delete(key);
  const fakeWindow={UthaiLEDRotation:{BACKEND_URL:'https://example.invalid/exec'}};
  const fakeDocument={createElement:()=>({src:'',onerror:null,remove(){this.wasRemoved=true}}),head:{appendChild(script){requests.push(script)}}};
  const fake$=s=>s==='#pm-live-frame'?{contentWindow:{postMessage(data){posts.push({status:data.historyStatus,points:data.history.length,values:data.history.map(x=>x.value)})}}}:null;
- const factory=Function('$','document','window','location','setTimeout','clearTimeout',source.slice(begin,end)+';return {refreshPmHistory,inspect:()=>({historyState,historyFailures,historyActive,lastHistory:lastHistory.slice()})}');
- const internals=factory(fake$,fakeDocument,fakeWindow,{origin:'https://example.invalid'},clock,clear);
+ const factory=Function('$','document','window','location','setTimeout','clearTimeout','paintPm',source.slice(begin,end)+';return {refreshPmHistory,inspect:()=>({historyState,historyFailures,historyActive,lastHistory:lastHistory.slice()})}');
+ const internals=factory(fake$,fakeDocument,fakeWindow,{origin:'https://example.invalid'},clock,clear,data=>painted.push(data.pm25));
  const callback=request=>new URL(request.src).searchParams.get('callback');
- return {requests,posts,timers,internals,fakeWindow,callback,tick(ms){const found=[...timers].find(([key,t])=>t.ms===ms);assert(found,'missing retry at '+ms+'ms');timers.delete(found[0]);found[1].fn()}};
+ return {requests,posts,painted,timers,internals,fakeWindow,callback,tick(ms){const found=[...timers].find(([key,t])=>t.ms===ms);assert(found,'missing retry at '+ms+'ms');timers.delete(found[0]);found[1].fn()}};
 }
 test('one 9s timeout failure schedules 8s retry, then valid history reaches PM iframe',async()=>{
  const h=harness();const op=h.internals.refreshPmHistory();assert.equal(h.requests.length,1);
@@ -56,4 +56,30 @@ test('retry backoff is bounded and does not spin indefinitely on persistent fail
  assert.equal(h.timers.size,0);
  assert.equal(h.internals.inspect().historyState,'unavailable');
  assert.equal(h.internals.inspect().historyFailures,3);
+});
+
+
+test('existing verified Sheet history is used when snapshot suppressed a 5h PM measurement',async()=>{
+ const h=harness(),run=h.internals.refreshPmHistory();
+ const cb=h.callback(h.requests[0]);
+ h.fakeWindow[cb]({schema:1,status:'ok',location:'uthai',points:[
+  {value:16.6,observedAt:new Date(Date.now()-5*3600000).toISOString()}
+ ]});
+ await run;
+ assert.equal(h.painted.at(-1).status,'latest');
+ assert.equal(h.painted.at(-1).value,16.6);
+ assert.equal(h.painted.at(-1).avg24h,null,'no imputed 24h avg');
+ assert.equal(h.painted.at(-1).historyFallback,true);
+});
+
+test('existing verified Sheet history older than 6h produces stale badge state, no current number',async()=>{
+ const h=harness(),run=h.internals.refreshPmHistory();
+ const cb=h.callback(h.requests[0]);
+ h.fakeWindow[cb]({schema:1,status:'ok',location:'uthai',points:[
+  {value:16.6,observedAt:new Date(Date.now()-7*3600000).toISOString()}
+ ]});
+ await run;
+ assert.equal(h.painted.at(-1).status,'stale');
+ assert.equal(h.painted.at(-1).value,undefined);
+ assert.equal(h.painted.at(-1).reason,'older_than_6h');
 });

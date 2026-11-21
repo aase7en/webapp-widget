@@ -22,3 +22,8 @@ Use root SESSION-HANDOFF.md for current continuity and GitHub PR/CI/runtime for 
 - Original level MSL in a generic div aria-label did not guarantee a computed accessible name: changed to a semantic output element, checked with Chrome Accessibility.getFullAXTree. Quote-bearing station observation strings were escaped in newly emitted HTML attributes.
 - Never infer formal flood warning or hospital impact from a ground-to-lowest-bank geometric fraction. Historical/UNAVAILABLE != LIVE. Public sample screenshots are explicitly SIMULATED.
 - Repeat this suite for new hospital sites, providers, time zones, vertical datums and unknown-state handling.
+
+
+## 2026-11-21 — Valid 3–6h Sheet data prematurely hidden by old freshness gates
+
+Symptom: S5 measured 18:00 showed —% about 22:49, although owner allows last verified measurement until 6h. Root cause: 3h freshness distributed across API client and Water renderer, PM Tier default 3h, and source-bound Apps Script snapshot/Water status policy. Remedy: explicit browser six-hour observedAt checks, existing Sheet PM history fallback (without inventing average), native LED badge size regression and 5h/7h tests. The bound Apps Script remains unchanged in this branch and needs separate governed status alignment; distinguish UI policy from backend deployment state.

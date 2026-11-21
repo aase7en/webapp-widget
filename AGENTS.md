@@ -1,3 +1,10 @@
+## Current owner decision — measured data freshness 6 hours (2026-11-21)
+
+- For both PM2.5 and Water, use the latest VERIFIED Google Sheet observation for up to 6h measured from original observedAt; at >6h show — and ข้อมูลเก่าเกิน 6 ชม.; missing remains unavailable and never 0. This supersedes older 3h display rules, but does not alter Weather model freshness (3h).
+- Same canonical Sheet API Report_PM2.5 and bound Apps Script remain operational. Browser PM can recover the hourly value from validated existing pm25_history for age 3–6h if the unchanged bound Apps Script snapshot filters after 3h; do not invent 24h averages/health tier. Water browser reclassifies via observedAt from verified Sheet station payload. No direct new provider APIs, Sheet creation, or source/trigger edits.
+- This UI hotfix does NOT mean the bound Apps Script's internal 3h status policy has been deployed or changed. Backend alignment requires separately authorized script deployment, verified identity/rollback. Read docs/work-orders/WO-WIDGET-SIX-HOUR-FRESHNESS-20261121.md.
+- Owner protects old animation/PM chart, station datum/identity, current source provenance, accessible values, and 432x40 readability. Use isolated clean worktrees; root untracked files are not ours.
+
 # Shared AI Agent Instructions
 
 ## Prompt placement pointer

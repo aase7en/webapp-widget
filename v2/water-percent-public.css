@@ -23,3 +23,6 @@
 .widget.v3.layout-focus .distance-to-bank{font-size:20px}
 /* Water status colors remain descriptive, not official flood alerts: original status badges and historical graph remain in place. */
 @media(prefers-reduced-motion:reduce){.widget.v3 .foam-front{filter:none}}
+/* Six-hour stale policy: keep the full Thai warning legible in the
+   existing 35px high badge, without resizing valid station states. */
+.widget.v3 .status-trend .badge.stale-six-hour{font-size:12px;line-height:14px;letter-spacing:-.3px;padding:2px 4px;overflow-wrap:normal;word-break:keep-all}

@@ -51,7 +51,7 @@ test('verified latest station survives missing and older responses without fake 
  const end=js.indexOf('\nlet reading=false;',begin);
  assert.ok(begin>0&&end>begin);
  const applied=[];
- const apply=Function('renderStation','historyPath',js.slice(begin,end)+';return apply;')(
+ const apply=Function('renderStation','historyPath','const WATER_DISPLAY_MS=6*3600000;'+js.slice(begin,end)+';return apply;')(
    st=>applied.push([st.value,st.status,st.observedAt]),()=>'' );
  const now=Date.parse('2026-10-26T12:00:00.000Z');
  const st={value:null,observedAt:null,observed:'รอข้อมูล',status:'missing'};
@@ -60,7 +60,7 @@ test('verified latest station survives missing and older responses without fake 
  assert.equal(st.value,2.81);assert.equal(st.status,'ok');
  apply(st,{status:'missing',levelMsl:null,observedAt:null},now+20*60*1000);
  assert.equal(st.value,2.81);assert.equal(st.observedAt,reading.observedAt);
- apply(st,{...reading,levelMsl:1.11,observedAt:'2026-10-26T10:00:00.000Z'},now+5*3600000);
+ apply(st,{...reading,levelMsl:1.11,observedAt:'2026-10-26T10:00:00.000Z'},now+7*3600000);
  assert.equal(st.value,2.81);assert.equal(st.status,'historical');
  assert.match(st.observed,/วัด /);
  assert.equal(applied.length,3);
@@ -68,10 +68,10 @@ test('verified latest station survives missing and older responses without fake 
 
 test('comparison badge is descriptive, requires fresh data, and never uses historical values as present',()=>{
  const begin=js.indexOf('function bankBadge(st,now=Date.now()){'),end=js.indexOf('\n// Only a dimensionless',begin);assert.ok(begin>0&&end>begin);
- const badge=Function(js.slice(begin,end)+';return bankBadge;')();
+ const badge=Function('const WATER_DISPLAY_MS=6*3600000;'+js.slice(begin,end)+';return bankBadge;')();
  const fresh={status:'ok',datum:'MSL',value:2,bankM:3,observedAt:new Date().toISOString()};
  assert.equal(badge(fresh).text,'ต่ำกว่าตลิ่ง');assert.equal(badge({...fresh,value:3}).text,'ถึงตลิ่ง');assert.equal(badge({...fresh,value:3.1}).text,'สูงกว่าตลิ่ง');
- assert.equal(badge({...fresh,status:'historical',value:3.1}).text,'ข้อมูลเก่า');assert.equal(badge({...fresh,observedAt:new Date(Date.now()-4*3600000).toISOString(),value:3.1}).text,'ข้อมูลเก่า');assert.equal(badge({...fresh,bankM:null}).text,'รอข้อมูล');assert.equal(badge({...fresh,datum:'other'}).text,'รอข้อมูล');
+ assert.equal(badge({...fresh,status:'historical',value:3.1}).text,'ข้อมูลเก่าเกิน 6 ชม.');assert.equal(badge({...fresh,observedAt:new Date(Date.now()-7*3600000).toISOString(),value:3.1}).text,'ข้อมูลเก่าเกิน 6 ชม.');assert.equal(badge({...fresh,bankM:null}).text,'รอข้อมูล');assert.equal(badge({...fresh,datum:'other'}).text,'รอข้อมูล');
 });
 test('spark area uses station-specific gradient and rejects malformed paths',()=>{
  const begin=js.indexOf('function sparkSvg('),end=js.indexOf('\nfunction bankBadge(',begin);assert.ok(begin>0&&end>begin);
@@ -105,7 +105,7 @@ test('Public Water percent is ground-bank fraction, with original m MSL retained
  assert.match(js,/const pct=bankIntervalPercent\(st\.value,st\.groundMsl,st\.bankM,st\.datum\)/);
  assert.match(js,/const usable=fresh&&pct!==null/);
  assert.match(js,/class="big-level\$\{wide\}"/);
- assert.match(js,/<span class="unit" title="\$\{safeDetails\}">%<\/span>/);
+ assert.match(js,/usable\?'<span class="unit"/);
  assert.match(js,/originalMsl=.*m MSL/);
  assert.match(js,/observed-stamp/);
  assert.match(js,/distance-to-bank/);
@@ -113,6 +113,6 @@ test('Public Water percent is ground-bank fraction, with original m MSL retained
  assert.match(js,/st\.datum=valid\?'MSL':null/);
  assert.match(js,/const windowStart=now-7\*86400000/);
  assert.match(css,/\.widget\.v3 \.foam-front/);
- assert.match(ui,/water-percent-public\.css\?v=20261121-water-percent-1/);
- assert.match(ui,/water-luxury-live\.js\?v=20261121-water-percent-1/);
+ assert.match(ui,/water-percent-public\.css\?v=20261121-six-hour-1/);
+ assert.match(ui,/water-luxury-live\.js\?v=20261121-six-hour-1/);
 });

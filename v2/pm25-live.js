@@ -128,21 +128,21 @@ function setNumber(value){
 }
 function render(pm,history,historyStatus){
  const valid=pm&&pm.status==='latest'&&typeof pm.value==='number'&&Number.isFinite(pm.value)&&pm.value>=0&&pm.value<=1000;
- if(!valid){board.style.setProperty('--pm-chart-left','674px');board.classList.add('unavailable');board.dataset.tier='';for(const key of ['light','dark','glow'])board.style.setProperty('--number-'+key,GREY[key]);$('.number').textContent='—';$('.badge').textContent='รอข้อมูล';$('.advice').textContent='ไม่พบข้อมูลล่าสุด';$('.avg-note').hidden=true;$('.scale-arrow').hidden=true;video.pause();drawHistory(history,historyStatus);return}
+ if(!valid){const tooOld=pm&&pm.status==='stale'&&pm.reason==='older_than_6h';board.style.setProperty('--pm-chart-left','674px');board.classList.add('unavailable');board.dataset.tier='';for(const key of ['light','dark','glow'])board.style.setProperty('--number-'+key,GREY[key]);$('.number').textContent='—';$('.badge').textContent=tooOld?'ข้อมูลเก่าเกิน 6 ชม.':'รอข้อมูล';$('.advice').textContent=tooOld?'รอค่าตรวจวัดใหม่':'ไม่พบข้อมูลล่าสุด';$('.avg-note').hidden=true;$('.scale-arrow').hidden=true;video.pause();drawHistory(history,historyStatus);return}
 
  const value=Math.round(pm.value*10)/10;setNumber(value); /* big number: hourly, unchanged */
  /* Tier from the 24h average. observedAt is the source-observation time; the
   * module's freshness contract needs `now` whenever observedAt is supplied,
-  * so it is passed explicitly (staleAfterMs default 3 h). */
+  * so it is passed explicitly (staleAfterMs explicit 6 h for PM display). */
  const avg=(typeof pm.avg24h==='number'&&Number.isFinite(pm.avg24h)&&pm.avg24h>=0)?pm.avg24h:null;
- const cls=avg===null?null:PM25Tier.classify({value:avg,observedAt:pm.observedAt,status:pm.status,unit:pm.unit||'µg/m³',band:pm.band==null?null:pm.band},{now:Date.now(),bandVocabulary:VOCAB});
+ const cls=avg===null?null:PM25Tier.classify({value:avg,observedAt:pm.observedAt,status:pm.status,unit:pm.unit||'µg/m³',band:pm.band==null?null:pm.band},{now:Date.now(),staleAfterMs:6*3600000,bandVocabulary:VOCAB});
  const t=cls&&cls.isHealthTier?tiers.find(x=>x.id===cls.key):null;
  if(!t){ /* avg absent/unavailable/historical/conflicted: grey tier, hourly number stays, never zero-filled */
   board.classList.add('unavailable');board.dataset.tier='';
   for(const key of ['light','dark','shade','glow'])board.style.setProperty('--'+key,GREY[key]);for(const key of ['light','dark','glow'])board.style.setProperty('--number-'+key,GREY[key]);
   $('.badge').textContent='รอข้อมูล';$('.advice').textContent='รอค่าเฉลี่ย 24 ชม.';$('.avg-note').hidden=true;$('.scale-arrow').hidden=true;video.pause();drawHistory(history,historyStatus);return;
  }
- const hourly=PM25Tier.classify({value,observedAt:pm.observedAt,status:pm.status,unit:pm.unit||'µg/m³'},{now:Date.now()});
+ const hourly=PM25Tier.classify({value,observedAt:pm.observedAt,status:pm.status,unit:pm.unit||'µg/m³'},{now:Date.now(),staleAfterMs:6*3600000});
  const ht=hourly.isHealthTier?tiers.find(x=>x.id===hourly.key):null;
  board.classList.remove('unavailable');board.dataset.tier=t.id;for(const key of ['light','dark','shade','glow'])board.style.setProperty('--'+key,t[key]);
  $('.badge').textContent=t.status;$('.advice').textContent=t.advice;

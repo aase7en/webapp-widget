@@ -12,8 +12,8 @@ let api=client();const raw=data(record('2026-10-22T09:50:00Z',2.90));const s=api
 assert.equal(s.out.stations.HDA004.status,'ok');assert.equal(s.out.stations.HDA004.levelMsl,2.90);
 assert.equal(s.out.stations.HDA004.trendPoints.length,2);assert.equal(s.out.stations.S5.levelMsl,null);
 });
-test('3h-old source data becomes historical with NO present safety classification',()=>{
-let api=client(),r=record('2026-10-22T06:00:00Z',2.9);
+test('more-than-6h source data becomes historical with no present flood safety classification',()=>{
+let api=client(),r=record('2026-10-22T03:00:00Z',2.9);
 let x=api.validateWaterHistory(data(r),NOW).out.stations.HDA004;
 assert.equal(x.status,'historical');assert.equal(x.risk,'unassessed');assert.equal(x.levelMsl,2.9);
 });

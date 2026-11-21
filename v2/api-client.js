@@ -17,6 +17,8 @@ const SHEET_SNAPSHOT='https://script.google.com/macros/s/AKfycbwwUQCeJoz4N0P9UuR
 const BKK_MS=7*60*60*1000;
 const stations={HDA004:471583,S5:2607};
 const LIVE_TTL_MS=180000,WATER_TTL_MS=15*60000,RETRY_AFTER_FAIL_MS=45000,STALE_KEEP_MS=3*3600000;
+// Owner-approved DISPLAY window for measured PM and Water; Weather/model remains on its existing separate 3h policy.
+const PM_DISPLAY_MS=6*3600000,WATER_DISPLAY_MS=6*3600000;
 const cache={live:null,water:null,liveAt:0,waterAt:0,
  liveFail:null,waterFail:null,liveFailAt:0,waterFailAt:0,
  liveFcFrom:0,waterStamps:null,
@@ -37,8 +39,8 @@ function unavailableLive(){
    ObservedAt values are copied verbatim — nothing is re-labeled or extended. */
 function revalidateLive(src,tnow){
  const out={location:src.location,pm25:src.pm25,weather:src.weather,forecast:src.forecast};
- if(out.pm25.status==='latest'&&!freshBy(out.pm25.observedAt,tnow,STALE_KEEP_MS))
-  out.pm25={status:'unavailable'};
+ if(out.pm25.status==='latest'&&!freshBy(out.pm25.observedAt,tnow,PM_DISPLAY_MS))
+  out.pm25={status:'stale',observedAt:out.pm25.observedAt,reason:'older_than_6h'};
  if(out.weather.status==='model_latest'&&!freshBy(out.weather.observedAt,tnow,STALE_KEEP_MS))
   out.weather={status:'unavailable'};
  if(out.forecast.status==='model_forecast'&&cache.liveFcFrom&&tnow>cache.liveFcFrom)
@@ -49,7 +51,7 @@ function revalidateWater(src,tnow){
  const out={source:src.source,stations:{}};
  for(const code of Object.keys(stations)){
   const s=src.stations[code];
-  if(s&&s.status==='ok'&&(!cache.waterStamps||tnow-cache.waterStamps[code]>STALE_KEEP_MS)){
+  if(s&&s.status==='ok'&&(!cache.waterStamps||tnow-cache.waterStamps[code]>WATER_DISPLAY_MS)){
    out.stations[code]={...s,status:'historical',risk:'unassessed'};
   }else out.stations[code]=s;
  }
@@ -68,12 +70,13 @@ async function live(opts){
    const snapshot=await sheetsJsonp(12000,SHEET_SNAPSHOT);
    if(!snapshot||snapshot.schema!==1||!snapshot.location||!snapshot.channels)throw Error('snapshot unavailable');
    const channels=snapshot.channels;
-   const channel=name=>{const c=channels[name];return c&&freshBy(c.observedAt,tnow,STALE_KEEP_MS)&&freshBy(c.savedAt,tnow,STALE_KEEP_MS)&&c.data&&typeof c.data==='object'?c.data:null};
+   const channel=name=>{const c=channels[name],maxAge=name==='pm25'?PM_DISPLAY_MS:STALE_KEEP_MS;
+      return c&&freshBy(c.observedAt,tnow,maxAge)&&freshBy(c.savedAt,tnow,maxAge)&&c.data&&typeof c.data==='object'?c.data:null};
    const payload={location:snapshot.location,pm25:channel('pm25'),weather:channel('weather')},loc=payload.location;
    if(loc.id!=='uthai'||!finite(loc.lat,14,15)||!finite(loc.lon,100,101))throw Error('wrong locality');
    out.location={id:'uthai',lat:loc.lat,lon:loc.lon};
    const pm=payload.pm25||{};
-   if(pm.status==='ok'&&finite(pm.value,0,1000)&&pm.unit==='µg/m³'&&freshBy(pm.observedAt,tnow,STALE_KEEP_MS)){
+   if(pm.status==='ok'&&finite(pm.value,0,1000)&&pm.unit==='µg/m³'&&freshBy(pm.observedAt,tnow,PM_DISPLAY_MS)){
     // 2026 option A: pass the 24h average + backend band through the strict
     // whitelist. avg24h invalid -> null (never 0); consumers fail closed to
     // grey. The big number remains the hourly value.
@@ -177,7 +180,7 @@ function sheetWaterPayload(raw,tnow){
   const bank=numeric(s.bankM,-50,200),ground=numeric(s.groundMsl,-100,200);
   const good=validStamp&&level!==null&&bank!==null&&ground!==null&&bank>ground;
   const age=tnow-stamp;
-  const status=good?(age<=STALE_KEEP_MS?'ok':'historical'):'missing';
+  const status=good?(age<=WATER_DISPLAY_MS?'ok':'historical'):'missing';
   const base=missing(code);base.status=status;
   if(bank!==null&&ground!==null&&bank>ground){base.bankM=bank;base.groundMsl=ground;}
   if(good){
@@ -234,6 +237,6 @@ async function water(opts){
  return cache.waterPending;
 }
 root.UthApiClient={getLive:live,getWater:water,
- CACHE_POLICY:{liveTtlMs:LIVE_TTL_MS,waterTtlMs:WATER_TTL_MS,retryAfterFailMs:RETRY_AFTER_FAIL_MS,staleKeepMs:STALE_KEEP_MS},
+ CACHE_POLICY:{liveTtlMs:LIVE_TTL_MS,waterTtlMs:WATER_TTL_MS,retryAfterFailMs:RETRY_AFTER_FAIL_MS,staleKeepMs:STALE_KEEP_MS,pmDisplayMs:PM_DISPLAY_MS,waterDisplayMs:WATER_DISPLAY_MS},
  validateWaterHistory:sheetWaterPayload};
 })(window);

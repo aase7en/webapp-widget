@@ -5,7 +5,7 @@
 **สถานการณ์สิ่งแวดล้อมที่อ่านง่ายภายในไม่กี่วินาที**
 *Environmental intelligence for public-facing hospital displays*
 
-**v1.0.0 · Three Panels · 432 × 40 LED · GitHub Pages**
+**v1.0.1 · Three Panels · 432 × 40 LED · GitHub Pages**
 
 [**เปิดเว็บไซต์จริง**](https://aase7en.github.io/webapp-widget/) · [PM2.5](https://aase7en.github.io/webapp-widget/v2/pm25-live.html) · [Weather](https://aase7en.github.io/webapp-widget/v2/weather-luxury.html) · [Water Level](https://aase7en.github.io/webapp-widget/v2/water-luxury-live.html)
 
@@ -29,7 +29,7 @@
 | **Weather** | อุณหภูมิ, Feels Like, ความชื้น, โอกาสฝน, ต่ำสุด–สูงสุดและพยากรณ์ | Open-Meteo Model ผ่าน Google Sheet |
 | **Water Level** | เปอร์เซ็นต์ช่วงพื้น–ตลิ่ง, ลูกศรแนวโน้มที่ยืนยันได้, เมตรถึงตลิ่ง และกราฟย้อนหลัง | ThaiWater/HII ผ่าน Google Sheet สถานี HDA004 และ S.5 |
 
-**Release v1.0.0 ตั้งค่าสำหรับอุทัยเท่านั้น** แผนทำให้โรงพยาบาล/พื้นที่อื่นเลือก API และสถานีของตนเองได้อยู่ใน [Multi-Site Adoption Plan](docs/architecture/MULTI-SITE-ADOPTION-PLAN.md) ยังไม่ใช่ความสามารถที่เปิดใช้งานแล้ว
+**Release v1.0.1 ยังตั้งค่าสำหรับอุทัยเท่านั้น** แผนทำให้โรงพยาบาล/พื้นที่อื่นเลือก API และสถานีของตนเองได้อยู่ใน [Multi-Site Adoption Plan](docs/architecture/MULTI-SITE-ADOPTION-PLAN.md) ยังไม่ใช่ความสามารถที่เปิดใช้งานแล้ว
 
 ## Gallery · ทั้ง 3 หน้าของ Widget
 
@@ -86,6 +86,12 @@
 
 [ภาพจำลองกรณีสูงกว่าตลิ่ง](docs/readme/screenshots/water-percent-above-simulated.png) · [เปิด Water Level ที่ใช้งานจริง](https://aase7en.github.io/webapp-widget/v2/water-luxury-live.html)
 
+## ความสดของข้อมูลวัด: 6 ชั่วโมง
+
+สำหรับ PM2.5 และ Water Level ใช้ค่าที่ตรวจวัดได้ล่าสุดจาก Google Sheet เดิมตราบใดที่อายุจาก observedAt ไม่เกิน **6 ชั่วโมง**; หากไม่มีการตรวจวัดใหม่ระหว่างนั้นให้แสดงค่าเดิมพร้อมข้อมูลเวลาวัดจริง เมื่ออายุเกิน 6 ชั่วโมงให้แสดงตัวเลขใหญ่เป็น **—** และป้าย **ข้อมูลเก่าเกิน 6 ชม.** ไม่ใช้ศูนย์หรือเปลี่ยนเวลาตรวจวัดใหม่เอง
+
+เมื่อ PM Snapshot ถูกตัวกรอง 3 ชั่วโมงเดิมของ Backend ปิดกั้น หน้าเว็บยังเรียกประวัติการวัดจริงจาก Sheet เดิมผ่าน pm25_history ได้เพื่อแสดงค่ารายชั่วโมงอายุ 3–6 ชั่วโมง แต่ไม่อนุมานค่าเฉลี่ย 24 ชั่วโมงหรือระดับสุขภาพโดยไม่มีหลักฐาน Weather เป็นข้อมูล Model มีเกณฑ์ความสดแยกต่างหากและยังใช้ 3 ชั่วโมง
+
 ## Data Architecture และความถูกต้องของข้อมูล
 
 ~~~text
@@ -130,7 +136,7 @@ node --check v2/water-luxury-live.js
 
 ## Version · Release · Documentation
 
-- **Product Release:** [v1.0.0](CHANGELOG.md) (Semantic Versioning เริ่มต้นสำหรับโครงการอุทัย)
+- **Product Release:** [v1.0.1](CHANGELOG.md) (Semantic Versioning เริ่มต้นสำหรับโครงการอุทัย)
 - **Deployment:** Branch main → GitHub Pages; Asset Cache Keys แยกจาก Product Version
 - **Version/Cache Matrix:** [docs/readme/VERSIONS.md](docs/readme/VERSIONS.md)
 - **Technical Decision / Agent:** [AGENTS.md](AGENTS.md) · [SESSION-HANDOFF.md](SESSION-HANDOFF.md) · [Design System](docs/DESIGN-SYSTEM.md)

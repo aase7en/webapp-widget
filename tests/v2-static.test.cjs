@@ -52,8 +52,8 @@ test('PM and weather use actual values and model forecast with provenance',async
  assert.equal(data.forecast.status,'model_forecast');assert.equal(data.forecast.hours.length,5);
  assert.equal(data.forecast.hours[0].rainProbabilityPct,35);
 });
-test('PM stale/invalid channel is unavailable instead of zero',async()=>{
- const old=await boot({ageMin:241}).getLive();
+test('PM older than six hours is hidden without zero; weather retains own 3h window',async()=>{
+ const old=await boot({ageMin:421}).getLive();
  assert.equal(old.pm25.status,'unavailable');assert.equal(old.weather.status,'unavailable');
  const bad=await boot({pm:null}).getLive();assert.equal(bad.pm25.status,'unavailable');
 });
@@ -66,7 +66,7 @@ test('Water: physical reference bank metadata does not invent unapproved flood w
  assert.equal(high.stations.HDA004.risk,'unassessed');assert.equal(high.stations.S5.risk,'unassessed');
 });
 test('Missing and stale water does not become level zero or safe',async()=>{
- const stale=await boot({ageMin:241}).getWater();
+ const stale=await boot({ageMin:421}).getWater();
  assert.equal(stale.stations.HDA004.status,'historical');assert.equal(stale.stations.HDA004.levelMsl,2.87);
  assert.equal(stale.stations.HDA004.risk,'unassessed');
  const offline=await boot({apiFails:true}).getWater();
@@ -180,11 +180,11 @@ test('P1 last-known-good past the freshness window is demoted, never shown as cu
  const ctl=bootCtl();
  const seeded=await ctl.api.getLive({now:ctl.now});
  assert.equal(seeded.pm25.status,'latest');
- ctl.advance((3*3600000)+ (25*60000));           // success TTL long gone; observation now >3 h old
+ ctl.advance((6*3600000)+ (25*60000));           // success TTL long gone; observation now >3 h old
  ctl.state.backendFails=true;
  const aged=await ctl.api.getLive({now:ctl.now});
  assert.notEqual(aged.pm25.status,'latest');
- assert.equal(aged.pm25.status,'unavailable');
+ assert.equal(aged.pm25.status,'stale');
  assert.equal(aged.pm25.value,undefined);         // not 0, not a number
  assert.equal(aged.weather.status,'unavailable');
  assert.equal(aged.forecast.status,'unavailable'); // all forecast slots already elapsed
@@ -219,7 +219,7 @@ test('P1 water failure retains last-known-good with historical label, never recl
  ctl.advance(30000);
  const held=await ctl.api.getWater({now:ctl.now});
  assert.equal(ctl.calls.water,2);                 // inside retry window: no refetch
- ctl.advance((3*3600000)+(25*60000));
+ ctl.advance((6*3600000)+(25*60000));
  const aged=await ctl.api.getWater({now:ctl.now});
  assert.equal(ctl.calls.water,3);                 // retry window long expired
  assert.equal(aged.stations.HDA004.status,'historical');
@@ -239,11 +239,11 @@ test('P3 rotation order is pinned PM → Weather → Water and pages depend on l
  const weatherPage=fs.readFileSync(path.join(ROOT,'v2/weather-luxury.html'),'utf8');
  const pmPos=screen.indexOf('id="pm"');
  const wxPos=screen.indexOf('./weather-luxury.html');
- const waPos=screen.indexOf('src="./water-luxury-live.html?v=20261121-water-percent-1"');
+ const waPos=screen.indexOf('src="./water-luxury-live.html?v=20261121-six-hour-1"');
  assert.ok(pmPos>-1&&wxPos>-1&&waPos>-1,'all three strip markers present');
  assert.ok(pmPos<wxPos&&wxPos<waPos,'article DOM order pm → weather → water');
   assert.match(screen,/src="\.\.\/led-rotation\.js\?v=20261031-pm25-compat-1"/,'v2/index.html cache-busts the compatible backend reader');
-  assert.match(screen,/src="\.\/live-widgets\.js\?v=20261109-pm24-2"/,'v2/index.html cache-busts the avg-required PM bridge');
+  assert.match(screen,/src="\.\/live-widgets\.js\?v=20261121-six-hour-1"/,'v2/index.html cache-busts the avg-required PM bridge');
  assert.match(weatherPage,/src="weather-snapshot\.js"/,'weather loads the Sheet snapshot adapter');
 });
 test('P3 review cleanup: dead QA CSS removed and legacy geography corrected',()=>{
@@ -269,18 +269,18 @@ test('P2 legacy-engine syntax floor: v2 scripts avoid .at(), replaceChildren and
 
 test('P1 hot cache never serves a value that aged past observation freshness within TTL',async()=>{
  const ctl=bootCtl();
- ctl.state.observationAgeMin=179;
+ ctl.state.observationAgeMin=359;
  const first=await ctl.api.getLive({now:ctl.now});
  assert.equal(first.pm25.status,'latest');
- assert.equal(first.weather.status,'model_latest');
- ctl.advance(120000); // 181 min old, but cache entry still within 180-second success TTL
+ assert.equal(first.weather.status,'unavailable','weather model retains its separate 3h policy');
+ ctl.advance(120000); // 361 min old; cached entry must not violate six-hour display threshold
  const second=await ctl.api.getLive({now:ctl.now});
  assert.equal(ctl.calls.backend,1,'must not re-fetch within success TTL');
- assert.equal(second.pm25.status,'unavailable');
+ assert.equal(second.pm25.status,'stale');
  assert.equal(second.pm25.value,undefined);
  assert.equal(second.weather.status,'unavailable');
  const waterCtl=bootCtl();
- waterCtl.state.observationAgeMin=179;
+ waterCtl.state.observationAgeMin=359;
  const w1=await waterCtl.api.getWater({now:waterCtl.now});
  assert.equal(w1.stations.HDA004.status,'ok');
  waterCtl.advance(120000);
