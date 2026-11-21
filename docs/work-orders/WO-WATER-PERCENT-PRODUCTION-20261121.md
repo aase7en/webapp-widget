@@ -17,7 +17,7 @@ Owner explicitly approved the **original production Water visual plus percent/ar
 - Same-datum fraction: 100*(levelMsl-groundMsl)/(bankM-groundMsl), existing bankIntervalPercent keeps the below-ground display guard; over 100% is never clamped. Units: % of ground-to-bank interval, not capacity, flood probability or official warning.
 - Physical below/at/above gap in metres: bankM-levelMsl. Staff-accessible original m MSL preserved as title/accessible metadata; observed time displayed explicitly.
 - Only show a fresh dominant percent when station status ok, observedAt valid/fresh within existing 3h rule, and bank/ground valid; otherwise —% and historic/missing cue.
-- A screen-reader-accessible label includes the original m MSL and observation time; new attribute text is HTML-escaped. Conflicting same-timestamp series values fail closed to unknown, exact duplicate records are collapsed without order-dependence.
+- Semantic HTML output (calculated result), verified from Chrome Accessibility.getFullAXTree, includes the original m MSL and observation time; new attribute text is HTML-escaped. Conflicting same-timestamp series values fail closed to unknown, exact duplicate records are collapsed without order-dependence.
 - Direction arrow is derived, never guessed: verify latest trend timestamp within 15 minutes of current observation, level within 0.05 m; prior distinct measurement between 30 minutes and 6 hours earlier. Up/down threshold 0.015 m. Otherwise —. Verified history path drawing remains exactly as before.
 - No new flood alerts, emergency actions, physical gauge inference, storage/sluice capacity metrics or fabricated sensor readings.
 

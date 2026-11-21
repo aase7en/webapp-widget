@@ -107,7 +107,7 @@ function renderStation(st){
  const wide=usable&&pct>=100?' wide-pct':'';
  target.innerHTML=`<div class="station-card"><div class="art-zone"><canvas class="water-canvas" width="420" height="210" aria-label="ภาพการไหลประกอบ ไม่ใช่สถานะประตูจริง"></canvas></div>
  <div class="info"><div class="station-name"><span>${escapeMarkup(st.name)}</span><small>HII REFERENCE</small><span class="observed-stamp" title="${escapeMarkup(st.observed)}">${escapeMarkup(observedShort)}</span></div>
- <div class="reading-row"><div class="big-level${wide}" title="${safeDetails}" aria-label="${safeAccessible}">${shown}<span class="unit" title="${safeDetails}">%</span></div><span class="preview-trend ${direction.cls}" title="${escapeMarkup(direction.description)}" aria-label="${escapeMarkup(direction.description)}">${direction.arrow}</span></div>
+ <div class="reading-row"><output class="big-level${wide}" title="${safeDetails}" aria-label="${safeAccessible}">${shown}<span class="unit" title="${safeDetails}">%</span></output><span class="preview-trend ${direction.cls}" title="${escapeMarkup(direction.description)}" aria-label="${escapeMarkup(direction.description)}">${direction.arrow}</span></div>
  <div class="status-trend"><span class="badge ${badge.style}">${badge.text}</span><div class="trend-box"><div class="trend-title" title="${coverage.description}">${coverage.label}</div>${sparkSvg(safePath,st.id,coverage.description)}</div></div>
  <div class="reading-detail"><div class="distance-to-bank" title="${safeDetails}">${escapeMarkup(gapText)}</div></div>
  </div></div>`;

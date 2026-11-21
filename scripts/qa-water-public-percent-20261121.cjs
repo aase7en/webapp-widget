@@ -64,7 +64,12 @@ function fixture(name){
    assert.equal(r.status(),200);
    assert.deepEqual(q.canvas,[432,40]);
    assert.equal(q.a.value,scenario==='sample'?'76.1%':scenario==='near'?'94.0%':scenario==='at'?'100.0%':scenario==='above'?'103.5%':'—%');
-   if(scenario==='sample'){assert.equal(q.b.value,'71.3%');assert.equal(q.a.arrow,'↑');assert.equal(q.b.arrow,'↓');assert.ok(q.a.dist.includes('0.67'));assert.ok(q.b.dist.includes('3.82'));assert.ok(q.a.accessibleName.includes('2.36 m MSL')&&q.a.accessibleName.includes('วัด'),'staff accessible level/time must be present');assert.ok(q.b.accessibleName.includes('0.88 m MSL'));}
+   if(scenario==='sample'){assert.equal(q.b.value,'71.3%');assert.equal(q.a.arrow,'↑');assert.equal(q.b.arrow,'↓');assert.ok(q.a.dist.includes('0.67'));assert.ok(q.b.dist.includes('3.82'));assert.ok(q.a.accessibleName.includes('2.36 m MSL')&&q.a.accessibleName.includes('วัด'),'staff accessible level/time must be present');assert.ok(q.b.accessibleName.includes('0.88 m MSL'));
+    const cdp=await page.createCDPSession();await cdp.send('Accessibility.enable');const ax=await cdp.send('Accessibility.getFullAXTree');
+    const named=ax.nodes.filter(n=>!n.ignored&&n.name?.value?.includes('m MSL')&&n.name?.value?.includes('วัด')&&n.role?.value!=='generic');
+    assert.ok(named.some(n=>n.name.value.includes('2.36 m MSL'))&&named.some(n=>n.name.value.includes('0.88 m MSL')),
+      'computed accessibility tree must expose both measured m MSL + observation time; found '+JSON.stringify(named.map(n=>({role:n.role?.value,name:n.name?.value.slice(0,130)}))));
+    await cdp.detach();}
    if(scenario==='stale'||scenario==='missing')for(const x of [q.a,q.b]){assert.equal(x.arrow,'—');assert.equal(x.value,'—%');}
    if(scenario==='above')for(const x of [q.a,q.b])assert.ok(x.dist.includes('สูงกว่าตลิ่ง'));
    for(const x of[q.a,q.b]){
