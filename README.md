@@ -9,6 +9,12 @@ PM2.5 · สภาพอากาศ · ระดับน้ำสถานี�
 
 </div>
 
+## Water Level Demo ล่าสุด — ใช้ภาพและ Animation เดิม (21 พฤศจิกายน 2569)
+
+[เปิด Demo ที่ยึด Water Design เดิม](https://aase7en.github.io/uth-weather-led-ab-preview-20261104/water-bank-original-style-20261121/) — แสดง **เปอร์เซ็นต์ + ลูกศร + ระยะห่างจากตลิ่ง** โดยรักษาสี ภาพประตูน้ำเคลื่อนไหว กราฟ และกรอบตาม Production เดิมไว้ทั้งหมด ค่าทั้งหมดใน Demo เป็น **ข้อมูลจำลอง** และยังไม่ได้เปลี่ยน Widget Production ที่แสดง m MSL
+
+Owner ให้ความเห็นว่า **ขนาดตัวหนังสือและตำแหน่งจาก Demo แรกใช้ได้ แต่ไม่รับดีไซน์ภาพแบบใหม่**; ให้ยึด Visual เดิมเท่านั้น ดูการตัดสินใจล่าสุดที่ [SESSION-HANDOFF.md](SESSION-HANDOFF.md)
+
 ## ตรวจสถานะล่าสุดและ Water Level Demo (21 พฤศจิกายน 2569)
 
 **Actual State ที่ตรวจจาก GitHub/Production:** main ของ aase7en/webapp-widget ณ จุด Audit อยู่ที่ 6b4111ec5413983ece25788a074dc3e7e9c2b95b; GitHub Pages built จาก SHA เดียวกัน และตรวจไฟล์ Production HTTP 200/byte-exact สำหรับ root index, v2 index และหน้า Water HTML/JS/CSS แล้ว หน้า Water ที่ใช้งานจริงยังมีตัวเลขใหญ่เป็น m MSL

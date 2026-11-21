@@ -1,3 +1,19 @@
+# LATEST OWNER DESIGN CORRECTION — original Water visuals + percent reading (2026-11-21)
+
+> Supersedes the earlier percent-demo ART DIRECTION, not the validated ground-to-bank metric meaning. User approved previous demo typography and rough positioning only; explicitly wants the ORIGINAL production Water visual (colors, 2.5D animated gate/spray, existing 7-day graph, clock, border and badges) while overlaying percentage, up/down arrow and metres remaining. Do NOT replace the original visuals with the first flat-blue redesign.
+
+## Current verified state
+- Production widget GitHub main: 0d12f09bc0577299a3fdfc19a39ce1df892a27b7; Pages built same. Original Water production JavaScript still byte-exact and prominently displays m MSL. No UI/data/backend release was performed in this follow-up.
+- Corrected SIMULATED preview in separate repo aase7en/uth-weather-led-ab-preview-20261104: PR #8 merged as e6cfe81d0c2a79bf78c79447dd3d63254d6b6957, Pages built exact SHA, 8/8 public assets byte-identical, public Chrome 432x40 confirmed percent/arrow, graph and animated canvas with visible DEMO labels.
+- Approved style source: actual production v2/water-luxury-live.css, original renderer and sprite PNG, copied byte-identical in preview. Only DEMO renderer metric section/arrow and narrow CSS overrides differ. Native Chrome checks for both stations confirm reading/secondary boxes fit, arrows do not overlap graph, and no external API calls.
+- Corrected preview for owner review: https://aase7en.github.io/uth-weather-led-ab-preview-20261104/water-bank-original-style-20261121/ . The FIRST preview remains a reference for text scale/position only: https://aase7en.github.io/uth-weather-led-ab-preview-20261104/water-bank-clarity-20261121/ .
+- Reference numbers and arrows in BOTH preview pages are SIMULATED, not latest HII observations. Percent is NOT flood probability, capacity, certified alert or evacuation guidance. Real source freshness/provenance policy must be verified prior to release.
+
+## ONE next safe action
+Owner reviews the corrected ORIGINAL-design preview and requests final positioning adjustments or accepts the design. ONLY after explicit owner acceptance implement a separate Widget production feature on verified Sheet/API source, preserving original renderer and historical/unknown status; require independent review, CI, physical LED check and exact-SHA post-release verification.
+
+---
+
 # CURRENT FRONTIER — Water Level public-readability DEMO, production unchanged (2026-11-21 Asia/Bangkok)
 
 > **This is the latest bounded handoff and supersedes the former Nov 7 active-task section below.** Older context is retained as history; recheck actual Git/GitHub/runtime rather than trusting previous PR statuses. The Nov 7 typography approval remains historical; it is NOT automatic approval for Water % production deployment.
