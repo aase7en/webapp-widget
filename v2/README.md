@@ -1,3 +1,7 @@
+## Active PM / Water six-hour measured-data contract (2026-11-21)
+
+Owner requires <=6h from verified observedAt to show last Google Sheet value for measured PM and Water, >6h show — and ข้อมูลเก่าเกิน 6 ชม. PM may read the existing validated Sheet pm25_history route when snapshot_v1 suppresses 3–6h PM; do not infer 24h average. Water original animated layout preserved; Weather model 3h unchanged; bound Apps Script not redeployed. See current Work Order and root SESSION-HANDOFF. Older information below is archival.
+
 # UPDATE 2026-11-21 — v2 is already part of Production
 
 The content below this note is a historical 2026-10-21 release-candidate record, NOT the current release gate. Verified widget main 6b4111ec5413983ece25788a074dc3e7e9c2b95b and its built GitHub Pages contain v2 pages; the root rotates PM2.5, Weather and Water, now using percent of validated ground-to-bank elevation interval as the large Water number and keeping the original m MSL in a semantic accessible output label; Water PR #109 was deployed on 2026-11-21. See root README.md, docs/readme/VERSIONS.md and SESSION-HANDOFF.md for checked cache pins, current/source authority and latest task.

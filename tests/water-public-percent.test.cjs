@@ -6,7 +6,7 @@ assert.ok(begin>=0&&end>begin);
 const fraction=Function(js.slice(begin,end)+';return bankIntervalPercent;')();
 const dirStart=js.indexOf('function observedDirection('),dirEnd=js.indexOf('function renderStation(',dirStart);
 assert.ok(dirStart>=0&&dirEnd>dirStart);
-const direction=Function(js.slice(dirStart,dirEnd)+';return observedDirection;')();
+const direction=Function('const WATER_DISPLAY_MS=6*3600000;'+js.slice(dirStart,dirEnd)+';return observedDirection;')();
 const freshNow=()=>new Date(Date.now()-9*60000).toISOString();
 const st=(levels=[2.25,2.36],age=9)=>{const now=Date.now(),last=now-age*60000;return{status:'ok',datum:'MSL',value:levels.at(-1),bankM:3.03,groundMsl:.227,observedAt:new Date(last).toISOString(),
  historyReading:{trendPoints:levels,trendObservedAt:[new Date(last-60*60000).toISOString(),new Date(last).toISOString()]},observed:'วัดตัวอย่าง'};};
@@ -22,7 +22,7 @@ test('verified latest station trend arrow derives ONLY matched actual observatio
  assert.equal(direction(st([2.46,2.36]),now).arrow,'↓');
  assert.equal(direction(st([2.355,2.36]),now).arrow,'→');
  assert.equal(direction({...st(),status:'historical'},now).arrow,'—');
- assert.equal(direction(st([2.25,2.36],230),now).arrow,'—');
+ assert.equal(direction(st([2.25,2.36],430),now).arrow,'—');
  assert.equal(direction({...st(),historyReading:{trendPoints:[],trendObservedAt:[]}},now).arrow,'—');
  const misaligned=st();misaligned.historyReading.trendPoints=[2.22,2.12];assert.equal(direction(misaligned,now).arrow,'—');
  const wrongTime=st();wrongTime.historyReading.trendObservedAt=[new Date(now-8*3600000).toISOString(),new Date(now-7*3600000).toISOString()];assert.equal(direction(wrongTime,now).arrow,'—');
@@ -48,7 +48,7 @@ function render(station){
  const target={innerHTML:''};
  const fakeDoc={querySelector:()=>target};
  const f=Function('document','bankIntervalPercent','observedDirection','bankBadge','trendCaption','sparkSvg','escapeMarkup',
-  js.slice(startRender,endRender)+';return renderStation;')(
+  'const WATER_DISPLAY_MS=6*3600000;'+js.slice(startRender,endRender)+';return renderStation;')(
   fakeDoc,fraction,direction,()=>({text:'ต่ำกว่าตลิ่ง',style:'unavailable'}),()=>({label:'2H / 7D',description:'Measured time range'}),()=>'<svg class="spark"></svg>',escapeMarkup);
  f({el:'#stationA',id:'s1',name:'HDA004 ช่องสะเดา',observed:'ข้อมูลตรวจวัด',historyPath:'M5.0 20.0 L332.0 110.0',...station});
  return target.innerHTML;
@@ -65,11 +65,11 @@ test('production DOM keeps original water art, badge and 7D graph; percent is do
 });
 test('historical and missing data fail closed instead of presenting fabricated current percent or arrow',()=>{
  const old=render({...st(),status:'historical'});
- assert.match(old,/class="big-level"[^>]*>—<span class="unit"[^>]*>%/);
- assert.match(old,/ข้อมูลเก่า · งดแสดง%/);
+ assert.match(old,/class="big-level"[^>]*>—<\/output>/);
+ assert.match(old,/ข้อมูลเก่าเกิน 6 ชม\./);
  assert.match(old,/preview-trend unknown/);
  const missing=render({...st(),status:'missing',value:null,bankM:null,groundMsl:null,datum:null,observedAt:null});
- assert.match(missing,/class="big-level"[^>]*>—<span class="unit"[^>]*>%/);
+ assert.match(missing,/class="big-level"[^>]*>—<\/output>/);
  assert.match(missing,/รอข้อมูลอ้างอิง/);
 });
 test('percentage over 100 is not clamped; water color, original animation and trend renderer remain intact',()=>{
@@ -83,13 +83,13 @@ test('percentage over 100 is not clamped; water color, original animation and tr
  assert.match(js,/function historyPath\(st,now=Date\.now\(\)\)/);
 });
 test('scoped cache pins load new CSS/JS and rotated water page without altering other pages',()=>{
- assert.match(html,/water-luxury-live\.css\?v=20261121-water-percent-1/);
- assert.match(html,/water-percent-public\.css\?v=20261121-water-percent-1/);
- assert.match(html,/water-luxury-live\.js\?v=20261121-water-percent-1/);
- assert.match(rot,/water-luxury-live\.html\?v=20261121-water-percent-1/);
- assert.match(root,/v2\/index\.html\?display=led&amp;v=20261121-water-percent-1/);
+ assert.match(html,/water-luxury-live\.css\?v=20261121-six-hour-1/);
+ assert.match(html,/water-percent-public\.css\?v=20261121-six-hour-1/);
+ assert.match(html,/water-luxury-live\.js\?v=20261121-six-hour-1/);
+ assert.match(rot,/water-luxury-live\.html\?v=20261121-six-hour-1/);
+ assert.match(root,/v2\/index\.html\?display=led&amp;v=20261121-six-hour-1/);
  assert.match(rot,/weather-luxury\.html\?v=20261113-led-contrast-1/);
- assert.match(rot,/pm25-live\.html\?v=20261114-pm-softfade-1/);
+ assert.match(rot,/pm25-live\.html\?v=20261121-six-hour-1/);
 });
 
 

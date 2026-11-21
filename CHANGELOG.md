@@ -2,6 +2,13 @@
 
 All notable changes are grounded in merged GitHub PRs and production verification. Product Semantic Versioning begins at v1.0.0; earlier UI PRs did not have formal version tags.
 
+## [1.0.1] — 2026-11-21
+
+- Corrected PM2.5 and Water public display from 3h to owner-approved 6h since source observedAt. Display last verified Sheet measurement through 6h; beyond that show — and ข้อมูลเก่าเกิน 6 ชม.
+- PM 3–6h fallback reads existing validated read-only Sheet pm25_history if the unchanged deployed snapshot_v1 reader suppresses an older channel; health tier/24h average are unavailable when not independently verified.
+- Water preserves original 2.5D animation, percent and time-verified trend; small, scoped Thai stale badge typography at physical LED 432×40. Weather model retains its separate 3h validity.
+- Existing canonical Google Sheet, bound Apps Script and scheduled collection were NOT modified or deployed as part of this frontend correction. Align backend-internal 3h classifications in a separately verified maintenance release.
+
 ## [1.0.0] — 2026-11-21
 
 **First formally versioned Uthai single-site baseline** — three rotating environmental panels on a 432×40 LED, served by static GitHub Pages.

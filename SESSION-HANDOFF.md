@@ -1,3 +1,11 @@
+# Latest owner data-freshness correction — 2026-11-21
+
+Current six-hour display rule: PM2.5 and Water use last verified measurement in existing canonical Sheet for <=6h from observedAt, then dominant — and badge ข้อมูลเก่าเกิน 6 ชม. Weather remains 3h model freshness. At checked 2026-11-21 22:49 TH: PM 21:00, HDA004 21:40, S5 18:00 observed; S5 at ~4h49 should NOT have been blank. Existing Sheet still receives writes.
+
+Work Order docs/work-orders/WO-WIDGET-SIX-HOUR-FRESHNESS-20261121.md. Isolated Mac SundayMCP worktree /Volumes/MAC_WORK/DevWorkspace/Github/webapp-widget-six-hour-freshness-20261121 branch fix/pm-water-six-hour-freshness-20261121 from main v1.0.0 97b3ec75cdfbdce523d99f9a6008c9a78422fc50. Root weather checkout has protected untracked .kilo/.tmp/kilo. Implement scoped frontend and test/documentation only, target product patch v1.0.1. No Google Sheet or bound Apps Script changes. PM 3–6h uses existing verified Sheet PM history API fallback (hourly only, no invented 24h health category) while old backend snapshot reader still has 3h limit. Water browser computes age from measured timestamp even if backend's historical status uses old3h. Next: full tests, independent exact-SHA review, hosted CI and exact merge, Pages/build/real-data smoke and release tag. Backend script status alignment remains a separate deployment-gated task. Historic sections below retained as archives.
+
+---
+
 # CURRENT CONTINUATION — Uthai Widget v1.0.0, production percent approved (2026-11-21)
 
 **Source facts verified:** aase7en/webapp-widget main SHA 33926944e3535f7e7fae14ac4584f60de01e4b29 from merged PR #109, Github Pages built exact SHA 2026-11-21T15:19:30Z and public critical assets 7/7 HTTP 200 byte-exact. Latest user approved original Water design plus percent/metres/verified directional arrow and asked for professional README, formal version and a plan to port all three panels to new hospitals and provider APIs. Prior lines stating Water is demo-only are ARCHIVAL and superseded by this front section.

@@ -1,6 +1,7 @@
 /* Production: fixed-origin canonical Sheet history via existing UthApiClient.
    Last stored reading is never labelled LIVE, and sprites are illustrative. */
 (()=>{'use strict';
+const WATER_DISPLAY_MS=6*3600000;
 const BANDS=[{file:'3_51_75pct'}],ASSETS='../assets/water-gate/5-levels/';
 const $=id=>document.getElementById(id),reduced=matchMedia('(prefers-reduced-motion:reduce)').matches;
 const state={band:0,frame:0};
@@ -21,7 +22,7 @@ function bankBadge(st,now=Date.now()){
  // Station level relative to bank is not an official flood warning. Stale
  // observations must never be presented as the current situation.
  const observed=Date.parse(st.observedAt);
- if(st.status==='historical'||(Number.isFinite(observed)&&now-observed>3*3600000))return {text:'ข้อมูลเก่า',style:'unavailable'};
+ if(st.status==='historical'||(Number.isFinite(observed)&&now-observed>WATER_DISPLAY_MS))return {text:'ข้อมูลเก่าเกิน 6 ชม.',style:'unavailable stale-six-hour'};
  if(st.status!=='ok'||!Number.isFinite(observed)||observed>now+120000||st.datum!=='MSL'||!Number.isFinite(st.value)||!Number.isFinite(st.bankM))return {text:'รอข้อมูล',style:'unavailable'};
  if(st.value>st.bankM)return {text:'สูงกว่าตลิ่ง',style:'danger'};
  if(st.value===st.bankM)return {text:'ถึงตลิ่ง',style:'warn'};
@@ -51,7 +52,7 @@ function observedDirection(st,now=Date.now()){
  const unknown={arrow:'—',cls:'unknown',description:'ไม่มีแนวโน้มที่ตรวจสอบได้'};
  const latest=Date.parse(st?.observedAt);
  if(st?.status!=='ok'||!Number.isFinite(latest)||latest>now+120000||
-     now-latest>3*3600000||!Number.isFinite(st.value))return unknown;
+     now-latest>WATER_DISPLAY_MS||!Number.isFinite(st.value))return unknown;
  const vals=st.historyReading?.trendPoints,times=st.historyReading?.trendObservedAt;
  if(!Array.isArray(vals)||!Array.isArray(times)||vals.length!==times.length||
     vals.length<2||vals.length>30)return unknown;
@@ -86,28 +87,28 @@ function renderStation(st){
  const target=document.querySelector(st.el);if(!target)return;
  const pct=bankIntervalPercent(st.value,st.groundMsl,st.bankM,st.datum);
  const observed=Date.parse(st.observedAt),now=Date.now();
- const fresh=st.status==='ok'&&Number.isFinite(observed)&&observed<=now+120000&&now-observed<=3*3600000;
+ const fresh=st.status==='ok'&&Number.isFinite(observed)&&observed<=now+120000&&now-observed<=WATER_DISPLAY_MS;
  const usable=fresh&&pct!==null;
  const shown=usable?pct.toFixed(1):'—';
  const direction=usable?observedDirection(st,now):{arrow:'—',cls:'unknown',description:'ไม่มีแนวโน้มที่ตรวจสอบได้'};
  const badge=bankBadge(st,now);
  const safePath=st.historyPath||'',coverage=trendCaption(st.historyReading,now);
  const gap=usable&&Number.isFinite(st.bankM)&&Number.isFinite(st.value)?st.bankM-st.value:null;
- const gapText=gap===null?(st.status==='historical'?'ข้อมูลเก่า · งดแสดง%':'รอข้อมูลอ้างอิง'):
+ const gapText=gap===null?(st.status==='historical'?'ข้อมูลเก่าเกิน 6 ชม.':'รอข้อมูลอ้างอิง'):
   gap<-.000001?'สูงกว่าตลิ่ง '+Math.abs(gap).toFixed(2)+' ม.':
   Math.abs(gap)<.000001?'ถึงตลิ่งอ้างอิง':'ต่ำกว่าตลิ่ง '+gap.toFixed(2)+' ม.';
  const observedShort=fresh?'วัด '+new Intl.DateTimeFormat('en-GB',{timeZone:'Asia/Bangkok',hour:'2-digit',minute:'2-digit',hour12:false}).format(new Date(observed)):
-  st.status==='historical'?'ข้อมูลเก่า':'รอข้อมูล';
+  st.status==='historical'?'ข้อมูลเก่าเกิน 6 ชม.':'รอข้อมูล';
  const originalMsl=Number.isFinite(st.value)?st.value.toFixed(2)+' m MSL':'ไม่มีค่า m MSL';
  const details=originalMsl+' · '+st.observed+' · สัดส่วนช่วงพื้นอ้างอิงถึงตลิ่งต่ำสุด ไม่ใช่ความเสี่ยงน้ำท่วม';
  const accessible=usable?shown+' เปอร์เซ็นต์ช่วงพื้นอ้างอิงถึงตลิ่งต่ำสุด · ระดับน้ำอ้างอิงเดิม '+originalMsl+' · '+st.observed+' · '+gapText:
-  'ไม่พร้อมแสดงเปอร์เซ็นต์ · '+(st.status==='historical'?'ข้อมูลเก่า · ':'')+
+  'ไม่พร้อมแสดงเปอร์เซ็นต์ · '+(st.status==='historical'?'ข้อมูลเก่าเกิน 6 ชม. · ':'')+
   'ระดับน้ำที่เคยวัด '+originalMsl+' · '+st.observed;
  const safeDetails=escapeMarkup(details),safeAccessible=escapeMarkup(accessible);
  const wide=usable&&pct>=100?' wide-pct':'';
  target.innerHTML=`<div class="station-card"><div class="art-zone"><canvas class="water-canvas" width="420" height="210" aria-label="ภาพการไหลประกอบ ไม่ใช่สถานะประตูจริง"></canvas></div>
  <div class="info"><div class="station-name"><span>${escapeMarkup(st.name)}</span><small>HII REFERENCE</small><span class="observed-stamp" title="${escapeMarkup(st.observed)}">${escapeMarkup(observedShort)}</span></div>
- <div class="reading-row"><output class="big-level${wide}" title="${safeDetails}" aria-label="${safeAccessible}">${shown}<span class="unit" title="${safeDetails}">%</span></output><span class="preview-trend ${direction.cls}" title="${escapeMarkup(direction.description)}" aria-label="${escapeMarkup(direction.description)}">${direction.arrow}</span></div>
+ <div class="reading-row"><output class="big-level${wide}" title="${safeDetails}" aria-label="${safeAccessible}">${shown}${usable?'<span class="unit" title="'+safeDetails+'">%</span>':''}</output><span class="preview-trend ${direction.cls}" title="${escapeMarkup(direction.description)}" aria-label="${escapeMarkup(direction.description)}">${direction.arrow}</span></div>
  <div class="status-trend"><span class="badge ${badge.style}">${badge.text}</span><div class="trend-box"><div class="trend-title" title="${coverage.description}">${coverage.label}</div>${sparkSvg(safePath,st.id,coverage.description)}</div></div>
  <div class="reading-detail"><div class="distance-to-bank" title="${safeDetails}">${escapeMarkup(gapText)}</div></div>
  </div></div>`;
@@ -132,7 +133,7 @@ function apply(st,reading,now){
  const prior=Date.parse(st.observedAt);
  if((!valid || (Number.isFinite(prior)&&obs<prior))&&
      Number.isFinite(prior)&&prior<=now+120000){
-  st.status=now-prior<=3*3600000?'ok':'historical';
+  st.status=now-prior<=WATER_DISPLAY_MS?'ok':'historical';
   st.historyPath=historyPath(st.historyReading,now);
   renderStation(st);return;
  }
@@ -141,7 +142,7 @@ function apply(st,reading,now){
  st.bankM=valid&&Number.isFinite(reading.bankM)?reading.bankM:null;
  st.groundMsl=valid&&Number.isFinite(reading.groundMsl)?reading.groundMsl:null;
  st.datum=valid?'MSL':null;
- st.status=valid?(now-obs<=3*3600000?'ok':'historical'):'missing';
+ st.status=valid?(now-obs<=WATER_DISPLAY_MS?'ok':'historical'):'missing';
  st.observed=valid?'วัด '+new Intl.DateTimeFormat('th-TH',{timeZone:'Asia/Bangkok',day:'2-digit',month:'short',year:'2-digit',hour:'2-digit',minute:'2-digit',hour12:false}).format(new Date(obs)):'ไม่มีค่าที่ตรวจสอบได้';
  st.historyReading=reading;
  st.historyPath=historyPath(reading,now);
@@ -153,14 +154,14 @@ async function refresh(){
  try{
   const payload=await window.UthApiClient.getWater(),now=Date.now();
   for(const st of figures)apply(st,payload?.stations?.[st.code],now);
-  $('water-data-status').textContent=figures.map(st=>st.name+': '+st.observed+(st.status==='historical'?' ข้อมูลย้อนหลัง':'')).join('; ');
+  $('water-data-status').textContent=figures.map(st=>st.name+': '+st.observed+(st.status==='historical'?' ข้อมูลเก่าเกิน 6 ชม.':'')).join('; ');
  }catch(_e){
   // Preserve last valid per-station values in RAM during a temporary transport failure,
   // but never extend the actual observedAt; reclassify using the real clock.
   const now=Date.now();
   for(const st of figures){
    if(st.observedAt&&Number.isFinite(Date.parse(st.observedAt))){
-    if(now-Date.parse(st.observedAt)>3*3600000)st.status='historical';
+    if(now-Date.parse(st.observedAt)>WATER_DISPLAY_MS)st.status='historical';
    }
    st.historyPath=historyPath(st.historyReading,now);
    renderStation(st);
@@ -214,7 +215,7 @@ function drawFoam(frame){
  ctx.restore();canvas.dataset.frame=String(frame);
 }
 function animate(ts){const frame=Math.floor(ts/150)%4;if(frame!==state.frame){state.frame=frame;document.querySelectorAll('.water-canvas').forEach(el=>drawCanvas(el,frame));drawFoam(frame)}raf=requestAnimationFrame(animate)}
-clock();setInterval(()=>{clock();const now=Date.now();for(const st of figures){const observed=Date.parse(st.observedAt);if(st.status==='ok'&&Number.isFinite(observed)&&now-observed>3*3600000){st.status='historical';renderStation(st);const canvas=document.querySelector(st.el+' .water-canvas');if(canvas)drawCanvas(canvas,reduced?0:state.frame)}}},15000);
+clock();setInterval(()=>{clock();const now=Date.now();for(const st of figures){const observed=Date.parse(st.observedAt);if(st.status==='ok'&&Number.isFinite(observed)&&now-observed>WATER_DISPLAY_MS){st.status='historical';renderStation(st);const canvas=document.querySelector(st.el+' .water-canvas');if(canvas)drawCanvas(canvas,reduced?0:state.frame)}}},15000);
 figures.forEach(renderStation);
 atlas.forEach(img=>img.addEventListener('load',()=>{document.querySelectorAll('.water-canvas').forEach(c=>{c.dataset.locked='0';drawCanvas(c,reduced?0:state.frame)});drawFoam(reduced?0:state.frame)}));
 if(!reduced)raf=requestAnimationFrame(animate);

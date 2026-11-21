@@ -78,22 +78,22 @@ function mascot(m){
  box.dataset.pmBand=m.base;
 }
 
-function resetPm(message){
+function resetPm(message,tooOld=false){
  hero.textContent='—';
  mascot({base:'unavailable',masked:false});
  core.dataset.masked='0';
  const mask=core.querySelector('img[data-mask]');if(mask)mask.style.display='none';
  const mouth=core.querySelector('img[data-mouth]');if(mouth)mouth.style.display='none';
- $('.pm-status .pill').lastChild.textContent=' รอข้อมูล';
+ $('.pm-status .pill').lastChild.textContent=tooOld?' ข้อมูลเก่าเกิน 6 ชม.':' รอข้อมูล';
  $('.pm-status .pill i').textContent='?';
- $('.pm-status .sub').textContent='ไม่พบค่าล่าสุด';
+ $('.pm-status .sub').textContent=tooOld?'รอค่าตรวจวัดใหม่':'ไม่พบค่าล่าสุด';
  $('.scalePM .levels').style.setProperty('--marker-show','0');
  $('.climate').querySelectorAll('strong,small').forEach(n=>n.textContent='—');
  $('#pm-provenance').textContent=message||'PM2.5: UNAVAILABLE · ไม่ใช้ค่า 0 แทน';
 }
 function paintPm(d){
  const p=d.pm25||{};
- if(p.status!=='latest'||!NUM(p.value)){resetPm('PM2.5: UNAVAILABLE · ไม่มีค่าที่สดและตรวจสอบได้');return}
+ if(p.status!=='latest'||!NUM(p.value)){const old=p.status==='stale'&&p.reason==='older_than_6h';resetPm(old?'PM2.5: ข้อมูลเก่าเกิน 6 ชม.':'PM2.5: UNAVAILABLE · ไม่มีค่าที่สดและตรวจสอบได้',old);return}
  hero.textContent=p.value.toFixed(1); /* big number stays the latest hourly reading */
  const m=pmMood(p); /* 2026: band/mascot from the 24h average, null = unavailable */
  if(m){
@@ -129,7 +129,40 @@ function paintWeatherSmall(d){
  wind.textContent='ลม '+(NUM(w.windKmh)?Math.round(w.windKmh)+' กม./ชม.':'—');
 }
 let lastPm={status:'unavailable'},lastHistory=[],historyState='loading';
-function publishPm(){const f=$('#pm-live-frame');if(f&&f.contentWindow)f.contentWindow.postMessage({type:'uth-pm25-live',pm25:lastPm,history:lastHistory,historyStatus:historyState},location.origin)}
+// Snapshot v1's currently deployed reader may suppress a 3–6h PM channel.
+// Recover only from the EXISTING read-only PM25_Hourly/History_Batch Sheet history route.
+// Do not invent avg24h/band: an hourly history value is NOT a verified 24h average.
+function pmForDisplay(pm,history,status,now=Date.now()){
+ const sixHours=6*3600000,validStamp=s=>typeof s==='string'&&Number.isFinite(Date.parse(s))&&Date.parse(s)<=now+120000;
+ const hasSnapshot=!!(pm&&pm.status==='latest'&&typeof pm.value==='number'&&Number.isFinite(pm.value)&&pm.value>=0&&pm.value<=1000&&
+    validStamp(pm.observedAt)&&now-Date.parse(pm.observedAt)<=sixHours);
+ const snapTime=hasSnapshot?Date.parse(pm.observedAt):NaN;
+ if(!['ok','retained'].includes(status)||!Array.isArray(history))
+  return hasSnapshot?pm:pm&&pm.status==='stale'&&pm.reason==='older_than_6h'?pm:{status:'unavailable'};
+ const byTime=new Map();
+ for(const p of history){
+  if(!p||typeof p.value!=='number'||!Number.isFinite(p.value)||p.value<0||p.value>1000||!validStamp(p.observedAt))continue;
+  const t=Date.parse(p.observedAt);
+  if(byTime.has(t)&&Math.abs(byTime.get(t)-p.value)>1e-6)
+   return hasSnapshot?pm:{status:'unavailable'}; // never choose a contradictory history
+  byTime.set(t,p.value);
+ }
+ if(!byTime.size)return hasSnapshot?pm:{status:'unavailable'};
+ const latest=Math.max(...byTime.keys()),value=byTime.get(latest),observedAt=new Date(latest).toISOString();
+ if(hasSnapshot&&snapTime>=latest){
+  if(snapTime===latest&&Math.abs(pm.value-value)>1e-6)return {status:'unavailable'};
+  return pm;
+ }
+ if(now-latest>sixHours)return {status:'stale',observedAt,reason:'older_than_6h'};
+ return {status:'latest',value,observedAt,unit:'µg/m³',avg24h:null,band:null,
+  source:'GISTDA via verified Google Sheet PM history',historyFallback:true};
+}
+function publishPm(){
+ const shown=pmForDisplay(lastPm,lastHistory,historyState);
+ paintPm({pm25:shown});
+ const f=$('#pm-live-frame');
+ if(f&&f.contentWindow)f.contentWindow.postMessage({type:'uth-pm25-live',pm25:shown,history:lastHistory,historyStatus:historyState},location.origin);
+}
 let historySeq=0,historyActive=false,historyFailures=0,historyRetryTimer=null;
 function readPmHistory(){return new Promise((resolve,reject)=>{
  const cb='__uthPmHistory'+Date.now().toString(36)+(historySeq++).toString(36),script=document.createElement('script');let done=false;
@@ -167,8 +200,8 @@ const pmFrame=$('#pm-live-frame');if(pmFrame)pmFrame.addEventListener('load',pub
 async function refresh(){
  try{
  const data=await window.UthApiClient.getLive();
- paintPm(data);paintWeatherSmall(data);lastPm=data.pm25||{status:'unavailable'};publishPm();
- }catch(e){resetPm('PM2.5: UNAVAILABLE · API ไม่ตอบสนอง');lastPm={status:'unavailable'};publishPm();}
+ paintWeatherSmall(data);lastPm=data.pm25||{status:'unavailable'};publishPm();
+ }catch(e){lastPm={status:'unavailable'};publishPm();}
  const waterButton=$('#real');if(waterButton)waterButton.click();
 }
 const refreshBtn=$('#refresh-all');if(refreshBtn)refreshBtn.addEventListener('click',refresh);

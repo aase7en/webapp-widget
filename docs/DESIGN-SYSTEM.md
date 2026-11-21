@@ -1,3 +1,7 @@
+## Public LED measured-data labels, latest accepted rule (2026-11-21)
+
+PM2.5 and Water: through 6 hours inclusive from verified observedAt display last measured value; after 6 hours show large — with ข้อมูลเก่าเกิน 6 ชม.; missing = รอข้อมูล. The long Water status badge uses scoped compact text to remain inside native 432x40, without altering 2.5D water art or history chart. PM hourly fallback from Sheet history is neutral unless a valid 24h average is separately available. Weather model retains different 3h contract. No value is invented or relabeled LIVE.
+
 ## Current Water visual target and release boundary (Production after PR #109)
 
 As of the Uthai v1.0.0 Water release: original illuminated gate/water animation, glowing blue frame, station clock, descriptive badges, historical sparkline and reduced-motion behavior remain visually intact. The primary measured reading is the **derived percentage of the station ground-to-lowest-bank MSL interval** plus physical metres to bank; trend arrow requires two verified timestamp-aligned observations; historical/unavailable/contradictory data is not represented as current. A semantic output element preserves the original m MSL and observed time in the computed Chrome Accessibility Tree. This is not a hospital flood-risk score or an official warning.
