@@ -9,6 +9,14 @@ PM2.5 · สภาพอากาศ · ระดับน้ำสถานี�
 
 </div>
 
+## ตรวจสถานะล่าสุดและ Water Level Demo (21 พฤศจิกายน 2569)
+
+**Actual State ที่ตรวจจาก GitHub/Production:** main ของ aase7en/webapp-widget ณ จุด Audit อยู่ที่ 6b4111ec5413983ece25788a074dc3e7e9c2b95b; GitHub Pages built จาก SHA เดียวกัน และตรวจไฟล์ Production HTTP 200/byte-exact สำหรับ root index, v2 index และหน้า Water HTML/JS/CSS แล้ว หน้า Water ที่ใช้งานจริงยังมีตัวเลขใหญ่เป็น m MSL
+
+**แสดงเปอร์เซ็นต์สำหรับประชาชน — ยังเป็น Demo เท่านั้น:** [เปิดตัวอย่าง Water Bank Clarity](https://aase7en.github.io/uth-weather-led-ab-preview-20261104/water-bank-clarity-20261121/) เป็นเว็บไซต์ทดลองแยก โดยใช้ข้อมูลจำลอง ไม่เรียก API/Sheet จริง และยังไม่เปลี่ยน Production ตัวเลขใหญ่คือสัดส่วนช่วงพื้นอ้างอิง–ตลิ่งต่ำสุด พร้อมระยะห่างจากตลิ่งเป็นเมตร; ไม่ใช่เปอร์เซ็นต์ความเสี่ยงน้ำท่วม/คำเตือนภัยทางการ
+
+เอกสารปัจจุบัน: [Cache Versions](docs/readme/VERSIONS.md) · [Design System](docs/DESIGN-SYSTEM.md) · [Work Order](docs/work-orders/WO-WATER-PUBLIC-PERCENT-20261121.md) · [UX Defect Memory](docs/defects/LED-UX-DEFECT-MEMORY.md) · [SESSION-HANDOFF](SESSION-HANDOFF.md) หมายเหตุ: เวอร์ชันของ assets เป็น Cache Key ไม่ใช่ Semantic Version และไฟล์ Memory แบบแยกไม่ใช่แหล่งข้อเท็จจริงของระบบ
+
 ## โปรเจกต์นี้ทำอะไร
 
 แสดงข้อมูลสิ่งแวดล้อมที่อ่านได้รวดเร็วบริเวณโรงพยาบาลอุทัย จังหวัดพระนครศรีอยุธยา บนแถบ LED **432 × 40 พิกเซล** ซึ่งใช้พื้นที่ส่วนหนึ่งของจอจริงขนาด 432 × 288 พิกเซล หน้าหลักสลับระหว่างฝุ่น สภาพอากาศ และระดับน้ำโดยอัตโนมัติ พร้อมภาพเคลื่อนไหวและภาพนิ่งสำรองสำหรับอุปกรณ์หรือการตั้งค่าที่ลดการเคลื่อนไหว

@@ -1,3 +1,25 @@
+# CURRENT FRONTIER — Water Level public-readability DEMO, production unchanged (2026-11-21 Asia/Bangkok)
+
+> **This is the latest bounded handoff and supersedes the former Nov 7 active-task section below.** Older context is retained as history; recheck actual Git/GitHub/runtime rather than trusting previous PR statuses. The Nov 7 typography approval remains historical; it is NOT automatic approval for Water % production deployment.
+
+## Verified actual source / runtime
+- Repository: aase7en/webapp-widget (NOT env-wastewater-webapp). GitHub main at audit: 6b4111ec5413983ece25788a074dc3e7e9c2b95b, Pages build built on that SHA (published build timestamp 2026-11-13T18:38:11Z).
+- Public root index, v2 index, Water HTML/JS/CSS plus prior VERSIONS.md checked 2026-11-21: 6/6 HTTP 200 and byte-for-byte match to audited main. Production still displays large m MSL readings on Water. Query keys and validation dates documented in docs/readme/VERSIONS.md.
+- Actual Water input is existing UthApiClient from canonical Sheet/Apps Script, exposing levelMsl, groundMsl, bankM, observedAt, status for stations HDA004 and S5; m MSL is the original dominant display. Formula bankIntervalPercent exists in v2/water-luxury-live.js, but is secondary in production.
+- Dedicated PREVIEW repository aase7en/uth-weather-led-ab-preview-20261104 published demo via PR #7, merge SHA 36e5798cd30f3e8953b3ebc4d47848aad5785da2, Pages built and 3/3 public HTML/CSS/JS exact. URL: https://aase7en.github.io/uth-weather-led-ab-preview-20261104/water-bank-clarity-20261121/
+- Demo is entirely static SIMULATED: two-station or one-station focus, six scenarios, zoom 1x/2x/3x. Chrome 432x40, reduced motion, mobile and no external fetch PASS. No actual Water UI, Sheet, backend or production behavior was changed by preview.
+
+## Owner decision / boundaries / memory
+- Owner accepted showing public-friendly ground-to-lowest-bank percent alongside remaining metres to bank, and explicitly requested a visual Demo **before** deployment. No final acceptance of exact demo geometry or authorization to merge an implementation into production has been given.
+- Percent is NOT flood probability, river/storage capacity, official flood alert or evacuation order. Freshness is based on actual observedAt; stale, unknown and invalid datum cannot be rendered as current. Keep station name, source and staff-accessible m MSL.
+- Canonical current continuity: this root SESSION-HANDOFF.md only. Historical engineering lessons: docs/defects/LED-UX-DEFECT-MEMORY.md (non-authoritative). No separate AGENT.md or independent agent memory registry was found on audited main.
+- Ownership: isolated docs-only worktree /Volumes/MAC_WORK/DevWorkspace/Github/webapp-widget-water-bank-docs-20261121 branch docs/water-bank-percent-demo-audit-20261121. The inherited Mac root is dirty with other work; never clean/reset/stash it. Open historical PR #99 and other old PRs remain separate.
+
+## ONE next safe action
+Ask owner to inspect the hosted Demo and choose any alignment/readability refinements. After explicit design acceptance, prepare an isolated production feature Work Order, validate real API/Sheet contract, no false official alerts, history quality and stale states, tests/Chrome/physical LED, exact SHA independent review, CI, owner release approval and post-Pages verification. Do not auto-promote the Preview into production.
+
+---
+
 # CURRENT OWNER DECISION — Aligned ALL THREE pages APPROVED (2026-11-07, after PR #96 checkpoint)
 
 > **Latest explicit Owner Decision supersedes earlier text below.** The owner has
