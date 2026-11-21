@@ -60,13 +60,13 @@ test('legacy combined provider path retains the row observation time',()=>{
 
 test('visible hourly setup and run entry points enforce owner identity',()=>{const h=makeContext({session:{active:'',effective:''}});assert.throws(()=>h.ctx.installPm25Hourly(),/not the trusted owner/);assert.throws(()=>h.ctx.runPm25HourlyNow(),/not authorized/);assert.equal(h.calls.triggerCreates.length,0);assert.equal(h.calls.fetches.length,0)});
 
-test('retention removes only PM hourly rows older than 90 days and preserves unknown dates and mixed legacy history',()=>{
+test('retention removes only PM hourly rows older than 365 days and preserves unknown dates and mixed legacy history',()=>{
  const tabs=defaultTabs(),header=['record_type','location_id','pm25_value','pm25_observed_at','pm25_status','pm25_provider','pm25_area_id','pm25_tambon_name','created_at'];
  const row=(timestamp)=>['pm25_hourly_v1','uthai',20,timestamp,'ok','gistda','1414','อุทัย',new Date(NOW_MS).toISOString()];
- tabs.PM25_Hourly=[header,row(new Date(NOW_MS-91*86400000).toISOString()),row(new Date(NOW_MS-90*86400000).toISOString()),row('invalid date')];
+ tabs.PM25_Hourly=[header,row(new Date(NOW_MS-366*86400000).toISOString()),row(new Date(NOW_MS-365*86400000).toISOString()),row('invalid date')];
  const before=JSON.stringify(tabs.History_Batch),h=makeContext({tabs,triggers:[{handler:'BackendApiPm25Hourly_',id:'hourly'}],fetchQueue:[{code:429}]});
  h.ctx.BackendApiPm25Hourly_({triggerUid:'hourly'});
- assert.equal(JSON.stringify(tabs.History_Batch),before);assert.equal(tabs.PM25_Hourly.length,3);assert.equal(tabs.PM25_Hourly[1][3],new Date(NOW_MS-90*86400000).toISOString());assert.equal(tabs.PM25_Hourly[2][3],'invalid date');assert.deepEqual(h.calls.deleteRows,['PM25_Hourly']);
+ assert.equal(JSON.stringify(tabs.History_Batch),before);assert.equal(tabs.PM25_Hourly.length,3);assert.equal(tabs.PM25_Hourly[1][3],new Date(NOW_MS-365*86400000).toISOString());assert.equal(tabs.PM25_Hourly[2][3],'invalid date');assert.deepEqual(h.calls.deleteRows,['PM25_Hourly']);
 });
 
 test('incompatible hourly schema never prunes rows',()=>{

@@ -1,3 +1,9 @@
+## Canonical Sheet one-year retention source proposal — NOT deployed (2026-11-21)
+
+- Verified ten live tabs and cleanup risks: docs/work-orders/WO-WIDGET-SHEET-RETENTION-20261121.md. Legacy ชีต1/ชีต2 are candidates, NOT proven unused: legacy Code.gs references and one chart remain.
+- Candidate source: PM/Water known-owned rows up to 365 days, gated History_Batch pruning, existing Snapshot 90d/forecast 2d. Never delete Settings, Locations, API_Sources, Charts, unknown/malformed/backfill rows or create another operational Sheet.
+- Repo Apps Script source is NOT a verified bound Apps Script deployment. Actual trigger inventory, recoverable backup, owner approval, exact deployment and dry-run are required before live deletion or script activation. Do not claim production cleaned.
+
 ## Current owner decision — measured data freshness 6 hours (2026-11-21)
 
 - For both PM2.5 and Water, use the latest VERIFIED Google Sheet observation for up to 6h measured from original observedAt; at >6h show — and ข้อมูลเก่าเกิน 6 ชม.; missing remains unavailable and never 0. This supersedes older 3h display rules, but does not alter Weather model freshness (3h).
