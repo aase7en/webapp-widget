@@ -8,6 +8,15 @@ Before the prompt/instruction, state the exact `PLACEMENT`, `MODE`, `PURPOSE`, w
 
 This pointer does not create task authority or override repository-specific safety, Git, review, or continuity rules.
 
+## Repository current-state and water public-readability routing (2026-11-21)
+
+- Source of Truth order: actual Git/repo/runtime → GitHub main/PR/CI/Pages → source/test → tracked handoff → chat/memory. Never treat archival README/Handoff as the active task by itself.
+- For project context, read README.md, docs/readme/VERSIONS.md, docs/DESIGN-SYSTEM.md and root SESSION-HANDOFF.md; use docs/work-orders/WO-WATER-PUBLIC-PERCENT-20261121.md for the public Water Level proposal. The historical UI lessons log docs/defects/LED-UX-DEFECT-MEMORY.md is non-authoritative memory, not a parallel SSoT.
+- There is one canonical tracked handoff file: SESSION-HANDOFF.md. The file AGENT.md (singular) and a separate persistent agent memory registry are not present on audited main; do not create competing sources just to satisfy a filename.
+- Current public Water % design is a DEMO only in the separate preview repo. Explicit owner review is required before modifying/merging/deploying Water on widget production. Do not mistake a preview publication or a docs-only merge for an approved Water UI release.
+- Water percent formula = (levelMsl-groundMsl)/(bankM-groundMsl)×100 using verified same-datum MSL and positive interval; read along with remaining vertical metres to lowest bank, station identity and observed time. This is NOT flood probability, a river-capacity measure, warning/evacuation instruction, or evidence that the hospital is safe. No invented threshold, stale-as-live or missing-as-zero.
+- Root/main checkout may contain unknown dirty work; use separately owned clean worktrees and protect ongoing PRs. Before release require exact-SHA review, tests, CI, Pages and HTTP checks. Keep SIMULATED vs LATEST/HISTORICAL/UNAVAILABLE separate.
+
 ## UTH[AI] widget backend — standing source-of-truth contract (2026-10-22)
 
 - This repository is **webapp-widget**, NOT `env-wastewater-webapp`.

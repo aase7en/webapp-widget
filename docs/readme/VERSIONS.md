@@ -1,16 +1,27 @@
-# ตรวจเวอร์ชันหน้าเว็บ
+# UTH Widget — Production cache versions and GitHub state
 
-ตรวจเมื่อ 31 ตุลาคม 2569 ก่อนแก้เอกสาร: เปรียบเทียบ SHA-256 ของไฟล์ HTML, JavaScript และ CSS ที่ติดตามใน Git และเผยแพร่ผ่าน Pages รวม 31 ไฟล์ กับ `origin/main` ที่ `cefb08ac2b2876047ed450ca83915bbfa171f33c` พบว่าตรงกันทั้ง 31 ไฟล์ การตรวจนี้ไม่รวม binary media, Apps Script deployment และ cache ที่ค้างอยู่บนอุปกรณ์ผู้ชม
+**Checked:** 21 November 2026 (Asia/Bangkok). **Source of Truth:** GitHub aase7en/webapp-widget main SHA 6b4111ec5413983ece25788a074dc3e7e9c2b95b at audit time. GitHub Pages build status built at this exact SHA (latest build updated 2026-11-13T18:38:11Z).
 
-| ส่วน | ไฟล์ | cache version ใน URL |
-| --- | --- | --- |
-| ตัวสลับหน้าที่ `index.html` โหลด | `v2/index.html` | `20261101-final-ui-7` |
-| PM2.5 | `v2/pm25-live.html`, `v2/pm25-live.js` และ `v2/pm25-tier.js` | `20261031-pm25-final-2` (ป้ายและภาพอิงค่าเฉลี่ย 24 ชม. สีตัวเลขและลูกศรอิงค่ารายชม., 2026-10-31) |
-| Weather | `v2/weather-luxury.html` | `20261101-final-ui-7` (ไอคอนฝน/ฝนฟ้าคะนองทั้งกลางวัน-กลางคืนใหญ่ขึ้น เลื่อนลงราว 2px จริง จัดกึ่งกลาง และแดดสลับเมฆใหญ่ขึ้น 20%, 2026-11-01) |
-| Weather script | `v2/weather-luxury.js` | `20261101-final-ui-7` (ตัววาดไม่เปลี่ยน เปลี่ยนเฉพาะ cache key ตามหน้า HTML; กราฟอุณหภูมิวาดได้แม้เหลือ 6 วันหลังเที่ยงคืน, 2026-11-01) |
-| Water | `v2/water-luxury-live.html`, CSS และ script | `20261030-water-1` |
-| ตัวอ่านข้อมูล Sheet | `v2/api-client.js` | `20261031-pm25-final-2` (ส่ง avg24h + band ต่อ, 2026-10-31) |
-| ตัวอ่าน legacy v1 ในหน้า v2 | `led-rotation.js` | `20261031-pm25-compat-1` (สีใช้ avg24h เท่านั้น; อ่าน bandBasis/avg24hBand) |
-| ตัวส่งข้อมูล PM เข้า iframe | `v2/live-widgets.js` | `20261031-pm25-compat-1` (ไม่มีค่าเฉลี่ยให้แสดงระดับไม่พร้อมใช้งาน) |
+HTTP/byte-level production verification performed 21 November for index.html, v2/index.html, v2/water-luxury-live.html, v2/water-luxury-live.js, v2/water-luxury-live.css and the previous docs/readme/VERSIONS.md: all HTTP 200 and EXACT compared to audit main, before this document-only PR. This validates served files, not browser cache or physical LED.
 
-ตัวเลขใน query string เป็น cache key ไม่ใช่หมายเลขรุ่นผลิตภัณฑ์และไม่จำเป็นต้องเท่ากันทุกไฟล์ ไฟล์ที่ไม่เปลี่ยนไม่จำเป็นต้องมีวันเดียวกับไฟล์ที่แก้ล่าสุด การตรวจไฟล์ที่ server ตรงกันไม่ได้ยืนยันว่าเบราว์เซอร์ผู้ชมทุกเครื่องไม่มี cache เดิม ควรตรวจซ้ำหลัง deployment แต่ละครั้ง
+## Current production asset cache keys (from actual HTML)
+
+| Rendering entry or resource | Current query version on main |
+| --- | --- |
+| Root index.html → v2/index.html?display=led | 20261114-pm-softfade-1 |
+| v2/index.html → PM2.5 iframe | 20261114-pm-softfade-1 |
+| v2/pm25-live.html → pm25-live.js | 20261114-pm-softfade-1 |
+| v2/index.html → Weather iframe | 20261113-led-contrast-1 |
+| v2/weather-luxury.html → weather-luxury.js | 20261113-led-contrast-1 |
+| v2/weather-luxury.html → weather-hybrid-live.js | 20261109-compact-1 |
+| v2/index.html → Water iframe | 20261108-label-1 |
+| v2/water-luxury-live.html → water-luxury-live.css/js | 20261108-label-1 |
+| v2/water-luxury-live.html → api-client.js | 20261031-pm25-24h-1 |
+
+These are browser cache-busting **asset identifiers**, not a coherent Semantic Version (SemVer) of the application. Some unaffected scripts intentionally use older query keys. No package/product version number is defined in the inspected root tree. Never change cache identifiers merely to suggest a new release.
+
+## Boundary: future Water public clarity
+
+A separate static SIMULATED preview is published at https://aase7en.github.io/uth-weather-led-ab-preview-20261104/water-bank-clarity-20261121/ (preview repo merge 36e5798cd30f3e8953b3ebc4d47848aad5785da2). That is NOT a new asset version of the production Water page. Current production still presents m MSL as the dominant reading; owner review is required before a separate production feature PR.
+
+Recheck GitHub ref, app source, GitHub Pages build SHA, HTTP served bytes and (separately) kiosk refresh before concluding that a later change is live. Canonical continuity is root SESSION-HANDOFF.md, not this snapshot.
