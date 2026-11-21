@@ -55,11 +55,20 @@ function observedDirection(st,now=Date.now()){
  const vals=st.historyReading?.trendPoints,times=st.historyReading?.trendObservedAt;
  if(!Array.isArray(vals)||!Array.isArray(times)||vals.length!==times.length||
     vals.length<2||vals.length>30)return unknown;
- const seen=new Set();
- const points=vals.map((level,i)=>({level,ms:Date.parse(times[i])}))
-  .filter(p=>Number.isFinite(p.level)&&Number.isFinite(p.ms)&&
-   p.ms<=now+120000&&p.ms<=latest+120000&&p.ms>=latest-7*86400000&&!seen.has(p.ms)&&seen.add(p.ms))
-  .sort((a,b)=>a.ms-b.ms);
+ // Identical repeated timestamps may be collapsed. Conflicting values at the
+ // SAME observation time cannot support a trustworthy public direction arrow.
+ const byTime=new Map(),points=[];
+ for(let i=0;i<vals.length;i++){
+  const p={level:vals[i],ms:Date.parse(times[i])};
+  if(!Number.isFinite(p.level)||!Number.isFinite(p.ms)||p.ms>now+120000||
+      p.ms>latest+120000||p.ms<latest-7*86400000)continue;
+  if(byTime.has(p.ms)){
+   if(Math.abs(byTime.get(p.ms)-p.level)>1e-6)return unknown;
+   continue;
+  }
+  byTime.set(p.ms,p.level);points.push(p);
+ }
+ points.sort((a,b)=>a.ms-b.ms);
  const last=points.at(-1);
  if(!last||Math.abs(last.ms-latest)>15*60000||Math.abs(last.level-st.value)>.05)return unknown;
  // Avoid describing a multi-day gap as a short-term rising/falling water level.
@@ -69,6 +78,9 @@ function observedDirection(st,now=Date.now()){
  if(delta>.015)return {arrow:'↑',cls:'up',description:'ระดับน้ำสูงขึ้น '+Math.abs(delta).toFixed(2)+' เมตร ระหว่างค่าที่ตรวจวัด'};
  if(delta<-.015)return {arrow:'↓',cls:'down',description:'ระดับน้ำลดลง '+Math.abs(delta).toFixed(2)+' เมตร ระหว่างค่าที่ตรวจวัด'};
  return {arrow:'→',cls:'flat',description:'ระดับน้ำค่อนข้างคงที่ ระหว่างค่าที่ตรวจวัด'};
+}
+function escapeMarkup(v){
+ return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 }
 function renderStation(st){
  const target=document.querySelector(st.el);if(!target)return;
@@ -88,12 +100,16 @@ function renderStation(st){
   st.status==='historical'?'ข้อมูลเก่า':'รอข้อมูล';
  const originalMsl=Number.isFinite(st.value)?st.value.toFixed(2)+' m MSL':'ไม่มีค่า m MSL';
  const details=originalMsl+' · '+st.observed+' · สัดส่วนช่วงพื้นอ้างอิงถึงตลิ่งต่ำสุด ไม่ใช่ความเสี่ยงน้ำท่วม';
+ const accessible=usable?shown+' เปอร์เซ็นต์ช่วงพื้นอ้างอิงถึงตลิ่งต่ำสุด · ระดับน้ำอ้างอิงเดิม '+originalMsl+' · '+st.observed+' · '+gapText:
+  'ไม่พร้อมแสดงเปอร์เซ็นต์ · '+(st.status==='historical'?'ข้อมูลเก่า · ':'')+
+  'ระดับน้ำที่เคยวัด '+originalMsl+' · '+st.observed;
+ const safeDetails=escapeMarkup(details),safeAccessible=escapeMarkup(accessible);
  const wide=usable&&pct>=100?' wide-pct':'';
  target.innerHTML=`<div class="station-card"><div class="art-zone"><canvas class="water-canvas" width="420" height="210" aria-label="ภาพการไหลประกอบ ไม่ใช่สถานะประตูจริง"></canvas></div>
- <div class="info"><div class="station-name"><span>${st.name}</span><small>HII REFERENCE</small><span class="observed-stamp" title="${st.observed}">${observedShort}</span></div>
- <div class="reading-row"><div class="big-level${wide}" title="${details}" aria-label="${usable?shown+' เปอร์เซ็นต์ช่วงพื้นอ้างอิงถึงตลิ่งต่ำสุด': 'ไม่พร้อมแสดงเปอร์เซ็นต์'}">${shown}<span class="unit" title="${details}">%</span></div><span class="preview-trend ${direction.cls}" title="${direction.description}" aria-label="${direction.description}">${direction.arrow}</span></div>
+ <div class="info"><div class="station-name"><span>${escapeMarkup(st.name)}</span><small>HII REFERENCE</small><span class="observed-stamp" title="${escapeMarkup(st.observed)}">${escapeMarkup(observedShort)}</span></div>
+ <div class="reading-row"><div class="big-level${wide}" title="${safeDetails}" aria-label="${safeAccessible}">${shown}<span class="unit" title="${safeDetails}">%</span></div><span class="preview-trend ${direction.cls}" title="${escapeMarkup(direction.description)}" aria-label="${escapeMarkup(direction.description)}">${direction.arrow}</span></div>
  <div class="status-trend"><span class="badge ${badge.style}">${badge.text}</span><div class="trend-box"><div class="trend-title" title="${coverage.description}">${coverage.label}</div>${sparkSvg(safePath,st.id,coverage.description)}</div></div>
- <div class="reading-detail"><div class="distance-to-bank" title="${details}">${gapText}</div></div>
+ <div class="reading-detail"><div class="distance-to-bank" title="${safeDetails}">${escapeMarkup(gapText)}</div></div>
  </div></div>`;
 }
 function historyPath(st,now=Date.now()){

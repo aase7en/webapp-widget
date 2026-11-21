@@ -105,7 +105,7 @@ test('Public Water percent is ground-bank fraction, with original m MSL retained
  assert.match(js,/const pct=bankIntervalPercent\(st\.value,st\.groundMsl,st\.bankM,st\.datum\)/);
  assert.match(js,/const usable=fresh&&pct!==null/);
  assert.match(js,/class="big-level\$\{wide\}"/);
- assert.match(js,/<span class="unit" title="\$\{details\}">%<\/span>/);
+ assert.match(js,/<span class="unit" title="\$\{safeDetails\}">%<\/span>/);
  assert.match(js,/originalMsl=.*m MSL/);
  assert.match(js,/observed-stamp/);
  assert.match(js,/distance-to-bank/);

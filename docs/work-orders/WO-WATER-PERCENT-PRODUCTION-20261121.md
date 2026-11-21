@@ -17,12 +17,13 @@ Owner explicitly approved the **original production Water visual plus percent/ar
 - Same-datum fraction: 100*(levelMsl-groundMsl)/(bankM-groundMsl), existing bankIntervalPercent keeps the below-ground display guard; over 100% is never clamped. Units: % of ground-to-bank interval, not capacity, flood probability or official warning.
 - Physical below/at/above gap in metres: bankM-levelMsl. Staff-accessible original m MSL preserved as title/accessible metadata; observed time displayed explicitly.
 - Only show a fresh dominant percent when station status ok, observedAt valid/fresh within existing 3h rule, and bank/ground valid; otherwise —% and historic/missing cue.
+- A screen-reader-accessible label includes the original m MSL and observation time; new attribute text is HTML-escaped. Conflicting same-timestamp series values fail closed to unknown, exact duplicate records are collapsed without order-dependence.
 - Direction arrow is derived, never guessed: verify latest trend timestamp within 15 minutes of current observation, level within 0.05 m; prior distinct measurement between 30 minutes and 6 hours earlier. Up/down threshold 0.015 m. Otherwise —. Verified history path drawing remains exactly as before.
 - No new flood alerts, emergency actions, physical gauge inference, storage/sluice capacity metrics or fabricated sensor readings.
 
 ## Verification / release
 
-- Local Node focused 18/18; full Node 557/557 (after scoped cache test refresh).
+- Local Node focused 18/18; full Node 558/558 (after scoped cache test refresh).
 - Native Chromium 432x40 and DPR3 screenshot, six explicitly SIMULATED statuses (sample/near/at/above/stale/missing); original gate canvas animates and sparkline remains, no external API calls, no page JS errors, every reading/secondary label fits bounds and arrows do not overlap graph.
 - Chrome screenshots captured by actual source renderer with mocked UthApiClient, NOT operational measurements.
 - Gate: exact-SHA independent reviewer, GitHub hosted PR CI, expected-head merge, Pages built SHA, production HTTP byte check and public Chrome smoke without mocks. Physical LED panel and Safari verification remain separate limitations; revert targeted PR if unanticipated issues.

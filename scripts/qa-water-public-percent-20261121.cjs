@@ -53,7 +53,7 @@ function fixture(name){
      d=card.querySelector('.distance-to-bank'),arrow=card.querySelector('.preview-trend'),graph=card.querySelector('.spark'),outer=card.getBoundingClientRect(),
      rm=reading.getBoundingClientRect(),dm=d.getBoundingClientRect(),gx=graph?.getBoundingClientRect();
      const range=document.createRange();range.selectNodeContents(d);
-     return {value:big.textContent,arrow:arrow.textContent,dist:d.textContent,htmlTitle:big.getAttribute('title'),
+     return {value:big.textContent,arrow:arrow.textContent,dist:d.textContent,htmlTitle:big.getAttribute('title'),accessibleName:big.getAttribute('aria-label'),
       badge:card.querySelector('.badge').textContent,graph:!!graph,spriteFrame:card.querySelector('.water-canvas').dataset.frame,
       fitsReading:reading.scrollWidth<=reading.clientWidth+1,readingClient:reading.clientWidth,readingScroll:reading.scrollWidth,readingToGraph:gx?gx.left-rm.right:null,distInside:dm.right<=outer.right&&dm.bottom<=outer.bottom,
       distTextBottomGap:outer.bottom-range.getBoundingClientRect().bottom,
@@ -64,7 +64,7 @@ function fixture(name){
    assert.equal(r.status(),200);
    assert.deepEqual(q.canvas,[432,40]);
    assert.equal(q.a.value,scenario==='sample'?'76.1%':scenario==='near'?'94.0%':scenario==='at'?'100.0%':scenario==='above'?'103.5%':'—%');
-   if(scenario==='sample'){assert.equal(q.b.value,'71.3%');assert.equal(q.a.arrow,'↑');assert.equal(q.b.arrow,'↓');assert.ok(q.a.dist.includes('0.67'));assert.ok(q.b.dist.includes('3.82'));}
+   if(scenario==='sample'){assert.equal(q.b.value,'71.3%');assert.equal(q.a.arrow,'↑');assert.equal(q.b.arrow,'↓');assert.ok(q.a.dist.includes('0.67'));assert.ok(q.b.dist.includes('3.82'));assert.ok(q.a.accessibleName.includes('2.36 m MSL')&&q.a.accessibleName.includes('วัด'),'staff accessible level/time must be present');assert.ok(q.b.accessibleName.includes('0.88 m MSL'));}
    if(scenario==='stale'||scenario==='missing')for(const x of [q.a,q.b]){assert.equal(x.arrow,'—');assert.equal(x.value,'—%');}
    if(scenario==='above')for(const x of [q.a,q.b])assert.ok(x.dist.includes('สูงกว่าตลิ่ง'));
    for(const x of[q.a,q.b]){

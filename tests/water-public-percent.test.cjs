@@ -30,16 +30,27 @@ test('verified latest station trend arrow derives ONLY matched actual observatio
  const shortGap=st();shortGap.historyReading.trendObservedAt[0]=new Date(now-15*60000).toISOString();assert.equal(direction(shortGap,now).arrow,'—');
  const future=st();future.historyReading.trendObservedAt[1]=new Date(now+3600000).toISOString();assert.equal(direction(future,now).arrow,'—');
  assert.equal(direction({...st(),status:'missing'},now).arrow,'—');
+ const dupBase=st(),last=new Date(now-9*60000).toISOString(),prev=new Date(now-69*60000).toISOString();
+ const conflict=points=>({...dupBase,historyReading:{trendPoints:points,trendObservedAt:[prev,prev,last]}});
+ assert.equal(direction(conflict([2.46,2.25,2.36]),now).arrow,'—','conflicting earlier duplicates');
+ assert.equal(direction(conflict([2.25,2.46,2.36]),now).arrow,'—','order must not alter direction');
+ const latestConflict={...dupBase,historyReading:{trendPoints:[2.25,2.36,2.11],trendObservedAt:[prev,last,last]}};
+ assert.equal(direction(latestConflict,now).arrow,'—','conflicting last point duplicates');
+ const exact={...dupBase,historyReading:{trendPoints:[2.25,2.25,2.36],trendObservedAt:[prev,prev,last]}};
+ assert.equal(direction(exact,now).arrow,'↑','identical duplicates safely collapse');
+
 });
+const escStart=js.indexOf('function escapeMarkup('),escEnd=js.indexOf('function renderStation(',escStart);
+const escapeMarkup=Function(js.slice(escStart,escEnd)+';return escapeMarkup;')();
 const startRender=js.indexOf('function renderStation(st){'),endRender=js.indexOf('function historyPath(',startRender);
 assert.ok(startRender>=0&&endRender>startRender);
 function render(station){
  const target={innerHTML:''};
  const fakeDoc={querySelector:()=>target};
- const f=Function('document','bankIntervalPercent','observedDirection','bankBadge','trendCaption','sparkSvg',
+ const f=Function('document','bankIntervalPercent','observedDirection','bankBadge','trendCaption','sparkSvg','escapeMarkup',
   js.slice(startRender,endRender)+';return renderStation;')(
-  fakeDoc,fraction,direction,()=>({text:'ต่ำกว่าตลิ่ง',style:'unavailable'}),()=>({label:'2H / 7D',description:'Measured time range'}),()=>'<svg class="spark"></svg>');
- f({...station,el:'#stationA',id:'s1',name:'HDA004 ช่องสะเดา',observed:'ข้อมูลตรวจวัด',historyPath:'M5.0 20.0 L332.0 110.0'});
+  fakeDoc,fraction,direction,()=>({text:'ต่ำกว่าตลิ่ง',style:'unavailable'}),()=>({label:'2H / 7D',description:'Measured time range'}),()=>'<svg class="spark"></svg>',escapeMarkup);
+ f({el:'#stationA',id:'s1',name:'HDA004 ช่องสะเดา',observed:'ข้อมูลตรวจวัด',historyPath:'M5.0 20.0 L332.0 110.0',...station});
  return target.innerHTML;
 }
 test('production DOM keeps original water art, badge and 7D graph; percent is dominant and original mMSL accessible',()=>{
@@ -48,7 +59,7 @@ test('production DOM keeps original water art, badge and 7D graph; percent is do
  assert.match(html,/class="big-level"/);assert.match(html,/76\.1<span class="unit"[^>]*>%<\/span>/);
  assert.match(html,/preview-trend up/);assert.match(html,/↑/);
  assert.match(html,/distance-to-bank/);assert.match(html,/ต่ำกว่าตลิ่ง 0\.67 ม\./);
- assert.match(html,/2\.36 m MSL/);assert.match(html,/aria-label/);
+ assert.match(html,/2\.36 m MSL/);assert.match(html,/aria-label="[^"]*ระดับน้ำอ้างอิงเดิม 2\.36 m MSL[^"]*วัดตัวอย่าง/);
  assert.match(html,/class="spark"/);
  assert.match(html,/HII REFERENCE/);assert.doesNotMatch(html,/DEMO|SIMULATED|ความเสี่ยงน้ำท่วม \d+%/);
 });
@@ -79,4 +90,12 @@ test('scoped cache pins load new CSS/JS and rotated water page without altering 
  assert.match(root,/v2\/index\.html\?display=led&amp;v=20261121-water-percent-1/);
  assert.match(rot,/weather-luxury\.html\?v=20261113-led-contrast-1/);
  assert.match(rot,/pm25-live\.html\?v=20261114-pm-softfade-1/);
+});
+
+
+test('escaped observation strings do not introduce HTML attributes or user-controlled markup',()=>{
+ const x=render({...st(),observed:'วัด x" onmouseover="alert(1)<svg>'});
+ assert.doesNotMatch(x,/" onmouseover="/);
+ assert.doesNotMatch(x,/<svg>[^<]/);
+ assert.match(x,/&quot; onmouseover=&quot;alert\(1\)&lt;svg&gt;/);
 });
